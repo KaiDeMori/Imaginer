@@ -1,0 +1,247 @@
+// gallery.js – Thumbnail grid with placeholder support
+export class Gallery {
+  constructor(root, viewer) {
+    this.root = root;
+    this.viewer = viewer;
+    this.grid = document.createElement('div');
+    Object.assign(this.grid.style, {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+      gap: '8px',
+      padding: '8px'
+    });
+    this.root.appendChild(this.grid);
+    this.records_by_created = {};
+    this.loadImages();
+  }
+
+  async loadImages() {
+    let records = [];
+    if (window.sessionStore?.get_all) {
+      // Get images in ascending order (oldest first)
+      records = await window.sessionStore.get_all({ reverse: false });
+    } else {
+      records = await this.loadDummyImages();
+    }
+    // Build mapping from created timestamp to record (for id lookup)
+    this.records_by_created = {};
+    for (const rec of records) {
+      if (rec && typeof rec.created === 'number') {
+        this.records_by_created[rec.created] = rec;
+      }
+      this.addThumbnail(rec.image_blob, rec.prompt_text, rec.created);
+    }
+  }
+
+  async loadDummyImages() {
+    const count = 6;
+    const promises = [];
+    for (let i = 1; i <= count; i++) {
+      const path = `assets/dummy_pictures/${String(i).padStart(2, '0')}.png`;
+      promises.push(
+        fetch(path)
+          .then(r => (r.ok ? r.blob() : Promise.reject()))
+          .then(blob => ({ image_blob: blob }))
+          .catch(() => null)
+      );
+    }
+    return (await Promise.all(promises)).filter(Boolean);
+  }
+
+  addThumbnail(blob, promptText = '', created = null) {
+    const url = URL.createObjectURL(blob);
+    // Container for image and download button
+    const container = document.createElement('div');
+    Object.assign(container.style, {
+      position: 'relative',
+      width: '100%',
+      aspectRatio: '1 / 1',
+      display: 'block',
+    });
+
+    const imgEl = document.createElement('img');
+    imgEl.src = url;
+    Object.assign(imgEl.style, {
+      width: '100%',
+      aspectRatio: '1 / 1',
+      objectFit: 'contain',
+      cursor: 'pointer',
+      borderRadius: '4px',
+      background: '#ddd',
+      display: 'block',
+    });
+
+    imgEl.addEventListener('click', () => {
+      // Try to pass image id if available (for mask support)
+      if (typeof created === 'number' && this.records_by_created) {
+        const rec = this.records_by_created[created];
+        if (rec && rec.id !== undefined) {
+          this.viewer.open(blob, { image_id: rec.id });
+          return;
+        }
+      }
+      this.viewer.open(blob);
+    });
+
+    // Download button (upper left)
+    const btnDownload = document.createElement('button');
+    btnDownload.textContent = '⬇️';
+    Object.assign(btnDownload.style, {
+      position: 'absolute',
+      top: '6px',
+      left: '6px',
+      zIndex: 2,
+      background: '#fff',
+      border: 'none',
+      borderRadius: '4px',
+      padding: '2px 6px',
+      fontSize: '1.1rem',
+      cursor: 'pointer',
+      opacity: 0,
+      transition: 'opacity 0.1s',
+    });
+    btnDownload.title = 'Download image';
+
+    // Download logic
+    btnDownload.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Generate filename: first 20 chars of prompt, plus timestamp
+      let base = (promptText || 'image').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '').slice(0, 20);
+      if (!base) base = 'image';
+      const ts = created ? String(created) : String(Math.floor(Date.now() / 1000));
+      const filename = `${base}_${ts}.png`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 100);
+    });
+
+    // Prompt-to-box button (upper right)
+    const btnPrompt = document.createElement('button');
+    btnPrompt.textContent = '💬';
+    Object.assign(btnPrompt.style, {
+      position: 'absolute',
+      top: '6px',
+      right: '6px',
+      zIndex: 2,
+      background: '#fff',
+      border: 'none',
+      borderRadius: '4px',
+      padding: '2px 6px',
+      fontSize: '1.1rem',
+      cursor: 'pointer',
+      opacity: 0,
+      transition: 'opacity 0.1s',
+    });
+    btnPrompt.title = 'Load this prompt into the prompt box';
+
+    btnPrompt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Find the prompt input box and set its value
+      const promptInput = document.querySelector('#prompt-input');
+      if (promptInput) {
+        promptInput.value = promptText || '';
+        // Save to localStorage for persistence
+        localStorage.setItem('imaginer_prompt', promptText || '');
+        // Optionally, trigger input event for listeners
+        promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+
+    // Show buttons on hover
+    container.addEventListener('mouseenter', () => {
+      btnDownload.style.opacity = 1;
+      btnPrompt.style.opacity = 1;
+    });
+    container.addEventListener('mouseleave', () => {
+      btnDownload.style.opacity = 0;
+      btnPrompt.style.opacity = 0;
+    });
+
+    container.appendChild(imgEl);
+    container.appendChild(btnDownload);
+    container.appendChild(btnPrompt);
+
+    // --- Insert at the beginning to keep descending order ---
+    if (this.grid.firstChild) {
+      this.grid.insertBefore(container, this.grid.firstChild);
+    } else {
+      this.grid.appendChild(container);
+    }
+  }
+
+  addPlaceholder(startTime = Math.floor(Date.now() / 1000)) {
+    const placeholder = document.createElement('div');
+    Object.assign(placeholder.style, {
+      width: '100%',
+      aspectRatio: '1 / 1',
+      background: '#ccc',
+      borderRadius: '4px',
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    });
+    // Timer element
+    const timer = document.createElement('span');
+    Object.assign(timer.style, {
+      position: 'absolute',
+      bottom: '6px',
+      right: '8px',
+      fontSize: '0.85rem',
+      color: '#555',
+      background: 'rgba(255,255,255,0.7)',
+      borderRadius: '3px',
+      padding: '1px 5px',
+      fontFamily: 'monospace',
+      zIndex: 2
+    });
+    placeholder.appendChild(timer);
+    placeholder._timer = timer;
+    placeholder._startTime = startTime;
+    this.grid.prepend(placeholder);
+    Gallery._activePlaceholders = Gallery._activePlaceholders || [];
+    Gallery._activePlaceholders.push(placeholder);
+    Gallery._ensureTimerInterval();
+    return placeholder;
+  }
+
+  update_placeholder(placeholder, blob, isError = false, promptText = '', created = null) {
+    // Remove timer interval tracking for this placeholder
+    if (Gallery._activePlaceholders) {
+      const idx = Gallery._activePlaceholders.indexOf(placeholder);
+      if (idx !== -1) Gallery._activePlaceholders.splice(idx, 1);
+    }
+    if (isError) {
+      placeholder.style.background = '#f88';
+      // Remove timer if present
+      if (placeholder._timer) placeholder._timer.remove();
+      return;
+    }
+    // Replace placeholder with a thumbnail (with download button)
+    this.addThumbnail(blob, promptText, created);
+    placeholder.remove();
+  }
+
+  // --- Timer update logic (static, shared for all Gallery instances) ---
+  static _ensureTimerInterval() {
+    if (Gallery._timerInterval) return;
+    Gallery._timerInterval = setInterval(() => {
+      if (!Gallery._activePlaceholders || Gallery._activePlaceholders.length === 0) {
+        clearInterval(Gallery._timerInterval);
+        Gallery._timerInterval = null;
+        return;
+      }
+      const now = Math.floor(Date.now() / 1000);
+      for (const ph of Gallery._activePlaceholders) {
+        if (!ph._timer || !ph._startTime) continue;
+        const elapsed = Math.max(0, now - ph._startTime);
+        const min = Math.floor(elapsed / 60);
+        const sec = elapsed % 60;
+        ph._timer.textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+      }
+    }, 1000);
+  }
+}

@@ -1,0 +1,63 @@
+eslint_output.txt
+###############################
+# Node & Editor Junk
+###############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.env*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.git/
+.github/
+.VSCodeCounter/
+
+###############################
+# Build & Temp Files
+###############################
+dist/
+build/
+tmp/
+temp/
+*.tmp
+*.log
+*.bak
+*.swp
+*.swo
+*.swn
+*.orig
+*.rej
+
+###############################
+# System Files
+###############################
+ehthumbs.db
+Desktop.ini
+
+###############################
+# Project-specific
+###############################
+eslint_output.txt
+eslint.config.js
+filelist.txt
+Imaginer_Project.md
+project_status.md
+png metadata.md
+assets/image_sizes.png
+api_trials/
+png_exif/add_exif_chunk_to_png.js
+png_exif/add_EXIF_UserComment_to_png.js
+png_exif/exif_usercomment.js
+png_exif/png_exif.md
+png_exif/test_png_exif.html
+png_itxt/test_png_itxt.html
+png_XMP_via_iTXt/demo-xmp-embedder.html
+png_XMP_via_iTXt/XMP embedded via iTXt.md
+strip_metadata_from_PNG/demo_strip_metadata.html
+refactoring_steps.md

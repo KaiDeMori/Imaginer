@@ -1,0 +1,79 @@
+/* main.css – Minimal layout for Imaginer (unnecessary fluff removed) */
+
+html, body {
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  background: rgb(247, 247, 250);
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Menu Bar ──────────────────────────────────────────────────────────── */
+#menu-bar {
+  height: 48px;
+  background: rgb(255, 255, 255);
+  border-bottom: 1px solid rgb(224, 224, 224);
+  display: flex;
+  align-items: center;
+  padding: 0px 16px;
+  z-index: 2;
+}
+
+/* ── Main Content Area (Gallery | Divider | Prompt) ───────────────────── */
+#main-content {
+  display: flex;
+  min-height: 0px; /* prevent flex overflow */
+  flex: 1 1 auto;
+}
+
+/* Gallery pane – resizable via JS */
+#gallery {
+  width: 260px;  /* initial width */
+  min-width: 180px;  /* ensure thumbnails stay visible */
+  background: rgb(240, 241, 245);
+  border-right: 1px solid rgb(224, 224, 224);
+  overflow-y: auto;
+}
+
+/* Draggable divider */
+#divider {
+  width: 6px;
+  cursor: col-resize;
+  background: rgb(224, 224, 224);
+  z-index: 1;
+}
+
+/* Prompt panel */
+#prompt-panel {
+  flex: 1 1 0px;
+  background: rgb(255, 255, 255);
+  overflow-y: auto;
+  /* Remove all padding and margin */
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#prompt-input {
+  padding: 6px 8px;
+}
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,319 @@
+// app.js - Root application logic (updated with image generation logic)
+
+import { Menu_bar } from './components/menu_bar.js';
+import { Resizable_divider } from './components/resizable_divider.js';
+import { Gallery } from './components/gallery.js';
+import { Prompt_panel } from './components/prompt_panel.js';
+import { Viewer } from './components/viewer/viewer.js';
+import { Session_store } from './storage/session_store.js';
+import { Error_modal } from './components/error_modal.js';
+import { strip_metadata_from_PNG } from './strip_metadata_from_PNG/strip_metadata_from_PNG.js';
+import { add_iTXt_chunk_to_png } from './png_iTXt/png_iTXt.js';
+import { embed_XMP_description } from './png_XMP_via_iTXt/png-XMP-embedder.js';
+
+const session_store = new Session_store();
+window.sessionStore = session_store;
+
+// Mount components
+window.addEventListener('DOMContentLoaded', () => {
+  // --- Check for API key on load (using scrambled key logic) ---
+  import('./storage/session_store.js').then(({ Session_store }) => {
+    const apiKey = Session_store.get_api_key();
+    if (!apiKey) {
+      // Show a message and open the config dialog
+      const msg = document.createElement('div');
+      msg.textContent = 'No OpenAI API key found. Please enter your API key to use Imaginer.';
+      Object.assign(msg.style, {
+        position: 'fixed',
+        top: '24px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: '#fffbe6',
+        color: '#b26a00',
+        border: '1px solid #ffe58f',
+        borderRadius: '6px',
+        padding: '12px 24px',
+        zIndex: 2000,
+        fontSize: '1.1rem',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
+      });
+      document.body.appendChild(msg);
+      // Dynamically import and open config dialog
+      import('./components/config_dialog.js').then(({ Config_dialog }) => {
+        const cfg = new Config_dialog(() => {
+          msg.remove();
+          window.dispatchEvent(new Event('imaginer.config_changed'));
+        });
+        cfg.open();
+      });
+    }
+  });
+
+  // Initialize the menu bar component, which handles the application's top navigation menu.
+  const menu_bar = new Menu_bar(document.getElementById('menu-bar'));
+
+  const viewer = new Viewer();
+  const gallery = new Gallery(document.getElementById('gallery'), viewer);
+  // Initialize the resizable divider component, which allows resizing between the gallery and prompt panel.
+  const divider = new Resizable_divider(
+    document.getElementById('divider'),
+    document.getElementById('gallery'),
+    document.getElementById('prompt-panel')
+  );
+
+  let activeGenerations = 0;
+  function get_maximum_parallel_generations() {
+    return parseInt(localStorage.getItem('imaginer.max_parallel_generations'), 10) || 3;
+  }
+
+  function update_generate_button() {
+    const max = get_maximum_parallel_generations();
+    prompt_panel.set_generate_button_enabled(activeGenerations < max);
+  }
+
+
+  // --- Cool-down state for generate button ---
+  let generate_cooldown = false;
+
+  const prompt_panel = new Prompt_panel(document.getElementById('prompt-panel'), async (promptText, embedOptions = {}) => {
+    const max = get_maximum_parallel_generations();
+    if (activeGenerations >= max || generate_cooldown) {
+      prompt_panel.set_generate_button_enabled(false);
+      return;
+    }
+    activeGenerations++;
+    update_generate_button();
+
+    // Start cool-down (600ms)
+    generate_cooldown = true;
+    prompt_panel.set_generate_button_enabled(false);
+    setTimeout(() => {
+      generate_cooldown = false;
+      update_generate_button();
+    }, 600);
+
+    // Read n before using it for placeholders
+    // Read n before using it for placeholders (declare once at top of function)
+    let n_local = parseInt(localStorage.getItem('imaginer.n'), 10);
+    if (isNaN(n_local) || n_local < 1) n_local = 1;
+    if (n_local > 10) n_local = 10;
+    // Add as many placeholders as images requested (for smoother UX)
+    const placeholders = [];
+    for (let i = 0; i < n_local; i++) {
+      placeholders.push(gallery.addPlaceholder());
+    }
+
+    // --- Read orientation, transparency, quality, and n from localStorage (set by menu bar/config) ---
+    // See OpenAI API docs:
+    //   - 'size' param: 1024x1024 (square), 1536x1024 (landscape), 1024x1536 (portrait)
+    //   - 'background' param: 'transparent', 'opaque', or 'auto' (default)
+    //   - 'quality' param: high, medium, low, auto, or null (for gpt-image-1)
+    //   - 'n' param: number of images to generate (1-10)
+    const size = localStorage.getItem('imaginer.image_size') || '1024x1024';
+    const background = localStorage.getItem('imaginer.background') || 'auto';
+    let quality = localStorage.getItem('imaginer.quality');
+    if (quality === null || quality === undefined) quality = 'auto';
+    if (quality === '') quality = null;
+    let n = parseInt(localStorage.getItem('imaginer.n'), 10);
+    if (isNaN(n) || n < 1) n = 1;
+    if (n > 10) n = 10;
+
+    try {
+      const request_body = {
+        model: "gpt-image-1",
+        prompt: promptText,
+        n: n_local,
+        size,
+        // Only add quality if not null or 'auto' (let API default if auto)
+        ...(quality !== null && quality !== 'auto' ? { quality } : {}),
+        // Only add background param if not default
+        ...(background !== 'auto' ? { background } : {})
+      };
+      // If user explicitly chose null (empty string), set quality: null
+      if (quality === null) request_body.quality = null;
+
+      const response = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Session_store.get_api_key()}`
+        },
+        body: JSON.stringify(request_body)
+      });
+
+      if (!response.ok) {
+        let errObj = null;
+        try {
+          errObj = await response.json();
+        } catch (_) {
+          errObj = { message: `API request failed: ${response.status} ${response.statusText}` };
+        }
+        Error_modal.show(errObj);
+        gallery.update_placeholder(placeholder, null, true);
+        return;
+      }
+
+      const data = await response.json();
+      if (!Array.isArray(data.data) || data.data.length === 0) {
+        Error_modal.show({ message: 'No images returned from API.' });
+        gallery.update_placeholder(placeholder, null, true);
+        return;
+      }
+
+      // If n > 1, add all images to gallery, else use placeholder logic
+      const created = Math.floor(Date.now() / 1000);
+      if (data.data.length === 1) {
+        // --- Single image (original logic) ---
+        let base64Data = data.data[0].b64_json;
+        let blob = await fetch(`data:image/png;base64,${base64Data}`).then(res => res.blob());
+
+        // Optionally strip metadata if enabled in config
+        const strip_metadata = localStorage.getItem('imaginer.strip_metadata') === 'true';
+        if (strip_metadata) {
+          const arrayBuffer = await blob.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          try {
+            blob = strip_metadata_from_PNG(uint8Array);
+          } catch (err) {
+            console.warn('Failed to strip PNG metadata:', err);
+          }
+        }
+
+        // Optionally add prompt to image if enabled in config
+        const embed_itxt = embedOptions.embed_itxt ?? (localStorage.getItem('imaginer.add_prompt_to_image') === 'true');
+        const embed_xmp = embedOptions.embed_xmp ?? (localStorage.getItem('imaginer.add_prompt_to_image_xmp') === 'true');
+        if (embed_itxt || embed_xmp) {
+          const reader = new FileReader();
+          const data_url = await new Promise((resolve, reject) => {
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          try {
+            if (embed_itxt) {
+              blob = await add_iTXt_chunk_to_png(data_url, promptText, 'prompt_text');
+            }
+            if (embed_xmp) {
+              blob = await embed_XMP_description(
+                embed_itxt ? await (async () => {
+                  const r2 = new FileReader();
+                  return await new Promise((resolve, reject) => {
+                    r2.onload = () => resolve(r2.result);
+                    r2.onerror = reject;
+                    r2.readAsDataURL(blob);
+                  });
+                })() : data_url,
+                promptText
+              );
+            }
+          } catch (err) {
+            console.warn('Failed to embed prompt metadata:', err);
+          }
+        }
+
+        await session_store.save({
+          created,
+          image_blob: blob,
+          prompt_text: promptText,
+          prompt_imgs: []
+        });
+        // Update the first placeholder, remove any extras
+        gallery.update_placeholder(placeholders[0], blob, false, promptText, created);
+        for (let i = 1; i < placeholders.length; i++) {
+          if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
+        }
+      } else {
+        // --- Multiple images ---
+        // Update each placeholder with the corresponding image, or remove if not enough images returned
+        for (let i = 0; i < data.data.length; i++) {
+          let base64Data = data.data[i].b64_json;
+          let blob = await fetch(`data:image/png;base64,${base64Data}`).then(res => res.blob());
+
+          // Optionally strip metadata if enabled in config
+          const strip_metadata = localStorage.getItem('imaginer.strip_metadata') === 'true';
+          if (strip_metadata) {
+            const arrayBuffer = await blob.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            try {
+              blob = strip_metadata_from_PNG(uint8Array);
+            } catch (err) {
+              console.warn('Failed to strip PNG metadata:', err);
+            }
+          }
+
+          // Optionally add prompt to image if enabled in config
+          const embed_itxt = embedOptions.embed_itxt ?? (localStorage.getItem('imaginer.add_prompt_to_image') === 'true');
+          const embed_xmp = embedOptions.embed_xmp ?? (localStorage.getItem('imaginer.add_prompt_to_image_xmp') === 'true');
+          if (embed_itxt || embed_xmp) {
+            const reader = new FileReader();
+            const data_url = await new Promise((resolve, reject) => {
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            try {
+              if (embed_itxt) {
+                blob = await add_iTXt_chunk_to_png(data_url, promptText, 'prompt_text');
+              }
+              if (embed_xmp) {
+                blob = await embed_XMP_description(
+                  embed_itxt ? await (async () => {
+                    const r2 = new FileReader();
+                    return await new Promise((resolve, reject) => {
+                      r2.onload = () => resolve(r2.result);
+                      r2.onerror = reject;
+                      r2.readAsDataURL(blob);
+                    });
+                  })() : data_url,
+                  promptText
+                );
+              }
+            } catch (err) {
+              console.warn('Failed to embed prompt metadata:', err);
+            }
+          }
+
+          await session_store.save({
+            created,
+            image_blob: blob,
+            prompt_text: promptText,
+            prompt_imgs: []
+          });
+          if (placeholders[i]) {
+            gallery.update_placeholder(placeholders[i], blob, false, promptText, created);
+          } else {
+            gallery.addThumbnail(blob, promptText, created);
+          }
+        }
+        // Remove any extra placeholders if fewer images returned than requested
+        for (let i = data.data.length; i < placeholders.length; i++) {
+          if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
+        }
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+      Error_modal.show(error && error.message ? error.message : error);
+      // Remove all placeholders on error
+      for (const ph of placeholders) {
+        if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+      }
+    } finally {
+      activeGenerations--;
+      update_generate_button();
+    }
+  });
+
+  // Listen for config changes from the config dialog (immediate effect)
+  window.addEventListener('imaginer.config_changed', (e) => {
+    update_generate_button();
+  });
+
+  // Still listen for storage events (e.g. multi-tab)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'imaginer.max_parallel_generations') {
+      update_generate_button();
+    }
+  });
+
+  update_generate_button();
+});
