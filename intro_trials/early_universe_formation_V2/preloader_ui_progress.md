@@ -3,8 +3,8 @@
 *(This file — **preloader_ui_progress.md** — is a living checklist that tracks the implementation status of step 1 in our plan: **Build preloader module & seed UI**. Update the check-boxes as subtasks are completed.)*
 
 ## Task List
-
-- [ ] Create a consolidated **asset_manifest** listing all image filenames required for the animation.
+- [x] Generate empty file stubs for preloader and seed UI modules (e.g., `preloader_module.js`, `seed_ui_panel.js`).
+- [x] Create a consolidated **asset_manifest** listing all image filenames required for the animation.
 - [ ] Implement `load_and_decode_images()` that:
   - [ ] Instantiates a new `Image()` for each entry in **asset_manifest**.
   - [ ] Waits for `img.decode()` to complete.

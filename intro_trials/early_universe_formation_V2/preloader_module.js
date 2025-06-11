@@ -1,0 +1,151 @@
+"use strict";
+/*
+Preloader module – Early Universe Formation (V2)
+------------------------------------------------
+Implements deterministic image pre-loading / decoding and exposes a
+`load_and_decode_images` promise that resolves to a `Map<string, ImageBitmap>`
+containing the fully prepared bitmaps.
+
+The module is framework-free and intended to be included **before** any other
+rendering logic. After the returned promise settles, other modules can safely
+assume that every texture is ready for instantaneous use.
+*/
+
+// ---------------------------------------------------------------------------------
+// 1. Asset manifest (deterministic, consolidated list) -----------------------------
+// ---------------------------------------------------------------------------------
+
+// Utility to create zero-padded numbers e.g. pad("01", 2) => "01"
+function pad(num, len = 2) {
+  return String(num).padStart(len, "0");
+}
+
+// Generate manifest lists programmatically to avoid manual typos. ------------------
+const asset_manifest = (() => {
+  const base = "assets/ai_universe";
+  const list = [];
+
+  // Cosmic fog (5 textures)
+  for (let i = 1; i <= 5; i++) {
+    list.push(`${base}/cosmic_fog/big_${pad(i)}.png`);
+  }
+
+  // Galaxy streams – standard (4) + big (6)
+  for (let i = 1; i <= 4; i++) {
+    list.push(`${base}/galaxy_streams/${pad(i)}.png`);
+  }
+  for (let i = 1; i <= 6; i++) {
+    list.push(`${base}/galaxy_streams/big_${pad(i)}.png`);
+  }
+
+  // Nebulae – regular (9) + big (4)
+  for (let i = 1; i <= 9; i++) {
+    list.push(`${base}/nebulae/${pad(i)}.png`);
+  }
+  for (let i = 1; i <= 4; i++) {
+    list.push(`${base}/nebulae/big_${pad(i)}.png`);
+  }
+
+  // Star clusters (3)
+  for (let i = 1; i <= 3; i++) {
+    list.push(`${base}/star_clusters/big_${pad(i)}.png`);
+  }
+
+  // Planet hero texture
+  list.push(`${base}/alien_planet/planet_totale.png`);
+
+  return list;
+})();
+
+// Freeze to guard against accidental mutation.
+Object.freeze(asset_manifest);
+
+// ---------------------------------------------------------------------------------
+// 2. Internal state ---------------------------------------------------------------
+// ---------------------------------------------------------------------------------
+
+// Holds mapping of `url -> ImageBitmap` after decoding / conversion.
+const preloaded_bitmaps = new Map();
+
+// Simple progress helpers
+let _progress_callback = null; // (loadedCount, totalCount) => void
+
+function _fire_progress(loaded, total) {
+  if (typeof _progress_callback === "function") {
+    try { _progress_callback(loaded, total); } catch (_) { /* swallow */ }
+  }
+}
+
+// ---------------------------------------------------------------------------------
+// 3. Public: load_and_decode_images -----------------------------------------------
+// ---------------------------------------------------------------------------------
+
+/**
+ * Preloads every asset defined in `asset_manifest`, waits for decode, converts
+ * to `ImageBitmap`, and stores the result in `preloaded_bitmaps`.
+ *
+ * @param {Function} [onProgress] – Optional callback `(loadedCount, totalCount)`
+ *                                  fired after each successful image decode.
+ * @returns {Promise<Map<string, ImageBitmap>>} – Resolves when all assets are
+ *                                               decoded + converted.
+ */
+function load_and_decode_images(onProgress) {
+  _progress_callback = typeof onProgress === "function" ? onProgress : null;
+
+  const total = asset_manifest.length;
+  let loaded = 0;
+
+  const loaders = asset_manifest.map(src => new Promise((resolve, reject) => {
+    const img = new Image();
+
+    // CORS note: if the assets are served with proper CORS headers, you may
+    // uncomment the following line. For same-origin setups it is unnecessary.
+    // img.crossOrigin = "anonymous";
+
+    img.src = src;
+
+    // Generic error listener ------------------------------------------------------
+    function _on_error(err) {
+      console.error(`[Preloader] Failed to load: ${src}`, err);
+      // We keep the reference to avoid memory leaks.
+      img.remove();
+      reject(err || new Error(`Image failed to load: ${src}`));
+    }
+
+    img.onerror = _on_error;
+
+    // Start the decode pipeline ---------------------------------------------------
+    // Some browsers require explicit wait on load event before decode(); others
+    // resolve immediately. We guard with a catch.
+    const decode_promise = (img.decode ? img.decode() : Promise.resolve())
+      .catch(() => new Promise(res => img.addEventListener("load", res)));
+
+    decode_promise
+      .then(() => createImageBitmap(img))
+      .then(bitmap => {
+        preloaded_bitmaps.set(src, bitmap);
+        // Keep memory usage low – the <img> element isn't needed post-decode.
+        img.remove();
+        loaded += 1;
+        _fire_progress(loaded, total);
+        resolve(bitmap);
+      })
+      .catch(_on_error);
+  }));
+
+  return Promise.all(loaders).then(() => preloaded_bitmaps);
+}
+
+// ---------------------------------------------------------------------------------
+// 4. Debug / Dev helpers -----------------------------------------------------------
+// ---------------------------------------------------------------------------------
+
+if (typeof window !== "undefined") {
+  window.preloader_module = {
+    asset_manifest,
+    preloaded_bitmaps,
+    load_and_decode_images,
+  };
+}
+
+export { asset_manifest, preloaded_bitmaps, load_and_decode_images };

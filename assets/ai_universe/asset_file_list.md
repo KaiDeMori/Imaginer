@@ -3,11 +3,17 @@
 
 This file lists the filenames for each asset category in the project, along with optional notes for each file or group.
 
+# location
+all assets are stored in /assets/ai_universe/
+this file is stored in /assets/ai_universe/assets_file_list.md
+
 ---
 
 
 
+
 ## nebulae
+_Path: /assets/ai_universe/nebulae/_
 - 01.png
 - 02.png
 - 03.png
@@ -25,7 +31,9 @@ This file lists the filenames for each asset category in the project, along with
 _Notes: Files 01-09 are standard nebulae. Files big_01 to big_04 are larger or more detailed variants._
 
 
+
 ## galaxy_streams
+_Path: /assets/ai_universe/galaxy_streams/_
 - 01.png
 - 02.png
 - 03.png
@@ -41,7 +49,9 @@ _Notes: Files 01-04 are standard galaxy streams. Files big_01 to big_06 are larg
 
 
 
+
 ## cosmic_fog
+_Path: /assets/ai_universe/cosmic_fog/_
 - big_01.png
 - big_02.png
 - big_03.png
@@ -52,14 +62,18 @@ _Notes: Files big_01 to big_05 are large or detailed cosmic fog PNGs._
 
 
 
+
 ## star_clusters
+_Path: /assets/ai_universe/star_clusters/_
 - big_01.png
 - big_02.png
 - big_03.png
 
 _Notes: Files big_01 to big_03 are large or detailed star cluster PNGs._
 
+
 ## alien_planet
+_Path: /assets/ai_universe/alien_planet/_
 - planet_totale.png
 
 

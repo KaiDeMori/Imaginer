@@ -22,15 +22,15 @@ The entire sequence must be deterministic, repeatable, and artefact-free.
 
 ---
 
-## 2. Assets Overview (see `asset_file_list.md`)
+## 2. Assets Overview (full paths + descriptions)
 
-| Layer          | Files                                                        |
-|----------------|--------------------------------------------------------------|
-| Cosmic fog     | `big_01‒05.png`                                              |
-| Galaxy streams | `01‒04.png`, `big_01‒06.png`                                 |
-| Nebulae        | `01‒09.png`, `big_01‒04.png`                                 |
-| Star clusters  | `big_01‒03.png`                                              |
-| Planet         | `planet_totale.png`                                          |
+| Layer          | Relative Path(s)                                                                                                                                                                               | Description / Notes                                                             |
+|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| Cosmic fog     | `assets/ai_universe/cosmic_fog/big_01.png` … `assets/ai_universe/cosmic_fog/big_05.png`                                                                                                        | 5 large, translucent fog sprites—used for the very first parallax pass-through. |
+| Galaxy streams | `assets/ai_universe/galaxy_streams/01.png` … `assets/ai_universe/galaxy_streams/04.png`<br>`assets/ai_universe/galaxy_streams/big_01.png` … `assets/ai_universe/galaxy_streams/big_06.png`     | 4 standard + 6 big sweeping galaxy-arm textures for mid-range depth.            |
+| Nebulae        | `assets/ai_universe/nebulae/01.png` … `assets/ai_universe/nebulae/09.png`<br>`assets/ai_universe/nebulae/big_01.png` … `assets/ai_universe/nebulae/big_04.png`                                | 9 regular + 4 extra-large coloured nebula clouds for the rich mid-zoom layers. |
+| Star clusters  | `assets/ai_universe/star_clusters/big_01.png` … `assets/ai_universe/star_clusters/big_03.png`                                                                                                  | 3 dense star-cluster mattes; we zoom through and finally into one of these.     |
+| Planet         | `assets/ai_universe/alien_planet/planet_totale.png`                                                                                                                                            | Final hero planet that fills the screen at the end of the sequence.             |
 
 All assets are transparent PNGs with stars / alpha edges so they can be stacked.
 
@@ -134,6 +134,8 @@ UI: a small fixed `<div>` shows the current seed, with a **regenerate** button t
 early_universe_formation_V2.html
 early_universe_formation_V2.css
 early_universe_formation_V2.js
+preloader_module.js   # Handles image preloading and decoding
+seed_ui_panel.js      # Manages seed display and regeneration UI
 assets/ (pngs)
 ```
 
@@ -198,4 +200,3 @@ Mobile-specific risks have been removed per desktop-only target.
 • `session_store.js`
 
 **Summary:** Use loose_snake_case for all names, keep abbreviations and conventions as normally capitalized, and prefer full English words over abbreviations.
-
