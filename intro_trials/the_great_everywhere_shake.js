@@ -208,9 +208,27 @@ document.addEventListener('DOMContentLoaded', function() {
         if (whiteout_complete) {
             ctx.save();
             ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.filter = 'none';
+            ctx.clearRect(0, 0, explosion_canvas.width, explosion_canvas.height);
             ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, explosion_canvas.width, explosion_canvas.height);
             ctx.restore();
+            // Remove all effects from the text overlay after a 2 second delay
+            setTimeout(function() {
+                const everything_fade_text = document.getElementById('everything_fade_text');
+                if (everything_fade_text) {
+                    everything_fade_text.style.opacity = '0';
+                    everything_fade_text.style.filter = 'none';
+                    everything_fade_text.style.textShadow = 'none';
+                    everything_fade_text.style.display = 'none';
+                    const text_span = everything_fade_text.querySelector('.everything_bloom_text');
+                    if (text_span) {
+                        text_span.style.filter = 'none';
+                        text_span.style.textShadow = 'none';
+                    }
+                }
+            }, 2000);
             return;
         }
         if (whiteout_start_time !== null) {
@@ -219,12 +237,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 whiteout_complete = true;
                 ctx.save();
                 ctx.globalAlpha = 1;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.filter = 'none';
+                ctx.clearRect(0, 0, explosion_canvas.width, explosion_canvas.height);
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(0, 0, explosion_canvas.width, explosion_canvas.height);
                 ctx.restore();
+                // Remove all effects from the text overlay after a 2 second delay
+                setTimeout(function() {
+                    const everything_fade_text = document.getElementById('everything_fade_text');
+                    if (everything_fade_text) {
+                        everything_fade_text.style.opacity = '0';
+                        everything_fade_text.style.filter = 'none';
+                        everything_fade_text.style.textShadow = 'none';
+                        everything_fade_text.style.display = 'none';
+                        const text_span = everything_fade_text.querySelector('.everything_bloom_text');
+                        if (text_span) {
+                            text_span.style.filter = 'none';
+                            text_span.style.textShadow = 'none';
+                        }
+                    }
+                }, 2000);
             } else if (whiteout_progress > 0) {
                 ctx.save();
                 ctx.globalAlpha = whiteout_progress;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.filter = 'none';
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(0, 0, explosion_canvas.width, explosion_canvas.height);
                 ctx.globalAlpha = 1;
@@ -241,6 +279,48 @@ document.addEventListener('DOMContentLoaded', function() {
         const start_time = performance.now();
 
         let whiteout_frame_drawn = false;
+        let glow_reduction_started = false;
+        let glow_reduction_start_time = null;
+        const GLOW_REDUCTION_DURATION = 1200; // ms
+
+        // Animate the reduction of the text glow (no font size change)
+        function reduce_text_glow(now) {
+            const everything_fade_text = document.getElementById('everything_fade_text');
+            if (!everything_fade_text) return;
+            const text_span = everything_fade_text.querySelector('.everything_bloom_text');
+            if (!text_span) return;
+            if (!glow_reduction_start_time) glow_reduction_start_time = now;
+            const elapsed = now - glow_reduction_start_time;
+            const progress = Math.min(1, elapsed / GLOW_REDUCTION_DURATION);
+
+            // Interpolate shadow/blur from original to minimal
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            const shadow_vals = [8, 16, 32, 64, 128, 16, 32, 4, 2];
+            const min_vals = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+            const colors = ['#fff', '#f0f', '#f0f', '#f0f', '#f0f', '#000', '#fff2', '#fff', '#fff'];
+            let shadow_str = '';
+            for (let i = 0; i < shadow_vals.length; ++i) {
+                const px = lerp(shadow_vals[i], min_vals[i], progress);
+                shadow_str += `0 0 ${px}px ${colors[i]}`;
+                if (i < shadow_vals.length - 1) shadow_str += ', ';
+            }
+            // Also reduce filter blur and brightness
+            const blur = lerp(0.2, 0, progress);
+            const brightness = lerp(1.3, 1, progress);
+            const saturate = lerp(1.8, 1, progress);
+            text_span.style.textShadow = shadow_str;
+            text_span.style.filter = `brightness(${brightness}) saturate(${saturate}) blur(${blur}px)`;
+
+            // Remove all effects and hide text exactly at the end of the bloom reduction
+            if (progress === 1) {
+                everything_fade_text.style.opacity = '0';
+                everything_fade_text.style.filter = 'none';
+                everything_fade_text.style.textShadow = 'none';
+                everything_fade_text.style.display = 'none';
+                text_span.style.filter = 'none';
+                text_span.style.textShadow = 'none';
+            }
+        }
 
         function animate(now) {
             const elapsed = now - start_time;
@@ -294,6 +374,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 requestAnimationFrame(animate);
                 return;
             }
+
+            // After whiteout is fully complete and frame drawn, start reducing the text glow
+            if (whiteout_complete && whiteout_frame_drawn) {
+                if (!glow_reduction_started) {
+                    glow_reduction_started = true;
+                    glow_reduction_start_time = null;
+                }
+                reduce_text_glow(now);
+                // Continue animating until glow is fully reduced
+                if (!glow_reduction_start_time || (now - glow_reduction_start_time) < GLOW_REDUCTION_DURATION) {
+                    requestAnimationFrame(animate);
+                }
+                return;
+            }
+
             if (do_animate || !whiteout_complete || !whiteout_frame_drawn) {
                 requestAnimationFrame(animate);
             }
