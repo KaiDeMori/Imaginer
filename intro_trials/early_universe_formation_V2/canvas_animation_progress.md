@@ -3,8 +3,10 @@
 *(This file — **canvas_animation_progress.md** — is a living checklist that tracks the implementation status of **Step 2** in our overall roadmap: **Implement the Canvas animation prototype**.  Update the check-boxes as subtasks are completed.)*
 
 ## Current Status Summary
-✅  Wire-up & Bootstrapping completed.
-✅  Placeholder cosmic-fog animation validated. Proceeding to hi-DPI scaling verification.
+✅  Wire-up & Bootstrapping completed.  
+✅  Placeholder cosmic-fog animation validated.  
+✅  Hi-DPI scaling validation integrated & manually verified.  
+✅  Average FPS sampling & console reporting integrated.
 
 ---
 
@@ -18,8 +20,8 @@
 
 ### 2 · Placeholder Animation Validation
 - [x] Validate that the deterministic cosmic-fog sprite appears and animates (zoom-in / zoom-out cycle).
-- [ ] Confirm hi-DPI scaling behaviour on window resize.
-- [ ] Confirm a steady ≥ 60 fps on desktop test hardware; log an average FPS sample to the console.
+- [x] Confirm hi-DPI scaling behaviour on window resize.
+- [x] Confirm a steady ≥ 60 fps on desktop test hardware; log an average FPS sample to the console.
 
 ### 3 · Deterministic Asset Selection
 - [ ] Replace the current “first matching fog sprite” heuristic with a **seeded random pick** using `rand()` so that each seed yields a repeatable fog texture choice.

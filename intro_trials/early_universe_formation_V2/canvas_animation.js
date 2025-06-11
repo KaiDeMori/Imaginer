@@ -11,14 +11,22 @@ validate the rendering pipeline end-to-end:
   • No timeline yet – the goal is just to confirm that ImageBitmaps
     blit correctly and that the frame loop is stable.
 
-Added in this revision (for Task 2 · Placeholder Animation Validation →
-"Confirm hi-DPI scaling behaviour on window resize"):
-  • A built-in validation helper that checks the canvas backing-store
-    size and the 2D context transform after every resize / DPR change.
-    A concise ✅ / ⚠︎ console message is emitted so manual testers can
-    instantly verify correct scaling.
+Added in this revision (for Task 3 · Deterministic Asset Selection):
+  • Replaced the previous *"first match"* heuristic for selecting a
+    cosmic-fog sprite by a **seeded random pick** using the global
+    `rand()` helper provided by `deterministic_rng.js`.  This ensures
+    that for a given seed the exact same fog texture will always be
+    chosen – which is essential once we start recording / replaying
+    shot-flows.
 */
 
+// ---------------------------------------------------------------------------
+// Imports --------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+import { rand } from "./deterministic_rng.js";
+
+// Note: UniverseAnimator is exported at the bottom so that other modules can
+//       import it as a classical ES module.
 export class UniverseAnimator {
   /**
    * @param {HTMLCanvasElement} canvas_el   – target canvas (will be sized to window)
@@ -32,17 +40,28 @@ export class UniverseAnimator {
     this.bitmaps_map = bitmaps_map;
 
     // ---------------------------------------------------------------------
-    // Pick a deterministic *cosmic fog* bitmap for the placeholder.
-    // We use the first asset that matches the folder path.
+    // Deterministic *cosmic fog* bitmap selection (Task 3) ------------------
     // ---------------------------------------------------------------------
-    const fog_entry = [...bitmaps_map.entries()].find(([url]) => url.includes("/cosmic_fog/"));
-    if (!fog_entry) {
+    // Instead of using the first entry that happens to match the path we now
+    // collect *all* candidate fog sprites, then pick **one** using the
+    // deterministic `rand()` helper so that each seed always maps to the same
+    // texture.  This keeps the visual stable across reloads until the seed is
+    // explicitly regenerated via the Seed UI.
+    const fog_entries = [...bitmaps_map.entries()].filter(([url]) => url.includes("/cosmic_fog/"));
+
+    if (fog_entries.length === 0) {
       console.warn("[UniverseAnimator] No cosmic_fog bitmap found – placeholder will be blank.");
       this.fog_bitmap      = null;
       this.fog_bitmap_url  = null;
     } else {
-      this.fog_bitmap_url  = fog_entry[0];
-      this.fog_bitmap      = fog_entry[1];
+      // Pick deterministic index – floor(rand * N).
+      const idx = Math.floor(rand() * fog_entries.length);
+      const fog_entry = fog_entries[idx];
+
+      this.fog_bitmap_url = fog_entry[0];
+      this.fog_bitmap     = fog_entry[1];
+
+      console.log(`[UniverseAnimator] Deterministic fog selection → idx ${idx} / ${fog_entries.length}, url '${this.fog_bitmap_url}'.`);
     }
 
     // Animation state ------------------------------------------------------
