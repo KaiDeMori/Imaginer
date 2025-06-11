@@ -114,9 +114,15 @@
 }
 
 /* Labels and Containers */
+:root {
+  --config-label-margin-top: 12px; /* Space above label */
+  --config-label-margin-bottom: 4px; /* Space below label (to input) */
+}
+
 .label {
   font-size: 0.95rem;
-  margin-bottom: 4px;
+  margin-top: var(--config-label-margin-top);
+  margin-bottom: var(--config-label-margin-bottom);
   display: block;
 }
 
