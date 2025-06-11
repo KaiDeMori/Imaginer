@@ -30,22 +30,22 @@ export class Viewer {
         document.body.appendChild(this.overlay);
 
         /* Remove mode button */
-        this.remove_mode = false;
+        this.mask_mode = false;
         // Mask data and offscreen cache
         this.mask_data = null; // Uint8ClampedArray for alpha mask
         this.mask_cache_canvas = null; // Offscreen canvas for mask overlay
         this.mask_cache_dirty = true;
         this.mask_manager = new mask_manager(this);
 
-        this.remove_mode_button = document.createElement('button');
-        this.remove_mode_button.textContent = 'Mask Mode';
-        this.remove_mode_button.classList.add('remove_mode_button');
-        this.remove_mode_button.addEventListener('click', (e) => {
+        this.mask_mode_button = document.createElement('button');
+        this.mask_mode_button.textContent = 'Mask Mode';
+        this.mask_mode_button.classList.add('mask_mode_button');
+        this.mask_mode_button.addEventListener('click', (e) => {
             // Prevent overlay click event from firing (which would close viewer)
             e.stopPropagation();
-            this.toggle_remove_mode();
+            this.toggle_mask_mode();
         });
-        this.overlay.appendChild(this.remove_mode_button);
+        this.overlay.appendChild(this.mask_mode_button);
 
         // Remove masks button (initially hidden)
         this.remove_masks_button = document.createElement('button');
@@ -56,8 +56,8 @@ export class Viewer {
             e.stopPropagation();
             this.remove_all_masks();
         });
-        // Insert after remove_mode_button
-        this.overlay.insertBefore(this.remove_masks_button, this.remove_mode_button.nextSibling);
+        // Insert after mask_mode_button
+        this.overlay.insertBefore(this.remove_masks_button, this.mask_mode_button.nextSibling);
 
         /* Canvas ------------------------------------------------------- */
         this.canvas = document.createElement('canvas');
@@ -256,11 +256,11 @@ export class Viewer {
     }
 
     /* ---------------- Remove Mode ------------------------------- */
-    toggle_remove_mode() {
-        this.remove_mode = !this.remove_mode;
-        this.behaviour.set_mode(this.remove_mode ? 'remove' : 'viewer');
-        // Show/hide remove_masks_button based on remove_mode
-        if (this.remove_mode) {
+    toggle_mask_mode() {
+        this.mask_mode = !this.mask_mode;
+        this.behaviour.set_mode(this.mask_mode ? 'mask' : 'viewer');
+        // Show/hide mask_mode_button based on mask_mode
+        if (this.mask_mode) {
             this.remove_masks_button.style.display = '';
         } else {
             this.remove_masks_button.style.display = 'none';
@@ -268,7 +268,7 @@ export class Viewer {
     }
 
     on_mouse_down(e) {
-        if (!this.remove_mode || e.button !== 0) return;
+        if (!this.mask_mode || e.button !== 0) return;
         this.is_painting = true;
         this.is_shift = e.shiftKey;
         const { ix, iy } = this.get_image_coords_from_event(e);
@@ -278,7 +278,7 @@ export class Viewer {
     }
 
     on_mouse_move(e) {
-        if (this.remove_mode) {
+        if (this.mask_mode) {
             this.update_brush_cursor(e);
             if (this.is_painting) {
                 const { ix, iy } = this.get_image_coords_from_event(e);
@@ -303,7 +303,7 @@ export class Viewer {
     }
 
     on_mouse_up(e) {
-        if (!this.remove_mode) return;
+        if (!this.mask_mode) return;
         this.is_painting = false;
         this.last_paint_ix = null;
         this.last_paint_iy = null;

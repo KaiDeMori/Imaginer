@@ -28,7 +28,7 @@
 }
 
 /* Remove mode button styles */
-.remove_mode_button {
+.mask_mode_button {
     position: absolute;
     top: 12px;
     right: 12px;
@@ -45,8 +45,9 @@
 }
 
 /* Active state for Remove Mode button */
-.remove_mode_button_active {
-    background: #e33;
+/* Active state for Mask Mode button */
+.mask_mode_button_active {
+    background: #e33 !important;
 }
 
 /* Canvas styles */

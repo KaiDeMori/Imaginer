@@ -6,7 +6,7 @@ export class viewer_mode_behaviour {
     activate() {
         // Set cursor and button state for viewer mode
         this.viewer.overlay.classList.add('viewer_overlay');
-        this.viewer.remove_mode_button.classList.add('remove_mode_button');
+        this.viewer.mask_mode_button.classList.add('mask_mode_button');
         this.viewer.set_brush_cursor_visible(false);
         // Bind events (no wheel event here)
         this._bind_events();

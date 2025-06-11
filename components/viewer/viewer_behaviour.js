@@ -1,6 +1,6 @@
 // viewer_behaviour.js – Mouse and keyboard event logic for Viewer
 import { viewer_mode_behaviour } from './viewer_mode_behaviour.js';
-import { remove_mode_behaviour } from './remove_mode_behaviour.js';
+import { mask_mode_behaviour } from './mask_mode_behaviour.js';
 
 export class viewer_behaviour {
 
@@ -25,8 +25,8 @@ export class viewer_behaviour {
         if (this.current_handler) {
             this.current_handler.deactivate();
         }
-        if (mode === 'remove') {
-            this.current_handler = new remove_mode_behaviour(this.viewer);
+        if (mode === 'mask') {
+            this.current_handler = new mask_mode_behaviour(this.viewer);
         } else {
             this.current_handler = new viewer_mode_behaviour(this.viewer);
         }

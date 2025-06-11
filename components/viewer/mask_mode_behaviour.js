@@ -1,19 +1,23 @@
-// remove_mode_behaviour.js – Handles remove mode events and UI
-export class remove_mode_behaviour {
+// mask_mode_behaviour.js – Handles mask mode events and UI
+export class mask_mode_behaviour {
     constructor(viewer) {
         this.viewer = viewer;
     }
     activate() {
-        // Set cursor and button state for remove mode
+        // Set cursor and button state for mask mode
         this.viewer.overlay.classList.add('viewer_overlay');
-        this.viewer.remove_mode_button.classList.add('remove_mode_button');
-        this.viewer.remove_mode_button.classList.add('remove_mode_button_active'); // Added class to make the button red in remove mode
+        this.viewer.mask_mode_button.classList.add('mask_mode_button');
+        this.viewer.mask_mode_button.classList.add('mask_mode_button_active'); // Added class to make the button red in mask mode
         this.viewer.set_brush_cursor_visible(true);
+        // Hide default cursor, only show brush cursor
+        this.viewer.canvas.style.cursor = 'none';
         // Bind events (no wheel event here)
         this._bind_events();
     }
     deactivate() {
-        this.viewer.remove_mode_button.classList.remove('remove_mode_button_active'); // Removed class to reset the button color when deactivating remove mode
+        this.viewer.mask_mode_button.classList.remove('mask_mode_button_active'); // Removed class to reset the button color when deactivating mask mode
+        // Restore default cursor
+        this.viewer.canvas.style.cursor = '';
         this._unbind_events();
     }
     _bind_events() {
