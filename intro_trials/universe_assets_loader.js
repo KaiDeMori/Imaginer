@@ -2,7 +2,7 @@
 // Handles loading universe formation assets for the cinematic sequence.
 
 // --- Asset lists (from asset_file_list.md) ---
-const asset_paths = {
+window.asset_paths = {
   nebulae: [
     '../assets/ai_universe/nebulae/01.png',
     '../assets/ai_universe/nebulae/02.png',
@@ -50,14 +50,14 @@ const asset_paths = {
 // --- Pure image loading utility ---
 function load_universe_assets(callback) {
   // Loads all images in asset_paths, calls callback({category, src, img, error}) for each
-  Object.entries(asset_paths).forEach(([category, paths]) => {
-    paths.forEach((src) => {
-      const img = new window.Image();
-      img.onload = () => callback && callback({ category, src, img, error: null });
-      img.onerror = (e) => callback && callback({ category, src, img: null, error: e });
-      img.src = src;
-    });
+Object.entries(window.asset_paths).forEach(([category, paths]) => {
+  paths.forEach((src) => {
+    const img = new window.Image();
+    img.onload = () => callback && callback({ category, src, img, error: null });
+    img.onerror = (e) => callback && callback({ category, src, img: null, error: e });
+    img.src = src;
   });
+});
 }
 
 // Export for use in main cinematic script

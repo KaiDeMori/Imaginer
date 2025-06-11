@@ -22,79 +22,79 @@ function make_rng(seed) {
 // All further logic will be implemented layer by layer, using the single RNG source above.
 
 // --- Universe asset loading moved to universe_assets_loader.js --- 
-// --- Seed management and console utility ---
-const SEED_STORAGE_KEY = 'early_universe_seed';
-
-function get_current_seed() {
-  let seed = parseInt(localStorage.getItem(SEED_STORAGE_KEY), 10);
-  if (isNaN(seed)) {
-    seed = 42;
-    localStorage.setItem(SEED_STORAGE_KEY, seed);
-  }
-  return seed;
-}
-
-function set_current_seed(new_seed) {
-  localStorage.setItem(SEED_STORAGE_KEY, new_seed);
-}
-
-// Call this in the browser console to change the seed and see the new value
-
-function generate_random_seed() {
-  // Use crypto if available for better randomness
-  if (window.crypto && window.crypto.getRandomValues) {
-    const array = new Uint32Array(1);
-    window.crypto.getRandomValues(array);
-    return array[0];
-  }
-  // Fallback to Math.random
-  return Math.floor(Math.random() * 0xFFFFFFFF);
-}
-
-function change_and_show_seed(new_seed) {
-  if (typeof new_seed === 'undefined') {
-    new_seed = generate_random_seed();
-  }
-  set_current_seed(new_seed);
-  console.log('New seed set:', new_seed);
-  return new_seed;
-}
-
-window.change_and_show_seed = change_and_show_seed;
-
 // Fade from white, then start asset animation
 window.addEventListener('DOMContentLoaded', () => {
   const white_fade_overlay = document.getElementById('white_fade_overlay');
-  if (white_fade_overlay) {
-    setTimeout(() => {
-      white_fade_overlay.style.opacity = '0';
-    }, 100); // slight delay for effect
-    setTimeout(() => {
-      white_fade_overlay.style.display = 'none';
-    }, 2700); // after fade-out
+  const universe_seed = 1337; // You can change this to any integer for a different universe
+  const asset_paths = window.asset_paths;
+  if (!asset_paths) {
+    console.error('asset_paths not found on window. Please export asset_paths from universe_assets_loader.js');
+    return;
   }
-  if (typeof window.load_and_animate_universe_assets === 'function') {
-    setTimeout(() => {
-      window.load_and_animate_universe_assets(make_rng);
-    }, 700); // start universe animation after fade begins
-  }
-  // Start camera movement/zoom immediately, before fade to black
-  animate_camera_move_and_zoom();
+  let total_images = 0;
+  let loaded_images = 0;
+  let assets_loaded = false;
+  let min_white_time_passed = false;
+  Object.values(asset_paths).forEach(arr => total_images += arr.length);
 
-  // Add multiple cosmic fog images using a generic function
-  setTimeout(() => {
+  function start_cinematic() {
+    if (!assets_loaded || !min_white_time_passed) return;
+    // Draw all images to DOM while still in pure white
+    add_images_to_layer(
+      '.galaxy_streams_layer',
+      asset_paths['galaxy_streams'],
+      universe_seed + 2 // offset for layer
+    );
     add_images_to_layer(
       '.cosmic_fog_layer',
-      [
-        '../assets/ai_universe/cosmic_fog/big_01.png',
-        '../assets/ai_universe/cosmic_fog/big_02.png',
-        '../assets/ai_universe/cosmic_fog/big_03.png',
-        '../assets/ai_universe/cosmic_fog/big_04.png'
-      ],
-      get_current_seed() // use seed from localStorage
+      asset_paths['cosmic_fog'],
+      universe_seed + 1 // offset for layer
     );
-  }, 400); // before camera movement
+    // Wait for browser to paint all images, then fade out white
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (white_fade_overlay) {
+          white_fade_overlay.style.opacity = '0';
+          setTimeout(() => {
+            white_fade_overlay.style.display = 'none';
+          }, 2700); // after fade-out
+        }
+        animate_camera_move_and_zoom();
+        animate_galaxy_streams_parallax(universe_seed);
+      }, 0); // allow one paint cycle
+    });
+  }
+
+  // Start 1s minimum white hold
+  setTimeout(() => {
+    min_white_time_passed = true;
+    start_cinematic();
+  }, 1000);
+
+  window.load_universe_assets(function on_asset_loaded({ category, src, img, error }) {
+    loaded_images++;
+    if (loaded_images === total_images) {
+      assets_loaded = true;
+      start_cinematic();
+    }
+  });
 });
+
+// Parallax effect for galaxy streams layer, using deterministic randomness for transform
+function animate_galaxy_streams_parallax(seed) {
+  const galaxy_layer = document.querySelector('.galaxy_streams_layer');
+  if (!galaxy_layer) return;
+  const rng = make_rng(seed + 100); // offset for parallax
+  // Deterministic transform values
+  const scale = 1.15 + rng() * 0.2; // 1.15 - 1.35
+  const translate_x = -20 + rng() * -30; // -20 to -50 px
+  const translate_y = -10 + rng() * -20; // -10 to -30 px
+  galaxy_layer.style.transition = 'transform 7s linear';
+  galaxy_layer.style.transform = 'scale(1) translate(0px, 0px)';
+  setTimeout(() => {
+    galaxy_layer.style.transform = `scale(${scale}) translate(${translate_x}px, ${translate_y}px)`;
+  }, 200); // after camera starts
+}
 
 // Generic function to add images to a layer with computed styles
 function add_images_to_layer(layer_selector, image_list, rng_seed) {
@@ -106,9 +106,9 @@ function add_images_to_layer(layer_selector, image_list, rng_seed) {
     img.src = img_src;
     img.alt = `Layer Image ${i+1}`;
     img.style.position = 'absolute';
-    // Spread images out even more: 5% - 95%
-    const left = 5 + rng() * 90; // 5% - 95%
-    const top = 5 + rng() * 90;  // 5% - 95%
+    // Compute style values using deterministic randomness
+    const left = 45 + rng() * 10; // 45% - 55%
+    const top = 45 + rng() * 10;  // 45% - 55%
     const scale = 1.0 + rng() * 0.25; // 1.0 - 1.25
     const rotate = -20 + rng() * 40; // -20deg to +20deg
     const opacity = 0.6 + rng() * 0.3; // 0.6 - 0.9
@@ -130,10 +130,10 @@ function animate_camera_move_and_zoom() {
   if (!camera_viewport) return;
 
   // Initial state
-  camera_viewport.style.transition = 'transform 2s linear';
+  camera_viewport.style.transition = 'transform 5s linear';
   camera_viewport.style.transform = 'scale(1) translate(0px, 0px)';
 
-  // Animate to target state (zoom in over 2 seconds)
+  // Animate to target state (zoom in over 5 seconds)
   setTimeout(() => {
     // Example: zoom in 1.5x and pan slightly right/down
     camera_viewport.style.transform = 'scale(1.5) translate(-60px, -45px)';
