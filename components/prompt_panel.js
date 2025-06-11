@@ -1,15 +1,43 @@
 // prompt_panel.js - Prompt panel component (updated with generate button logic)
 export class Prompt_panel {
+  _update_input_image_thumbnails() {
+    const drop_area = this.root.querySelector('#input-image-drop-area');
+    if (!drop_area) return;
+    // Remove old thumbnails
+    drop_area.querySelectorAll('.input-image-thumb').forEach(el => el.remove());
+    // Remove placeholder if present
+    let placeholder = drop_area.querySelector('#input-image-drop-placeholder');
+    if (this.dropped_images && this.dropped_images.length > 0) {
+      if (placeholder) placeholder.style.display = 'none';
+      for (const file of this.dropped_images) {
+        const url = URL.createObjectURL(file);
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'input-image-thumb';
+        img.title = file.name;
+        img.style.height = '40px';
+        img.style.width = '40px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '4px';
+        img.style.border = '1px solid #bbb';
+        img.style.marginRight = '4px';
+        drop_area.appendChild(img);
+      }
+    } else {
+      if (placeholder) placeholder.style.display = '';
+    }
+  }
   constructor(root, onGenerate) {
     this.root = root;
     this.onGenerate = onGenerate; // callback when generate is clicked
+    this.dropped_images = [];
     this.render();
     this.attach_events();
   }
 
   render() {
     // Load prompt from localStorage if available
-    const savedPrompt = localStorage.getItem('imaginer_prompt') || 'A unicorn-dinosaur.';
+    const saved_prompt = localStorage.getItem('imaginer_prompt') || 'A unicorn-dinosaur.';
     this.root.innerHTML = `
       <div id="prompt-panel-inner" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
         <textarea
@@ -29,9 +57,9 @@ export class Prompt_panel {
             min-height: 0;
             overflow: auto;
           "
-        >${savedPrompt}</textarea>
+        >${saved_prompt}</textarea>
         <div
-          id="input-image-dummy"
+          id="input-image-drop-area"
           style="
             height: 18%;
             min-height: 48px;
@@ -39,15 +67,22 @@ export class Prompt_panel {
             background: #f5f5f5;
             border-radius: 0;
             margin: 0;
-            padding: 0;
+            padding: 0 8px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             color: #bbb;
             font-size: 1.1rem;
             flex-shrink: 0;
+            border: 2px dashed #bbb;
+            transition: background 0.2s, border-color 0.2s;
+            cursor: pointer;
+            gap: 8px;
+            overflow-x: auto;
           "
-        >[input image area]</div>
+        >
+          <span id="input-image-drop-placeholder" style="color:#bbb;">Drag & drop PNG image(s) here</span>
+        </div>
         <button
           id="generate-btn"
           style="
@@ -68,24 +103,72 @@ export class Prompt_panel {
         >▶️ Generate</button>
       </div>
     `;
+    this._update_input_image_thumbnails();
   }
 
   attach_events() {
-    const generateBtn = this.root.querySelector('#generate-btn');
-    const promptInput = this.root.querySelector('#prompt-input');
+    const generate_btn = this.root.querySelector('#generate-btn');
+    const prompt_input = this.root.querySelector('#prompt-input');
+    const drop_area = this.root.querySelector('#input-image-drop-area');
 
     // Save prompt to localStorage on change
-    promptInput.addEventListener('input', () => {
-      localStorage.setItem('imaginer_prompt', promptInput.value);
+    prompt_input.addEventListener('input', () => {
+      localStorage.setItem('imaginer_prompt', prompt_input.value);
     });
 
-    generateBtn.addEventListener('click', () => {
-      const promptText = promptInput.value.trim();
-      if (promptText && this.onGenerate) {
+    generate_btn.addEventListener('click', () => {
+      const prompt_text = prompt_input.value.trim();
+      if (prompt_text && this.onGenerate) {
         // Use config values from localStorage
-        this.onGenerate(promptText, {
+        this.onGenerate(prompt_text, {
           embed_itxt: localStorage.getItem('imaginer.add_prompt_to_image') === 'true',
           embed_xmp: localStorage.getItem('imaginer.add_prompt_to_image_xmp') === 'true'
+        });
+      }
+    });
+
+    // --- Drag-and-drop events for input image area ---
+    drop_area.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      drop_area.style.background = '#e6f7ff';
+      drop_area.style.borderColor = '#1890ff';
+      drop_area.style.color = '#1890ff';
+    });
+    drop_area.addEventListener('dragleave', (event) => {
+      event.preventDefault();
+      drop_area.style.background = '#f5f5f5';
+      drop_area.style.borderColor = '#bbb';
+      drop_area.style.color = '#bbb';
+    });
+    drop_area.addEventListener('drop', (event) => {
+      event.preventDefault();
+      drop_area.style.background = '#f5f5f5';
+      drop_area.style.borderColor = '#bbb';
+      drop_area.style.color = '#bbb';
+      const files = Array.from(event.dataTransfer.files);
+      if (files.length > 0) {
+        import('./error_modal.js').then(({ Error_modal }) => {
+          let any_error = false;
+          const valid_files = [];
+          for (const file of files) {
+            if (file.type !== 'image/png') {
+              Error_modal.show(`File "${file.name}" is not a PNG image.`);
+              any_error = true;
+              break;
+            }
+            if (file.size > 4 * 1024 * 1024) {
+              Error_modal.show(`File "${file.name}" exceeds the 4MB size limit.`);
+              any_error = true;
+              break;
+            }
+            valid_files.push(file);
+          }
+          if (!any_error) {
+            // Store valid PNG files in memory
+            this.dropped_images = valid_files;
+            this._update_input_image_thumbnails();
+            console.log('Stored valid PNG files in memory:', this.dropped_images);
+          }
         });
       }
     });

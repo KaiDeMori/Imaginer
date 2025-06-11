@@ -1,3 +1,4 @@
+    // NOTE: Only gpt-image-1 is supported, so we ignore response_format (always returns b64_json)
 // app.js - Root application logic (updated with image generation logic)
 
 import { Menu_bar } from './components/menu_bar.js';
@@ -75,7 +76,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // --- Cool-down state for generate button ---
   let generate_cooldown = false;
 
-  const prompt_panel = new Prompt_panel(document.getElementById('prompt-panel'), async (promptText, embedOptions = {}) => {
+  const prompt_panel = new Prompt_panel(document.getElementById('prompt-panel'), async (prompt_text, embed_options = {}) => {
     const max = get_maximum_parallel_generations();
     if (activeGenerations >= max || generate_cooldown) {
       prompt_panel.set_generate_button_enabled(false);
@@ -93,7 +94,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 600);
 
     // Read n before using it for placeholders
-    // Read n before using it for placeholders (declare once at top of function)
     let n_local = parseInt(localStorage.getItem('imaginer.n'), 10);
     if (isNaN(n_local) || n_local < 1) n_local = 1;
     if (n_local > 10) n_local = 10;
@@ -117,6 +117,90 @@ window.addEventListener('DOMContentLoaded', () => {
     let n = parseInt(localStorage.getItem('imaginer.n'), 10);
     if (isNaN(n) || n < 1) n = 1;
     if (n > 10) n = 10;
+
+    // --- Attach dropped images from prompt_panel to API request (if any) ---
+    const dropped_images = prompt_panel.dropped_images || [];
+    let use_image_edit = dropped_images.length > 0;
+
+    if (use_image_edit) {
+      // --- Use /v1/images/edits endpoint with multipart/form-data ---
+      const form_data = new FormData();
+      form_data.append('model', 'gpt-image-1');
+      for (const file of dropped_images) {
+        form_data.append('image[]', file, file.name);
+      }
+      form_data.append('prompt', prompt_text);
+      form_data.append('n', n_local);
+      form_data.append('size', size);
+      if (quality !== null && quality !== 'auto') form_data.append('quality', quality);
+      if (background !== 'auto') form_data.append('background', background);
+
+      try {
+        const response = await fetch('https://api.openai.com/v1/images/edits', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${Session_store.get_api_key()}`
+            // Note: Do not set Content-Type; browser will set it for FormData
+          },
+          body: form_data
+        });
+
+        if (!response.ok) {
+          let errObj = null;
+          try {
+            errObj = await response.json();
+          } catch (_) {
+            errObj = { message: `API request failed: ${response.status} ${response.statusText}` };
+          }
+          Error_modal.show(errObj);
+          for (const ph of placeholders) {
+            if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+          }
+          return;
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data.data) || data.data.length === 0) {
+          Error_modal.show({ message: 'No images returned from API.' });
+          for (const ph of placeholders) {
+            if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+          }
+          return;
+        }
+
+        // Handle returned images (same as before)
+        const created = Math.floor(Date.now() / 1000);
+        for (let i = 0; i < data.data.length; i++) {
+          let base64Data = data.data[i].b64_json;
+          let blob = await fetch(`data:image/png;base64,${base64Data}`).then(res => res.blob());
+          await session_store.save({
+            created,
+            image_blob: blob,
+            prompt_text,
+            prompt_imgs: []
+          });
+          if (placeholders[i]) {
+            gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created);
+          } else {
+            gallery.addThumbnail(blob, prompt_text, created);
+          }
+        }
+        // Remove any extra placeholders if fewer images returned than requested
+        for (let i = data.data.length; i < placeholders.length; i++) {
+          if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
+        }
+      } catch (error) {
+        console.error('Error editing image:', error);
+        Error_modal.show(error && error.message ? error.message : error);
+        for (const ph of placeholders) {
+          if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+        }
+      } finally {
+        activeGenerations--;
+        update_generate_button();
+      }
+      return;
+    }
 
     try {
       const request_body = {
