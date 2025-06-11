@@ -206,7 +206,9 @@ class CinematicStarfieldManager {
             }
         }
 
-        for (let star of this.stars) {
+        // Update star positions and respawn if out of bounds
+        for (let i = 0; i < this.stars.length; i++) {
+            let star = this.stars[i];
             if (!star.fading_out && !star.fading_in && (time - star.born_time > star.lifetime)) {
                 star.fading_out = true;
                 star.fade_start_time = time;
@@ -214,10 +216,16 @@ class CinematicStarfieldManager {
             }
             star.x += (star.x - this.starfield_width / 2) * this.zoom_speed * star.z;
             star.y += (star.y - this.starfield_height / 2) * this.zoom_speed * star.z;
-            if (star.x < 0) star.x = this.starfield_width;
-            if (star.x > this.starfield_width) star.x = 0;
-            if (star.y < 0) star.y = this.starfield_height;
-            if (star.y > this.starfield_height) star.y = 0;
+            // If star goes out of bounds, respawn it as a new star
+            if (
+                star.x < 0 ||
+                star.x > this.starfield_width ||
+                star.y < 0 ||
+                star.y > this.starfield_height
+            ) {
+                this.stars[i] = this._create_star();
+                star = this.stars[i];
+            }
             this._draw_star(star, time);
         }
 
