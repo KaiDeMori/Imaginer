@@ -142,8 +142,9 @@ function load_and_decode_images(onProgress) {
 
 /**
  * Prints a concise summary of the current `preloaded_bitmaps` registry to the
- * developer console. Intended as a quick smoke-test that the pre-loader worked
- * correctly and to provide a rough idea of VRAM consumption.
+ * developer console. Additionally, if a global `window.universe_animator` is
+ * present, it logs whether the animation loop is *running* or *paused* so that
+ * testers can quickly verify the animator state without switching contexts.
  *
  * Usage (from DevTools):
  *   > debug_preloader();
@@ -167,6 +168,17 @@ function debug_preloader() {
     console.log(`${src} → ${bmp.width}×${bmp.height}`);
   });
   console.groupEnd();
+
+  // ---------------------------------------------------------------------------
+  // Extra reporter: UniverseAnimator state ------------------------------------
+  // ---------------------------------------------------------------------------
+  if (typeof window !== "undefined" && window.universe_animator) {
+    const ua = window.universe_animator;
+    const running = (typeof ua.is_running === "function") ? ua.is_running() : false;
+    console.info(`[debug_preloader] UniverseAnimator is currently ${running ? "running" : "paused"}.`);
+  } else if (typeof window !== "undefined") {
+    console.info("[debug_preloader] UniverseAnimator has not been initialised yet.");
+  }
 }
 
 // Expose helpers in dev environments ---------------------------------------------

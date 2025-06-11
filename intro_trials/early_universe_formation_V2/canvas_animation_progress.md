@@ -7,7 +7,8 @@
 ✅  Placeholder cosmic-fog animation validated.  
 ✅  Hi-DPI scaling validation integrated & manually verified.  
 ✅  Average FPS sampling & console reporting integrated.  
-✅  Deterministic Asset Selection integrated.
+✅  Deterministic Asset Selection integrated.  
+✅  Debug / Dev Helpers integrated.
 
 ---
 
@@ -29,9 +30,9 @@
 - [x] Document the selection logic inline for future layers.
 
 ### 4 · Debug / Dev Helpers
-- [ ] Add `window.toggle_anim()` helper to pause / resume the rAF loop.
-- [ ] Add a keyboard shortcut (e.g. `Space`) to toggle pause during development (disabled in production build).
-- [ ] Update `debug_preloader()` so that it also reports whether the animator is currently running.
+- [x] Add `window.toggle_anim()` helper to pause / resume the rAF loop.
+- [x] Add a keyboard shortcut (e.g. `Space`) to toggle pause during development (disabled in production build).
+- [x] Update `debug_preloader()` so that it also reports whether the animator is currently running.
 
 ### 5 · Clean-up & Polish
 - [ ] Remove any console noise or temporary test code.
