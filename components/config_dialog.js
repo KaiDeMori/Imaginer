@@ -1,4 +1,5 @@
 // config_dialog.js – Modal UI for entering & saving the OpenAI API key
+// Note: This component has a corresponding CSS file: config_dialog.css (in the same folder).
 // Usage:
 //   const cfg = new Config_dialog();
 //   cfg.open();
@@ -164,6 +165,28 @@ export class Config_dialog {
     strip_container.appendChild(this.strip_checkbox);
     strip_container.appendChild(strip_label);
 
+    // Show Mask Mode Button checkbox ---------------------------------
+    const mask_mode_container = document.createElement('div');
+    mask_mode_container.className = 'mask_mode_container';
+    mask_mode_container.style.display = 'flex';
+    mask_mode_container.style.alignItems = 'center';
+    mask_mode_container.style.margin = '8px 0 0 0';
+    mask_mode_container.style.minHeight = '32px';
+
+    this.show_mask_mode_checkbox = document.createElement('input');
+    this.show_mask_mode_checkbox.type = 'checkbox';
+    this.show_mask_mode_checkbox.id = 'show_mask_mode_checkbox';
+    const show_mask_mode_setting = localStorage.getItem('imaginer.show_mask_mode_button');
+    this.show_mask_mode_checkbox.checked = (show_mask_mode_setting === null || show_mask_mode_setting === 'true');
+
+    const show_mask_mode_label = document.createElement('label');
+    show_mask_mode_label.textContent = 'Show Mask Mode Button';
+    show_mask_mode_label.className = 'label';
+    show_mask_mode_label.setAttribute('for', 'show_mask_mode_checkbox');
+
+    mask_mode_container.appendChild(this.show_mask_mode_checkbox);
+    mask_mode_container.appendChild(show_mask_mode_label);
+
     // Optimized: Embed prompt group with two checkboxes
     const prompt_container = document.createElement('div');
     prompt_container.className = 'prompt_container';
@@ -234,6 +257,7 @@ export class Config_dialog {
     this.dialog.appendChild(this.quality_select);
     this.dialog.appendChild(strip_container);
     this.dialog.appendChild(prompt_container);
+    this.dialog.appendChild(mask_mode_container);
     this.dialog.appendChild(button_row);
     this.overlay.appendChild(this.dialog);
     document.body.appendChild(this.overlay);
@@ -379,6 +403,9 @@ export class Config_dialog {
 
   /* ------------------------------------------------------------------ */
   open() {
+    // Show Mask Mode Button checkbox
+    const show_mask_mode_setting = localStorage.getItem('imaginer.show_mask_mode_button');
+    this.show_mask_mode_checkbox.checked = (show_mask_mode_setting === null || show_mask_mode_setting === 'true');
     // Use Session_store to get the decoded API key
     this.input.value = '';
     import('../storage/session_store.js').then(({ Session_store }) => {
@@ -433,6 +460,7 @@ export class Config_dialog {
     localStorage.setItem('imaginer.strip_metadata', String(strip));
     localStorage.setItem('imaginer.add_prompt_to_image', String(add_prompt));
     localStorage.setItem('imaginer.add_prompt_to_image_xmp', String(add_prompt_xmp));
+    localStorage.setItem('imaginer.show_mask_mode_button', String(this.show_mask_mode_checkbox.checked));
     this.close();
     this.onSave(key, max, n, strip, add_prompt, quality);
   }

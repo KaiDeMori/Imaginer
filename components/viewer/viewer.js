@@ -45,7 +45,8 @@ export class Viewer {
             e.stopPropagation();
             this.toggle_mask_mode();
         });
-        this.overlay.appendChild(this.mask_mode_button);
+        // Dynamically manage mask mode button visibility
+        this.update_mask_mode_button_visibility();
 
         // Remove masks button (initially hidden)
         this.remove_masks_button = document.createElement('button');
@@ -56,8 +57,12 @@ export class Viewer {
             e.stopPropagation();
             this.remove_all_masks();
         });
-        // Insert after mask_mode_button
-        this.overlay.insertBefore(this.remove_masks_button, this.mask_mode_button.nextSibling);
+        // Insert after mask_mode_button if present, else just append
+        if (this.overlay.contains(this.mask_mode_button)) {
+            this.overlay.insertBefore(this.remove_masks_button, this.mask_mode_button.nextSibling);
+        } else {
+            this.overlay.appendChild(this.remove_masks_button);
+        }
 
         /* Canvas ------------------------------------------------------- */
         this.canvas = document.createElement('canvas');
@@ -106,6 +111,23 @@ export class Viewer {
         this.drawDebug = this.debug_manager.draw_debug.bind(this.debug_manager);
     }
 
+    /**
+     * Show or hide the mask mode button based on the latest config.
+     */
+    update_mask_mode_button_visibility() {
+        const show_mask_mode = localStorage.getItem('imaginer.show_mask_mode_button') !== 'false';
+        const button_in_dom = this.overlay.contains(this.mask_mode_button);
+        if (show_mask_mode && !button_in_dom) {
+            this.overlay.appendChild(this.mask_mode_button);
+            // Also re-insert remove_masks_button after mask_mode_button if present
+            if (this.overlay.contains(this.remove_masks_button)) {
+                this.overlay.insertBefore(this.remove_masks_button, this.mask_mode_button.nextSibling);
+            }
+        } else if (!show_mask_mode && button_in_dom) {
+            this.overlay.removeChild(this.mask_mode_button);
+        }
+    }
+
     /* ==================================================================
        PUBLIC
     ================================================================== */
@@ -115,6 +137,9 @@ export class Viewer {
      * @param {Object} [opts] - Optional: { image_id }
      */
     async open(blob, opts = {}) {
+        // Always update mask mode button visibility before showing viewer
+        this.update_mask_mode_button_visibility();
+
         // Store image_id for later mask save
         this.image_id = opts.image_id || null;
         // Strict check for valid Blob
