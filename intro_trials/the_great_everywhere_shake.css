@@ -13,9 +13,43 @@ html, body {
   width: 100vw;
   height: 100vh;
   background: #000;
+  /* Shake effect will be applied via .shake class */
 }
 #everything_fade_text {
   /* Will be styled further for fade/glow effects */
+}
+.shake {
+  animation: everywhere_shake 0.7s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes everywhere_shake {
+  10%, 90% { transform: translate3d(-2px, 1px, 0); }
+  20%, 80% { transform: translate3d(-4px, -2px, 0); }
+  30%, 50%, 70% { transform: translate3d(4px, 2px, 0); }
+  40%, 60% { transform: translate3d(-4px, -2px, 0); }
+  100% { transform: none; }
+}
+
+.zoom_gently {
+  animation: gentle_zoom 3s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+@keyframes gentle_zoom {
+  0% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.025);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+  90% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 .everything_bloom_text {
   color: #fff;
