@@ -19,7 +19,7 @@ export class UniverseAnimator {
    */
   constructor(canvas_el, bitmaps_map) {
     this.canvas = canvas_el;
-    this.ctx    = this.canvas.getContext("2d");
+    this.ctx    = /** @type {CanvasRenderingContext2D} */ (this.canvas.getContext("2d"));
     if (!this.ctx) throw new Error("2D context unavailable");
 
     this.bitmaps_map = bitmaps_map;
@@ -39,15 +39,18 @@ export class UniverseAnimator {
     }
 
     // Animation state ------------------------------------------------------
-    this._start_time = null; // timestamp set on first frame
+    this._start_time = /** @type {number | null} */ (null); // timestamp set on first frame
 
     // FPS sampling ---------------------------------------------------------
     this._fps_sample_window_ms = 2_000;   // 2-second rolling window
     this._fps_frames_accum     = 0;       // frames collected inside window
-    this._fps_window_start_ts  = null;    // window start timestamp
+    this._fps_window_start_ts  = /** @type {number | null} */ (null);    // window start timestamp
 
     // Validation flag ------------------------------------------------------
     this._validation_logged = false;
+
+    // Current devicePixelRatio (kept for quick checks) ---------------------
+    this._dpr = window.devicePixelRatio || 1;
 
     // Bindings --------------------------------------------------------------
     this._update    = this._update.bind(this);
@@ -73,6 +76,8 @@ export class UniverseAnimator {
     const w   = window.innerWidth;
     const h   = window.innerHeight;
 
+    this._dpr = dpr;
+
     this.canvas.width  = w * dpr;
     this.canvas.height = h * dpr;
     this.canvas.style.width  = w + "px";
@@ -81,7 +86,7 @@ export class UniverseAnimator {
     this.ctx.resetTransform();
     this.ctx.scale(dpr, dpr);
 
-    console.log(`[UniverseAnimator] Canvas resized – ${w}×${h} @ DPR ${dpr}`);
+    console.log(`[UniverseAnimator] Canvas resized – CSS ${w}×${h}, internal ${this.canvas.width}×${this.canvas.height} @ DPR ${dpr}`);
   }
 
   _update(ts) {
@@ -131,8 +136,8 @@ export class UniverseAnimator {
 
     if (this.fog_bitmap) {
       const bmp = this.fog_bitmap;
-      const cx  = this.canvas.width  / (2 * (window.devicePixelRatio || 1));
-      const cy  = this.canvas.height / (2 * (window.devicePixelRatio || 1));
+      const cx  = this.canvas.width  / (2 * this._dpr);
+      const cy  = this.canvas.height / (2 * this._dpr);
       const draw_w = bmp.width  * scale;
       const draw_h = bmp.height * scale;
 
@@ -148,7 +153,7 @@ export class UniverseAnimator {
     // ---------------------------------------------------------------------
     if (!this._validation_logged) {
       if (this.fog_bitmap) {
-        console.log(`[UniverseAnimator] Validation ✔︎  Cosmic fog sprite selected → '${this.fog_bitmap_url}'. Animation & rendering active.`);
+        console.log(`[UniverseAnimator] Validation ✔︎  Cosmic fog sprite selected → '${this.fog_bitmap_url}'. Animation & rendering active. DPR ${this._dpr}`);
       } else {
         console.warn("[UniverseAnimator] Validation ⚠︎  No cosmic fog sprite could be validated. Check asset paths.");
       }
