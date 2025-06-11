@@ -179,10 +179,16 @@ export class Config_dialog {
 
     const strip_label = document.createElement('label');
     strip_label.textContent = 'Strip Server-Side metadata';
-    strip_label.className = 'label';
+    strip_label.className = 'checkbox_label';
+    strip_label.setAttribute('for', 'strip_checkbox');
+    this.strip_checkbox.id = 'strip_checkbox';
 
-    strip_container.appendChild(this.strip_checkbox);
-    strip_container.appendChild(strip_label);
+    // Wrap input and label in a flex row for consistent gap
+    const strip_row = document.createElement('span');
+    strip_row.className = 'checkbox_label';
+    strip_row.appendChild(this.strip_checkbox);
+    strip_row.appendChild(strip_label);
+    strip_container.appendChild(strip_row);
 
     // Show Mask Mode Button checkbox ---------------------------------
     const mask_mode_container = document.createElement('div');
@@ -200,11 +206,14 @@ export class Config_dialog {
 
     const show_mask_mode_label = document.createElement('label');
     show_mask_mode_label.textContent = 'Show Mask Mode Button';
-    show_mask_mode_label.className = 'label';
+    show_mask_mode_label.className = 'checkbox_label';
     show_mask_mode_label.setAttribute('for', 'show_mask_mode_checkbox');
 
-    mask_mode_container.appendChild(this.show_mask_mode_checkbox);
-    mask_mode_container.appendChild(show_mask_mode_label);
+    const mask_mode_row = document.createElement('span');
+    mask_mode_row.className = 'checkbox_label';
+    mask_mode_row.appendChild(this.show_mask_mode_checkbox);
+    mask_mode_row.appendChild(show_mask_mode_label);
+    mask_mode_container.appendChild(mask_mode_row);
 
     // Optimized: Embed prompt group with two checkboxes
     const prompt_container = document.createElement('div');
@@ -216,7 +225,7 @@ export class Config_dialog {
     prompt_container.appendChild(prompt_group_label);
     // iTXt option
     const itxt_row = document.createElement('label');
-    itxt_row.className = 'label';
+    itxt_row.className = 'checkbox_label';
 
     this.prompt_checkbox = document.createElement('input');
     this.prompt_checkbox.type = 'checkbox';
@@ -227,7 +236,7 @@ export class Config_dialog {
     itxt_row.appendChild(itxt_desc);
     // XMP option
     const xmp_row = document.createElement('label');
-    xmp_row.className = 'label';
+    xmp_row.className = 'checkbox_label';
 
     this.prompt_xmp_checkbox = document.createElement('input');
     this.prompt_xmp_checkbox.type = 'checkbox';
