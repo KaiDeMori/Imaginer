@@ -140,12 +140,45 @@ function load_and_decode_images(onProgress) {
 // 4. Debug / Dev helpers -----------------------------------------------------------
 // ---------------------------------------------------------------------------------
 
+/**
+ * Prints a concise summary of the current `preloaded_bitmaps` registry to the
+ * developer console. Intended as a quick smoke-test that the pre-loader worked
+ * correctly and to provide a rough idea of VRAM consumption.
+ *
+ * Usage (from DevTools):
+ *   > debug_preloader();
+ */
+function debug_preloader() {
+  const count = preloaded_bitmaps.size;
+  if (!count) {
+    console.info("[debug_preloader] No ImageBitmaps have been registered yet. Did you await load_and_decode_images()?");
+    return;
+  }
+
+  let total_pixels = 0;
+  preloaded_bitmaps.forEach(bmp => {
+    total_pixels += bmp.width * bmp.height;
+  });
+  const total_bytes = total_pixels * 4; // RGBA8 → 4 bytes per pixel
+  const total_mib   = total_bytes / (1024 * 1024);
+
+  console.groupCollapsed(`[debug_preloader] ${count} ImageBitmaps – ≈ ${total_mib.toFixed(1)} MiB VRAM`);
+  preloaded_bitmaps.forEach((bmp, src) => {
+    console.log(`${src} → ${bmp.width}×${bmp.height}`);
+  });
+  console.groupEnd();
+}
+
+// Expose helpers in dev environments ---------------------------------------------
 if (typeof window !== "undefined") {
   window.preloader_module = {
     asset_manifest,
     preloaded_bitmaps,
     load_and_decode_images,
+    debug_preloader,
   };
+  // Direct global shortcut
+  window.debug_preloader = debug_preloader;
 }
 
-export { asset_manifest, preloaded_bitmaps, load_and_decode_images };
+export { asset_manifest, preloaded_bitmaps, load_and_decode_images, debug_preloader };

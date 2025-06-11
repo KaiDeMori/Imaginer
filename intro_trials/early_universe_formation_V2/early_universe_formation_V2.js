@@ -4,6 +4,11 @@
 // once assets are ready.
 
 import { load_and_decode_images } from "./preloader_module.js";
+import { rand, eu_seed } from "./deterministic_rng.js";
+import "./seed_ui_panel.js"; // renders the seed information UI
+
+// Log the deterministic seed for debugging / reproducibility.
+console.log(`[EUF] Using deterministic seed: ${eu_seed}`);
 
 // ---------------------------------------------------------------------------
 // DOM references ------------------------------------------------------------
@@ -76,5 +81,6 @@ function _fade_out_white_overlay() {
  */
 function _on_ready(bitmaps_map) {
   console.log(`[EUF] All systems go. ${bitmaps_map.size} ImageBitmaps ready for use.`);
+  console.log(`[EUF] rand() test -> ${rand()}`); // quick smoke test to prove deterministic RNG works
   // TODO: build deterministic RNG, set up animation timeline, etc.
 }

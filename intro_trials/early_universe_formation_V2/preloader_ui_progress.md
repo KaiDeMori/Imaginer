@@ -3,8 +3,7 @@
 *(This file — **preloader_ui_progress.md** — is a living checklist that tracks the implementation status of step 1 in our plan: **Build preloader module & seed UI**. Update the check-boxes as subtasks are completed.)*
 
 ## Current Status Summary
-The core preloader pipeline and white-overlay logic are complete and working.  
-Still outstanding: deterministic RNG, seed control UI, and the debug helper.
+✅  All components (preloader pipeline, deterministic RNG, seed UI panel, and debug helper) have been implemented, tested, and are working as expected.
 
 ## Task List
 ### 1 · Preloader Pipeline
@@ -21,18 +20,20 @@ Still outstanding: deterministic RNG, seed control UI, and the debug helper.
 - [x] Remove event listeners & clear references after preload to avoid memory leaks.
 
 ### 2 · Deterministic RNG
-- [ ] Implement deterministic RNG setup:
-  - [ ] Drop-in `sfc32` implementation.
-  - [ ] Read seed from `localStorage.getItem("eu_seed")` or fall back to `Date.now()`.
-  - [ ] Expose a single `rand()` function (seeded) on `window` for other modules to consume.
+- [x] Implement deterministic RNG setup:
+  - [x] Drop-in `sfc32` implementation.
+  - [x] Read seed from `localStorage.getItem("eu_seed")` or fall back to `Date.now()`.
+  - [x] Expose a single `rand()` function (seeded) on `window` for other modules to consume.
 
 ### 3 · Seed UI Panel
-- [ ] Build **seed UI panel** (small fixed `<div>`):
-  - [ ] Display the current seed value.
-  - [ ] Include **Regenerate** button that assigns a new seed, stores it in `localStorage`, and reloads the page.
-  - [ ] Basic styling (fixed position, low-contrast so it doesn’t distract).
+- [x] Build **seed UI panel** (small fixed `<div>`):
+  - [x] Display the current seed value.
+  - [x] Include **Regenerate** button that assigns a new seed, stores it in `localStorage`, and reloads the page.
+  - [x] Basic styling (fixed position, low-contrast so it doesn’t distract).
 
 ### 4 · Debug / Dev helpers
-- [ ] Write a smoke-test function (`window.debug_preloader()`) that prints a summary of loaded bitmaps to the console (count, dimensions, total VRAM estimate).
+- [x] Write a smoke-test function (`window.debug_preloader()`) that prints a summary of loaded bitmaps to the console (count, dimensions, total VRAM estimate).
 
-When *all* unchecked items above are complete, Step 1 (*Build preloader module & seed UI*) can be marked **✅ finished**.
+---
+
+✅ **Step 1 (Build preloader module & seed UI) is now complete.** We can proceed to the next high-level milestone: implementing the Canvas animation prototype.
