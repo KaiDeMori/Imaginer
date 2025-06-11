@@ -13,6 +13,7 @@ const EXPLOSION_RAMP_CONSTANT = 0.3; // How quickly the rate ramps up (0 = slow,
 const EXPLOSION_INITIAL_LIMIT = 3;    // Max explosions for first EXPLOSION_INITIAL_LIMIT_DURATION milliseconds
 const EXPLOSION_INITIAL_LIMIT_DURATION = 600; // ms for initial limit
 const EXPLOSION_RANDOM_CHANCE = 0.7;  // Chance to spawn each explosion per frame
+const MAX_EXPLOSIONS = 10; // Reduced for less final explosion density
 
 // === Spark Parameters (for explosion sparks) ===
 // Adjust these to control the look and behavior of sparks
@@ -88,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     let explosions = [];
-    const max_explosions = 40; // Reduced for less final explosion density
+    // === Explosion Model Parameters ===
     // explosion_spawn_rate will be dynamic, ramping up towards the end
 
 
@@ -203,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 for (let i = 0; i < Math.floor(explosion_spawn_rate); ++i) {
-                    if (explosions.length < max_explosions && Math.random() < EXPLOSION_RANDOM_CHANCE) {
+                    if (explosions.length < MAX_EXPLOSIONS && Math.random() < EXPLOSION_RANDOM_CHANCE) {
                         explosions.push(create_explosion(t));
                     }
                 }
