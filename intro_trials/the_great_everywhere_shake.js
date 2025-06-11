@@ -22,8 +22,10 @@ const SPARK_MAX_COUNT = 6;      // Maximum number of sparks per explosion
 const SPARK_MIN_SPEED = 1.5;    // Minimum speed of sparks
 const SPARK_MAX_SPEED = 4.0;    // Maximum speed of sparks
 const SPARK_MIN_RADIUS = 2;     // Minimum radius of a spark
-// SPARK_MAX_RADIUS will be dynamic, ramping from 2 to 20
-let spark_max_radius = 2;
+// SPARK_MAX_RADIUS will be dynamic, ramping from 2 to SPARK_MAX_RADIUS_END
+const SPARK_MAX_RADIUS_START = 2;
+const SPARK_MAX_RADIUS_END = 40;
+let spark_max_radius = SPARK_MAX_RADIUS_START;
 
 document.addEventListener('DOMContentLoaded', function() {
     const explosion_canvas = document.getElementById('explosion_canvas');
@@ -196,8 +198,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const explosion_spawn_rate = EXPLOSION_MIN_RATE + (EXPLOSION_MAX_RATE - EXPLOSION_MIN_RATE) * ramp;
 
             // For the first N ms, cap the total number of explosions
-            // Dynamically ramp up spark_max_radius from 2 to 20 as t goes from 0 to 1
-            spark_max_radius = 2 + 18 * t;
+            // Dynamically ramp up spark_max_radius from SPARK_MAX_RADIUS_START to SPARK_MAX_RADIUS_END as t goes from 0 to 1
+            spark_max_radius = SPARK_MAX_RADIUS_START + (SPARK_MAX_RADIUS_END - SPARK_MAX_RADIUS_START) * t;
             if (elapsed < EXPLOSION_INITIAL_LIMIT_DURATION) {
                 while (explosions.length < EXPLOSION_INITIAL_LIMIT) {
                     explosions.push(create_explosion(t));
