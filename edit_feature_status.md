@@ -24,7 +24,7 @@
 - [x] Validate file size and format.
 - [x] Store dropped images in memory.
 - [x] Attach images to the API request.
-- [ ] Display thumbnails of dropped images.
+- [x] Display thumbnails of dropped images.
 - [x] Handle errors using `error_modal`.
-- [ ] Allow replacing images by dropping new ones.
+- [x] Allow replacing images by dropping new ones.
 - [ ] Test the feature end-to-end.

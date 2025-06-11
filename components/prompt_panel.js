@@ -9,20 +9,26 @@ export class Prompt_panel {
     let placeholder = drop_area.querySelector('#input-image-drop-placeholder');
     if (this.dropped_images && this.dropped_images.length > 0) {
       if (placeholder) placeholder.style.display = 'none';
-      for (const file of this.dropped_images) {
+      this.dropped_images.forEach((file, idx) => {
         const url = URL.createObjectURL(file);
         const img = document.createElement('img');
         img.src = url;
         img.className = 'input-image-thumb';
-        img.title = file.name;
+        img.title = file.name + '\nClick to remove';
         img.style.height = '40px';
         img.style.width = '40px';
         img.style.objectFit = 'cover';
         img.style.borderRadius = '4px';
         img.style.border = '1px solid #bbb';
         img.style.marginRight = '4px';
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', () => {
+          // Remove this image from dropped_images and update thumbnails
+          this.dropped_images.splice(idx, 1);
+          this._update_input_image_thumbnails();
+        });
         drop_area.appendChild(img);
-      }
+      });
     } else {
       if (placeholder) placeholder.style.display = '';
     }
@@ -164,8 +170,8 @@ export class Prompt_panel {
             valid_files.push(file);
           }
           if (!any_error) {
-            // Store valid PNG files in memory
-            this.dropped_images = valid_files;
+            // Add valid PNG files to memory (append to existing)
+            this.dropped_images = (this.dropped_images || []).concat(valid_files);
             this._update_input_image_thumbnails();
             console.log('Stored valid PNG files in memory:', this.dropped_images);
           }
