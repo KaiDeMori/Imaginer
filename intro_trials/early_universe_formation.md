@@ -73,3 +73,35 @@ _See `asset_file_list.md` for a detailed, up-to-date list of all asset files._
 - [ ] Implement CSS/JS for animated reveals and transitions
 - [ ] Integrate assets and test performance
 - [ ] Refine visual effects and timing
+
+---
+
+## Cinematic Sequence Plan (from previous thoughts)
+
+**Pure White Fade-In:**
+
+- Begin with a full white overlay covering the scene.
+- Gradually fade the white overlay to reveal the dark cosmic background, simulating the "birth" of the universe from light.
+
+**Layered Emergence:**
+
+- Sequentially fade in and animate the following layers:
+  - Faint cosmic fog/clouds (for depth and softness).
+  - Nebulae and galaxy streams (using your PNG assets, with slow opacity and scale transitions).
+  - Star clusters and starfield (twinkling, subtle parallax).
+
+**Subtle Camera Movement:**
+
+- Slowly pan and/or zoom the camera toward a specific region where the planet will appear.
+- Use CSS transforms on the #camera_viewport or a container to achieve this.
+
+**Focus Highlight:**
+
+- As the camera approaches the target region, subtly increase the brightness/contrast or add a soft glow to that area.
+- Optionally, dim or blur other regions to draw attention.
+
+**End State:**
+
+- The scene settles with the camera focused on the area where the planet will be introduced in the next step.
+
+This approach creates a cinematic, organic universe formation, guiding the viewer’s attention naturally toward the next focal point (the planet), all while maintaining a smooth, immersive flow.

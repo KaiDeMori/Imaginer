@@ -44,4 +44,4 @@
 
 ---
 
-_This plan is based on the current project state and the checklist in `early_universe_formation.md`. All naming and code should follow loose_snake_case conventions._
+_This plan is based on the current project state and the checklist in `early_universe_formation.md`._

@@ -21,8 +21,21 @@ function make_rng(seed) {
 
 // All further logic will be implemented layer by layer, using the single RNG source above.
 
-// Example usage for next steps:
-// const rng = make_rng(42);
-// let value = rng();
-
-// (Universe formation layers to be implemented below, one at a time)
+// --- Universe asset loading moved to universe_assets_loader.js --- 
+// Fade from white, then start asset animation
+window.addEventListener('DOMContentLoaded', () => {
+  const white_fade_overlay = document.getElementById('white_fade_overlay');
+  if (white_fade_overlay) {
+    setTimeout(() => {
+      white_fade_overlay.style.opacity = '0';
+    }, 100); // slight delay for effect
+    setTimeout(() => {
+      white_fade_overlay.style.display = 'none';
+    }, 2700); // after fade-out
+  }
+  if (typeof window.load_and_animate_universe_assets === 'function') {
+    setTimeout(() => {
+      window.load_and_animate_universe_assets(make_rng);
+    }, 700); // start universe animation after fade begins
+  }
+});

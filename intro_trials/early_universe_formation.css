@@ -1,3 +1,15 @@
+.white_fade_overlay,
+#white_fade_overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 2.5s cubic-bezier(0.4,0,0.2,1);
+}
 /* early_universe_formation.css */
 
 body {
