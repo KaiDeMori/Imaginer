@@ -30,6 +30,11 @@ window.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         if (fade_text) {
             fade_text.style.opacity = '1';
+            // Hold for 5 seconds, then fade out quickly
+            setTimeout(() => {
+                fade_text.style.transition = 'opacity 0.5s cubic-bezier(0.4,0,0.2,1)';
+                fade_text.style.opacity = '0';
+            }, 5000);
         }
     }, Math.ceil(total_duration * 1000));
 });
