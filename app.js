@@ -5,6 +5,7 @@ import { Menu_bar } from './components/menu_bar.js';
 import { Resizable_divider } from './components/resizable_divider.js';
 import { Gallery } from './components/gallery.js';
 import { Prompt_panel } from './components/prompt_panel.js';
+import drop_area_manager from './components/drop_area_manager.js';
 import { Viewer } from './components/viewer/viewer.js';
 import { Session_store } from './storage/session_store.js';
 import { Error_modal } from './components/error_modal.js';
@@ -135,6 +136,16 @@ window.addEventListener('DOMContentLoaded', () => {
       if (quality !== null && quality !== 'auto') form_data.append('quality', quality);
       if (background !== 'auto') form_data.append('background', background);
 
+
+      // --- Attach mask from drop_area_manager if present, and log debug info ---
+      const active_mask = drop_area_manager.get_active_mask();
+      if (active_mask) {
+        form_data.append('mask', active_mask, active_mask.name || 'mask.png');
+        console.debug('[Imaginer] Sending image edit request WITH mask:', active_mask);
+      } else {
+        console.debug('[Imaginer] Sending image edit request WITHOUT mask.');
+      }
+
       try {
         const response = await fetch('https://api.openai.com/v1/images/edits', {
           method: 'POST',
@@ -205,7 +216,7 @@ window.addEventListener('DOMContentLoaded', () => {
     try {
       const request_body = {
         model: "gpt-image-1",
-        prompt: promptText,
+        prompt: prompt_text,
         n: n_local,
         size,
         // Only add quality if not null or 'auto' (let API default if auto)
@@ -264,8 +275,8 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         // Optionally add prompt to image if enabled in config
-        const embed_itxt = embedOptions.embed_itxt ?? (localStorage.getItem('imaginer.add_prompt_to_image') === 'true');
-        const embed_xmp = embedOptions.embed_xmp ?? (localStorage.getItem('imaginer.add_prompt_to_image_xmp') === 'true');
+        const embed_itxt = embed_options.embed_itxt ?? (localStorage.getItem('imaginer.add_prompt_to_image') === 'true');
+        const embed_xmp = embed_options.embed_xmp ?? (localStorage.getItem('imaginer.add_prompt_to_image_xmp') === 'true');
         if (embed_itxt || embed_xmp) {
           const reader = new FileReader();
           const data_url = await new Promise((resolve, reject) => {
@@ -275,7 +286,7 @@ window.addEventListener('DOMContentLoaded', () => {
           });
           try {
             if (embed_itxt) {
-              blob = await add_iTXt_chunk_to_png(data_url, promptText, 'prompt_text');
+              blob = await add_iTXt_chunk_to_png(data_url, prompt_text, 'prompt_text');
             }
             if (embed_xmp) {
               blob = await embed_XMP_description(
@@ -287,7 +298,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     r2.readAsDataURL(blob);
                   });
                 })() : data_url,
-                promptText
+                prompt_text
               );
             }
           } catch (err) {
@@ -298,11 +309,11 @@ window.addEventListener('DOMContentLoaded', () => {
         await session_store.save({
           created,
           image_blob: blob,
-          prompt_text: promptText,
+          prompt_text: prompt_text,
           prompt_imgs: []
         });
         // Update the first placeholder, remove any extras
-        gallery.update_placeholder(placeholders[0], blob, false, promptText, created);
+        gallery.update_placeholder(placeholders[0], blob, false, prompt_text, created);
         for (let i = 1; i < placeholders.length; i++) {
           if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
         }
@@ -326,8 +337,8 @@ window.addEventListener('DOMContentLoaded', () => {
           }
 
           // Optionally add prompt to image if enabled in config
-          const embed_itxt = embedOptions.embed_itxt ?? (localStorage.getItem('imaginer.add_prompt_to_image') === 'true');
-          const embed_xmp = embedOptions.embed_xmp ?? (localStorage.getItem('imaginer.add_prompt_to_image_xmp') === 'true');
+          const embed_itxt = embed_options.embed_itxt ?? (localStorage.getItem('imaginer.add_prompt_to_image') === 'true');
+          const embed_xmp = embed_options.embed_xmp ?? (localStorage.getItem('imaginer.add_prompt_to_image_xmp') === 'true');
           if (embed_itxt || embed_xmp) {
             const reader = new FileReader();
             const data_url = await new Promise((resolve, reject) => {
@@ -337,7 +348,7 @@ window.addEventListener('DOMContentLoaded', () => {
             });
             try {
               if (embed_itxt) {
-                blob = await add_iTXt_chunk_to_png(data_url, promptText, 'prompt_text');
+                blob = await add_iTXt_chunk_to_png(data_url, prompt_text, 'prompt_text');
               }
               if (embed_xmp) {
                 blob = await embed_XMP_description(
@@ -349,7 +360,7 @@ window.addEventListener('DOMContentLoaded', () => {
                       r2.readAsDataURL(blob);
                     });
                   })() : data_url,
-                  promptText
+                  prompt_text
                 );
               }
             } catch (err) {
@@ -360,13 +371,13 @@ window.addEventListener('DOMContentLoaded', () => {
           await session_store.save({
             created,
             image_blob: blob,
-            prompt_text: promptText,
+            prompt_text: prompt_text,
             prompt_imgs: []
           });
           if (placeholders[i]) {
-            gallery.update_placeholder(placeholders[i], blob, false, promptText, created);
+            gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created);
           } else {
-            gallery.addThumbnail(blob, promptText, created);
+            gallery.addThumbnail(blob, prompt_text, created);
           }
         }
         // Remove any extra placeholders if fewer images returned than requested

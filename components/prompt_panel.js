@@ -7,31 +7,48 @@ export class Prompt_panel {
     drop_area.querySelectorAll('.input-image-thumb').forEach(el => el.remove());
     // Remove placeholder if present
     let placeholder = drop_area.querySelector('#input-image-drop-placeholder');
-    if (this.dropped_images && this.dropped_images.length > 0) {
-      if (placeholder) placeholder.style.display = 'none';
-      this.dropped_images.forEach((file, idx) => {
-        const url = URL.createObjectURL(file);
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'input-image-thumb';
-        img.title = file.name + '\nClick to remove';
-        img.style.height = '40px';
-        img.style.width = '40px';
-        img.style.objectFit = 'cover';
-        img.style.borderRadius = '4px';
-        img.style.border = '1px solid #bbb';
-        img.style.marginRight = '4px';
-        img.style.cursor = 'pointer';
-        img.addEventListener('click', () => {
-          // Remove this image from dropped_images and update thumbnails
-          this.dropped_images.splice(idx, 1);
-          this._update_input_image_thumbnails();
+    import('./drop_area_manager.js').then(({ default: drop_area_manager }) => {
+      const images = drop_area_manager.get_images();
+      if (images.length > 0) {
+        if (placeholder) placeholder.style.display = 'none';
+        images.forEach((entry, idx) => {
+          const url = URL.createObjectURL(entry.image);
+          const img = document.createElement('img');
+          img.src = url;
+          img.className = 'input-image-thumb';
+          img.title = entry.image.name + '\nClick to remove';
+          img.style.height = '40px';
+          img.style.width = '40px';
+          img.style.objectFit = 'cover';
+          img.style.borderRadius = '4px';
+          img.style.marginRight = '4px';
+          img.style.cursor = 'pointer';
+          img.style.boxSizing = 'border-box';
+          // Only the first image with a mask gets the red outline (active mask)
+          if (idx === 0 && entry.mask) {
+            img.setAttribute('mask-active', 'true');
+            img.style.border = '2px solid #e53935';
+            console.debug('[Imaginer] Input image', idx, 'has ACTIVE mask:', entry.mask, img);
+          } else {
+            img.removeAttribute('mask-active');
+            img.style.border = '1px solid #bbb';
+            if (entry.mask) {
+              console.debug('[Imaginer] Input image', idx, 'has mask (not active):', entry.mask, img);
+            } else {
+              console.debug('[Imaginer] Input image', idx, 'has NO mask:', entry.image, img);
+            }
+          }
+          img.addEventListener('click', () => {
+            drop_area_manager.remove_image(idx);
+            this.dropped_images = drop_area_manager.get_images().map(e => e.image);
+            this._update_input_image_thumbnails();
+          });
+          drop_area.appendChild(img);
         });
-        drop_area.appendChild(img);
-      });
-    } else {
-      if (placeholder) placeholder.style.display = '';
-    }
+      } else {
+        if (placeholder) placeholder.style.display = '';
+      }
+    });
   }
   constructor(root, onGenerate) {
     this.root = root;
@@ -155,13 +172,21 @@ export class Prompt_panel {
       // --- Check for internal gallery drag ---
       const drag_id = event.dataTransfer.getData('application/x-imaginer-blob-id');
       if (drag_id && window.imaginer_gallery_drag_store && window.imaginer_gallery_drag_store[drag_id]) {
-        const { blob, promptText, created } = window.imaginer_gallery_drag_store[drag_id];
+        const { blob, promptText, created, mask_blob } = window.imaginer_gallery_drag_store[drag_id];
         // Only accept PNGs for now
         if (blob && blob.type === 'image/png') {
           // Give the blob a name for thumbnail UI
           blob.name = promptText ? (promptText.slice(0, 20).replace(/\s+/g, '_') + '.png') : 'gallery_image.png';
-          this.dropped_images = (this.dropped_images || []).concat([blob]);
-          this._update_input_image_thumbnails();
+          // Convert mask_blob (Blob) to File if present
+          let mask_file = null;
+          if (mask_blob instanceof Blob) {
+            mask_file = new File([mask_blob], 'mask.png', { type: 'image/png' });
+          }
+          import('./drop_area_manager.js').then(({ default: drop_area_manager }) => {
+            drop_area_manager.add_image(blob, mask_file);
+            this.dropped_images = drop_area_manager.get_images().map(entry => entry.image);
+            this._update_input_image_thumbnails();
+          });
         }
         // Clean up the drag store
         delete window.imaginer_gallery_drag_store[drag_id];
@@ -171,7 +196,7 @@ export class Prompt_panel {
       // --- Fallback: external file drop (original logic) ---
       const files = Array.from(event.dataTransfer.files);
       if (files.length > 0) {
-        import('./error_modal.js').then(({ Error_modal }) => {
+import('./error_modal.js').then(({ Error_modal }) => {
           let any_error = false;
           const valid_files = [];
           for (const file of files) {
@@ -188,10 +213,22 @@ export class Prompt_panel {
             valid_files.push(file);
           }
           if (!any_error) {
-            // Add valid PNG files to memory (append to existing)
-            this.dropped_images = (this.dropped_images || []).concat(valid_files);
-            this._update_input_image_thumbnails();
-            console.log('Stored valid PNG files in memory:', this.dropped_images);
+            // Use new drop area logic for image/mask management
+            import('./drop_area_manager.js').then(({ default: drop_area_manager }) => {
+              // Only add files if drop_area_manager is empty or matches this.dropped_images
+              if (drop_area_manager.get_images().length === 0 || drop_area_manager.get_images().map(e => e.image).join(',') === (this.dropped_images || []).join(',')) {
+                valid_files.forEach(file => {
+                  drop_area_manager.add_image(file, null);
+                });
+                this.dropped_images = drop_area_manager.get_images().map(entry => entry.image);
+                this._update_input_image_thumbnails();
+                console.log('Stored valid PNG files in drop_area_manager:', drop_area_manager.get_images());
+              } else {
+                // fallback: just update thumbnails from drop_area_manager
+                this.dropped_images = drop_area_manager.get_images().map(entry => entry.image);
+                this._update_input_image_thumbnails();
+              }
+            });
           }
         });
       }

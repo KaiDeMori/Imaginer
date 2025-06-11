@@ -1,3 +1,8 @@
+/* Red outline for input image thumbnails with mask */
+.input-image-thumb[mask-active] {
+  border: 2px solid #e53935 !important;
+  box-sizing: border-box;
+}
 /* main.css – Minimal layout for Imaginer (unnecessary fluff removed) */
 
 html, body {

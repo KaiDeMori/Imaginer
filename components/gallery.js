@@ -70,7 +70,15 @@ export class Gallery {
       // Store the blob and metadata in a global singleton for retrieval on drop
       if (!window.imaginer_gallery_drag_store) window.imaginer_gallery_drag_store = {};
       const drag_id = 'drag_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
-      window.imaginer_gallery_drag_store[drag_id] = { blob, promptText, created };
+      // Try to get mask_blob if available in the record
+      let mask_blob = null;
+      if (typeof created === 'number' && this.records_by_created) {
+        const rec = this.records_by_created[created];
+        if (rec && rec.mask_blob instanceof Blob) {
+          mask_blob = rec.mask_blob;
+        }
+      }
+      window.imaginer_gallery_drag_store[drag_id] = { blob, promptText, created, mask_blob };
       event.dataTransfer.setData('application/x-imaginer-blob-id', drag_id);
     });
 

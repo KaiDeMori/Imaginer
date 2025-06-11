@@ -150,8 +150,12 @@ export class Viewer {
                         const img_data = ctx.getImageData(0, 0, mask_bitmap.width, mask_bitmap.height);
                         this.mask_data = new Uint8ClampedArray(mask_bitmap.width * mask_bitmap.height);
                         for (let i = 0; i < this.mask_data.length; ++i) {
-                            // If alpha > 0, treat as masked
+                            // If alpha > 0, treat as masked (normalize to 1)
                             this.mask_data[i] = img_data.data[i*4+3] > 0 ? 1 : 0;
+                        }
+                        // Normalize: ensure all values are 0 or 1
+                        for (let i = 0; i < this.mask_data.length; ++i) {
+                            this.mask_data[i] = this.mask_data[i] ? 1 : 0;
                         }
                         this.mask_cache_canvas = mask_canvas;
                         this.mask_cache_dirty = true;
@@ -178,24 +182,42 @@ export class Viewer {
     async close() {
         if (!this.is_open()) return;
 
-        // Save mask if present and image_id is set
+        // Save mask if present, non-empty, and image_id is set
         if (this.mask_data && this.bitmap && this.image_id && window.sessionStore) {
-            // Convert mask_data to PNG blob
-            const mask_canvas = document.createElement('canvas');
-            mask_canvas.width = this.bitmap.width;
-            mask_canvas.height = this.bitmap.height;
-            const ctx = mask_canvas.getContext('2d');
-            const img_data = ctx.createImageData(this.bitmap.width, this.bitmap.height);
+            // Debug: log mask sum before empty check
+            let mask_sum = 0;
+            for (let i = 0; i < this.mask_data.length; ++i) mask_sum += this.mask_data[i];
+            console.debug('[Imaginer] Mask sum before empty check for image_id:', this.image_id, 'sum:', mask_sum);
+            // Check if mask is empty (all zero)
+            let is_empty = true;
             for (let i = 0; i < this.mask_data.length; ++i) {
-                img_data.data[i*4+0] = 255;
-                img_data.data[i*4+1] = 0;
-                img_data.data[i*4+2] = 0;
-                img_data.data[i*4+3] = this.mask_data[i] ? 100 : 0;
+                if (this.mask_data[i]) { is_empty = false; break; }
             }
-            ctx.putImageData(img_data, 0, 0);
-            // Export as PNG blob
-            const mask_blob = await new Promise(res => mask_canvas.toBlob(res, 'image/png'));
-            await window.sessionStore.update(this.image_id, { mask_blob });
+            if (!is_empty) {
+                // Convert mask_data to PNG blob
+                const mask_canvas = document.createElement('canvas');
+                mask_canvas.width = this.bitmap.width;
+                mask_canvas.height = this.bitmap.height;
+                const ctx = mask_canvas.getContext('2d');
+                const img_data = ctx.createImageData(this.bitmap.width, this.bitmap.height);
+                for (let i = 0; i < this.mask_data.length; ++i) {
+                    // Use white for protected (masked) pixels, black for editable
+                    const is_masked = this.mask_data[i];
+                    img_data.data[i*4+0] = is_masked ? 255 : 0; // R
+                    img_data.data[i*4+1] = is_masked ? 255 : 0; // G
+                    img_data.data[i*4+2] = is_masked ? 255 : 0; // B
+                    img_data.data[i*4+3] = is_masked ? 255 : 0; // Alpha: 255 = protected, 0 = editable
+                }
+                ctx.putImageData(img_data, 0, 0);
+                // Export as PNG blob
+                const mask_blob = await new Promise(res => mask_canvas.toBlob(res, 'image/png'));
+                console.debug('[Imaginer] Mask created and saved for image_id:', this.image_id, mask_blob);
+                await window.sessionStore.update(this.image_id, { mask_blob });
+            } else {
+                // Remove mask_blob if mask is empty
+                console.debug('[Imaginer] Mask REMOVED (empty) for image_id:', this.image_id);
+                await window.sessionStore.update(this.image_id, { mask_blob: null });
+            }
         }
 
         this.overlay.classList.toggle('viewer_overlay_visible', false);
