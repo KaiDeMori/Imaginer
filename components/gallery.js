@@ -58,6 +58,21 @@ export class Gallery {
       aspectRatio: '1 / 1',
       display: 'block',
     });
+    // --- Make the container draggable for DnD to prompt panel ---
+    container.draggable = true;
+    container.addEventListener('dragstart', (event) => {
+      // We'll handle the data transfer logic in the next step
+      event.dataTransfer.setData('application/x-imaginer-blob', 'gallery-thumbnail');
+      // Optionally, set a drag image for better visuals
+      if (event.dataTransfer.setDragImage) {
+        event.dataTransfer.setDragImage(container, 32, 32);
+      }
+      // Store the blob and metadata in a global singleton for retrieval on drop
+      if (!window.imaginer_gallery_drag_store) window.imaginer_gallery_drag_store = {};
+      const drag_id = 'drag_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+      window.imaginer_gallery_drag_store[drag_id] = { blob, promptText, created };
+      event.dataTransfer.setData('application/x-imaginer-blob-id', drag_id);
+    });
 
     const imgEl = document.createElement('img');
     imgEl.src = url;

@@ -151,6 +151,24 @@ export class Prompt_panel {
       drop_area.style.background = '#f5f5f5';
       drop_area.style.borderColor = '#bbb';
       drop_area.style.color = '#bbb';
+
+      // --- Check for internal gallery drag ---
+      const drag_id = event.dataTransfer.getData('application/x-imaginer-blob-id');
+      if (drag_id && window.imaginer_gallery_drag_store && window.imaginer_gallery_drag_store[drag_id]) {
+        const { blob, promptText, created } = window.imaginer_gallery_drag_store[drag_id];
+        // Only accept PNGs for now
+        if (blob && blob.type === 'image/png') {
+          // Give the blob a name for thumbnail UI
+          blob.name = promptText ? (promptText.slice(0, 20).replace(/\s+/g, '_') + '.png') : 'gallery_image.png';
+          this.dropped_images = (this.dropped_images || []).concat([blob]);
+          this._update_input_image_thumbnails();
+        }
+        // Clean up the drag store
+        delete window.imaginer_gallery_drag_store[drag_id];
+        return;
+      }
+
+      // --- Fallback: external file drop (original logic) ---
       const files = Array.from(event.dataTransfer.files);
       if (files.length > 0) {
         import('./error_modal.js').then(({ Error_modal }) => {
