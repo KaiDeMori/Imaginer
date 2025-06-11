@@ -1,5 +1,3 @@
-tbd
-tbd
 # Early Universe Formation — Changes & Ideas
 
 ## Purpose
@@ -7,10 +5,19 @@ This document tracks changes, ideas, and implementation notes for the "early_uni
 
 ---
 
-## Files
+
+## files
 - `early_universe_formation.html`
 - `early_universe_formation.css`
 - `early_universe_formation.js`
+
+## asset_folders
+- `assets/ai_universe/nebulae/` (9 PNGs: 01-09, 4 big PNGs: big_01-big_04)
+- `assets/ai_universe/galaxy_streams/` (4 PNGs: 01-04, 6 big PNGs: big_01-big_06)
+- `assets/ai_universe/star_clusters/` (empty)
+- `assets/ai_universe/cosmic_fog/` (empty)
+
+_See `asset_file_list.md` for a detailed, up-to-date list of all asset files._
 
 ---
 
@@ -43,18 +50,18 @@ This document tracks changes, ideas, and implementation notes for the "early_uni
 
 ---
 
-## Task List & Progress Checklist
+## task_list_and_progress_checklist
 
-- [ ] Gather and generate AI image assets (see prompt ideas doc)
-  - [ ] Nebulae PNGs
-  - [ ] Galaxy streams PNGs
-  - [ ] Star clusters PNGs
-  - [ ] Cosmic fog PNGs
-- [ ] Organize assets into subfolders:
-  - [x] nebulae
-  - [x] galaxy_streams
-  - [x] star_clusters
-  - [x] cosmic_fog
+- [x] Organize assets into subfolders:
+  - [x] nebulae (9 PNGs, 4 big PNGs)
+  - [x] galaxy_streams (4 PNGs, 6 big PNGs)
+  - [x] star_clusters (empty)
+  - [x] cosmic_fog (empty)
+- [x] Gather and generate AI image assets (see prompt ideas doc: ai_image_prompt_ideas.md)
+  - [x] nebulae PNGs
+  - [x] galaxy streams PNGs
+  - [ ] star clusters PNGs
+  - [ ] cosmic fog PNGs
 - [ ] Design HTML structure for layered universe scene
 - [ ] Implement CSS/JS for animated reveals and transitions
 - [ ] Integrate assets and test performance

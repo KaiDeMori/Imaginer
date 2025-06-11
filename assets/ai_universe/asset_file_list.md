@@ -4,7 +4,8 @@ This file lists the filenames for each asset category in the project, along with
 
 ---
 
-## Nebulae
+
+## nebulae
 - 01.png
 - 02.png
 - 03.png
@@ -21,7 +22,25 @@ This file lists the filenames for each asset category in the project, along with
 
 _Notes: Files 01-09 are standard nebulae. Files big_01 to big_04 are larger or more detailed variants._
 
-## [Add other categories here as needed]
-- (e.g., galaxy_streams, star_clusters, cosmic_fog)
+## galaxy_streams
+- 01.png
+- 02.png
+- 03.png
+- 04.png
+- big_01.png
+- big_02.png
+- big_03.png
+- big_04.png
+- big_05.png
+- big_06.png
 
-_Notes: Add new files and notes as assets are created or organized._
+_Notes: Files 01-04 are standard galaxy streams. Files big_01 to big_06 are larger or more detailed variants._
+
+## cosmic_fog
+_No files in this folder._
+
+## star_clusters
+_No files in this folder._
+
+---
+_This list is auto-updated. Add new files and notes as assets are created or organized._
