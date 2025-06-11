@@ -15,12 +15,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Try to load the starfield snapshot from localStorage
     const data_url = localStorage.getItem('starfield_snapshot_data_url');
+
     if (data_url) {
         const img = new window.Image();
         img.onload = function() {
             starfield_img = img;
             start_zoom_animation();
         };
+        img.onerror = function(e) {
+            console.warn('Failed to load starfield image from data URL. Falling back to black.', e);
+            fallback_black = true;
+            start_zoom_animation();
+        };
+        // Defensive: set timeout in case onload/onerror never fire
+        let load_timeout = setTimeout(function() {
+            if (!starfield_img) {
+                console.warn('Timeout: starfield image did not load in time. Falling back to black.');
+                fallback_black = true;
+                start_zoom_animation();
+            }
+        }, 2000);
         img.src = data_url;
     } else {
         fallback_black = true;
