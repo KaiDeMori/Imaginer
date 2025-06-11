@@ -51,6 +51,8 @@ export class UniverseAnimator {
 
     // Current devicePixelRatio (kept for quick checks) ---------------------
     this._dpr = window.devicePixelRatio || 1;
+    // Media-query list that tracks DPR changes (re-created in _register_dpr_listener)
+    this._dpr_mql = /** @type {MediaQueryList | null} */ (null);
 
     // Bindings --------------------------------------------------------------
     this._update    = this._update.bind(this);
@@ -59,6 +61,7 @@ export class UniverseAnimator {
     // Resize once and add listener.
     this._on_resize();
     window.addEventListener("resize", this._on_resize);
+    this._register_dpr_listener();
   }
 
   // -----------------------------------------------------------------------
@@ -71,10 +74,52 @@ export class UniverseAnimator {
   // -----------------------------------------------------------------------
   // Private ---------------------------------------------------------------
   // -----------------------------------------------------------------------
+  /**
+   * Sets up (or re-sets) a MediaQueryList listener so that we can react when
+   * the browser's `devicePixelRatio` changes without an actual resize event
+   * (e.g. the window is dragged between monitors with different scaling).
+   * We fall back to listening for the generic `resize` event when `matchMedia`
+   * is unavailable.
+   */
+  _register_dpr_listener() {
+    // Clean up any previous listener first.
+    if (this._dpr_mql) {
+      const mql = this._dpr_mql;
+      if (typeof mql.removeEventListener === "function") {
+        mql.removeEventListener("change", this._on_resize);
+      } else if (typeof mql.removeListener === "function") {
+        // Safari ≤ 14
+        mql.removeListener(this._on_resize);
+      }
+    }
+
+    const query = `(resolution: ${this._dpr}dppx)`;
+    try {
+      this._dpr_mql = window.matchMedia(query);
+      const mql = this._dpr_mql;
+      if (typeof mql.addEventListener === "function") {
+        mql.addEventListener("change", this._on_resize);
+      } else if (typeof mql.addListener === "function") {
+        // Safari ≤ 14
+        mql.addListener(this._on_resize);
+      }
+    } catch (err) {
+      // `matchMedia` might throw in very old browsers – not a concern for our
+      // desktop-only target, but we guard anyway.
+      console.warn("[UniverseAnimator] matchMedia unavailable → relying solely on window.resize for DPR changes.");
+      this._dpr_mql = null;
+    }
+  }
+
   _on_resize() {
     const dpr = window.devicePixelRatio || 1;
     const w   = window.innerWidth;
     const h   = window.innerHeight;
+
+    // Bail early if neither DPR nor size changed (avoids redundant work).
+    if (dpr === this._dpr && w === (this.canvas.width / this._dpr) && h === (this.canvas.height / this._dpr)) {
+      return;
+    }
 
     this._dpr = dpr;
 
@@ -83,10 +128,19 @@ export class UniverseAnimator {
     this.canvas.style.width  = w + "px";
     this.canvas.style.height = h + "px";
 
-    this.ctx.resetTransform();
+    // Reset any existing transform *before* applying the new DPR scale.
+    if (typeof this.ctx.resetTransform === "function") {
+      this.ctx.resetTransform();
+    } else {
+      // Fallback for very old browsers (not expected in our target audience).
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
     this.ctx.scale(dpr, dpr);
 
     console.log(`[UniverseAnimator] Canvas resized – CSS ${w}×${h}, internal ${this.canvas.width}×${this.canvas.height} @ DPR ${dpr}`);
+
+    // Re-initialise the DPR change listener to track future changes.
+    this._register_dpr_listener();
   }
 
   _update(ts) {
