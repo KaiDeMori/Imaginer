@@ -39,8 +39,13 @@ _Notes: Files 01-04 are standard galaxy streams. Files big_01 to big_06 are larg
 ## cosmic_fog
 _No files in this folder._
 
+
 ## star_clusters
-_No files in this folder._
+- big_01.png
+- big_02.png
+- big_03.png
+
+_Notes: Files big_01 to big_03 are large or detailed star cluster PNGs._
 
 ---
 _This list is auto-updated. Add new files and notes as assets are created or organized._

@@ -53,14 +53,15 @@ _See `asset_file_list.md` for a detailed, up-to-date list of all asset files._
 ## task_list_and_progress_checklist
 
 - [x] Organize assets into subfolders:
-  - [x] nebulae (9 PNGs, 4 big PNGs)
-  - [x] galaxy_streams (4 PNGs, 6 big PNGs)
-  - [x] star_clusters (empty)
+  - [x] nebulae
+  - [x] galaxy_streams
+  - [x] star_clusters
   - [x] cosmic_fog (empty)
-- [x] Gather and generate AI image assets (see prompt ideas doc: ai_image_prompt_ideas.md)
+
+- [x] Gather and generate AI image assets (see `ai_image_prompt_ideas.md`)
   - [x] nebulae PNGs
   - [x] galaxy streams PNGs
-  - [ ] star clusters PNGs
+  - [x] star clusters PNGs
   - [ ] cosmic fog PNGs
 - [ ] Design HTML structure for layered universe scene
 - [ ] Implement CSS/JS for animated reveals and transitions
