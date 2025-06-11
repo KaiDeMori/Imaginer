@@ -6,7 +6,8 @@
 ✅  Wire-up & Bootstrapping completed.  
 ✅  Placeholder cosmic-fog animation validated.  
 ✅  Hi-DPI scaling validation integrated & manually verified.  
-✅  Average FPS sampling & console reporting integrated.
+✅  Average FPS sampling & console reporting integrated.  
+✅  Deterministic Asset Selection integrated.
 
 ---
 
@@ -24,8 +25,8 @@
 - [x] Confirm a steady ≥ 60 fps on desktop test hardware; log an average FPS sample to the console.
 
 ### 3 · Deterministic Asset Selection
-- [ ] Replace the current “first matching fog sprite” heuristic with a **seeded random pick** using `rand()` so that each seed yields a repeatable fog texture choice.
-- [ ] Document the selection logic inline for future layers.
+- [x] Replace the current “first matching fog sprite” heuristic with a **seeded random pick** using `rand()` so that each seed yields a repeatable fog texture choice.
+- [x] Document the selection logic inline for future layers.
 
 ### 4 · Debug / Dev Helpers
 - [ ] Add `window.toggle_anim()` helper to pause / resume the rAF loop.
