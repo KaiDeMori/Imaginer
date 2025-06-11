@@ -34,6 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
     explosion_canvas.width = window.innerWidth;
     explosion_canvas.height = window.innerHeight;
 
+    // Reactivate everything_fade_text after 3 seconds
+    const everything_fade_text = document.getElementById('everything_fade_text');
+    if (everything_fade_text) {
+        setTimeout(function() {
+            everything_fade_text.style.opacity = '1';
+        }, 3000);
+    }
+
     // Starfield background
     let starfield_img = null;
     let fallback_black = false;
