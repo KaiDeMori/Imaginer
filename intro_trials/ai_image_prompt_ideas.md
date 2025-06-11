@@ -24,7 +24,6 @@ No need to mention alpha since that is handled via an API parameter.
 
 ## Cosmic Fog/Clouds
 - "Diffuse cosmic fog, subtle and semi-transparent, for layering"
-- "Soft glowing space clouds, PNG with transparent background"
 
 ---
 

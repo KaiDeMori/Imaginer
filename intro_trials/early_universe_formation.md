@@ -62,7 +62,7 @@ _See `asset_file_list.md` for a detailed, up-to-date list of all asset files._
   - [x] nebulae PNGs
   - [x] galaxy streams PNGs
   - [x] star clusters PNGs
-  - [ ] cosmic fog PNGs
+  - [x] cosmic fog PNGs
 - [ ] Design HTML structure for layered universe scene
 - [ ] Implement CSS/JS for animated reveals and transitions
 - [ ] Integrate assets and test performance

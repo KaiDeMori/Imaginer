@@ -36,8 +36,15 @@ _Notes: Files 01-09 are standard nebulae. Files big_01 to big_04 are larger or m
 
 _Notes: Files 01-04 are standard galaxy streams. Files big_01 to big_06 are larger or more detailed variants._
 
+
 ## cosmic_fog
-_No files in this folder._
+- big_01.png
+- big_02.png
+- big_03.png
+- big_04.png
+- big_05.png
+
+_Notes: Files big_01 to big_05 are large or detailed cosmic fog PNGs._
 
 
 ## star_clusters
