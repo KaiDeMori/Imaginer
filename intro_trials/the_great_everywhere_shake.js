@@ -184,6 +184,55 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.globalCompositeOperation = 'source-over';
     }
 
+    // === Whiteout effect ===
+    let whiteout_progress = 0; // 0 = no whiteout, 1 = fully white
+    let whiteout_start_time = null;
+    const WHITEOUT_DURATION = 1000; // ms
+    let whiteout_complete = false; // Track if whiteout is fully done
+
+    // Call this to trigger the whiteout effect
+    function trigger_whiteout() {
+        if (whiteout_start_time === null) {
+            whiteout_start_time = performance.now();
+        }
+    }
+
+    // Optionally, trigger whiteout after "Everything!" is visible for a moment
+    if (everything_fade_text) {
+        setTimeout(function() {
+            trigger_whiteout();
+        }, 4200); // 3s for fade-in + 1.2s visible, tweak as needed
+    }
+
+    function draw_whiteout(now) {
+        if (whiteout_complete) {
+            ctx.save();
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, explosion_canvas.width, explosion_canvas.height);
+            ctx.restore();
+            return;
+        }
+        if (whiteout_start_time !== null) {
+            whiteout_progress = Math.min(1, (now - whiteout_start_time) / WHITEOUT_DURATION);
+            if (whiteout_progress >= 1) {
+                whiteout_complete = true;
+                ctx.save();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, explosion_canvas.width, explosion_canvas.height);
+                ctx.restore();
+            } else if (whiteout_progress > 0) {
+                ctx.save();
+                ctx.globalAlpha = whiteout_progress;
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, explosion_canvas.width, explosion_canvas.height);
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            }
+        }
+    }
+
     function start_zoom_and_explosion_animation() {
         const zoom_duration_ms = 5000;
         const zoom_amplitude = 0.08;
@@ -191,44 +240,62 @@ document.addEventListener('DOMContentLoaded', function() {
         const shake_amplitude_px = 12;
         const start_time = performance.now();
 
+        let whiteout_frame_drawn = false;
+
         function animate(now) {
             const elapsed = now - start_time;
             let t = Math.min(elapsed / zoom_duration_ms, 1);
-            const scale = zoom_base + zoom_amplitude * Math.sin(Math.PI * t);
-            const shake_fade = Math.sin(Math.PI * t);
-            const shake_x = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
-            const shake_y = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
-            draw_scaled_and_shaken(scale, shake_x, shake_y);
-
-            // --- Explosion spawn rate ramps up as t approaches 1 ---
-            // Interpolate spawn rate from min to max, quartic ramp
-            const ramp = EXPLOSION_RAMP_CONSTANT + (1 - EXPLOSION_RAMP_CONSTANT) * Math.pow(t, 4);
-            const explosion_spawn_rate = EXPLOSION_MIN_RATE + (EXPLOSION_MAX_RATE - EXPLOSION_MIN_RATE) * ramp;
-
-            // For the first N ms, cap the total number of explosions
-            // Dynamically ramp up spark_max_radius from SPARK_MAX_RADIUS_START to SPARK_MAX_RADIUS_END as t goes from 0 to 1
-            spark_max_radius = SPARK_MAX_RADIUS_START + (SPARK_MAX_RADIUS_END - SPARK_MAX_RADIUS_START) * t;
-            if (elapsed < EXPLOSION_INITIAL_LIMIT_DURATION) {
-                while (explosions.length < EXPLOSION_INITIAL_LIMIT) {
-                    explosions.push(create_explosion(t));
-                }
-            } else {
-                for (let i = 0; i < Math.floor(explosion_spawn_rate); ++i) {
-                    if (explosions.length < MAX_EXPLOSIONS && Math.random() < EXPLOSION_RANDOM_CHANCE) {
-                        explosions.push(create_explosion(t));
-                    }
-                }
-            }
-            // Remove finished explosions
-            const now_time = performance.now();
-            explosions = explosions.filter(exp => (now_time - exp.start_time) < exp.duration);
-            draw_explosions(now_time);
+            let do_animate = false;
 
             if (elapsed < zoom_duration_ms) {
-                requestAnimationFrame(animate);
+                // Normal animation phase
+                const scale = zoom_base + zoom_amplitude * Math.sin(Math.PI * t);
+                const shake_fade = Math.sin(Math.PI * t);
+                const shake_x = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
+                const shake_y = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
+                draw_scaled_and_shaken(scale, shake_x, shake_y);
+
+                // --- Explosion spawn rate ramps up as t approaches 1 ---
+                // Interpolate spawn rate from min to max, quartic ramp
+                const ramp = EXPLOSION_RAMP_CONSTANT + (1 - EXPLOSION_RAMP_CONSTANT) * Math.pow(t, 4);
+                const explosion_spawn_rate = EXPLOSION_MIN_RATE + (EXPLOSION_MAX_RATE - EXPLOSION_MIN_RATE) * ramp;
+
+                // For the first N ms, cap the total number of explosions
+                // Dynamically ramp up spark_max_radius from SPARK_MAX_RADIUS_START to SPARK_MAX_RADIUS_END as t goes from 0 to 1
+                spark_max_radius = SPARK_MAX_RADIUS_START + (SPARK_MAX_RADIUS_END - SPARK_MAX_RADIUS_START) * t;
+                if (elapsed < EXPLOSION_INITIAL_LIMIT_DURATION) {
+                    while (explosions.length < EXPLOSION_INITIAL_LIMIT) {
+                        explosions.push(create_explosion(t));
+                    }
+                } else {
+                    for (let i = 0; i < Math.floor(explosion_spawn_rate); ++i) {
+                        if (explosions.length < MAX_EXPLOSIONS && Math.random() < EXPLOSION_RANDOM_CHANCE) {
+                            explosions.push(create_explosion(t));
+                        }
+                    }
+                }
+                // Remove finished explosions
+                const now_time = performance.now();
+                explosions = explosions.filter(exp => (now_time - exp.start_time) < exp.duration);
+                draw_explosions(now_time);
+                do_animate = true;
             } else {
+                // After main animation, keep drawing static background
                 draw_scaled_and_shaken(zoom_base, 0, 0);
                 draw_explosions(performance.now());
+            }
+
+            // Draw whiteout overlay if triggered
+            draw_whiteout(now);
+
+            // Continue animating until whiteout is fully complete and at least one frame of full white is drawn
+            if (whiteout_complete && !whiteout_frame_drawn) {
+                whiteout_frame_drawn = true;
+                requestAnimationFrame(animate);
+                return;
+            }
+            if (do_animate || !whiteout_complete || !whiteout_frame_drawn) {
+                requestAnimationFrame(animate);
             }
         }
         requestAnimationFrame(animate);
