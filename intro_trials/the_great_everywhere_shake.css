@@ -1,0 +1,39 @@
+/* CSS for The Great Everywhere Shake cinematic step */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+}
+#explosion_canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+}
+#everything_fade_text {
+  /* Will be styled further for fade/glow effects */
+}
+.everything_bloom_text {
+  color: #fff;
+  font-size: 5em;
+  font-family: 'Orbitron', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 8px #fff,
+    0 0 16px #f0f,
+    0 0 32px #f0f,
+    0 0 64px #f0f,
+    0 0 128px #f0f,
+    0 2px 16px #000,
+    0 0 32px #fff2,
+    0 0 4px #fff,
+    0 0 2px #fff;
+  filter: brightness(1.3) saturate(1.8) blur(0.2px);
+  /* Add animation later */
+}

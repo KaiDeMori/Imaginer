@@ -45,7 +45,8 @@ window.addEventListener('DOMContentLoaded', function() {
                         }
                         // Create image snapshot
                         const snapshot_img = document.createElement('img');
-                        snapshot_img.src = starfield_canvas.toDataURL('image/png');
+                        const data_url = starfield_canvas.toDataURL('image/png');
+                        snapshot_img.src = data_url;
                         snapshot_img.id = 'starfield_snapshot_img';
                         snapshot_img.style.position = 'absolute';
                         snapshot_img.style.left = starfield_canvas.offsetLeft + 'px';
@@ -57,6 +58,12 @@ window.addEventListener('DOMContentLoaded', function() {
                         starfield_canvas.style.visibility = 'hidden';
                         // Add the image to the same parent
                         starfield_canvas.parentNode.appendChild(snapshot_img);
+                        // Persist the image data URL in localStorage for the next step
+                        try {
+                            localStorage.setItem('starfield_snapshot_data_url', data_url);
+                        } catch (e) {
+                            // Ignore storage errors (e.g., quota exceeded)
+                        }
                     }
                 }, 600); // Wait for fade out to finish (0.5s + buffer)
             }, 5000);
