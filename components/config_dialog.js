@@ -13,6 +13,7 @@ export class Config_dialog {
 
   /* ------------------------------------------------------------------ */
   build_DOM() {
+
     // Overlay ---------------------------------------------------------
     this.overlay = document.createElement('div');
     this.overlay.className = 'overlay';
@@ -25,6 +26,24 @@ export class Config_dialog {
     const title = document.createElement('h2');
     title.textContent = 'Configuration';
     title.className = 'title';
+
+    // Tab bar ---------------------------------------------------------
+    const tab_bar = document.createElement('div');
+    tab_bar.className = 'tab_bar';
+    this.basic_tab_button = document.createElement('button');
+    this.basic_tab_button.className = 'tab_button active';
+    this.basic_tab_button.textContent = 'Basic';
+    this.advanced_tab_button = document.createElement('button');
+    this.advanced_tab_button.className = 'tab_button';
+    this.advanced_tab_button.textContent = 'Advanced';
+    tab_bar.appendChild(this.basic_tab_button);
+    tab_bar.appendChild(this.advanced_tab_button);
+
+    // Tab content containers ------------------------------------------
+    this.basic_tab_content = document.createElement('div');
+    this.basic_tab_content.className = 'tab_content';
+    this.advanced_tab_content = document.createElement('div');
+    this.advanced_tab_content.className = 'tab_content';
 
     // API key label & input + test button
     const label = document.createElement('label');
@@ -243,24 +262,50 @@ export class Config_dialog {
     button_row.appendChild(this.button_cancel);
     button_row.appendChild(this.button_save);
 
-    // Assemble --------------------------------------------------------
+    // Assemble tab contents -------------------------------------------
+    // Basic tab
+    this.basic_tab_content.appendChild(label);
+    this.basic_tab_content.appendChild(key_form);
+    this.basic_tab_content.appendChild(max_label);
+    this.basic_tab_content.appendChild(this.max_input);
+    this.basic_tab_content.appendChild(n_label);
+    this.basic_tab_content.appendChild(this.n_input);
+    this.basic_tab_content.appendChild(background_label);
+    this.basic_tab_content.appendChild(this.background_select);
+    this.basic_tab_content.appendChild(quality_label);
+    this.basic_tab_content.appendChild(this.quality_select);
+
+    // Advanced tab
+    this.advanced_tab_content.appendChild(strip_container);
+    this.advanced_tab_content.appendChild(prompt_container);
+    this.advanced_tab_content.appendChild(mask_mode_container);
+
+    // Assemble dialog
     this.dialog.appendChild(title);
-    this.dialog.appendChild(label);
-    this.dialog.appendChild(key_form);
-    this.dialog.appendChild(max_label);
-    this.dialog.appendChild(this.max_input);
-    this.dialog.appendChild(n_label);
-    this.dialog.appendChild(this.n_input);
-    this.dialog.appendChild(background_label);
-    this.dialog.appendChild(this.background_select);
-    this.dialog.appendChild(quality_label);
-    this.dialog.appendChild(this.quality_select);
-    this.dialog.appendChild(strip_container);
-    this.dialog.appendChild(prompt_container);
-    this.dialog.appendChild(mask_mode_container);
+    this.dialog.appendChild(tab_bar);
+    this.dialog.appendChild(this.basic_tab_content);
+    this.dialog.appendChild(this.advanced_tab_content);
     this.dialog.appendChild(button_row);
     this.overlay.appendChild(this.dialog);
     document.body.appendChild(this.overlay);
+
+    // Show only basic tab by default
+    this.basic_tab_content.style.display = '';
+    this.advanced_tab_content.style.display = 'none';
+
+    // Tab switching logic
+    this.basic_tab_button.addEventListener('click', () => {
+      this.basic_tab_button.classList.add('active');
+      this.advanced_tab_button.classList.remove('active');
+      this.basic_tab_content.style.display = '';
+      this.advanced_tab_content.style.display = 'none';
+    });
+    this.advanced_tab_button.addEventListener('click', () => {
+      this.advanced_tab_button.classList.add('active');
+      this.basic_tab_button.classList.remove('active');
+      this.basic_tab_content.style.display = 'none';
+      this.advanced_tab_content.style.display = '';
+    });
   }
 
   /* ------------------------------------------------------------------ */
