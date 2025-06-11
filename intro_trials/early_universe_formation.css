@@ -2,19 +2,99 @@
 
 body {
   margin: 0;
-  background: #fff;
+  background: #11131a;
   overflow: hidden;
 }
 
-#universe_canvas {
+#cinematic_sequence, #camera_viewport {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(ellipse at center, #fff 0%, #e0e7ff 100%);
-  transition: background 2s;
-  z-index: 1;
+  pointer-events: none;
 }
+
+.scene_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+.background_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  background: radial-gradient(ellipse at center, #23243a 0%, #11131a 100%);
+  overflow: hidden;
+}
+
+.starfield_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.nebulae_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.galaxy_streams_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.star_clusters_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.cosmic_fog_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.foreground_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.ui_overlay_layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  pointer-events: auto;
+}
+
 
 .galaxy_stream {
   position: absolute;
@@ -23,6 +103,7 @@ body {
   opacity: 0;
   box-shadow: 0 0 40px 10px #b3c6ff, 0 0 80px 30px #a3a3ff;
   animation: galaxy_fade_in 3s forwards;
+  background: linear-gradient(135deg, #b3c6ff 0%, #a3a3ff 100%);
 }
 
 @keyframes galaxy_fade_in {
@@ -32,10 +113,14 @@ body {
   }
 }
 
+  
 .cosmic_structure {
   position: absolute;
   border-radius: 50%;
   background: linear-gradient(135deg, #e0e7ff 0%, #b3c6ff 100%);
   opacity: 0.7;
   filter: blur(2px);
+  box-shadow: 0 0 60px 20px #e0e7ff, 0 0 120px 40px #b3c6ff;
+  pointer-events: none;
+  transition: opacity 1.5s, filter 1.5s;
 }

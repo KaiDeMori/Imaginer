@@ -1,57 +1,28 @@
+
 // early_universe_formation.js
 
-function random_between(min, max) {
-  return Math.random() * (max - min) + min;
+// --- Single source of deterministic randomness ---
+function seeded_random(seed) {
+  let t = seed += 0x6D2B79F5;
+  t = Math.imul(t ^ t >>> 15, t | 1);
+  t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
 }
 
-function create_cosmic_structure(parent, width, height, left, top) {
-  const el = document.createElement('div');
-  el.className = 'cosmic_structure';
-  el.style.width = width + 'px';
-  el.style.height = height + 'px';
-  el.style.left = left + 'px';
-  el.style.top = top + 'px';
-  parent.appendChild(el);
+// Returns a function that produces deterministic random numbers
+function make_rng(seed) {
+  let offset = 0;
+  return function() {
+    return seeded_random(seed + (offset++));
+  };
 }
 
-function create_galaxy_stream(parent, width, height, left, top, delay) {
-  const el = document.createElement('div');
-  el.className = 'galaxy_stream';
-  el.style.width = width + 'px';
-  el.style.height = height + 'px';
-  el.style.left = left + 'px';
-  el.style.top = top + 'px';
-  el.style.animationDelay = delay + 's';
-  parent.appendChild(el);
-}
+// --- General scaffolding for layer-by-layer universe formation ---
 
-window.onload = function() {
-  const canvas = document.getElementById('universe_canvas');
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+// All further logic will be implemented layer by layer, using the single RNG source above.
 
-  // Step 1: Fill with diffuse light
-  for (let i = 0; i < 12; i++) {
-    create_cosmic_structure(
-      canvas,
-      random_between(120, 400),
-      random_between(60, 200),
-      random_between(0, w - 200),
-      random_between(0, h - 100)
-    );
-  }
+// Example usage for next steps:
+// const rng = make_rng(42);
+// let value = rng();
 
-  // Step 2: Gradually reveal galaxy streams
-  setTimeout(() => {
-    for (let i = 0; i < 5; i++) {
-      create_galaxy_stream(
-        canvas,
-        random_between(180, 320),
-        random_between(30, 80),
-        random_between(0, w - 200),
-        random_between(0, h - 100),
-        i * 0.7
-      );
-    }
-  }, 1800);
-};
+// (Universe formation layers to be implemented below, one at a time)
