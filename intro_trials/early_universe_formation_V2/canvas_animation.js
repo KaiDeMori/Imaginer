@@ -39,8 +39,13 @@ export class UniverseAnimator {
     // Animation state ------------------------------------------------------
     this._start_time = null; // timestamp set on first frame
 
+    // FPS sampling ---------------------------------------------------------
+    this._fps_sample_window_ms = 2_000;   // 2-second rolling window
+    this._fps_frames_accum     = 0;       // frames collected inside window
+    this._fps_window_start_ts  = null;    // window start timestamp
+
     // Bindings --------------------------------------------------------------
-    this._update = this._update.bind(this);
+    this._update    = this._update.bind(this);
     this._on_resize = this._on_resize.bind(this);
 
     // Resize once and add listener.
@@ -62,29 +67,53 @@ export class UniverseAnimator {
     const dpr = window.devicePixelRatio || 1;
     const w   = window.innerWidth;
     const h   = window.innerHeight;
+
     this.canvas.width  = w * dpr;
     this.canvas.height = h * dpr;
     this.canvas.style.width  = w + "px";
     this.canvas.style.height = h + "px";
+
     this.ctx.resetTransform();
     this.ctx.scale(dpr, dpr);
+
+    console.log(`[UniverseAnimator] Canvas resized – ${w}×${h} @ DPR ${dpr}`);
   }
 
   _update(ts) {
-    if (this._start_time === null) this._start_time = ts;
-    const elapsed   = (ts - this._start_time) / 1000; // seconds
+    // ---------------------------------------------------------------------
+    // FPS sampling & reporting --------------------------------------------
+    // ---------------------------------------------------------------------
+    if (this._fps_window_start_ts === null) {
+      this._fps_window_start_ts = ts;
+      this._fps_frames_accum    = 0;
+    }
+    this._fps_frames_accum++;
 
-    // Temporarily: 10-second looping cycle --------------------------------
+    const fps_window_elapsed = ts - this._fps_window_start_ts;
+    if (fps_window_elapsed >= this._fps_sample_window_ms) {
+      const fps = this._fps_frames_accum / (fps_window_elapsed / 1000);
+      console.log(`[UniverseAnimator] Average FPS (last ${(fps_window_elapsed/1000).toFixed(1)} s): ${fps.toFixed(1)}`);
+      this._fps_window_start_ts = ts;
+      this._fps_frames_accum    = 0;
+    }
+
+    // ---------------------------------------------------------------------
+    // Animation logic ------------------------------------------------------
+    // ---------------------------------------------------------------------
+    if (this._start_time === null) this._start_time = ts;
+    const elapsed   = (ts - this._start_time) / 1000; // seconds since start
+
+    // Temporarily: 10-second looping cycle ---------------------------------
     const cycle     = 10;
     const t_cycle   = elapsed % cycle;          // 0 … 10
     const progress  = t_cycle / cycle;          // 0 … 1
 
     // Scale from 1 → 3 and back every cycle (yo-yo)
     const scale = progress < 0.5
-      ? 1 + (progress / 0.5) * 2   // 1 → 3 over first half
-      : 3 - ((progress - 0.5) / 0.5) * 2; // 3 → 1 over second half
+      ? 1 + (progress / 0.5) * 2              // 1 → 3 over first half
+      : 3 - ((progress - 0.5) / 0.5) * 2;     // 3 → 1 over second half
 
-    // Alpha fade (optional) – here we keep full opacity.
+    // Alpha fade (optional) – keep full opacity for now.
     const alpha = 1;
 
     // Clear canvas ---------------------------------------------------------
@@ -96,6 +125,7 @@ export class UniverseAnimator {
       const cy  = this.canvas.height / (2 * (window.devicePixelRatio || 1));
       const draw_w = bmp.width  * scale;
       const draw_h = bmp.height * scale;
+
       this.ctx.save();
       this.ctx.globalAlpha = alpha;
       this.ctx.translate(cx, cy);

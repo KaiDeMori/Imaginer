@@ -5,6 +5,7 @@
 
 import { load_and_decode_images } from "./preloader_module.js";
 import { rand, eu_seed } from "./deterministic_rng.js";
+import { UniverseAnimator } from "./canvas_animation.js"; // NEW: animation engine
 import "./seed_ui_panel.js"; // renders the seed information UI
 
 // Log the deterministic seed for debugging / reproducibility.
@@ -26,6 +27,10 @@ if (!canvas_el) {
   console.error("[EUF] #universeCanvas element not found – aborting.");
   throw new Error("Critical DOM element missing: #universeCanvas");
 }
+
+// We'll keep a reference around so it can be exposed for DevTools.
+/** @type {UniverseAnimator | null} */
+let universe_animator = null;
 
 // ---------------------------------------------------------------------------
 // 1. Kick off pre-loading ----------------------------------------------------
@@ -73,14 +78,23 @@ function _fade_out_white_overlay() {
 }
 
 /**
- * Placeholder – called once both the pre-loader and the white-screen hold are
- * done. When we start implementing the actual animation, this is our hook to
- * spin up the Canvas 2D / WebGL renderer.
+ * Called once both the pre-loader and the white-screen hold are done.
+ * This now spins up the Canvas animator so that we can see a visible result.
  *
  * @param {Map<string, ImageBitmap>} bitmaps_map – resolved map from pre-loader
  */
 function _on_ready(bitmaps_map) {
   console.log(`[EUF] All systems go. ${bitmaps_map.size} ImageBitmaps ready for use.`);
   console.log(`[EUF] rand() test -> ${rand()}`); // quick smoke test to prove deterministic RNG works
-  // TODO: build deterministic RNG, set up animation timeline, etc.
+
+  // -------------------------------------------------------------------------
+  // Instantiate and start the UniverseAnimator.
+  // -------------------------------------------------------------------------
+  universe_animator = new UniverseAnimator(canvas_el, bitmaps_map);
+  universe_animator.start();
+
+  // Expose for DevTools so we can inspect state & call helper methods.
+  if (typeof window !== "undefined") {
+    window.universe_animator = universe_animator;
+  }
 }
