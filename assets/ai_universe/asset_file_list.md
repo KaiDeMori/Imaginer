@@ -1,8 +1,10 @@
+
 # AI Universe Asset File List
 
 This file lists the filenames for each asset category in the project, along with optional notes for each file or group.
 
 ---
+
 
 
 ## nebulae
@@ -22,6 +24,7 @@ This file lists the filenames for each asset category in the project, along with
 
 _Notes: Files 01-09 are standard nebulae. Files big_01 to big_04 are larger or more detailed variants._
 
+
 ## galaxy_streams
 - 01.png
 - 02.png
@@ -37,6 +40,7 @@ _Notes: Files 01-09 are standard nebulae. Files big_01 to big_04 are larger or m
 _Notes: Files 01-04 are standard galaxy streams. Files big_01 to big_06 are larger or more detailed variants._
 
 
+
 ## cosmic_fog
 - big_01.png
 - big_02.png
@@ -47,6 +51,7 @@ _Notes: Files 01-04 are standard galaxy streams. Files big_01 to big_06 are larg
 _Notes: Files big_01 to big_05 are large or detailed cosmic fog PNGs._
 
 
+
 ## star_clusters
 - big_01.png
 - big_02.png
@@ -54,5 +59,12 @@ _Notes: Files big_01 to big_05 are large or detailed cosmic fog PNGs._
 
 _Notes: Files big_01 to big_03 are large or detailed star cluster PNGs._
 
+## alien_planet
+- planet_totale.png
+
+
+_Notes: This folder contains the main target planet asset for the early universe cut-point. The planet is intended as the visual anchor for the final zoom/focus in the cinematic sequence, and serves as the transition point to the "Arrival at an Alien World" step. Integrate this asset as the last layer to appear, and use it for camera focus and cut-point planning._
+
 ---
 _This list is auto-updated. Add new files and notes as assets are created or organized._
+

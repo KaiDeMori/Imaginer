@@ -21,16 +21,20 @@
   - "Everything!"
   - Text appears dramatically, with a slight glow effect, synchronized with the explosions.
 
+
 ### **3. Early Universe Formation**
 - **Visuals:**
-  - Start with a bright, glowing universe filled with diffuse light.
+  - Start with a bright, glowing universe filled with diffuse light (pure white screen fades to cosmic background).
   - Gradually increase contrast, revealing intricate structures and cosmic formations.
   - Small pockets of galaxy streams slowly become visible, forming beautiful patterns and clusters.
+  - A distinct planet asset appears as the camera zooms/focuses in, serving as the visual anchor and cut-point for the next step.
+
 
 ### **4. Arrival at an Alien World**
 - **Visuals:**
-  - Smooth zoom into one of the galaxy streams, focusing on a single, mysterious planet.
-  - The planet appears entirely foreign, with unique landscapes and vibrant colors.
+  - Cut/transition from the focused planet in the previous step.
+  - Smooth zoom into the planet, revealing its surface and unique landscapes.
+  - The planet appears entirely foreign, with vibrant colors and alien features.
   - The camera gently lands, immersing viewers in this alien environment.
 
 ### **5. Final Reveal: Alien Imaginer**
