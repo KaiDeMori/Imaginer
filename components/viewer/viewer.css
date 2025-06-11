@@ -1,3 +1,19 @@
+/* Remove masks button styles */
+.remove_masks_button {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1001;
+    font-size: 16px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #e33;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: background 0.15s;
+}
 /* viewer.css - Styles for the Viewer components */
 
 /* Overlay styles */

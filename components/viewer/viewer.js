@@ -38,7 +38,7 @@ export class Viewer {
         this.mask_manager = new mask_manager(this);
 
         this.remove_mode_button = document.createElement('button');
-        this.remove_mode_button.textContent = 'Remove Mode';
+        this.remove_mode_button.textContent = 'Mask Mode';
         this.remove_mode_button.classList.add('remove_mode_button');
         this.remove_mode_button.addEventListener('click', (e) => {
             // Prevent overlay click event from firing (which would close viewer)
@@ -46,6 +46,18 @@ export class Viewer {
             this.toggle_remove_mode();
         });
         this.overlay.appendChild(this.remove_mode_button);
+
+        // Remove masks button (initially hidden)
+        this.remove_masks_button = document.createElement('button');
+        this.remove_masks_button.textContent = 'Remove Masks';
+        this.remove_masks_button.classList.add('remove_masks_button');
+        this.remove_masks_button.style.display = 'none';
+        this.remove_masks_button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.remove_all_masks();
+        });
+        // Insert after remove_mode_button
+        this.overlay.insertBefore(this.remove_masks_button, this.remove_mode_button.nextSibling);
 
         /* Canvas ------------------------------------------------------- */
         this.canvas = document.createElement('canvas');
@@ -232,10 +244,27 @@ export class Viewer {
     ================================================================== */
     is_open() { return this.overlay.style.display !== 'none'; }
 
+    /**
+     * Remove all mask data from the current image (clear mask)
+     */
+    remove_all_masks() {
+        if (this.mask_manager && typeof this.mask_manager.init_mask === 'function') {
+            this.mask_manager.init_mask();
+            this.mask_cache_dirty = true;
+            this.redraw();
+        }
+    }
+
     /* ---------------- Remove Mode ------------------------------- */
     toggle_remove_mode() {
         this.remove_mode = !this.remove_mode;
         this.behaviour.set_mode(this.remove_mode ? 'remove' : 'viewer');
+        // Show/hide remove_masks_button based on remove_mode
+        if (this.remove_mode) {
+            this.remove_masks_button.style.display = '';
+        } else {
+            this.remove_masks_button.style.display = 'none';
+        }
     }
 
     on_mouse_down(e) {
