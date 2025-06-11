@@ -8,11 +8,11 @@
 // === Cinematic Explosion & Shake Timing Constants ===
 // You can tweak these to control the feel of the effect
 const EXPLOSION_MIN_RATE = 0.1; // Minimum explosions per frame at start
-const EXPLOSION_MAX_RATE = 6;   // Maximum explosions per frame at peak
+const EXPLOSION_MAX_RATE = 10;   // Maximum explosions per frame at peak
 const EXPLOSION_RAMP_CONSTANT = 0.3; // How quickly the rate ramps up (0 = slow, 1 = instant)
 const EXPLOSION_INITIAL_LIMIT = 3;    // Max explosions for first EXPLOSION_INITIAL_LIMIT_DURATION milliseconds
-const EXPLOSION_INITIAL_LIMIT_DURATION = 600; // ms for initial limit
-const EXPLOSION_RANDOM_CHANCE = 0.7;  // Chance to spawn each explosion per frame
+const EXPLOSION_INITIAL_LIMIT_DURATION = 400; // ms for initial limit
+const EXPLOSION_RANDOM_CHANCE = 0.9;  // Chance to spawn each explosion per frame
 const MAX_EXPLOSIONS = 10; // Reduced for less final explosion density
 
 // === Spark Parameters (for explosion sparks) ===
@@ -24,7 +24,7 @@ const SPARK_MAX_SPEED = 4.0;    // Maximum speed of sparks
 const SPARK_MIN_RADIUS = 2;     // Minimum radius of a spark
 // SPARK_MAX_RADIUS will be dynamic, ramping from 2 to SPARK_MAX_RADIUS_END
 const SPARK_MAX_RADIUS_START = 2;
-const SPARK_MAX_RADIUS_END = 40;
+const SPARK_MAX_RADIUS_END = 60;
 let spark_max_radius = SPARK_MAX_RADIUS_START;
 
 document.addEventListener('DOMContentLoaded', function() {
