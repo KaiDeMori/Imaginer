@@ -27,4 +27,4 @@
 - [x] Display thumbnails of dropped images.
 - [x] Handle errors using `error_modal`.
 - [x] Allow replacing images by dropping new ones.
-- [ ] Test the feature end-to-end.
+- [x] Test the feature end-to-end.
