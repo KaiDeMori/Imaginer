@@ -31,13 +31,6 @@ export class Menu_bar {
               <img src="./assets/Square.png" alt="Square" class="orientation-img" />
             </button>
           </div>
-          <label style="font-size: 1rem;">Background:
-            <select id="background-select" style="margin-left: 4px; font-size: 1rem;">
-              <option value="auto">Automatic</option>
-              <option value="transparent">Transparent</option>
-              <option value="opaque">Opaque</option>
-            </select>
-          </label>
         </div>
         <button id="config-btn" title="Config" style="margin-left: auto; font-size: 1.3rem; background: none; border: none; cursor: pointer;">⚙️</button>
       </div>
@@ -141,33 +134,14 @@ export class Menu_bar {
         });
       });
     }
-    const background_select = this.root.querySelector('#background-select');
-
-    // Apply settings to UI
-    if (background_select) {
-      background_select.value = settings.background;
-    }
-
-    // Save settings to localStorage
-    function save_settings() {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-      // For backward compatibility, also update old keys (optional, can be removed in future)
-      let size = '1024x1024';
-      if (settings.orientation === 'landscape') size = '1536x1024';
-      else if (settings.orientation === 'portrait') size = '1024x1536';
-      localStorage.setItem('imaginer.image_size', size);
-      localStorage.setItem('imaginer.background', settings.background);
-    }
-
-    // Event listeners
-    if (background_select) {
-      background_select.addEventListener('change', (e) => {
-        settings.background = e.target.value;
-        save_settings();
-      });
-    }
-
+    // ...existing code...
+    // Remove background select logic (now in config dialog)
     // Initial save to ensure settings are present
-    save_settings();
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    // For backward compatibility, also update old keys (optional, can be removed in future)
+    let size = '1024x1024';
+    if (settings.orientation === 'landscape') size = '1536x1024';
+    else if (settings.orientation === 'portrait') size = '1024x1536';
+    localStorage.setItem('imaginer.image_size', size);
   }
 }

@@ -79,6 +79,7 @@ export class Config_dialog {
     key_form.appendChild(this.testFeedback);
 
 
+
     // Max parallel generations label & input -------------------------
     const max_label = document.createElement('label');
     max_label.textContent = 'Maximum number of parallel generations';
@@ -104,6 +105,26 @@ export class Config_dialog {
     this.n_input.step = '1';
     this.n_input.value = localStorage.getItem('imaginer.n') || '1';
     this.n_input.className = 'input';
+
+    // Background select (moved from menu_bar.js)
+    const background_label = document.createElement('label');
+    background_label.textContent = 'Background';
+    background_label.className = 'label';
+
+    this.background_select = document.createElement('select');
+    this.background_select.className = 'input';
+    const backgrounds = [
+      { value: 'auto', label: 'Automatic' },
+      { value: 'transparent', label: 'Transparent' },
+      { value: 'opaque', label: 'Opaque' },
+    ];
+    for (const bg of backgrounds) {
+      const opt = document.createElement('option');
+      opt.value = bg.value;
+      opt.textContent = bg.label;
+      this.background_select.appendChild(opt);
+    }
+    this.background_select.value = localStorage.getItem('imaginer.background') || 'auto';
 
     // Quality select (for gpt-image-1 only)
     const quality_label = document.createElement('label');
@@ -207,6 +228,8 @@ export class Config_dialog {
     this.dialog.appendChild(this.max_input);
     this.dialog.appendChild(n_label);
     this.dialog.appendChild(this.n_input);
+    this.dialog.appendChild(background_label);
+    this.dialog.appendChild(this.background_select);
     this.dialog.appendChild(quality_label);
     this.dialog.appendChild(this.quality_select);
     this.dialog.appendChild(strip_container);
@@ -366,6 +389,7 @@ export class Config_dialog {
     this.max_input.value = localStorage.getItem('imaginer.max_parallel_generations') || '3';
     this.n_input.value = localStorage.getItem('imaginer.n') || '1';
     this.quality_select.value = localStorage.getItem('imaginer.quality') ?? 'auto';
+    this.background_select.value = localStorage.getItem('imaginer.background') || 'auto';
     // Always checked by default unless explicitly set to false
     const strip_metadata_setting = localStorage.getItem('imaginer.strip_metadata');
     this.strip_checkbox.checked = (strip_metadata_setting === null || strip_metadata_setting === 'true');
@@ -390,6 +414,7 @@ export class Config_dialog {
     const max = Math.max(1, parseInt(this.max_input.value, 10) || 3);
     const n = Math.max(1, Math.min(10, parseInt(this.n_input.value, 10) || 1));
     const quality = this.quality_select.value;
+    const background = this.background_select.value;
     const strip = this.strip_checkbox.checked;
     const add_prompt = this.prompt_checkbox.checked;
     const add_prompt_xmp = this.prompt_xmp_checkbox?.checked;
@@ -403,6 +428,7 @@ export class Config_dialog {
     });
     localStorage.setItem('imaginer.max_parallel_generations', String(max));
     localStorage.setItem('imaginer.n', String(n));
+    localStorage.setItem('imaginer.background', background);
     localStorage.setItem('imaginer.quality', quality);
     localStorage.setItem('imaginer.strip_metadata', String(strip));
     localStorage.setItem('imaginer.add_prompt_to_image', String(add_prompt));
