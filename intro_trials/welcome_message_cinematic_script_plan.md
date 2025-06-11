@@ -9,7 +9,7 @@
   - Stars twinkle gently.
 - **Text:**
   - "Imagine..."
-  - Text fades in and out slowly.
+  - Text fades in slowly.
 
 ### **2. The Birth of Creativity**
 - **Visuals:**

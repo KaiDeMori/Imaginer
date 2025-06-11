@@ -78,6 +78,27 @@
     <label for="star_count_slider" id="star_count_label">Stars: 200</label>
   </div>
 </div>
+<!-- Cinematic fade-in text overlay -->
+<div id="imagine_fade_text" style="
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2000;
+  opacity: 0;
+  transition: opacity 2.5s cubic-bezier(0.4,0,0.2,1);
+">
+  <span style="
+    color: #fff;
+    font-size: 3.2em;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-weight: bold;
+    text-shadow: 0 2px 16px #000, 0 0 32px #fff2;
+    letter-spacing: 0.04em;
+    ">Imagine…</span>
+</div>
 /* Zoom slider overlay styles */
 #zoom_slider_container {
   position: fixed;
@@ -124,19 +145,19 @@
   user-select: none;
 }
 <script>
-// Timing sequence definition for the cinematic starfield
+
+// Timing sequence definition for the cinematic starfield (simplified, no start_time)
+// Each step: { duration: seconds, star_count: value, zoom_speed: value }
 const cinematic_starfield_timing_sequence = [
-    // Each step: { start_time: seconds, duration: seconds, star_count: value, zoom_speed: value }
-    { start_time: 0, duration: 2, star_count: [0, 10000], zoom_speed: 0.1 }, // Ramp up stars
-    { start_time: 2, duration: 1, star_count: 10000, zoom_speed: 0.1 },      // Hold
-    { start_time: 3, duration: 2, star_count: 10000, zoom_speed: [0.1, 0] }, // Reduce zoom
-    { start_time: 5, duration: 1, star_count: 10000, zoom_speed: 0 },        // Hold
-    { start_time: 6, duration: 2, star_count: [10000, 50000], zoom_speed: 0 } // Ramp up stars again
+    { duration: 2, star_count: [0, 10000], zoom_speed: 0.1 }, // Ramp up stars
+    { duration: 1, star_count: 10000, zoom_speed: 0.1 },      // Hold
+    { duration: 2, star_count: 10000, zoom_speed: [0.1, 0] }, // Reduce zoom
+    { duration: 1, star_count: 10000, zoom_speed: 0 },        // Hold
+    { duration: 2, star_count: [10000, 50000], zoom_speed: 0 } // Ramp up stars again
 ];
 
 const cinematic_starfield_timing_sequence_TESTING = [
-    // Each step: { start_time: seconds, duration: seconds, star_count: value, zoom_speed: value }
-    { start_time: 0, duration: 5, star_count: [0, 10000], zoom_speed: [0, 0.01] }, // Ramp up stars
+    { duration: 5, star_count: [0, 10000], zoom_speed: [0, 0.01] }, // Ramp up stars
 ];
 
 const active_cinematic_starfield_timing_sequence = cinematic_starfield_timing_sequence;
@@ -198,7 +219,7 @@ class CinematicStarfieldManager {
         this.starfield_canvas.width = this.starfield_width;
         this.starfield_canvas.height = this.starfield_height;
 
-        this.star_count = 200;
+        this.star_count = 0;
         this.stars = [];
         this.star_colors = ['#fff', '#aaf', '#ffa', '#aff', '#faf', '#ffd700'];
 
@@ -322,9 +343,11 @@ class CinematicStarfieldManager {
             const sequence_time = now - (this._cinematic_sequence_start_time || (this._cinematic_sequence_start_time = now));
             let step_index = -1;
             let step = null;
+            let time_cursor = 0;
             for (let i = 0; i < active_cinematic_starfield_timing_sequence.length; i++) {
                 const s = active_cinematic_starfield_timing_sequence[i];
-                if (sequence_time >= s.start_time && sequence_time < s.start_time + s.duration) {
+                time_cursor += s.duration;
+                if (sequence_time < time_cursor) {
                     step_index = i;
                     step = s;
                     break;
@@ -334,7 +357,7 @@ class CinematicStarfieldManager {
                 // Interpolate star_count and zoom_speed if needed
                 let star_count = step.star_count;
                 let zoom_speed = step.zoom_speed;
-                const local_elapsed = sequence_time - step.start_time;
+                const local_elapsed = sequence_time - (time_cursor - step.duration);
                 if (Array.isArray(star_count)) {
                     star_count = Math.round(star_count[0] + (star_count[1] - star_count[0]) * (local_elapsed / step.duration));
                 }
@@ -451,6 +474,20 @@ class CinematicStarfieldManager {
 window.addEventListener('DOMContentLoaded', function() {
     const starfield_manager = new CinematicStarfieldManager();
     starfield_manager.start_cinematic_sequence();
+
+    const fade_text = document.getElementById('imagine_fade_text');
+    // Calculate total duration of the cinematic sequence
+    let total_duration = 0;
+    for (const step of (active_cinematic_starfield_timing_sequence || [])) {
+        total_duration += step.duration;
+    }
+    console.log(`Total cinematic duration: ${total_duration} seconds`);
+    // Show the text only after the animation sequence is truly finished
+    setTimeout(() => {
+        if (fade_text) {
+            fade_text.style.opacity = '1';
+        }
+    }, Math.ceil(total_duration * 1000));
 });
 </script>
 </body>
