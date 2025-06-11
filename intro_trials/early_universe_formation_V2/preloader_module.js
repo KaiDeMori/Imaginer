@@ -22,7 +22,7 @@ function pad(num, len = 2) {
 
 // Generate manifest lists programmatically to avoid manual typos. ------------------
 const asset_manifest = (() => {
-  const base = "assets/ai_universe";
+  const base = "/assets/ai_universe";
   const list = [];
 
   // Cosmic fog (5 textures)
