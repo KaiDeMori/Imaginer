@@ -3,7 +3,8 @@
 *(This file — **canvas_animation_progress.md** — is a living checklist that tracks the implementation status of **Step 2** in our overall roadmap: **Implement the Canvas animation prototype**.  Update the check-boxes as subtasks are completed.)*
 
 ## Current Status Summary
-✅  Wire-up & Bootstrapping completed. The UniverseAnimator placeholder class is now instanced and running on screen. Proceeding to Placeholder Animation Validation tasks.
+✅  Wire-up & Bootstrapping completed.
+✅  Placeholder cosmic-fog animation validated. Proceeding to hi-DPI scaling verification.
 
 ---
 
@@ -16,7 +17,7 @@
 - [x] Expose `window.universe_animator` for DevTools inspection.
 
 ### 2 · Placeholder Animation Validation
-- [ ] Validate that the deterministic cosmic-fog sprite appears and animates (zoom-in / zoom-out cycle).
+- [x] Validate that the deterministic cosmic-fog sprite appears and animates (zoom-in / zoom-out cycle).
 - [ ] Confirm hi-DPI scaling behaviour on window resize.
 - [ ] Confirm a steady ≥ 60 fps on desktop test hardware; log an average FPS sample to the console.
 
