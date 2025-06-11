@@ -31,9 +31,11 @@ export class UniverseAnimator {
     const fog_entry = [...bitmaps_map.entries()].find(([url]) => url.includes("/cosmic_fog/"));
     if (!fog_entry) {
       console.warn("[UniverseAnimator] No cosmic_fog bitmap found – placeholder will be blank.");
-      this.fog_bitmap = null;
+      this.fog_bitmap      = null;
+      this.fog_bitmap_url  = null;
     } else {
-      this.fog_bitmap = fog_entry[1];
+      this.fog_bitmap_url  = fog_entry[0];
+      this.fog_bitmap      = fog_entry[1];
     }
 
     // Animation state ------------------------------------------------------
@@ -43,6 +45,9 @@ export class UniverseAnimator {
     this._fps_sample_window_ms = 2_000;   // 2-second rolling window
     this._fps_frames_accum     = 0;       // frames collected inside window
     this._fps_window_start_ts  = null;    // window start timestamp
+
+    // Validation flag ------------------------------------------------------
+    this._validation_logged = false;
 
     // Bindings --------------------------------------------------------------
     this._update    = this._update.bind(this);
@@ -92,7 +97,12 @@ export class UniverseAnimator {
     const fps_window_elapsed = ts - this._fps_window_start_ts;
     if (fps_window_elapsed >= this._fps_sample_window_ms) {
       const fps = this._fps_frames_accum / (fps_window_elapsed / 1000);
-      console.log(`[UniverseAnimator] Average FPS (last ${(fps_window_elapsed/1000).toFixed(1)} s): ${fps.toFixed(1)}`);
+      const fps_msg = `[UniverseAnimator] Average FPS (last ${(fps_window_elapsed/1000).toFixed(1)} s): ${fps.toFixed(1)}`;
+      if (fps < 55) {
+        console.warn(fps_msg);
+      } else {
+        console.log(fps_msg);
+      }
       this._fps_window_start_ts = ts;
       this._fps_frames_accum    = 0;
     }
@@ -131,6 +141,18 @@ export class UniverseAnimator {
       this.ctx.translate(cx, cy);
       this.ctx.drawImage(bmp, -draw_w / 2, -draw_h / 2, draw_w, draw_h);
       this.ctx.restore();
+    }
+
+    // ---------------------------------------------------------------------
+    // One-off validation log (runs after first rendered frame) ------------
+    // ---------------------------------------------------------------------
+    if (!this._validation_logged) {
+      if (this.fog_bitmap) {
+        console.log(`[UniverseAnimator] Validation ✔︎  Cosmic fog sprite selected → '${this.fog_bitmap_url}'. Animation & rendering active.`);
+      } else {
+        console.warn("[UniverseAnimator] Validation ⚠︎  No cosmic fog sprite could be validated. Check asset paths.");
+      }
+      this._validation_logged = true;
     }
 
     requestAnimationFrame(this._update);
