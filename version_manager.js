@@ -6,7 +6,7 @@ const VERSION_STORAGE_KEY = 'imaginer_app_version';
 
 // Map of version numbers to messages to show to users
 const VERSION_MESSAGES = {
-  '1.0': 'Welcome to Imaginer 1.0! If you used the alpha version, some features may have changed. Please review the new features and report any issues.',
+  '1.0': 'Welcome to Imaginer 1.0! If you used the alpha version, some features may have changed. Please review the new features and report any issues.\n\nNew: There is now a button to download all images in the current gallery for backup in a zip file.',
   // Add future version messages here
 };
 
