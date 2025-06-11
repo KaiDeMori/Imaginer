@@ -10,6 +10,13 @@ validate the rendering pipeline end-to-end:
     it with a deterministic zoom-in / fade-out cycle.
   • No timeline yet – the goal is just to confirm that ImageBitmaps
     blit correctly and that the frame loop is stable.
+
+Added in this revision (for Task 2 · Placeholder Animation Validation →
+"Confirm hi-DPI scaling behaviour on window resize"):
+  • A built-in validation helper that checks the canvas backing-store
+    size and the 2D context transform after every resize / DPR change.
+    A concise ✅ / ⚠︎ console message is emitted so manual testers can
+    instantly verify correct scaling.
 */
 
 export class UniverseAnimator {
@@ -46,15 +53,16 @@ export class UniverseAnimator {
     this._fps_frames_accum     = 0;       // frames collected inside window
     this._fps_window_start_ts  = /** @type {number | null} */ (null);    // window start timestamp
 
-    // Validation flag ------------------------------------------------------
-    this._validation_logged = false;
+    // Validation flags -----------------------------------------------------
+    this._validation_logged     = false;  // first-frame validation
+    this._hi_dpi_validation_id  = 0;      // increments on every resize so we can pair log lines
 
     // Current devicePixelRatio (kept for quick checks) ---------------------
     this._dpr = window.devicePixelRatio || 1;
     // Media-query list that tracks DPR changes (re-created in _register_dpr_listener)
     this._dpr_mql = /** @type {MediaQueryList | null} */ (null);
 
-    // Bindings --------------------------------------------------------------
+    // Bindings -------------------------------------------------------------
     this._update    = this._update.bind(this);
     this._on_resize = this._on_resize.bind(this);
 
@@ -111,6 +119,40 @@ export class UniverseAnimator {
     }
   }
 
+  /**
+   * Validates that the canvas' backing-store size and the applied context
+   * transform are consistent with the current DPR. Emits a succinct console
+   * message; used by manual testers to verify hi-DPI correctness after every
+   * resize / monitor switch.
+   *
+   * @param {number} dpr – devicePixelRatio we just applied
+   * @param {number} css_w – latest CSS pixel width (window.innerWidth)
+   * @param {number} css_h – latest CSS pixel height (window.innerHeight)
+   */
+  _validate_hi_dpi(dpr, css_w, css_h) {
+    let ok = true;
+
+    // 1) Backing-store dimensions
+    if (this.canvas.width !== Math.round(css_w * dpr) || this.canvas.height !== Math.round(css_h * dpr)) {
+      ok = false;
+    }
+
+    // 2) Context transform (scale should equal DPR if getTransform available)
+    if (ok && typeof this.ctx.getTransform === "function") {
+      const m = this.ctx.getTransform();
+      if (Math.abs(m.a - dpr) > 0.01 || Math.abs(m.d - dpr) > 0.01) {
+        ok = false;
+      }
+    }
+
+    const id = ++this._hi_dpi_validation_id; // increment for clarity in logs
+    if (ok) {
+      console.log(`[UniverseAnimator] [Hi-DPI ✔︎ #${id}] DPR ${dpr}, canvas ${this.canvas.width}×${this.canvas.height} backing store correct.`);
+    } else {
+      console.warn(`[UniverseAnimator] [Hi-DPI ⚠︎ #${id}] Detected mismatch. DPR ${dpr}, canvas ${this.canvas.width}×${this.canvas.height} backing store, expected ${Math.round(css_w * dpr)}×${Math.round(css_h * dpr)}.`);
+    }
+  }
+
   _on_resize() {
     const dpr = window.devicePixelRatio || 1;
     const w   = window.innerWidth;
@@ -138,6 +180,9 @@ export class UniverseAnimator {
     this.ctx.scale(dpr, dpr);
 
     console.log(`[UniverseAnimator] Canvas resized – CSS ${w}×${h}, internal ${this.canvas.width}×${this.canvas.height} @ DPR ${dpr}`);
+
+    // Quick hi-DPI self-test to satisfy Task 2.
+    this._validate_hi_dpi(dpr, w, h);
 
     // Re-initialise the DPR change listener to track future changes.
     this._register_dpr_listener();
