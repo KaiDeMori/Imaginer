@@ -18,6 +18,11 @@ Added in this revision (for Task 3 · Deterministic Asset Selection):
     that for a given seed the exact same fog texture will always be
     chosen – which is essential once we start recording / replaying
     shot-flows.
+
+Added in this revision (for Task 4 · Debug / Dev Helpers):
+  • Support for pause / resume / toggle of the rAF loop so that the
+    animation can be inspected frame-by-frame from DevTools.
+  • Public helpers: `pause()`, `resume()`, `toggle()`, and `is_running()`.
 */
 
 // ---------------------------------------------------------------------------
@@ -81,6 +86,12 @@ export class UniverseAnimator {
     // Media-query list that tracks DPR changes (re-created in _register_dpr_listener)
     this._dpr_mql = /** @type {MediaQueryList | null} */ (null);
 
+    // ---------------------------------------------------------------------
+    // rAF control (Task 4) --------------------------------------------------
+    // ---------------------------------------------------------------------
+    this._running = false;      // Whether the animation loop is currently active
+    this._raf_id  = /** @type {number | null} */ (null); // handle returned by requestAnimationFrame
+
     // Bindings -------------------------------------------------------------
     this._update    = this._update.bind(this);
     this._on_resize = this._on_resize.bind(this);
@@ -94,9 +105,44 @@ export class UniverseAnimator {
   // -----------------------------------------------------------------------
   // Public ----------------------------------------------------------------
   // -----------------------------------------------------------------------
+  /** Begin / resume the animation loop. */
   start() {
-    requestAnimationFrame(this._update);
+    if (this._running) return; // already running
+
+    this._running = true;
+    this._raf_id = requestAnimationFrame(this._update);
   }
+
+  /** Pause the rAF loop (no-op if already paused). */
+  pause() {
+    if (!this._running) return;
+    this._running = false;
+    if (this._raf_id !== null) {
+      cancelAnimationFrame(this._raf_id);
+      this._raf_id = null;
+    }
+    console.log("[UniverseAnimator] Animation paused.");
+  }
+
+  /** Resume the rAF loop if it is currently paused. */
+  resume() {
+    if (this._running) return;
+    console.log("[UniverseAnimator] Animation resumed.");
+    this.start();
+  }
+
+  /** Toggle between paused ↔ running state. Returns the *new* state. */
+  toggle() {
+    if (this._running) {
+      this.pause();
+    } else {
+      this.resume();
+    }
+    return this._running;
+  }
+
+  /** Query helper – true if animation is actively running. */
+  is_running() { return this._running; }
 
   // -----------------------------------------------------------------------
   // Private ---------------------------------------------------------------
@@ -208,6 +254,8 @@ export class UniverseAnimator {
   }
 
   _update(ts) {
+    if (!this._running) return; // Safety: should never happen, but guards against edge-cases.
+
     // ---------------------------------------------------------------------
     // FPS sampling & reporting --------------------------------------------
     // ---------------------------------------------------------------------
@@ -278,6 +326,7 @@ export class UniverseAnimator {
       this._validation_logged = true;
     }
 
-    requestAnimationFrame(this._update);
+    // Schedule next frame --------------------------------------------------
+    this._raf_id = requestAnimationFrame(this._update);
   }
 }

@@ -96,5 +96,32 @@ function _on_ready(bitmaps_map) {
   // Expose for DevTools so we can inspect state & call helper methods.
   if (typeof window !== "undefined") {
     window.universe_animator = universe_animator;
+
+    // ---------------------------------------------------------------
+    // Debug helper: window.toggle_anim() ----------------------------
+    // ---------------------------------------------------------------
+    window.toggle_anim = function() {
+      if (window.universe_animator) {
+        const running = window.universe_animator.toggle();
+        console.log(`[EUF] toggle_anim() → animation ${running ? "running" : "paused"}.`);
+      } else {
+        console.warn("[EUF] toggle_anim() called before animator is ready.");
+      }
+    };
+
+    // ---------------------------------------------------------------
+    // Keyboard shortcut: press SPACE to toggle pause/resume ---------
+    // ---------------------------------------------------------------
+    const _on_keydown_toggle = (ev) => {
+      // Ignore if any modifier key is pressed or if focus is on an editable element.
+      if (ev.code !== "Space" || ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey) return;
+      const tgt = ev.target;
+      if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.isContentEditable)) {
+        return; // don't hijack typing.
+      }
+      ev.preventDefault();
+      window.toggle_anim();
+    };
+    window.addEventListener("keydown", _on_keydown_toggle);
   }
 }
