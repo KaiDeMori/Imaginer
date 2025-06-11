@@ -46,24 +46,48 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.restore();
     }
 
+    function draw_scaled_and_shaken(scale, shake_x, shake_y) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+        ctx.clearRect(0, 0, explosion_canvas.width, explosion_canvas.height);
+        // Center zoom and shake
+        const cx = explosion_canvas.width / 2;
+        const cy = explosion_canvas.height / 2;
+        ctx.translate(cx + shake_x, cy + shake_y);
+        ctx.scale(scale, scale);
+        ctx.translate(-cx, -cy);
+        if (starfield_img) {
+            ctx.drawImage(starfield_img, 0, 0, explosion_canvas.width, explosion_canvas.height);
+        } else if (fallback_black) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, explosion_canvas.width, explosion_canvas.height);
+        }
+        ctx.restore();
+    }
+
     function start_zoom_animation() {
         const zoom_duration_ms = 5000;
         const zoom_amplitude = 0.08; // 8% zoom in/out
         const zoom_base = 1.0;
+        const shake_amplitude_px = 12; // harsher shake
         const start_time = performance.now();
 
-        function animate_zoom(now) {
+        function animate_zoom_and_shake(now) {
             const elapsed = now - start_time;
             let t = Math.min(elapsed / zoom_duration_ms, 1);
             // Smooth in-out: sine wave from 0 to PI
             const scale = zoom_base + zoom_amplitude * Math.sin(Math.PI * t);
-            draw_scaled(scale);
+            // Harsher shake: random per frame, modulated by fade
+            const shake_fade = Math.sin(Math.PI * t); // 0 at start/end, 1 at middle
+            const shake_x = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
+            const shake_y = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
+            draw_scaled_and_shaken(scale, shake_x, shake_y);
             if (elapsed < zoom_duration_ms) {
-                requestAnimationFrame(animate_zoom);
+                requestAnimationFrame(animate_zoom_and_shake);
             } else {
-                draw_scaled(zoom_base); // Reset to normal at end
+                draw_scaled_and_shaken(zoom_base, 0, 0); // Reset to normal at end
             }
         }
-        requestAnimationFrame(animate_zoom);
+        requestAnimationFrame(animate_zoom_and_shake);
     }
 });
