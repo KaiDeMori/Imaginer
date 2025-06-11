@@ -1,6 +1,7 @@
     // NOTE: Only gpt-image-1 is supported, so we ignore response_format (always returns b64_json)
 // app.js - Root application logic (updated with image generation logic)
 
+
 import { Menu_bar } from './components/menu_bar.js';
 import { Resizable_divider } from './components/resizable_divider.js';
 import { Gallery } from './components/gallery.js';
@@ -12,12 +13,15 @@ import { Error_modal } from './components/error_modal.js';
 import { strip_metadata_from_PNG } from './strip_metadata_from_PNG/strip_metadata_from_PNG.js';
 import { add_iTXt_chunk_to_png } from './png_iTXt/png_iTXt.js';
 import { embed_XMP_description } from './png_XMP_via_iTXt/png-XMP-embedder.js';
+import { check_and_show_update_message } from './version_manager.js';
 
 const session_store = new Session_store();
 window.sessionStore = session_store;
 
 // Mount components
 window.addEventListener('DOMContentLoaded', () => {
+  // Check and show version update message if needed
+  check_and_show_update_message();
   // --- Check for API key on load (using scrambled key logic) ---
   import('./storage/session_store.js').then(({ Session_store }) => {
     const apiKey = Session_store.get_api_key();
