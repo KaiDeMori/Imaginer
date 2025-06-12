@@ -20,38 +20,44 @@ function pad(num, len = 2) {
   return String(num).padStart(len, "0");
 }
 
-// Generate manifest lists programmatically to avoid manual typos. ------------------
+
+// Generate manifest lists for all PNGs in each asset subdirectory (no "big" distinction)
 const asset_manifest = (() => {
   const base = "/assets/ai_universe";
+  const subdirs = [
+    "cosmic_fog",
+    "galaxy_streams",
+    "nebulae",
+    "star_clusters",
+    "alien_planet"
+  ];
   const list = [];
 
-  // Cosmic fog (5 textures)
+  // For each subdirectory, add all PNGs (no "big" distinction)
+  // If you want to make this dynamic, you could fetch the file list from the server.
+  // For now, we hardcode the known PNGs for each subdir (except planet, which is a single file)
+
+  // cosmic_fog (5 textures)
   for (let i = 1; i <= 5; i++) {
-    list.push(`${base}/cosmic_fog/big_${pad(i)}.png`);
+    list.push(`${base}/cosmic_fog/${pad(i)}.png`);
   }
 
-  // Galaxy streams – standard (4) + big (6)
+  // galaxy_streams (4 textures)
   for (let i = 1; i <= 4; i++) {
     list.push(`${base}/galaxy_streams/${pad(i)}.png`);
   }
-  for (let i = 1; i <= 6; i++) {
-    list.push(`${base}/galaxy_streams/big_${pad(i)}.png`);
-  }
 
-  // Nebulae – regular (9) + big (4)
+  // nebulae (9 textures)
   for (let i = 1; i <= 9; i++) {
     list.push(`${base}/nebulae/${pad(i)}.png`);
   }
-  for (let i = 1; i <= 4; i++) {
-    list.push(`${base}/nebulae/big_${pad(i)}.png`);
-  }
 
-  // Star clusters (3)
+  // star_clusters (3 textures)
   for (let i = 1; i <= 3; i++) {
-    list.push(`${base}/star_clusters/big_${pad(i)}.png`);
+    list.push(`${base}/star_clusters/${pad(i)}.png`);
   }
 
-  // Planet hero texture
+  // planet hero texture (single file)
   list.push(`${base}/alien_planet/planet_totale.png`);
 
   return list;

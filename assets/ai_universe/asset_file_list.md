@@ -52,13 +52,17 @@ _Notes: Files 01-04 are standard galaxy streams. Files big_01 to big_06 are larg
 
 ## cosmic_fog
 _Path: /assets/ai_universe/cosmic_fog/_
-- big_01.png
-- big_02.png
-- big_03.png
-- big_04.png
-- big_05.png
+ - big_01.png
+ - big_02.png
+ - big_03.png
+ - big_04.png
+ - big_05.png
+ - big_06.png
+ - big_07.png
+ - big_08.png
+ - big_09.png
 
-_Notes: Files big_01 to big_05 are large or detailed cosmic fog PNGs._
+_Notes: Files big_01 to big_09 are large or detailed cosmic fog PNGs._
 
 
 
