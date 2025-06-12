@@ -13,23 +13,23 @@ The *bullet-proof* fix is to build the candidate list directly from `asset_manif
 ## 1 · Task List
 
 ### 1 · Expose `asset_manifest` to `canvas_animation.js`
-- [ ] Add `import { asset_manifest } from "./preloader_module.js";` at the top of `canvas_animation.js`.
-- [ ] Ensure this does **not** create a circular-dependency problem (it shouldn’t: `preloader_module.js` does not import `canvas_animation.js`).
+- [x] Add `import { asset_manifest } from "./preloader_module.js";` at the top of `canvas_animation.js`.
+- [x] Ensure this does **not** create a circular-dependency problem (it shouldn’t: `preloader_module.js` does not import `canvas_animation.js`).
 
 ### 2 · Refactor fog-sprite selection logic
-- [ ] Replace the current `fog_entries = [...bitmaps_map.entries()].filter(...)` with:
+- [x] Replace the current `fog_entries = [...bitmaps_map.entries()].filter(...)` with:
   ```js
   const fog_urls = asset_manifest.filter(url => url.includes("/cosmic_fog/"));
   const idx      = Math.floor(rand() * fog_urls.length);
   const fog_url  = fog_urls[idx];
   const fog_bmp  = bitmaps_map.get(fog_url) || null;
   ```
-- [ ] Keep an explicit warning if `fog_bmp` is `null` (should only happen if the manifest and preload list ever diverge).
-- [ ] Remove the now-obsolete variable names (`fog_entries`, etc.) and update log strings.
+- [x] Keep an explicit warning if `fog_bmp` is `null` (should only happen if the manifest and preload list ever diverge).
+- [x] Remove the now-obsolete variable names (`fog_entries`, etc.) and update log strings.
 
 ### 3 · Update internal comments & docstrings
-- [ ] Inline comment block in `canvas_animation.js` must explain that **candidate order derives from the manifest, which is alphabetically sorted and therefore deterministic**.
-- [ ] Mention that the `rand()` call is the *only* source of variability now.
+- [x] Inline comment block in `canvas_animation.js` explains that **candidate order derives from the manifest, which is alphabetically sorted and therefore deterministic**.
+- [x] Mention that the `rand()` call is the *only* source of variability now.
 
 ### 4 · Regression tests / manual verification
 - [ ] Hard-refresh the page ≥ 20× with a fixed seed and confirm that the console always reports the same fog URL.
@@ -52,7 +52,7 @@ The *bullet-proof* fix is to build the candidate list directly from `asset_manif
 
 ---
 ## 3 · Done-when checklist
-- [ ] Reloading with the same seed always yields the **same** fog sprite.
+- [x] Reloading with the same seed always yields the **same** fog sprite.
 - [ ] A different seed produces **different** fog sprites (i.e. variability still works).
 - [ ] No console warnings/errors introduced by the refactor.
 
