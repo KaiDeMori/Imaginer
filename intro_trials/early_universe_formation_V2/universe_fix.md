@@ -5,6 +5,9 @@ for repairing the “fly-through” shot.  It is meant to be **the single source
 truth** for whoever works on the fix.
 
 ---
+Note: the final planet asset stays in the center and is different. we want to keep it that way.
+
+---
 ## A · Root-cause summary
 
 | Symptom | Underlying Cause |
