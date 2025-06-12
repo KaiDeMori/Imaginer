@@ -111,13 +111,11 @@ custom per-layer easing (cubic, quad …); the new physics are independent.
 ---
 ## E · Implementation todo-list
 
-- [ ] Add `SPAWN_RADIUS` & `RADIAL_SPEED` tables – pick initial placeholders.
-- [ ] Extend `sprite_instance_manager.js` to generate the new world-space
-      props.
-- [ ] Rewrite the per-frame loop to (a) advance positions, (b) project to
-      screen.
-- [ ] Remove the old `spawn_offset_*`, `drift_r`, `z_factor` code paths.
-- [ ] Replace magic “10” with `MAX_Z_POS` helper.
+- [x] Add `SPAWN_RADIUS` & `RADIAL_SPEED` tables – pick initial placeholders.
+- [x] Extend `sprite_instance_manager.js` to generate the new world-space props.
+- [x] Rewrite the per-frame loop to (a) advance positions, (b) project to screen.
+- [x] Remove the old `spawn_offset_*`, `drift_r`, `z_factor` code paths.
+- [x] Replace magic “10” with `MAX_Z_POS` helper.
 - [ ] Smoke-test determinism (seed → identical positions every fresh load).
 - [ ] Tweak radii / speeds until the fly-through feels right.
 - [ ] After visual sign-off: consider separate easing curves for opacity.
