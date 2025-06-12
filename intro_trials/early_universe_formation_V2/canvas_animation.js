@@ -11,15 +11,14 @@ validate the rendering pipeline end-to-end:
   • No timeline yet – the goal is just to confirm that ImageBitmaps
     blit correctly and that the frame loop is stable.
 
-Added in this revision (for Task 3 · Deterministic Asset Selection):
-  • Replaced the previous *"first match"* heuristic for selecting a
-    cosmic-fog sprite by a **seeded random pick** using the global
-    `rand()` helper provided by `deterministic_rng.js`.  This ensures
-    that for a given seed the exact same fog texture will always be
-    chosen – which is essential once we start recording / replaying
-    shot-flows.
+Updated for deterministic_progress.md – Task 2 (Refactor fog-sprite selection):
+  • Candidate list now derives from the **alphabetically sorted**
+    `asset_manifest` instead of Map insertion order so that the index
+    chosen by `rand()` is fully deterministic irrespective of loading
+    timings.
+  • Log strings adapted; obsolete helper variables removed.
 
-Added in this revision (for Task 4 · Debug / Dev Helpers):
+Added in the previous revision (Task 4 · Debug / Dev Helpers):
   • Support for pause / resume / toggle of the rAF loop so that the
     animation can be inspected frame-by-frame from DevTools.
   • Public helpers: `pause()`, `resume()`, `toggle()`, and `is_running()`.
@@ -46,28 +45,31 @@ export class UniverseAnimator {
     this.bitmaps_map = bitmaps_map;
 
     // ---------------------------------------------------------------------
-    // Deterministic *cosmic fog* bitmap selection (Task 3) ------------------
+    // Deterministic *cosmic fog* bitmap selection (Task 2) ------------------
     // ---------------------------------------------------------------------
-    // Instead of using the first entry that happens to match the path we now
-    // collect *all* candidate fog sprites, then pick **one** using the
-    // deterministic `rand()` helper so that each seed always maps to the same
-    // texture.  This keeps the visual stable across reloads until the seed is
-    // explicitly regenerated via the Seed UI.
-    const fog_entries = [...bitmaps_map.entries()].filter(([url]) => url.includes("/cosmic_fog/"));
+    // Candidate list is derived from `asset_manifest`, which is already
+    // alphabetically sorted and therefore deterministic. We simply filter
+    // for the cosmic-fog paths *once*, then pick a single URL using the
+    // seeded PRNG. The bitmap itself is looked up in `bitmaps_map`.
+    const fog_urls = asset_manifest.filter(url => url.includes("/cosmic_fog/"));
 
-    if (fog_entries.length === 0) {
-      console.warn("[UniverseAnimator] No cosmic_fog bitmap found – placeholder will be blank.");
+    if (fog_urls.length === 0) {
+      console.warn("[UniverseAnimator] No cosmic_fog entries found in asset_manifest – animation will render blank.");
       this.fog_bitmap      = null;
       this.fog_bitmap_url  = null;
     } else {
-      // Pick deterministic index – floor(rand * N).
-      const idx = Math.floor(rand() * fog_entries.length);
-      const fog_entry = fog_entries[idx];
+      const idx = Math.floor(rand() * fog_urls.length);
+      const selected_url = fog_urls[idx];
+      const bmp = bitmaps_map.get(selected_url) || null;
 
-      this.fog_bitmap_url = fog_entry[0];
-      this.fog_bitmap     = fog_entry[1];
+      if (!bmp) {
+        console.warn(`[UniverseAnimator] Fog URL '${selected_url}' not found in preloaded_bitmaps – check preloader consistency.`);
+      }
 
-      console.log(`[UniverseAnimator] Deterministic fog selection → idx ${idx} / ${fog_entries.length}, url '${this.fog_bitmap_url}'.`);
+      this.fog_bitmap_url = selected_url;
+      this.fog_bitmap     = bmp;
+
+      console.log(`[UniverseAnimator] Deterministic fog selection → idx ${idx} / ${fog_urls.length}, url '${selected_url}'.`);
     }
 
     // Animation state ------------------------------------------------------
