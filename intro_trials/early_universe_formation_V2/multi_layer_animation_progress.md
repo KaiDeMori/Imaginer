@@ -2,7 +2,7 @@
 
 *(This file tracks **Step 3** of our roadmap: “Upgrade the placeholder fog animation into the full multi-layer zoom-through sequence”.  Tick the boxes as subtasks are completed.)*
 
-Last updated: **2024-06-XX**
+
 
 ---
 
@@ -63,4 +63,4 @@ Last updated: **2024-06-XX**
 - [ ] Planet stays centred, non-rotating, fades in quickly and scales from ≈ 1 px to full screen, after which the animation loop stops.
 - [ ] Codebase passes CI linting and unit tests.
 
-© 2024 Early Universe Team – multi-layer animation upgrade
+ 

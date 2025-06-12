@@ -181,8 +181,6 @@ Mobile-specific risks have been removed per desktop-only target.
 
 ---
 
-© 2024 Early Universe Team – Planning document V2 (desktop-only revision)
-
 # Addendum 1
 
 ## Project Naming and Casing Standards
@@ -203,7 +201,7 @@ Mobile-specific risks have been removed per desktop-only target.
 
 ---
 
-## 11. Recent Testing Notes (2024-05-21)
+## 11. Recent Testing Notes
 
 • Ran ad-hoc performance checks on a low-spec machine accessed via remote desktop.  
 • Observed occasional **low-frame-rate warnings** from the UniverseAnimator. These are expected on constrained hardware and can be safely ignored for now.  

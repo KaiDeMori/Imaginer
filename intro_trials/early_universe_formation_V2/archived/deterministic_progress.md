@@ -48,4 +48,4 @@ The *bullet-proof* fix is to build the candidate list directly from `asset_manif
 - [x] No console warnings/errors introduced by the refactor.
 
 ---
-© 2024 Early Universe Team – deterministic sprite selection upgrade
+ 

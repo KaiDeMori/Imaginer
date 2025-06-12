@@ -1,4 +1,4 @@
-# Universe Animation – Fine-Tuning Task List (2024-06-XX)
+# Universe Animation – Fine-Tuning Task List
 
 Collected notes based on the latest internal review.  These items **do not change the current milestone scope** but should be addressed before we declare the multi-layer fly-through “final”.  Each task is intentionally phrased in an *outcome-oriented* way – the implementation team can decide which exact module/file to touch.
 

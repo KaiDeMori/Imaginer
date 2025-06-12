@@ -80,4 +80,4 @@ This memo collects everything we currently **know**, **suspect**, and **still ha
 | Cross-browser & second-machine test sweep | @dev B | — | ⬜️ Pending |
 
 ---
-*Document generated via troubleshooting session, 2024-##-##.*
+
