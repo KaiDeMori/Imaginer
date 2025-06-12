@@ -5,31 +5,18 @@ Sprite Instance Manager – Early Universe Formation V2
 Creates the **deterministic, per-layer sprite instance list** that will be
 consumed by the renderer (UniverseAnimator).
 
-PROGRESS NOTE:
-––––––––––––––––––
-The rotation of the *planet* sprite must now be fully controllable and no
-longer seeded via the global RNG.  Two explicit constants have therefore been
-introduced:
-  • PLANET_BASE_ROTATION_RAD   – starting angle (rad)
-  • PLANET_ROT_SPEED_RAD_S     – angular velocity (rad/s)
-These can be tweaked at build-time without affecting the deterministic random
-sequence that governs all other sprite properties.
-
-Universe Tuning – Task 1 · Off-Centre Spawn
-––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-Each non-planet sprite now receives two additional deterministic random
-properties:
-  • spawn_offset_x  – normalised offset in the range [-SPAWN_OFFSET_RANGE … +SPAWN_OFFSET_RANGE]
-  • spawn_offset_y    (same range)
-These values represent a **fraction of the viewport’s shortest side** and are
-applied later by the Canvas renderer, scaled by the sprite’s pseudo-Z, to make
-new sprites appear off-centre and strengthen the tunnel effect.
-
-Universe Tuning – Task 2 · Increased Rotation Dynamics
-––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-Non-planet sprites now get a *deterministic* rotation speed picked from
-±NON_PLANET_MAX_ROT_SPEED_RAD_S (was previously forced to 0).  This gives the
-scene more life without breaking determinism.
+CHANGE LOG – “Space-flight” Update
+––––––––––––––––––––––––––––––––––
+• All **non-planet** sprites now travel **away from the viewport centre**.
+  Their `angle` is therefore no longer an arbitrary random value but the polar
+  angle of the vector that points from the centre towards their deterministic
+  off-centre spawn location.  This guarantees every sprite drifts further out
+  into space, reinforcing the tunnel / fly-through effect.
+• Fallback:  If a sprite happens to spawn exactly (or *very* close) on the
+  centre, we fall back to a random angle so we don’t end up with `NaN` caused
+  by `atan2(0, 0)`.
+• The planet logic remains unchanged – it stays centred and its rotation is
+  still driven by the dedicated constants.
 */
 
 // ---------------------------------------------------------------------------
@@ -61,7 +48,7 @@ const SPAWN_OFFSET_RANGE  = 0.4;   // ±40 % of viewport shortest side (norm.)
 const PLANET_BASE_ROTATION_RAD = 0;     // tweak as desired (rad)
 const PLANET_ROT_SPEED_RAD_S   = 0.02;  // ≈ 1.1° per second
 
-// Non-planet rotation dynamics (Task 2) -------------------------------------
+// Non-planet rotation dynamics ----------------------------------------------
 const NON_PLANET_MAX_ROT_SPEED_RAD_S = 0.06; // ≈ 3.4° s⁻¹ – tweak as desired
 
 // ---------------------------------------------------------------------------
@@ -119,20 +106,41 @@ function generate_sprite_instances(bitmaps_map) {
       }
 
       const id = `${layer_name}#${i}`;
-
       const is_planet = layer_name === "planet";
+
+      // ---------------------------------------------------------------
+      // Spawn offsets (deterministic) ---------------------------------
+      // ---------------------------------------------------------------
+      const spawn_offset_x = is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE;
+      const spawn_offset_y = is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE;
+
+      // ---------------------------------------------------------------
+      // Drift angle – points **away** from the centre -----------------
+      // ---------------------------------------------------------------
+      let angle;
+      if (is_planet) {
+        angle = rand() * TWO_PI; // planet stays centred; direction irrelevant
+      } else {
+        // Compute radial angle from origin → spawn point.
+        if (Math.abs(spawn_offset_x) < 1e-6 && Math.abs(spawn_offset_y) < 1e-6) {
+          // Extremely unlikely but guard against 0/0.
+          angle = rand() * TWO_PI;
+        } else {
+          angle = Math.atan2(spawn_offset_y, spawn_offset_x);
+        }
+      }
 
       instances.push(Object.freeze({
         id,
         layer: layer_name,
         img_url,
         bitmap: bmp,
-        angle: rand() * TWO_PI,
+        angle,
         z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER,
         base_rotation: is_planet ? PLANET_BASE_ROTATION_RAD : rand() * TWO_PI,
         rot_speed:     is_planet ? PLANET_ROT_SPEED_RAD_S   : (rand() * 2 - 1) * NON_PLANET_MAX_ROT_SPEED_RAD_S,
-        spawn_offset_x: is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE,
-        spawn_offset_y: is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE,
+        spawn_offset_x,
+        spawn_offset_y,
       }));
     }
   }
