@@ -200,3 +200,16 @@ Mobile-specific risks have been removed per desktop-only target.
 • `session_store.js`
 
 **Summary:** Use loose_snake_case for all names, keep abbreviations and conventions as normally capitalized, and prefer full English words over abbreviations.
+
+---
+
+## 11. Recent Testing Notes (2024-05-21)
+
+• Ran ad-hoc performance checks on a low-spec machine accessed via remote desktop.  
+• Observed occasional **low-frame-rate warnings** from the UniverseAnimator. These are expected on constrained hardware and can be safely ignored for now.  
+• Observed **Hi-DPI mismatch** console warning:
+  `DPR 1.5, canvas 1389×904 backing store, expected 1389×905.`  
+  Likely caused by atypical OS-level accessibility scaling combined with the remote-desktop session. No action required.  
+• Action item: introduce a development flag (e.g., `LOG_PERFORMANCE_WARNINGS`) to silence both warning classes during benchmark runs on weak hardware.  
+• No functional regressions detected; sequence plays through to completion.
+• The user insists to note the they are very impressed with the overall performance and the features.
