@@ -15,8 +15,15 @@ introduced:
 These can be tweaked at build-time without affecting the deterministic random
 sequence that governs all other sprite properties.
 
-Fulfils *Task 3 · Sprite Instance Management* of
-`multi_layer_animation_progress.md`.
+Added 2024-06-XX (Universe Tuning – Task 1 · Off-Centre Spawn)
+––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+Each non-planet sprite now receives two additional deterministic random
+properties:
+  • spawn_offset_x  – normalised offset in the range [-SPAWN_OFFSET_RANGE … +SPAWN_OFFSET_RANGE]
+  • spawn_offset_y    (same range)
+These values represent a **fraction of the viewport’s shortest side** and are
+applied later by the Canvas renderer, scaled by the sprite’s pseudo-Z, to make
+new sprites appear off-centre and strengthen the tunnel effect.
 */
 
 // ---------------------------------------------------------------------------
@@ -38,8 +45,9 @@ const SPRITE_COUNT_PER_LAYER = Object.freeze({
 });
 
 // Jitter ranges --------------------------------------------------------------
-const MAX_Z_JITTER = 0.8;             // pseudo-Z units (sym. around 0)
-const TWO_PI       = Math.PI * 2;
+const MAX_Z_JITTER        = 0.8;   // pseudo-Z units (sym. around 0)
+const TWO_PI              = Math.PI * 2;
+const SPAWN_OFFSET_RANGE  = 0.4;   // ±40 % of viewport shortest side (norm.)
 
 // Planet specific ------------------------------------------------------------
 // NOTE: These values are *not* generated via rand() so they stay fully under
@@ -60,6 +68,8 @@ const PLANET_ROT_SPEED_RAD_S   = 0.02;  // ≈ 1.1° per second
  * @property {number}       z_jitter      – additive Z offset around layer base Z
  * @property {number}       base_rotation – initial rotation in radians (for planet)
  * @property {number}       rot_speed     – rotation speed in rad/s  (for planet)
+ * @property {number}       spawn_offset_x – normalised X offset (−0.4…+0.4, planet=0)
+ * @property {number}       spawn_offset_y – normalised Y offset (−0.4…+0.4, planet=0)
  */
 
 // ---------------------------------------------------------------------------
@@ -112,6 +122,8 @@ function generate_sprite_instances(bitmaps_map) {
         z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER,
         base_rotation: is_planet ? PLANET_BASE_ROTATION_RAD : rand() * TWO_PI,
         rot_speed:     is_planet ? PLANET_ROT_SPEED_RAD_S   : 0,
+        spawn_offset_x: is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE,
+        spawn_offset_y: is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE,
       }));
     }
   }
