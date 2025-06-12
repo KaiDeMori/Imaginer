@@ -43,7 +43,7 @@ const LAYER_TIMELINE = Object.freeze([
     p_out: 0.24,
     z_start: 10,
     z_end: -5,
-    base_opacity: 0.15,
+    base_opacity: 1,
     fade_easing: "cubic_in_out",
     distance_fade_end_z: -10
   },
@@ -53,34 +53,37 @@ const LAYER_TIMELINE = Object.freeze([
     p_out: 0.40,
     z_start: 50,
     z_end: 16 + (-93.75 * 0.24),
-    base_opacity: 0.2,
+    base_opacity: 1,
     fade_easing: "linear",
-    distance_fade_end_z: -20
+    distance_fade_end_z: 0,
+    distance_fade_start_z: 16 + (-93.75 * 0.24)
   },
   {
     name: "nebulae",
     p_in: 0.32,
     p_out: 0.56,
-    z_start: 100,
+    z_start: 240,
     z_end: 12 + (-117.19 * 0.24),
-    base_opacity: 0.25,
+    base_opacity: 1,
     fade_easing: "linear",
-    distance_fade_end_z: -20
+    distance_fade_end_z: -40,
+    distance_fade_start_z: 12 + (-117.19 * 0.24)
   },
   {
     name: "star_clusters",
-    p_in: 0.48,
+    p_in: 0.52,
     p_out: 0.80,
     z_start: 100,
     z_end: 8 + (-146.49 * 0.32),
-    base_opacity: 0.3,
+    base_opacity: 1,
     fade_easing: "linear",
-    distance_fade_end_z: -20
+    distance_fade_end_z: -40,
+    distance_fade_start_z: 8 + (-146.49 * 0.32)
   },
   {
     name: "planet",
-    p_in: 0.72,
-    p_out: 0.80,
+    p_in: 0.75, // delayed appearance
+    p_out: 0.83, // keep same duration
     z_start: 4,
     z_end: 4 + (-183.11 * 0.08),
     base_opacity: 1,
@@ -171,33 +174,32 @@ function get_layer_states(global_progress) {
       let fade = 1;
       const easing_fn = EASING_FUNCTIONS[fade_easing] || linear_ease;
       if (local_t < FADE_PORTION) {
-        // Fade-in
+        // Fade-in: ramp up to full opacity
         fade = easing_fn(local_t / FADE_PORTION);
-      } else if (local_t > 1 - FADE_PORTION) {
-        // Fade-out (planet layer ignores fade-out so opacity stays at 1)
-        const planet_layer = name === "planet";
-        fade = planet_layer
-          ? 1
-          : easing_fn((1 - local_t) / FADE_PORTION);
+      } else {
+        // After fade-in, fully opaque until distance-based fade applies
+        fade = 1;
       }
 
       // Pseudo-Z – interpolate regardless of opacity so that sorting works.
       const z = lerp(z_start, z_end, clamp(local_t, 0, 1));
 
-      // Distance-based fade
+      // Distance-based fade only applies after fade-in
       let distance_factor = 1;
-      if (distance_fade_start_z !== null) {
-        // Fade starts at distance_fade_start_z, ends at distance_fade_end_z
-        if (z <= distance_fade_end_z) {
-          distance_factor = 0;
-        } else if (z >= distance_fade_start_z) {
-          distance_factor = 1;
+      if (local_t >= FADE_PORTION) {
+        if (distance_fade_start_z !== null) {
+          // Fade starts at distance_fade_start_z, ends at distance_fade_end_z
+          if (z <= distance_fade_end_z) {
+            distance_factor = 0;
+          } else if (z >= distance_fade_start_z) {
+            distance_factor = 1;
+          } else {
+            distance_factor = (z - distance_fade_end_z) / (distance_fade_start_z - distance_fade_end_z);
+          }
         } else {
-          distance_factor = (z - distance_fade_end_z) / (distance_fade_start_z - distance_fade_end_z);
+          // Default: fade from z_start to distance_fade_end_z
+          distance_factor = clamp((z - distance_fade_end_z) / (z_start - distance_fade_end_z), 0, 1);
         }
-      } else {
-        // Default: fade from z_start to distance_fade_end_z
-        distance_factor = clamp((z - distance_fade_end_z) / (z_start - distance_fade_end_z), 0, 1);
       }
       opacity = base_opacity * fade * distance_factor;
       if (name === "planet" && fade === 1) {
