@@ -2,80 +2,39 @@
 /*
 Canvas Animation Engine – Early Universe Formation V2 – Multi-Layer Edition
 ---------------------------------------------------------------------------
-This revision fulfils *Task 4 · Rendering Pipeline* of
-`multi_layer_animation_progress.md` **and Task 5 · Camera & Parallax Maths**.
-
-Key upgrades compared with the previous build:
-  • Integrates the new timeline / layer model modules so the renderer
-    now drives *all* visual layers (cosmic fog → planet).
-  • **NEW:** Implements a moving camera-Z curve (CAM_Z_START → CAM_Z_END)
-    instead of the previously fixed value.  This provides the planned
-    continuous zoom-in over the full 25 s shot and completes Task 5.
-  • Generates a deterministic sprite instance list via
-    `generate_sprite_instances()`.
-  • Each animation frame:
-        – Converts the master `elapsed` time → `global_progress` (0 → 1).
-        – Queries `get_layer_states(global_progress)` for per-layer
-          opacity, pseudo-Z and base scale.
-        – Computes current `camera_z` via linear interpolation.
-        – Computes per-sprite final Z (layerZ + jitter) & scale, applies a
-          small XY drift based on the sprite’s angle and Z.
-        – Sorts visible sprites by Z (far → near) and blits them with the
-          correct globalAlpha.
-        – Culls fully transparent sprites to save draw calls.
-  • Once the master progress reaches 1, the scene *holds* on the final
-    planet frame.  The rAF loop keeps running so DevTools can still be
-    used for frame stepping / inspection.
-
-NOTE: Universe Tuning – Task 1 · Off-Centre Spawn
-––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-Added usage of `spawn_offset_x` / `spawn_offset_y` coming from
-`sprite_instance_manager.js`.  The offsets are interpreted as a fraction of
-*the viewport’s shortest side* and then scaled by the sprite’s current
-pseudo-Z **clamped to the [0 … 1] range** so that far-away objects spawn
-further off-centre while near layers gradually converge to the optical axis.
-
-CHANGE LOG – “Space-flight Direction Fix”
-––––––––––––––––––––––––––––––––––––––––
-• Corrected the XY drift sign so that **all non-planet sprites now move
-  strictly AWAY from the viewport centre** throughout the shot.  The new
-  formula uses `Math.max(0, -final_z)` which increases as the sprite’s Z
-  approaches and then surpasses the camera plane, guaranteeing an outward
-  trajectory instead of the previously inverted, inward drift.
+Full-physics refactor (Universe Fix · Phase 3)
+–––––––––––––––––––––––––––––––––––––––––––––
+• Implements true world-space integration per sprite (Task C·2).
+• Removes the legacy spawn_offset / drift heuristics – motion is now derived
+  from (x, y, v_r, angle) that were baked deterministically at creation time.
+• Screen projection is performed via single perspective formula
+      screen_xy = cam_xy + sprite_xy * scale
+  completing Task C·3.
 */
 
 // ---------------------------------------------------------------------------
 // Imports --------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-import { rand } from "./deterministic_rng.js"; // only used for any future drift tweaks
 import { generate_sprite_instances } from "./sprite_instance_manager.js";
 import { get_layer_states } from "./timeline_engine.js";
 
 // ---------------------------------------------------------------------------
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-const TOTAL_DURATION_MS = 25_000; // matches planning document (section 5)
+const TOTAL_DURATION_MS = 25_000; // storyboard length (§5)
 
-// Camera Z curve (Task 5) ----------------------------------------------------
-const CAM_Z_START = -1;   // at t = 0 (closest to the layers)
+// Camera Z curve (Task 5 – already in place) ---------------------------------
+const CAM_Z_START = -1;   // at t = 0 (closest to layers)
 const CAM_Z_END   = -20;  // at t = 1 (camera has moved "forward" by 19 units)
 
-// How much XY drift we apply per Z unit (CSS px).
-// NOTE: The magnitude is now multiplied by `max(0, -final_z)` so that drift
-// starts at zero (far layers) and grows continuously as the sprite moves
-// towards the camera and eventually past it.
-const XY_DRIFT_PER_Z = 10; // pixels at DPR 1
-
-// --- Final‐planet reveal tuning --------------------------------------------
+// --- Final-planet reveal tuning --------------------------------------------
 const PLANET_FADE_IN_START   = 0.72;
 const PLANET_FADE_IN_END     = 0.80;
 const PLANET_MIN_PX          = 0.5;   // spawn at 0.5 px wide (== flicker-free)
 const PLANET_STOP_COVER_MORE = 1.05;  // 5 % leeway before we halt the loop
 
-// Simple linear interpolation helper (local to this module).
+// Simple helpers -------------------------------------------------------------
 function lerp(a, b, t) { return a + (b - a) * t; }
-
-// Clamp helper (local copy – keeps this module self-contained)
 function clamp(x, lo = 0, hi = 1) { return x < lo ? lo : (x > hi ? hi : x); }
 
 // ---------------------------------------------------------------------------
@@ -98,7 +57,8 @@ export class UniverseAnimator {
     console.log(`[UniverseAnimator] Generated ${this.sprite_instances.length} sprite instances.`);
 
     // Animation state --------------------------------------------------------
-    this._start_time = /** @type {number | null} */ (null);
+    this._start_time   = /** @type {number | null} */ (null);
+    this._last_ts      = /** @type {number | null} */ (null); // for per-frame dt
     this._paused_time_accum = 0; // keeps total paused duration so progress doesn’t jump
 
     // FPS sampling -----------------------------------------------------------
@@ -146,6 +106,7 @@ export class UniverseAnimator {
 
     // Track paused duration so progress can be compensated when resumed.
     this._pause_start_ts = performance.now();
+    this._last_ts = null; // reset dt clock
     console.log("[UniverseAnimator] Animation paused.");
   }
 
@@ -158,6 +119,7 @@ export class UniverseAnimator {
       this._pause_start_ts = undefined;
     }
 
+    this._last_ts = null; // restart dt measurement
     this._raf_id = requestAnimationFrame(this._update);
     console.log("[UniverseAnimator] Animation resumed.");
   }
@@ -229,11 +191,14 @@ export class UniverseAnimator {
     if (!this._running) return;
 
     // -----------------------------------------------------------------------
-    // Establish timing / progress -------------------------------------------
+    // dt / timing ------------------------------------------------------------
     // -----------------------------------------------------------------------
+    const dt_sec = this._last_ts === null ? 0 : (ts - this._last_ts) / 1000;
+    this._last_ts = ts;
+
     if (this._start_time === null) this._start_time = ts;
-    const elapsed = ts - this._start_time - this._paused_time_accum;
-    let global_progress = elapsed / TOTAL_DURATION_MS;
+    const elapsed_total = ts - this._start_time - this._paused_time_accum;
+    let global_progress = elapsed_total / TOTAL_DURATION_MS;
     if (global_progress > 1) global_progress = 1; // clamp – hold on last frame
 
     // Current camera Z position (Task 5) ------------------------------------
@@ -245,6 +210,17 @@ export class UniverseAnimator {
       (PLANET_FADE_IN_END   - PLANET_FADE_IN_START),
       0, 1
     );
+
+    // -----------------------------------------------------------------------
+    // Advance physics (new) --------------------------------------------------
+    // -----------------------------------------------------------------------
+    if (dt_sec > 0) {
+      for (const sp of this.sprite_instances) {
+        if (sp.layer === "planet") continue; // planet stays fixed
+        sp.x += Math.cos(sp.angle) * sp.v_r * dt_sec;
+        sp.y += Math.sin(sp.angle) * sp.v_r * dt_sec;
+      }
+    }
 
     // -----------------------------------------------------------------------
     // FPS sampling (unchanged) ----------------------------------------------
@@ -272,7 +248,7 @@ export class UniverseAnimator {
     for (const ls of layer_states_arr) layer_states[ls.name] = ls;
 
     // -----------------------------------------------------------------------
-    // Build draw list (cull transparent) ------------------------------------
+    // Build draw list --------------------------------------------------------
     // -----------------------------------------------------------------------
     /** @type<Array<{ bmp: ImageBitmap, alpha: number, center_x: number, center_y: number, draw_w: number, draw_h: number, z: number, rotation: number }>> */
     const drawables = [];
@@ -280,10 +256,7 @@ export class UniverseAnimator {
     const cx = this.canvas.width  / (2 * this._dpr);
     const cy = this.canvas.height / (2 * this._dpr);
 
-    const elapsed_sec = elapsed / 1000;
-
-    // Precompute shortest side once (CSS px).
-    const shortest_side_css = Math.min(this.canvas.width, this.canvas.height) / this._dpr;
+    const elapsed_sec = elapsed_total / 1000; // for rotation only
 
     let planet_draw_w_screen = 0; // will store current width of planet in CSS px
 
@@ -295,33 +268,18 @@ export class UniverseAnimator {
       const final_z = ls.z + sp.z_jitter;
 
       // --- scale computation ----------------------------------------------
-      let scale   = cam_z / (cam_z - final_z); // perspective incl. moving cam
+      let scale = cam_z / (cam_z - final_z); // perspective incl. moving cam
 
       const is_planet = sp.layer === "planet";
       if (is_planet) {
-        const min_scale = PLANET_MIN_PX / sp.bitmap.width;   // ≈ 0.5 px wide
-        const extra    = lerp(min_scale, 1, planet_t);       // ease to full size
+        const min_scale = PLANET_MIN_PX / sp.bitmap.width; // ≈ 0.5 px wide
+        const extra     = lerp(min_scale, 1, planet_t);    // ease to full size
         scale *= extra;
       }
 
-      // XY drift – planet should stay centred; others drift outward. ----------
-      // FIX: Drift must be applied in the direction AWAY from the center, so the sign must be POSITIVE.
-      // The drift magnitude should increase as the sprite moves closer to and past the camera plane.
-      const drift_r = is_planet ? 0 : Math.max(0, -final_z) * XY_DRIFT_PER_Z;
-      const dx = Math.cos(sp.angle) * drift_r;
-      const dy = Math.sin(sp.angle) * drift_r;
-
-      // --- Off-centre spawn offsets ----------------------------------------
-      let spawn_offset_px_x = 0;
-      let spawn_offset_px_y = 0;
-      if (!is_planet) {
-        // Map pseudo-Z (could be negative) into [0…1] factor for scaling.
-        // FIX: The spawn offset should be scaled by (1 - z_factor) so that at z_factor=1 (close), offset is 0, and at z_factor=0 (far), offset is max.
-        const z_factor = clamp(final_z / 10, 0, 1); // 10 = fog layer initial Z
-        const spawn_scale = 1 - z_factor;
-        spawn_offset_px_x = sp.spawn_offset_x * shortest_side_css * spawn_scale;
-        spawn_offset_px_y = sp.spawn_offset_y * shortest_side_css * spawn_scale;
-      }
+      // --- Screen position -------------------------------------------------
+      const center_x = cx + sp.x * scale;
+      const center_y = cy + sp.y * scale;
 
       const draw_w = sp.bitmap.width  * scale;
       const draw_h = sp.bitmap.height * scale;
@@ -330,9 +288,6 @@ export class UniverseAnimator {
 
       // Rotation – only planet currently uses non-zero rot_speed.
       const rotation = sp.base_rotation + sp.rot_speed * elapsed_sec;
-
-      const center_x = cx + dx + spawn_offset_px_x;
-      const center_y = cy + dy + spawn_offset_px_y;
 
       drawables.push({
         bmp: sp.bitmap,
@@ -384,7 +339,7 @@ export class UniverseAnimator {
     // One-time validation log ------------------------------------------------
     // -----------------------------------------------------------------------
     if (!this._validation_logged) {
-      console.log(`[UniverseAnimator] Validation ✔︎  Direction fix active. Progress=${global_progress.toFixed(2)} camZ=${cam_z.toFixed(1)} Sprites=${drawables.length}. DPR ${this._dpr}`);
+      console.log(`[UniverseAnimator] Validation ✔︎  Physics refactor active. Progress=${global_progress.toFixed(2)} camZ=${cam_z.toFixed(1)} Sprites=${drawables.length}. DPR ${this._dpr}`);
       this._validation_logged = true;
     }
 
