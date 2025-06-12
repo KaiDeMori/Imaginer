@@ -58,7 +58,12 @@ export class UniverseAnimator {
       this.fog_bitmap      = null;
       this.fog_bitmap_url  = null;
     } else {
-      const idx = Math.floor(rand() * fog_urls.length);
+      // Task 4 · Regression tests – log raw RNG value so testers can verify
+      // that the second PRNG call remains deterministic across reloads.
+      const rng_val = rand();
+      const idx = Math.floor(rng_val * fog_urls.length);
+      console.log(`[UniverseAnimator] RNG value for fog selection: ${rng_val}`);
+
       const selected_url = fog_urls[idx];
       const bmp = bitmaps_map.get(selected_url) || null;
 
@@ -107,7 +112,7 @@ export class UniverseAnimator {
     // Diagnostic: verify import works (will be removed once Step 2 lands).
     console.debug(`[UniverseAnimator] asset_manifest imported with ${asset_manifest.length} entries (diagnostic only).`);
   }
-
+  
   // -----------------------------------------------------------------------
   // Public ----------------------------------------------------------------
   // -----------------------------------------------------------------------
