@@ -2,10 +2,6 @@
 
 *(This file tracks Step 3 in our roadmap: “Upgrade the placeholder fog animation into the full multi-layer zoom-through sequence”.  Update the check-boxes as subtasks are completed.)*
 
-## Current Status Summary
-✅  Single-layer fog animation is running at stable 60 fps on desktop test machines.  
-⏳  All other layers (galaxy streams, nebulae, star clusters, planet) are still pending.
-
 ---
 
 ## Task List
