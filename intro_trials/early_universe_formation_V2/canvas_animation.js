@@ -259,6 +259,11 @@ export class UniverseAnimator {
     const elapsed_sec = elapsed_total / 1000; // for rotation only
 
     let planet_draw_w_screen = 0; // will store current width of planet in CSS px
+    let planet_draw_h_screen = 0;
+
+    // Calculate max allowed planet size (viewport fill, with leeway)
+    const max_planet_w = (this.canvas.width / this._dpr) * PLANET_STOP_COVER_MORE;
+    const max_planet_h = (this.canvas.height / this._dpr) * PLANET_STOP_COVER_MORE;
 
     for (const sp of this.sprite_instances) {
       const ls = layer_states[sp.layer];
@@ -267,8 +272,8 @@ export class UniverseAnimator {
 
       const final_z = ls.z + sp.z_jitter;
 
-      // Cull sprites that are behind the camera (z >= cam_z)
-      if (final_z >= cam_z) continue;
+      // Cull sprites that are behind the camera (z <= cam_z)
+      if (final_z <= cam_z) continue;
 
       // --- scale computation ----------------------------------------------
       let scale = cam_z / (cam_z - final_z); // perspective incl. moving cam
@@ -284,10 +289,20 @@ export class UniverseAnimator {
       const center_x = cx + sp.x * scale;
       const center_y = cy + sp.y * scale;
 
-      const draw_w = sp.bitmap.width  * scale;
-      const draw_h = sp.bitmap.height * scale;
+      let draw_w = sp.bitmap.width  * scale;
+      let draw_h = sp.bitmap.height * scale;
 
-      if (is_planet) planet_draw_w_screen = draw_w; // remember for halt test
+      // Clamp planet size to viewport (with leeway)
+      if (is_planet) {
+        if (draw_w > max_planet_w || draw_h > max_planet_h) {
+          const clamp_scale = Math.min(max_planet_w / sp.bitmap.width, max_planet_h / sp.bitmap.height);
+          draw_w = sp.bitmap.width * clamp_scale;
+          draw_h = sp.bitmap.height * clamp_scale;
+          // Optionally, you could also clamp scale here if you want to halt growth
+        }
+        planet_draw_w_screen = draw_w;
+        planet_draw_h_screen = draw_h;
+      }
 
       const rotation = sp.base_rotation + sp.rot_speed * elapsed_sec;
 
@@ -331,10 +346,9 @@ export class UniverseAnimator {
     // Planet viewport-fill halt ---------------------------------------------
     // -----------------------------------------------------------------------
     if (!this._loop_halted &&
-        planet_draw_w_screen >= (this.canvas.width / this._dpr) * PLANET_STOP_COVER_MORE) {
-      this.pause(); // freezes rAF; DevTools can still resume
+        (planet_draw_w_screen >= max_planet_w || planet_draw_h_screen >= max_planet_h)) {
       this._loop_halted = true;
-      console.log("[UniverseAnimator] Planet fills viewport – animation halted.");
+      console.log("[UniverseAnimator] Planet fills viewport – animation halted, planet will keep rotating.");
     }
 
     // -----------------------------------------------------------------------
