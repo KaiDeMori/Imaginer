@@ -26,6 +26,15 @@ Key upgrades compared with the previous build:
   • Once the master progress reaches 1, the scene *holds* on the final
     planet frame.  The rAF loop keeps running so DevTools can still be
     used for frame stepping / inspection.
+
+NOTE: Universe Tuning – Task 1 · Off-Centre Spawn
+––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+Added usage of `spawn_offset_x` / `spawn_offset_y` coming from
+`sprite_instance_manager.js`.  The offsets are interpreted as a fraction of
+*the viewport’s shortest side* and then scaled by the sprite’s current
+pseudo-Z **clamped to the [0 … 1] range** so that far-away objects spawn
+further off-centre while near layers remain almost centred.  This completes
+Task 1 in `universe_tuning_progress.md`.
 */
 
 // ---------------------------------------------------------------------------
@@ -263,6 +272,9 @@ export class UniverseAnimator {
 
     const elapsed_sec = elapsed / 1000;
 
+    // Precompute shortest side once (CSS px).
+    const shortest_side_css = Math.min(this.canvas.width, this.canvas.height) / this._dpr;
+
     let planet_draw_w_screen = 0; // will store current width of planet in CSS px
 
     for (const sp of this.sprite_instances) {
@@ -287,6 +299,16 @@ export class UniverseAnimator {
       const dx = Math.cos(sp.angle) * drift_r;
       const dy = Math.sin(sp.angle) * drift_r;
 
+      // --- NEW: off-centre spawn offsets ----------------------------------
+      let spawn_offset_px_x = 0;
+      let spawn_offset_px_y = 0;
+      if (!isPlanet) {
+        // Map pseudo-Z (could be negative) into [0…1] factor for scaling.
+        const z_factor = clamp(final_z / 10, 0, 1); // 10 = fog layer initial Z
+        spawn_offset_px_x = sp.spawn_offset_x * shortest_side_css * z_factor;
+        spawn_offset_px_y = sp.spawn_offset_y * shortest_side_css * z_factor;
+      }
+
       const draw_w = sp.bitmap.width  * scale;
       const draw_h = sp.bitmap.height * scale;
 
@@ -295,8 +317,8 @@ export class UniverseAnimator {
       // Rotation – only planet currently uses non-zero rot_speed.
       const rotation = sp.base_rotation + sp.rot_speed * elapsed_sec;
 
-      const center_x = cx + dx;
-      const center_y = cy + dy;
+      const center_x = cx + dx + spawn_offset_px_x;
+      const center_y = cy + dy + spawn_offset_px_y;
 
       drawables.push({
         bmp: sp.bitmap,
