@@ -5,7 +5,7 @@ html, body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #ffffff; /* fallback while #whiteScreen is present */
+  background: #000000; /* space backdrop once #whiteScreen fades */
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -28,6 +28,7 @@ html, body {
   height: 100%;
   display: block; /* removes default inline-block gap */
   cursor: default; /* avoid I-beam on text selection */
+  background: #000000; /* ensures black if canvas clears */
 }
 
 /* -------------------------------------------------- */
