@@ -52,7 +52,7 @@ Last updated: **2024-06-XX**
 
 ### 9 · Clean-up & Polish
 - [ ] Remove console spam behind `LOG_VERBOSE` flag.
-- [ ] Refresh diagrams in `Early_Universe_Formation_Planning_V2.md`.
+- [ ] Refresh info in `Early_Universe_Formation_Planning_V2.md`.
 
 ---
 
