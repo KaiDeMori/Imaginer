@@ -17,6 +17,13 @@ CHANGE LOG – “Space-flight” Update
   by `atan2(0, 0)`.
 • The planet logic remains unchanged – it stays centred and its rotation is
   still driven by the dedicated constants.
+
+NOTE (Universe Fix – Phase 1 · Data Tables)
+-----------------------------------------
+Added `SPAWN_RADIUS` and `RADIAL_SPEED` per-layer constant tables as the first
+step of the *Full coordinate-system refactor* outlined in `universe_fix.md`.
+They are *place-holder* values for now and will be hooked up in a subsequent
+commit where the world-space properties (`x`, `y`, `v_r`, …) are introduced.
 */
 
 // ---------------------------------------------------------------------------
@@ -35,6 +42,31 @@ const SPRITE_COUNT_PER_LAYER = Object.freeze({
   nebulae:        10,
   star_clusters:  6,
   planet:         1, // single hero sprite
+});
+
+// ---------------------------------------------------------------------------
+// NEW – World-space spawn & physics tables (Phase 1) -------------------------
+// ---------------------------------------------------------------------------
+// The values are expressed in *world units* where 1 WU ≈ 1 CSS px at Z = 0.
+// They will be tuned visually later – for now we use a simple linear ladder
+// so that inner layers spawn closer to the centre and move slightly faster.
+
+// Radius of the annulus on which sprites initially spawn (world-space).
+const SPAWN_RADIUS = Object.freeze({
+  cosmic_fog:     1.0, // furthest out – should feel enveloping
+  galaxy_streams: 0.8,
+  nebulae:        0.6,
+  star_clusters:  0.4,
+  planet:         0.0, // planet stays dead-centre
+});
+
+// Constant radial speed (world-units s⁻¹) – tuned coarsely for now.
+const RADIAL_SPEED = Object.freeze({
+  cosmic_fog:     0.12,
+  galaxy_streams: 0.18,
+  nebulae:        0.25,
+  star_clusters:  0.30,
+  planet:         0.00, // planet does not drift
 });
 
 // Jitter ranges --------------------------------------------------------------
@@ -160,4 +192,7 @@ export {
   PLANET_BASE_ROTATION_RAD,
   PLANET_ROT_SPEED_RAD_S,
   NON_PLANET_MAX_ROT_SPEED_RAD_S,
+  // Export the new tables so they can be consumed by the upcoming refactor.
+  SPAWN_RADIUS,
+  RADIAL_SPEED,
 };
