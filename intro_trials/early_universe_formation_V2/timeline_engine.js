@@ -45,7 +45,8 @@ const LAYER_TIMELINE = Object.freeze([
     z_end: -5,
     base_opacity: .9,
     fade_easing: "cubic_in_out",
-    distance_fade_end_z: -20
+    distance_fade_start_z: 10, // start fading immediately
+    distance_fade_end_z: -3 // invisible 2 WU in front of camera
   },
   {
     name: "galaxy_streams",
