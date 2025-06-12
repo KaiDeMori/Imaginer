@@ -24,6 +24,15 @@ Added `SPAWN_RADIUS` and `RADIAL_SPEED` per-layer constant tables as the first
 step of the *Full coordinate-system refactor* outlined in `universe_fix.md`.
 They are *place-holder* values for now and will be hooked up in a subsequent
 commit where the world-space properties (`x`, `y`, `v_r`, …) are introduced.
+
+UPDATE (Universe Fix – Phase 2 · World-space Props)
+--------------------------------------------------
+Extended each `SpriteInstance` with *deterministic* **world-space initial
+properties** so the upcoming frame loop refactor can move to true physics soon.
+The new immutable props are:
+  • `x`, `y`, `z`   – position in world units (WU).
+  • `v_r`           – radial speed in world units s⁻¹ (layer-specific).
+This completes Task 2 of section E in `universe_fix.md`.
 */
 
 // ---------------------------------------------------------------------------
@@ -96,8 +105,14 @@ const NON_PLANET_MAX_ROT_SPEED_RAD_S = 0.06; // ≈ 3.4° s⁻¹ – tweak as de
  * @property {number}       z_jitter      – additive Z offset around layer base Z
  * @property {number}       base_rotation – initial rotation in radians (for planet)
  * @property {number}       rot_speed     – rotation speed in rad/s  (planet or general sprite)
- * @property {number}       spawn_offset_x – normalised X offset (−0.4…+0.4, planet=0)
- * @property {number}       spawn_offset_y – normalised Y offset (−0.4…+0.4, planet=0)
+ * @property {number}       spawn_offset_x – normalised X offset (−0.4…+0.4, planet=0) – DEPRECATED
+ * @property {number}       spawn_offset_y – normalised Y offset (−0.4…+0.4, planet=0) – DEPRECATED
+ *
+ * // New world-space props (Phase 2)
+ * @property {number}       x             – initial world-space X (WU)
+ * @property {number}       y             – initial world-space Y (WU)
+ * @property {number}       z             – initial world-space Z (WU). Will stay fixed.
+ * @property {number}       v_r           – constant radial speed (WU s⁻¹)
  */
 
 // ---------------------------------------------------------------------------
@@ -141,7 +156,7 @@ function generate_sprite_instances(bitmaps_map) {
       const is_planet = layer_name === "planet";
 
       // ---------------------------------------------------------------
-      // Spawn offsets (deterministic) ---------------------------------
+      // Spawn offsets (deterministic) – legacy path (will be removed) --
       // ---------------------------------------------------------------
       const spawn_offset_x = is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE;
       const spawn_offset_y = is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE;
@@ -162,17 +177,38 @@ function generate_sprite_instances(bitmaps_map) {
         }
       }
 
+      // ---------------------------------------------------------------------
+      // NEW – World-space properties ----------------------------------------
+      // ---------------------------------------------------------------------
+      const r_spawn = SPAWN_RADIUS[layer_name] ?? 0; // world-space radius
+      const v_r     = RADIAL_SPEED[layer_name] ?? 0; // constant outward speed
+
+      const x = Math.cos(angle) * r_spawn;
+      const y = Math.sin(angle) * r_spawn;
+      const z = 0; // All layers lie on the same Z plane for now; camera moves.
+
       instances.push(Object.freeze({
+        // Identity & visuals -------------------------------------------------
         id,
         layer: layer_name,
         img_url,
         bitmap: bmp,
+
+        // Legacy (to be removed in Phase 3) ---------------------------------
+        spawn_offset_x,
+        spawn_offset_y,
+
+        // Orientation / jitter ---------------------------------------------
         angle,
         z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER,
         base_rotation: is_planet ? PLANET_BASE_ROTATION_RAD : rand() * TWO_PI,
         rot_speed:     is_planet ? PLANET_ROT_SPEED_RAD_S   : (rand() * 2 - 1) * NON_PLANET_MAX_ROT_SPEED_RAD_S,
-        spawn_offset_x,
-        spawn_offset_y,
+
+        // New world-space props ---------------------------------------------
+        x,
+        y,
+        z,
+        v_r,
       }));
     }
   }
