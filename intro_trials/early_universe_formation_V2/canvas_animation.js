@@ -297,35 +297,36 @@ export class UniverseAnimator {
       // --- scale computation ----------------------------------------------
       let scale   = cam_z / (cam_z - final_z); // perspective incl. moving cam
 
-      const isPlanet = sp.layer === "planet";
-      if (isPlanet) {
-        const minScale = PLANET_MIN_PX / sp.bitmap.width;   // ≈ 0.5 px wide
-        const extra    = lerp(minScale, 1, planet_t);       // ease to full size
+      const is_planet = sp.layer === "planet";
+      if (is_planet) {
+        const min_scale = PLANET_MIN_PX / sp.bitmap.width;   // ≈ 0.5 px wide
+        const extra    = lerp(min_scale, 1, planet_t);       // ease to full size
         scale *= extra;
       }
 
       // XY drift – planet should stay centred; others drift outward. ----------
-      // The new formula uses **only negative Z values** (sprites that have
-      // reached or passed the camera plane) so the drift magnitude starts at
-      // 0 and grows smoothly, guaranteeing an outward-only trajectory.
-      const drift_r = isPlanet ? 0 : Math.max(0, -final_z) * XY_DRIFT_PER_Z;
+      // FIX: Drift must be applied in the direction AWAY from the center, so the sign must be POSITIVE.
+      // The drift magnitude should increase as the sprite moves closer to and past the camera plane.
+      const drift_r = is_planet ? 0 : Math.max(0, -final_z) * XY_DRIFT_PER_Z;
       const dx = Math.cos(sp.angle) * drift_r;
       const dy = Math.sin(sp.angle) * drift_r;
 
       // --- Off-centre spawn offsets ----------------------------------------
       let spawn_offset_px_x = 0;
       let spawn_offset_px_y = 0;
-      if (!isPlanet) {
+      if (!is_planet) {
         // Map pseudo-Z (could be negative) into [0…1] factor for scaling.
+        // FIX: The spawn offset should be scaled by (1 - z_factor) so that at z_factor=1 (close), offset is 0, and at z_factor=0 (far), offset is max.
         const z_factor = clamp(final_z / 10, 0, 1); // 10 = fog layer initial Z
-        spawn_offset_px_x = sp.spawn_offset_x * shortest_side_css * z_factor;
-        spawn_offset_px_y = sp.spawn_offset_y * shortest_side_css * z_factor;
+        const spawn_scale = 1 - z_factor;
+        spawn_offset_px_x = sp.spawn_offset_x * shortest_side_css * spawn_scale;
+        spawn_offset_px_y = sp.spawn_offset_y * shortest_side_css * spawn_scale;
       }
 
       const draw_w = sp.bitmap.width  * scale;
       const draw_h = sp.bitmap.height * scale;
 
-      if (isPlanet) planet_draw_w_screen = draw_w; // remember for halt test
+      if (is_planet) planet_draw_w_screen = draw_w; // remember for halt test
 
       // Rotation – only planet currently uses non-zero rot_speed.
       const rotation = sp.base_rotation + sp.rot_speed * elapsed_sec;
