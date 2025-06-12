@@ -153,7 +153,7 @@ function generate_sprite_instances(bitmaps_map) {
       const y = Math.sin(angle) * r_spawn;
       const z = 0; // All layers lie on the same Z plane for now; camera moves.
 
-      instances.push(Object.freeze({
+      instances.push({
         // Identity & visuals ---------------------------------------------
         id,
         layer: layer_name,
@@ -171,10 +171,13 @@ function generate_sprite_instances(bitmaps_map) {
         y,
         z,
         v_r,
-      }));
+      });
     }
   }
 
+  // Freeze the array reference so accidental re-assignment is impossible,
+  // but keep individual sprite objects *mutable* – their `x` and `y` must be
+  // updated every frame by the physics integrator.
   return Object.freeze(instances);
 }
 
