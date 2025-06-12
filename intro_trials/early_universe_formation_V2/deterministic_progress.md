@@ -37,7 +37,7 @@ The *bullet-proof* fix is to build the candidate list directly from `asset_manif
 - [x] Use `debug_preloader()` to make sure the selected URL is indeed present in `preloaded_bitmaps`.
 
 ### 5 · Clean-up & polishing
-- [ ] ESLint & Prettier pass on `canvas_animation.js` after modifications.
+- [x] ESLint & Prettier pass on `canvas_animation.js` after modifications.
 - [ ] Delete outdated notes in `stranger_things_V2.md` or mark the issue as *resolved* once verified.
 - [ ] Increment the checklist in `canvas_animation_progress.md` (add a new ✓ under *5 · Clean-up & Polish*).
 
