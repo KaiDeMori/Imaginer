@@ -42,15 +42,6 @@ The *bullet-proof* fix is to build the candidate list directly from `asset_manif
 - [ ] Increment the checklist in `canvas_animation_progress.md` (add a new ✓ under *5 · Clean-up & Polish*).
 
 ---
-## 2 · Timeline & Ownership
-
-| Task | Owner | Target date |
-|------|-------|-------------|
-| Items 1–2 (code changes) | dev A | **Today** |
-| Items 3–4 (tests)        | dev B | +1 day |
-| Item 5 (docs / lint)     | dev A | +1 day |
-
----
 ## 3 · Done-when checklist
 - [x] Reloading with the same seed always yields the **same** fog sprite.
 - [x] A different seed produces **different** fog sprites (i.e. variability still works).
