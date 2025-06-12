@@ -48,10 +48,10 @@ const SPRITE_COUNT_PER_LAYER = Object.freeze({
 
 // Radius of the annulus on which sprites initially spawn (world-space).
 const SPAWN_RADIUS = Object.freeze({
-  cosmic_fog:     1.0, // furthest out – should feel enveloping
-  galaxy_streams: 0.8,
-  nebulae:        0.6,
-  star_clusters:  0.4,
+  cosmic_fog:     1.2, // furthest out – should feel enveloping
+  galaxy_streams: 1.0,
+  nebulae:        0.8,
+  star_clusters:  0.6,
   planet:         0.0, // planet stays dead-centre
 });
 
@@ -101,11 +101,14 @@ const NON_PLANET_MAX_ROT_SPEED_RAD_S = 0.06; // ≈ 3.4° s⁻¹ – tweak as de
 // ---------------------------------------------------------------------------
 // Helper – deterministic cycle through image list ---------------------------
 // ---------------------------------------------------------------------------
-function _pick_bitmap_for_index(files, index) {
-  // Scramble selection slightly – still deterministic.
-  const offset = Math.floor(rand() * files.length);
-  const idx    = (index + offset) % files.length;
-  return files[idx];
+// Deterministic shuffle (Fisher-Yates, seeded with rand)
+function _deterministic_shuffle(array) {
+  const arr = array.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
 
 // ---------------------------------------------------------------------------
@@ -126,8 +129,12 @@ function generate_sprite_instances(bitmaps_map) {
     const files       = layer_cfg.files;
     const desired_cnt = SPRITE_COUNT_PER_LAYER[layer_name] ?? 0;
 
-    for (let i = 0; i < desired_cnt; i++) {
-      const img_url = _pick_bitmap_for_index(files, i);
+    // Deterministically shuffle files for this layer
+    const shuffled_files = _deterministic_shuffle(files);
+    const sprite_cnt = Math.min(desired_cnt, shuffled_files.length);
+
+    for (let i = 0; i < sprite_cnt; i++) {
+      const img_url = shuffled_files[i];
       const bmp     = bitmaps_map.get(img_url);
 
       if (!bmp) {
@@ -142,7 +149,6 @@ function generate_sprite_instances(bitmaps_map) {
       // Drift angle – uniform in [0, 2π) ----------------------------------
       // -------------------------------------------------------------------
       const angle = rand() * TWO_PI;
-
 
       // -------------------------------------------------------------------
       // Helper – logical → world-space radius -----------------------------
