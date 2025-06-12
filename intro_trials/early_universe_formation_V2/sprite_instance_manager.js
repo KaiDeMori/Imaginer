@@ -3,13 +3,16 @@
 Sprite Instance Manager – Early Universe Formation V2
 ----------------------------------------------------
 Creates the **deterministic, per-layer sprite instance list** that will be
-consumed by the future renderer (UniverseAnimator upgrade).
+consumed by the renderer (UniverseAnimator).
 
-Ful-fils *Task 3 · Sprite Instance Management* of
-`multi_layer_animation_progress.md`:
+Fulfils *Task 3 · Sprite Instance Management* of
+`multi_layer_animation_progress.md` and now also provides the extra metadata
+required for *Task 6 · Final Planet Reveal*:
   • Generate N sprite instances per layer (configurable, deterministic).
   • Pre-compute per-sprite random offsets (polar angle for XY drift,
-    initial Z jitter) – again driven by the global seeded `rand()` helper.
+    initial Z jitter).
+  • Add optional per-sprite **base_rotation** and **rot_speed** so that the
+    final planet can perform a slow idle spin while the shot holds.
   • Re-use shared `ImageBitmap` references so that multiple sprites that use
     the same PNG do *not* create duplicate VRAM copies.
 
@@ -26,41 +29,43 @@ import { layers_config } from "./layers_model.js";
 // ---------------------------------------------------------------------------
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// Number of sprite instances we want per layer.  These numbers will likely be
-// fine-tuned visually later.  They *must* remain deterministic for a given
-// seed, hence we keep them in a constant map.
+// Number of sprite instances we want per layer.
 const SPRITE_COUNT_PER_LAYER = Object.freeze({
   cosmic_fog:     6,
   galaxy_streams: 8,
   nebulae:        10,
   star_clusters:  6,
-  planet:         1,  // single hero sprite
+  planet:         1, // single hero sprite
 });
 
 // Jitter ranges --------------------------------------------------------------
-const MAX_Z_JITTER  = 0.8;     // pseudo-Z units (symmetrical around 0)
-const MAX_XY_ANGLE  = Math.PI * 2; // full circle for drift direction
+const MAX_Z_JITTER = 0.8;             // pseudo-Z units (sym. around 0)
+const TWO_PI       = Math.PI * 2;
+
+// Planet specific ------------------------------------------------------------
+// A very subtle idle rotation so the final frame is not perfectly static.
+const PLANET_ROT_SPEED_RAD_S = 0.02;  // ≈ 1.1° per second
 
 // ---------------------------------------------------------------------------
 // Types (JSDoc) --------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @typedef {Object} SpriteInstance
- * @property {string}       id        – unique but deterministic ID (e.g. "nebulae#3")
- * @property {string}       layer     – logical layer name (matches layers_config)
- * @property {string}       img_url   – asset URL used for this sprite
- * @property {ImageBitmap}  bitmap    – reference from `bitmaps_map`
- * @property {number}       angle     – polar direction in radians (0 … 2π)
- * @property {number}       z_jitter  – small additive offset applied to the layer's base Z
+ * @property {string}       id            – unique deterministic ID (e.g. "nebulae#3")
+ * @property {string}       layer         – logical layer name
+ * @property {string}       img_url       – asset URL
+ * @property {ImageBitmap}  bitmap        – reference from `bitmaps_map`
+ * @property {number}       angle         – polar drift direction in radians (0 … 2π)
+ * @property {number}       z_jitter      – additive Z offset around layer base Z
+ * @property {number}       base_rotation – initial rotation in radians (for planet)
+ * @property {number}       rot_speed     – rotation speed in rad/s  (for planet)
  */
 
 // ---------------------------------------------------------------------------
 // Helper – deterministic cycle through image list ---------------------------
 // ---------------------------------------------------------------------------
 function _pick_bitmap_for_index(files, index) {
-  // Instead of a pure modulus we scramble selection a bit so that consecutive
-  // indices don’t always map to the same handful of textures when the sprite
-  // count is >> files.length. Still 100 % deterministic.
+  // Scramble selection slightly – still deterministic.
   const offset = Math.floor(rand() * files.length);
   const idx    = (index + offset) % files.length;
   return files[idx];
@@ -90,18 +95,22 @@ function generate_sprite_instances(bitmaps_map) {
 
       if (!bmp) {
         console.warn(`[sprite_instance_manager] Missing ImageBitmap for URL '${img_url}' – sprite skipped.`);
-        continue; // skip sprite but continue loop to keep determinism for subsequent ones
+        continue; // skip sprite but keep determinism
       }
 
       const id = `${layer_name}#${i}`;
+
+      const is_planet = layer_name === "planet";
 
       instances.push(Object.freeze({
         id,
         layer: layer_name,
         img_url,
         bitmap: bmp,
-        angle: rand() * MAX_XY_ANGLE,          // 0 … 2π
-        z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER, // -max … +max
+        angle: rand() * TWO_PI,
+        z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER,
+        base_rotation: rand() * TWO_PI,               // any starting angle
+        rot_speed: is_planet ? PLANET_ROT_SPEED_RAD_S : 0,
       }));
     }
   }
