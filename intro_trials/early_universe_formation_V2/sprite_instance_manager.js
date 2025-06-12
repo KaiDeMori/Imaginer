@@ -143,10 +143,18 @@ function generate_sprite_instances(bitmaps_map) {
       // -------------------------------------------------------------------
       const angle = rand() * TWO_PI;
 
+
       // -------------------------------------------------------------------
-      // World-space properties --------------------------------------------
+      // Helper – logical → world-space radius -----------------------------
       // -------------------------------------------------------------------
-      const r_spawn = SPAWN_RADIUS[layer_name] ?? 0; // world-space radius
+      // 1 world-unit ≈ 1 px at z = 0, therefore multiply the logical radius by the
+      // viewport’s shorter edge so that far-layer sprites start visibly off-centre.
+      const VIEWPORT_MIN_PX =
+        typeof window !== "undefined"
+          ? Math.min(window.innerWidth, window.innerHeight)
+          : 800;                    // fallback for SSR / tests
+
+      const r_spawn = (SPAWN_RADIUS[layer_name] ?? 0) * VIEWPORT_MIN_PX;
       const v_r     = RADIAL_SPEED[layer_name] ?? 0; // constant outward speed
 
       const x = Math.cos(angle) * r_spawn;
