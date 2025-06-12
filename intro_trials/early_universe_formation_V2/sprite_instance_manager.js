@@ -7,32 +7,18 @@ consumed by the renderer (UniverseAnimator).
 
 CHANGE LOG – “Space-flight” Update
 ––––––––––––––––––––––––––––––––––
-• All **non-planet** sprites now travel **away from the viewport centre**.
-  Their `angle` is therefore no longer an arbitrary random value but the polar
-  angle of the vector that points from the centre towards their deterministic
-  off-centre spawn location.  This guarantees every sprite drifts further out
-  into space, reinforcing the tunnel / fly-through effect.
-• Fallback:  If a sprite happens to spawn exactly (or *very* close) on the
-  centre, we fall back to a random angle so we don’t end up with `NaN` caused
-  by `atan2(0, 0)`.
+• All **non-planet** sprites now travel **away from the viewport centre**.  We
+  therefore pick a deterministic **polar angle** uniformly in [0, 2π) and
+  spawn the sprite on the corresponding point of its layer-specific annulus.
 • The planet logic remains unchanged – it stays centred and its rotation is
   still driven by the dedicated constants.
 
-NOTE (Universe Fix – Phase 1 · Data Tables)
------------------------------------------
-Added `SPAWN_RADIUS` and `RADIAL_SPEED` per-layer constant tables as the first
-step of the *Full coordinate-system refactor* outlined in `universe_fix.md`.
-They are *place-holder* values for now and will be hooked up in a subsequent
-commit where the world-space properties (`x`, `y`, `v_r`, …) are introduced.
-
-UPDATE (Universe Fix – Phase 2 · World-space Props)
---------------------------------------------------
-Extended each `SpriteInstance` with *deterministic* **world-space initial
-properties** so the upcoming frame loop refactor can move to true physics soon.
-The new immutable props are:
+NOTE (Universe Fix – Phase 2 · World-space Props)
+-----------------------------------------------
+Each `SpriteInstance` carries *deterministic* **world-space initial
+properties** so the frame loop can run true physics.  The immutable props are:
   • `x`, `y`, `z`   – position in world units (WU).
   • `v_r`           – radial speed in world units s⁻¹ (layer-specific).
-This completes Task 2 of section E in `universe_fix.md`.
 */
 
 // ---------------------------------------------------------------------------
@@ -54,7 +40,7 @@ const SPRITE_COUNT_PER_LAYER = Object.freeze({
 });
 
 // ---------------------------------------------------------------------------
-// NEW – World-space spawn & physics tables (Phase 1) -------------------------
+// World-space spawn & physics tables -----------------------------------------
 // ---------------------------------------------------------------------------
 // The values are expressed in *world units* where 1 WU ≈ 1 CSS px at Z = 0.
 // They will be tuned visually later – for now we use a simple linear ladder
@@ -81,7 +67,6 @@ const RADIAL_SPEED = Object.freeze({
 // Jitter ranges --------------------------------------------------------------
 const MAX_Z_JITTER        = 0.8;   // pseudo-Z units (sym. around 0)
 const TWO_PI              = Math.PI * 2;
-const SPAWN_OFFSET_RANGE  = 0.4;   // ±40 % of viewport shortest side (norm.)
 
 // Planet specific ------------------------------------------------------------
 // NOTE: These values are *not* generated via rand() so they stay fully under
@@ -105,10 +90,8 @@ const NON_PLANET_MAX_ROT_SPEED_RAD_S = 0.06; // ≈ 3.4° s⁻¹ – tweak as de
  * @property {number}       z_jitter      – additive Z offset around layer base Z
  * @property {number}       base_rotation – initial rotation in radians (for planet)
  * @property {number}       rot_speed     – rotation speed in rad/s  (planet or general sprite)
- * @property {number}       spawn_offset_x – normalised X offset (−0.4…+0.4, planet=0) – DEPRECATED
- * @property {number}       spawn_offset_y – normalised Y offset (−0.4…+0.4, planet=0) – DEPRECATED
  *
- * // New world-space props (Phase 2)
+ * // World-space props
  * @property {number}       x             – initial world-space X (WU)
  * @property {number}       y             – initial world-space Y (WU)
  * @property {number}       z             – initial world-space Z (WU). Will stay fixed.
@@ -155,31 +138,14 @@ function generate_sprite_instances(bitmaps_map) {
       const id = `${layer_name}#${i}`;
       const is_planet = layer_name === "planet";
 
-      // ---------------------------------------------------------------
-      // Spawn offsets (deterministic) – legacy path (will be removed) --
-      // ---------------------------------------------------------------
-      const spawn_offset_x = is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE;
-      const spawn_offset_y = is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE;
+      // -------------------------------------------------------------------
+      // Drift angle – uniform in [0, 2π) ----------------------------------
+      // -------------------------------------------------------------------
+      const angle = rand() * TWO_PI;
 
-      // ---------------------------------------------------------------
-      // Drift angle – points **away** from the centre -----------------
-      // ---------------------------------------------------------------
-      let angle;
-      if (is_planet) {
-        angle = rand() * TWO_PI; // planet stays centred; direction irrelevant
-      } else {
-        // Compute radial angle from origin → spawn point.
-        if (Math.abs(spawn_offset_x) < 1e-6 && Math.abs(spawn_offset_y) < 1e-6) {
-          // Extremely unlikely but guard against 0/0.
-          angle = rand() * TWO_PI;
-        } else {
-          angle = Math.atan2(spawn_offset_y, spawn_offset_x);
-        }
-      }
-
-      // ---------------------------------------------------------------------
-      // NEW – World-space properties ----------------------------------------
-      // ---------------------------------------------------------------------
+      // -------------------------------------------------------------------
+      // World-space properties --------------------------------------------
+      // -------------------------------------------------------------------
       const r_spawn = SPAWN_RADIUS[layer_name] ?? 0; // world-space radius
       const v_r     = RADIAL_SPEED[layer_name] ?? 0; // constant outward speed
 
@@ -188,23 +154,19 @@ function generate_sprite_instances(bitmaps_map) {
       const z = 0; // All layers lie on the same Z plane for now; camera moves.
 
       instances.push(Object.freeze({
-        // Identity & visuals -------------------------------------------------
+        // Identity & visuals ---------------------------------------------
         id,
         layer: layer_name,
         img_url,
         bitmap: bmp,
 
-        // Legacy (to be removed in Phase 3) ---------------------------------
-        spawn_offset_x,
-        spawn_offset_y,
-
-        // Orientation / jitter ---------------------------------------------
+        // Orientation / jitter -------------------------------------------
         angle,
         z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER,
         base_rotation: is_planet ? PLANET_BASE_ROTATION_RAD : rand() * TWO_PI,
         rot_speed:     is_planet ? PLANET_ROT_SPEED_RAD_S   : (rand() * 2 - 1) * NON_PLANET_MAX_ROT_SPEED_RAD_S,
 
-        // New world-space props ---------------------------------------------
+        // World-space props -----------------------------------------------
         x,
         y,
         z,
