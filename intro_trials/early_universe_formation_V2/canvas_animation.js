@@ -295,7 +295,10 @@ export class UniverseAnimator {
       }
 
       // XY drift – planet should stay centred; others drift subtly.
-      const drift_r = isPlanet ? 0 : final_z * XY_DRIFT_PER_Z; // farther layers drift more
+      // Use absolute Z to guarantee the direction vector (angle) always
+      // points *away* from origin regardless of whether the sprite's pseudo-Z
+      // is currently in front of or behind the camera (sign flip fix).
+      const drift_r = isPlanet ? 0 : Math.abs(final_z) * XY_DRIFT_PER_Z; // farther layers drift more
       const dx = Math.cos(sp.angle) * drift_r;
       const dy = Math.sin(sp.angle) * drift_r;
 
