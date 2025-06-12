@@ -286,7 +286,6 @@ export class UniverseAnimator {
 
       if (is_planet) planet_draw_w_screen = draw_w; // remember for halt test
 
-      // Rotation – only planet currently uses non-zero rot_speed.
       const rotation = sp.base_rotation + sp.rot_speed * elapsed_sec;
 
       drawables.push({
