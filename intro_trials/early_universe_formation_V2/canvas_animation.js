@@ -26,6 +26,10 @@ Key upgrades compared with the previous build:
   • Once the master progress reaches 1, the scene *holds* on the final
     planet frame.  The rAF loop keeps running so DevTools can still be
     used for frame stepping / inspection.
+
+Additional upgrades in this commit (2024-06-XX):
+  • Implements **slow idle rotation for the planet** sprite, completing the
+    last open sub-task of *Task 6 · Final Planet Reveal*.
 */
 
 // ---------------------------------------------------------------------------
@@ -236,11 +240,13 @@ export class UniverseAnimator {
     // -----------------------------------------------------------------------
     // Build draw list (cull transparent) ------------------------------------
     // -----------------------------------------------------------------------
-    /** @type<Array<{ bmp: ImageBitmap, alpha: number, draw_x: number, draw_y: number, draw_w: number, draw_h: number, z: number }>> */
+    /** @type<Array<{ bmp: ImageBitmap, alpha: number, center_x: number, center_y: number, draw_w: number, draw_h: number, z: number, rotation: number }>> */
     const drawables = [];
 
     const cx = this.canvas.width  / (2 * this._dpr);
     const cy = this.canvas.height / (2 * this._dpr);
+
+    const elapsed_sec = elapsed / 1000;
 
     for (const sp of this.sprite_instances) {
       const ls = layer_states[sp.layer];
@@ -250,21 +256,31 @@ export class UniverseAnimator {
       const final_z = ls.z + sp.z_jitter;
       const scale   = cam_z / (cam_z - final_z); // perspective incl. moving cam
 
-      const drift_r = final_z * XY_DRIFT_PER_Z; // farther layers drift more
+      const isPlanet = sp.layer === "planet";
+
+      // XY drift – planet should stay centred; others drift subtly.
+      const drift_r = isPlanet ? 0 : final_z * XY_DRIFT_PER_Z; // farther layers drift more
       const dx = Math.cos(sp.angle) * drift_r;
       const dy = Math.sin(sp.angle) * drift_r;
 
       const draw_w = sp.bitmap.width  * scale;
       const draw_h = sp.bitmap.height * scale;
 
+      // Rotation – only planet currently uses non-zero rot_speed.
+      const rotation = sp.base_rotation + sp.rot_speed * elapsed_sec;
+
+      const center_x = cx + dx;
+      const center_y = cy + dy;
+
       drawables.push({
         bmp: sp.bitmap,
         alpha: ls.opacity,
-        draw_x: cx + dx - draw_w / 2,
-        draw_y: cy + dy - draw_h / 2,
+        center_x,
+        center_y,
         draw_w,
         draw_h,
         z: final_z,
+        rotation,
       });
     }
 
@@ -276,7 +292,19 @@ export class UniverseAnimator {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     for (const d of drawables) {
       this.ctx.globalAlpha = d.alpha;
-      this.ctx.drawImage(d.bmp, d.draw_x, d.draw_y, d.draw_w, d.draw_h);
+      if (Math.abs(d.rotation) > 0.0001) {
+        // Rotated draw – save/restore to avoid matrix accumulation.
+        this.ctx.save();
+        this.ctx.translate(d.center_x, d.center_y);
+        this.ctx.rotate(d.rotation);
+        this.ctx.drawImage(d.bmp, -d.draw_w / 2, -d.draw_h / 2, d.draw_w, d.draw_h);
+        this.ctx.restore();
+      } else {
+        // Non-rotated draw (slightly faster path).
+        const draw_x = d.center_x - d.draw_w / 2;
+        const draw_y = d.center_y - d.draw_h / 2;
+        this.ctx.drawImage(d.bmp, draw_x, draw_y, d.draw_w, d.draw_h);
+      }
     }
     this.ctx.globalAlpha = 1; // reset
 
