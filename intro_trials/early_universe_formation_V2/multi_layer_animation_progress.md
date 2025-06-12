@@ -17,6 +17,7 @@
 - [x] Create `Timeline` helper that maps global `progress` (0 – 1) into per-layer opacity, scale and z-position.
 - [x] Integrate cubic-in-out easing for smoother transitions.
 - [x] Unit-test the mapping with synthetic timestamps.
+- [x] Add per-layer distance-based fade window for cosmic_fog to ensure smooth fade-out before reaching the camera.
 
 ### 3 · Sprite Instance Management
 - [x] Generate N sprite instances per layer (deterministic).

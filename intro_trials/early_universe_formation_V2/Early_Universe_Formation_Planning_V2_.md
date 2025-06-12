@@ -9,7 +9,7 @@ We want to create a *stand-alone* HTML/CSS/JS page that plays a cinematic "zoom 
 High-level shot order:
 1. **White screen** – stay full white ≥ 1 s.
 2. **Fade-out of white overlay** while *cosmic fog* layer is already moving.
-3. **Cosmic fog** – approaches camera, scales up, fades out as it "passes".
+3. **Cosmic fog** – approaches camera, scales up, fades out smoothly before reaching the camera using a per-layer distance-based fade window.
 4. **Galaxy streams** – same behaviour.
 5. **Nebulae** – same behaviour.
 6. **Star clusters** – same behaviour but we continue zooming *into* one cluster.
@@ -76,7 +76,7 @@ All layers share the same master duration (e.g. 25 s). Individual fade/scale win
 | Segment            | Start (s) | End (s) | Notes                       |
 |--------------------|-----------|---------|-----------------------------|
 | White hold         | 0         | **1**   | May stretch if assets slow. |
-| Cosmic fog         | 1         | 6       | z: 10 → –5, α: 0 → 1 → 0.   |
+| Cosmic fog         | 1         | 6       | z: 10 → –5, α: 0 → 1 → 0, distance-based fade window (start_z: 10, end_z: –3). |
 | Galaxy streams     | 4         | 10      | Overlap 2 s with fog.       |
 | Nebulae            | 8         | 14      |                             |
 | Star clusters      | 12        | 20      | Zoom continues into cluster |
