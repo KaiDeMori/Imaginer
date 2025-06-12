@@ -47,8 +47,17 @@ const CAM_Z_END   = -20;  // at t = 1 (camera has moved "forward" by 19 units)
 // How much XY drift we apply per positive Z unit (very subtle by default).
 const XY_DRIFT_PER_Z = 10; // pixels at DPR 1
 
+// --- Final‐planet reveal tuning --------------------------------------------
+const PLANET_FADE_IN_START   = 0.72;
+const PLANET_FADE_IN_END     = 0.80;
+const PLANET_MIN_PX          = 0.5;   // spawn at 0.5 px wide (== flicker-free)
+const PLANET_STOP_COVER_MORE = 1.05;  // 5 % leeway before we halt the loop
+
 // Simple linear interpolation helper (local to this module).
 function lerp(a, b, t) { return a + (b - a) * t; }
+
+// Clamp helper (local copy – keeps this module self-contained)
+function clamp(x, lo = 0, hi = 1) { return x < lo ? lo : (x > hi ? hi : x); }
 
 // ---------------------------------------------------------------------------
 // UniverseAnimator -----------------------------------------------------------
@@ -87,6 +96,9 @@ export class UniverseAnimator {
     // rAF control ------------------------------------------------------------
     this._running = false;
     this._raf_id  = /** @type {number | null} */ (null);
+
+    // NEW: final-reveal halt flag -------------------------------------------
+    this._loop_halted = false;
 
     // Bindings ---------------------------------------------------------------
     this._update    = this._update.bind(this);
@@ -208,6 +220,13 @@ export class UniverseAnimator {
     // Current camera Z position (Task 5) ------------------------------------
     const cam_z = lerp(CAM_Z_START, CAM_Z_END, global_progress);
 
+    // Planet ease factor within its fade-in window ---------------------------
+    const planet_t = clamp(
+      (global_progress - PLANET_FADE_IN_START) /
+      (PLANET_FADE_IN_END   - PLANET_FADE_IN_START),
+      0, 1
+    );
+
     // -----------------------------------------------------------------------
     // FPS sampling (unchanged) ----------------------------------------------
     // -----------------------------------------------------------------------
@@ -244,15 +263,24 @@ export class UniverseAnimator {
 
     const elapsed_sec = elapsed / 1000;
 
+    let planet_draw_w_screen = 0; // will store current width of planet in CSS px
+
     for (const sp of this.sprite_instances) {
       const ls = layer_states[sp.layer];
       if (!ls) continue; // layer disabled?
       if (ls.opacity <= 0.001) continue; // cull fully transparent
 
       const final_z = ls.z + sp.z_jitter;
-      const scale   = cam_z / (cam_z - final_z); // perspective incl. moving cam
+
+      // --- scale computation ----------------------------------------------
+      let scale   = cam_z / (cam_z - final_z); // perspective incl. moving cam
 
       const isPlanet = sp.layer === "planet";
+      if (isPlanet) {
+        const minScale = PLANET_MIN_PX / sp.bitmap.width;   // ≈ 0.5 px wide
+        const extra    = lerp(minScale, 1, planet_t);       // ease to full size
+        scale *= extra;
+      }
 
       // XY drift – planet should stay centred; others drift subtly.
       const drift_r = isPlanet ? 0 : final_z * XY_DRIFT_PER_Z; // farther layers drift more
@@ -261,6 +289,8 @@ export class UniverseAnimator {
 
       const draw_w = sp.bitmap.width  * scale;
       const draw_h = sp.bitmap.height * scale;
+
+      if (isPlanet) planet_draw_w_screen = draw_w; // remember for halt test
 
       // Rotation – only planet currently uses non-zero rot_speed.
       const rotation = sp.base_rotation + sp.rot_speed * elapsed_sec;
@@ -305,6 +335,16 @@ export class UniverseAnimator {
     this.ctx.globalAlpha = 1; // reset
 
     // -----------------------------------------------------------------------
+    // Planet viewport-fill halt ---------------------------------------------
+    // -----------------------------------------------------------------------
+    if (!this._loop_halted &&
+        planet_draw_w_screen >= (this.canvas.width / this._dpr) * PLANET_STOP_COVER_MORE) {
+      this.pause(); // freezes rAF; DevTools can still resume
+      this._loop_halted = true;
+      console.log("[UniverseAnimator] Planet fills viewport – animation halted.");
+    }
+
+    // -----------------------------------------------------------------------
     // One-time validation log ------------------------------------------------
     // -----------------------------------------------------------------------
     if (!this._validation_logged) {
@@ -315,6 +355,8 @@ export class UniverseAnimator {
     // -----------------------------------------------------------------------
     // Schedule next frame ----------------------------------------------------
     // -----------------------------------------------------------------------
-    this._raf_id = requestAnimationFrame(this._update);
+    if (this._running) {
+      this._raf_id = requestAnimationFrame(this._update);
+    }
   }
 }
