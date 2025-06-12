@@ -41,7 +41,8 @@ const LAYER_TIMELINE = Object.freeze([
   ["galaxy_streams", 0.16,   0.40,    8,      -4],
   ["nebulae",        0.32,   0.56,    6,      -3],
   ["star_clusters",  0.48,   0.80,    4,      -2],
-  ["planet",         0.72,   1.00,    2,       0], // planet never fades out
+  // Planet fades in quickly (0.72 → 0.80) but stays opaque afterwards.
+  ["planet",         0.72,   0.80,    2,       0],
 ]);
 
 // Quick sanity guard – ensure every logical layer in `layers_config` appears
