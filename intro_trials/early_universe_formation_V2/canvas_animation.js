@@ -26,10 +26,6 @@ Key upgrades compared with the previous build:
   • Once the master progress reaches 1, the scene *holds* on the final
     planet frame.  The rAF loop keeps running so DevTools can still be
     used for frame stepping / inspection.
-
-Additional upgrades in this commit (2024-06-XX):
-  • Implements **slow idle rotation for the planet** sprite, completing the
-    last open sub-task of *Task 6 · Final Planet Reveal*.
 */
 
 // ---------------------------------------------------------------------------
