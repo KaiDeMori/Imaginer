@@ -36,24 +36,68 @@ instead of absolute seconds means the engine works irrespective of the final
 chosen total duration (e.g. 25 s).
 */
 const LAYER_TIMELINE = Object.freeze([
-  //  name,           fadeIn, fadeOut, zStart, zEnd
-  ["cosmic_fog",     0.04,   0.24,    10,     -5],
-  ["galaxy_streams", 0.16,   0.40,    50,      16 + (-93.75 * 0.24)],
-  ["nebulae",        0.32,   0.56,    100,      12 + (-117.19 * 0.24)],
-  ["star_clusters",  0.48,   0.80,    100,      8 + (-146.49 * 0.32)],
-  // Planet fades in quickly (0.72 → 0.80) but stays opaque afterwards.
-  ["planet",         0.72,   0.80,    4,      4 + (-183.11 * 0.08)],
+  // name, p_in, p_out, z_start, z_end, base_opacity, fade_easing, distance_fade_end_z, (optional) distance_fade_start_z
+  {
+    name: "cosmic_fog",
+    p_in: 0.04,
+    p_out: 0.24,
+    z_start: 10,
+    z_end: -5,
+    base_opacity: 0.15,
+    fade_easing: "cubic_in_out",
+    distance_fade_end_z: -10
+  },
+  {
+    name: "galaxy_streams",
+    p_in: 0.16,
+    p_out: 0.40,
+    z_start: 50,
+    z_end: 16 + (-93.75 * 0.24),
+    base_opacity: 0.2,
+    fade_easing: "linear",
+    distance_fade_end_z: -20
+  },
+  {
+    name: "nebulae",
+    p_in: 0.32,
+    p_out: 0.56,
+    z_start: 100,
+    z_end: 12 + (-117.19 * 0.24),
+    base_opacity: 0.25,
+    fade_easing: "linear",
+    distance_fade_end_z: -20
+  },
+  {
+    name: "star_clusters",
+    p_in: 0.48,
+    p_out: 0.80,
+    z_start: 100,
+    z_end: 8 + (-146.49 * 0.32),
+    base_opacity: 0.3,
+    fade_easing: "linear",
+    distance_fade_end_z: -20
+  },
+  {
+    name: "planet",
+    p_in: 0.72,
+    p_out: 0.80,
+    z_start: 4,
+    z_end: 4 + (-183.11 * 0.08),
+    base_opacity: 1,
+    fade_easing: "linear",
+    distance_fade_end_z: -20
+  }
 ]);
 
 // Maximum layer Z-start (furthest positive Z) – useful for helper formulas
 // so we don't rely on the magic literal `10` elsewhere.
-const MAX_Z_POS = Math.max(...LAYER_TIMELINE.map(t => t[3])); // index 3 = zStart
+const MAX_Z_POS = Math.max(...LAYER_TIMELINE.map(t => t.z_start));
 
 // Quick sanity guard – ensure every logical layer in `layers_config` appears
 // exactly once in the timeline table.
 {
   const names_from_cfg = new Set(layers_config.map(l => l.name));
-  const names_from_tbl = new Set(LAYER_TIMELINE.map(t => t[0]));
+  const names_from_tbl = new Set(LAYER_TIMELINE.map(t => t.name));
   names_from_cfg.forEach(n => {
     if (!names_from_tbl.has(n)) {
       console.warn(`[timeline_engine] Layer '${n}' missing in LAYER_TIMELINE – it will be ignored until added.`);
@@ -86,16 +130,35 @@ function clamp(x, lo = 0, hi = 1) { return x < lo ? lo : (x > hi ? hi : x); }
  * @returns {Array<{ name: string, opacity: number, z: number, scale: number }>}  –
  *          one entry per layer declared in `LAYER_TIMELINE`, order preserved.
  */
+function cubic_in_out_ease(t) {
+  // Cubic ease-in-out: t ∈ [0,1]
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+const EASING_FUNCTIONS = {
+  linear: linear_ease,
+  cubic_in_out: cubic_in_out_ease
+};
+
 function get_layer_states(global_progress) {
   const p = clamp(global_progress, 0, 1);
   /** @type {ReturnType<typeof get_layer_states>} */
   const states = [];
 
-  // Opacity tuning: sprites start with low opacity and fade out as they approach the camera
-  const BASE_OPACITY = 0.9; // tweak as desired for initial opacity
-  const CAM_Z_END = -20; // should match the furthest camera z in your animation
+  for (const layer of LAYER_TIMELINE) {
+    // Provide defaults for backward compatibility
+    const {
+      name,
+      p_in,
+      p_out,
+      z_start,
+      z_end,
+      base_opacity = 0.9,
+      fade_easing = "linear",
+      distance_fade_end_z = -20,
+      distance_fade_start_z = null
+    } = layer;
 
-  for (const [name, p_in, p_out, z_start, z_end] of LAYER_TIMELINE) {
     let opacity = 0;
     let local_t = 0; // 0→1 inside the active window
 
@@ -106,24 +169,37 @@ function get_layer_states(global_progress) {
       // Fade-in/out: first & last 10 % of the window.
       const FADE_PORTION = 0.10;
       let fade = 1;
+      const easing_fn = EASING_FUNCTIONS[fade_easing] || linear_ease;
       if (local_t < FADE_PORTION) {
         // Fade-in
-        fade = linear_ease(local_t / FADE_PORTION);
+        fade = easing_fn(local_t / FADE_PORTION);
       } else if (local_t > 1 - FADE_PORTION) {
         // Fade-out (planet layer ignores fade-out so opacity stays at 1)
         const planet_layer = name === "planet";
         fade = planet_layer
           ? 1
-          : linear_ease((1 - local_t) / FADE_PORTION);
+          : easing_fn((1 - local_t) / FADE_PORTION);
       }
 
       // Pseudo-Z – interpolate regardless of opacity so that sorting works.
       const z = lerp(z_start, z_end, clamp(local_t, 0, 1));
 
-      // As z approaches camera, fade out further
-      // distance_factor = 1 when far, 0 when at camera
-      const distance_factor = clamp((z - CAM_Z_END) / (z_start - CAM_Z_END), 0, 1);
-      opacity = BASE_OPACITY * fade * distance_factor;
+      // Distance-based fade
+      let distance_factor = 1;
+      if (distance_fade_start_z !== null) {
+        // Fade starts at distance_fade_start_z, ends at distance_fade_end_z
+        if (z <= distance_fade_end_z) {
+          distance_factor = 0;
+        } else if (z >= distance_fade_start_z) {
+          distance_factor = 1;
+        } else {
+          distance_factor = (z - distance_fade_end_z) / (distance_fade_start_z - distance_fade_end_z);
+        }
+      } else {
+        // Default: fade from z_start to distance_fade_end_z
+        distance_factor = clamp((z - distance_fade_end_z) / (z_start - distance_fade_end_z), 0, 1);
+      }
+      opacity = base_opacity * fade * distance_factor;
       if (name === "planet" && fade === 1) {
         // Planet stays fully opaque after fade-in
         opacity = 1;
