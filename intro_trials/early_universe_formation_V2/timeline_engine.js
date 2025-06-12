@@ -37,12 +37,12 @@ chosen total duration (e.g. 25 s).
 */
 const LAYER_TIMELINE = Object.freeze([
   //  name,           fadeIn, fadeOut, zStart, zEnd
-  ["cosmic_fog",     0.04,   0.24,    10,     -5],
-  ["galaxy_streams", 0.16,   0.40,    8,      -4],
-  ["nebulae",        0.32,   0.56,    6,      -3],
-  ["star_clusters",  0.48,   0.80,    4,      -2],
+  ["cosmic_fog",     0.04,   0.24,    10,     -5], // duration: 0.20, Δz: -15, speed: -75
+  ["galaxy_streams", 0.16,   0.40,    8,      8 + (-93.75 * 0.24)], // duration: 0.24
+  ["nebulae",        0.32,   0.56,    6,      6 + (-117.19 * 0.24)], // duration: 0.24
+  ["star_clusters",  0.48,   0.80,    4,      4 + (-146.49 * 0.32)], // duration: 0.32
   // Planet fades in quickly (0.72 → 0.80) but stays opaque afterwards.
-  ["planet",         0.72,   0.80,    2,       0],
+  ["planet",         0.72,   0.80,    2,      2 + (-183.11 * 0.08)], // duration: 0.08
 ]);
 
 // Maximum layer Z-start (furthest positive Z) – useful for helper formulas
@@ -64,11 +64,10 @@ const MAX_Z_POS = Math.max(...LAYER_TIMELINE.map(t => t[3])); // index 3 = zStar
 // ---------------------------------------------------------------------------
 // Maths helpers --------------------------------------------------------------
 // ---------------------------------------------------------------------------
-/** Cubic ease-in-out – returns eased value for t ∈ [0, 1]. */
-function ease_cubic_in_out(t) {
-  return t < 0.5
-    ? 4 * t * t * t               // in
-    : 1 - Math.pow(-2 * t + 2, 3) / 2; // out
+
+/** Linear ease – returns eased value for t ∈ [0, 1]. */
+function linear_ease(t) {
+  return t;
 }
 
 /** Linear interpolation helper. */
@@ -104,13 +103,13 @@ function get_layer_states(global_progress) {
       const FADE_PORTION = 0.10;
       if (local_t < FADE_PORTION) {
         // Fade-in
-        opacity = ease_cubic_in_out(local_t / FADE_PORTION);
+        opacity = linear_ease(local_t / FADE_PORTION);
       } else if (local_t > 1 - FADE_PORTION) {
         // Fade-out (planet layer ignores fade-out so opacity stays at 1)
         const planet_layer = name === "planet";
         opacity = planet_layer
           ? 1
-          : ease_cubic_in_out((1 - local_t) / FADE_PORTION);
+          : linear_ease((1 - local_t) / FADE_PORTION);
       } else {
         opacity = 1;
       }
@@ -148,4 +147,4 @@ if (typeof window !== "undefined" && window.location?.hash?.includes("dev")) {
 // ---------------------------------------------------------------------------
 // Module exports -------------------------------------------------------------
 // ---------------------------------------------------------------------------
-export { get_layer_states, ease_cubic_in_out, MAX_Z_POS };
+export { get_layer_states, linear_ease, MAX_Z_POS };

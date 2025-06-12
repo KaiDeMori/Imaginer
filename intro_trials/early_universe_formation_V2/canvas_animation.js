@@ -267,6 +267,9 @@ export class UniverseAnimator {
 
       const final_z = ls.z + sp.z_jitter;
 
+      // Cull sprites that are behind the camera (z >= cam_z)
+      if (final_z >= cam_z) continue;
+
       // --- scale computation ----------------------------------------------
       let scale = cam_z / (cam_z - final_z); // perspective incl. moving cam
 
