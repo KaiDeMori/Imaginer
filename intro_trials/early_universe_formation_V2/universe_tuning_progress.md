@@ -13,6 +13,7 @@ Implementation hints:
 * Modify the draw step in `canvas_animation.js` to translate each sprite by that offset **scaled by its pseudo-Z** so objects still converge nicely.
 * Keep the *planet* layer exempt – it must stay perfectly centred.
 
+
 ## 2 · Increased Rotation Dynamics
 
 Goal: Give sprites a stronger sense of motion.
@@ -22,6 +23,9 @@ Implementation hints:
   • Current: `rot_speed = rand() * 0           // non-planet`
   • Proposed: `rot_speed = (rand()*2-1) * 0.06 // ±3.4° s⁻¹`
 * Consider allowing a *small* random wobble for the planet as soon as it is >50 % of screen width (optional polish).
+  
+✔︎ Increased rotation dynamics (already merged).
+
 
 ## 3 · Early Animation Bootstrapping (white overlay)
 
@@ -31,6 +35,8 @@ Implementation hints:
 * In `early_universe_formation_V2.js` – after preload finishes but *before* calling `_fade_out_white_overlay()`, set `universe_animator.start()` immediately.
 * Delay the fade-out (`setTimeout`) by the chosen *pre-roll* (say 350 ms) minus any remaining 1 s minimum.
 * Make sure `UniverseAnimator` handles negative `elapsed` values gracefully (or simply call `pause` → `resume` once the fade starts).
+  
+✔︎ Early animation bootstrapping (white overlay) (implemented).
 
 ## 4 · Perceptual Alpha Fall-off
 

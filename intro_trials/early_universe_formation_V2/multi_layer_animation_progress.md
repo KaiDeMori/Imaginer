@@ -37,9 +37,9 @@
 ### 6 · Final Planet Reveal **(re-scoped)**
 - [x] Introduce dedicated `planet` layer that fades in quickly.
 - [x] Planet starts small and remains centred while scaling up.
-- [ ] To make sure there is no flicker, planet starts sub-pixel size and also gets quickly faded in (transparency).
-- [ ] Stop master loop once planet fills viewport.
-- [ ] Animation of the final planet is controlled by constants. NOT by rng.
+- [x] To make sure there is no flicker, planet starts sub-pixel size and also gets quickly faded in (transparency).
+- [x] Stop master loop once planet fills viewport.
+- [x] Animation of the final planet is controlled by constants. NOT by rng.
 
 ### 7 · Performance Guard-Rails
 - [x] Log average FPS and warn if it drops below 55.
@@ -59,9 +59,9 @@
 
 ## Done-when Checklist
 - [x] The scene plays through all five layers deterministically with a single seed.
-- [ ] No dropped-frame warnings on reference hardware.
+- [x] No dropped-frame warnings on reference hardware.
 - [x] Seed regeneration creates a visibly different but reproducible fly-through.
-- [ ] Planet stays centred, non-rotating, fades in quickly and scales from ≈ 1 px to full screen, after which the animation loop stops.
-- [ ] Codebase passes CI linting and unit tests.
+- [x] Planet stays centred, non-rotating, fades in quickly and scales from ≈ 1 px to full screen, after which the animation loop stops.
+- [x] Codebase passes CI linting and unit tests.
 
  

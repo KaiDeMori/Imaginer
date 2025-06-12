@@ -34,9 +34,6 @@
 - [x] Add a keyboard shortcut (e.g. `Space`) to toggle pause during development (disabled in production build).
 - [x] Update `debug_preloader()` so that it also reports whether the animator is currently running.
 
-### 5 · Clean-up & Polish
-- [ ] Remove any console noise or temporary test code.
-- [ ] Run ESLint / Prettier pass.
-- [ ] Manual smoke-test on Windows + macOS (Chrome & Firefox).
+
 
 ---

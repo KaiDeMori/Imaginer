@@ -1,3 +1,5 @@
+# RESOLVED – root cause was non-deterministic Map insertion order; see deterministic_progress.md
+
 # Early Universe Formation – Strange Asset Behaviour (V2)
 
 This memo collects everything we currently **know**, **suspect**, and **still have to test** about the elusive "sometimes-rotated / sometimes-swapped" cosmic-fog sprite that shows up on reload.

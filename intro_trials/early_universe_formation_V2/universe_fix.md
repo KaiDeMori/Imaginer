@@ -116,8 +116,8 @@ custom per-layer easing (cubic, quad …); the new physics are independent.
 - [x] Rewrite the per-frame loop to (a) advance positions, (b) project to screen.
 - [x] Remove the old `spawn_offset_*`, `drift_r`, `z_factor` code paths.
 - [x] Replace magic “10” with `MAX_Z_POS` helper.
-- [ ] Smoke-test determinism (seed → identical positions every fresh load).
-- [ ] Tweak radii / speeds until the fly-through feels right.
-- [ ] After visual sign-off: consider separate easing curves for opacity.
+- [x] Smoke-test determinism (seed → identical positions every fresh load).
+- [x] Tweak radii / speeds until the fly-through feels right.
+
 
 ---
