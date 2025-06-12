@@ -37,10 +37,10 @@ chosen total duration (e.g. 25 s).
 */
 const LAYER_TIMELINE = Object.freeze([
   //  name,           fadeIn, fadeOut, zStart, zEnd
-  ["cosmic_fog",     0.04,   0.24,    40,     -5],
-  ["galaxy_streams", 0.16,   0.40,    40,      16 + (-93.75 * 0.24)],
-  ["nebulae",        0.32,   0.56,    40,      12 + (-117.19 * 0.24)],
-  ["star_clusters",  0.48,   0.80,    40,      8 + (-146.49 * 0.32)],
+  ["cosmic_fog",     0.04,   0.24,    100,     -5],
+  ["galaxy_streams", 0.16,   0.40,    100,      16 + (-93.75 * 0.24)],
+  ["nebulae",        0.32,   0.56,    100,      12 + (-117.19 * 0.24)],
+  ["star_clusters",  0.48,   0.80,    100,      8 + (-146.49 * 0.32)],
   // Planet fades in quickly (0.72 → 0.80) but stays opaque afterwards.
   ["planet",         0.72,   0.80,    4,      4 + (-183.11 * 0.08)],
 ]);
