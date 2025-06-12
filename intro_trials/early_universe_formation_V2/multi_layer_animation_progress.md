@@ -16,14 +16,16 @@
 - [ ] Expose final, frozen `layers_config` from a new `layers_model.js`.
 
 ### 2 · Timeline Engine
-- [ ] Create `Timeline` helper that maps global `progress` (0–1) into per-layer opacity, scale and z-position.
+- [ ] Create `Timeline` helper that maps global `progress` (0 – 1) into per-layer opacity, scale and z-position.
 - [ ] Integrate cubic-in-out easing for smoother transitions.
 - [ ] Unit-test the mapping with synthetic timestamps.
 
 ### 3 · Sprite Instance Management
 - [ ] Generate N sprite instances per layer (N configurable, deterministic).
 - [ ] Pre-compute per-sprite random offsets (angle, initial z-jitter).
-- [ ] Reuse `ImageBitmap` references across instances to save VRAM.
+- [ ] Re-use `ImageBitmap` references across instances to save VRAM.
+
+> ⚠️  Note: The final **planet** sprite shall **not** carry any rotation or translation metadata; it remains locked to the screen centre for the entire shot.
 
 ### 4 · Rendering Pipeline
 - [ ] Sort visible instances by pseudo-Z every frame.
@@ -33,12 +35,13 @@
 ### 5 · Camera & Parallax Maths
 - [ ] Implement camera `z` curve that matches storyboard timings.
 - [ ] Map pseudo-Z to 2-D scale: `scale = camZ / (camZ - layerZ)`.
-- [ ] Add subtle XY drift using per-sprite angle.
+- [ ] Add subtle XY drift using per-sprite angle (except planet).
 
-### 6 · Final Planet Reveal
-- [ ] Introduce dedicated `planet` layer that fades in after star clusters.
-- [ ] Keep planet locked to screen centre; continue slow rotation (optional).
-- [ ] Hold on planet for 2 s before stopping the loop (or start idle drift).
+### 6 · Final Planet Reveal **(re-scoped)**
+- [ ] Introduce dedicated `planet` layer that fades in quickly (≤ 0.3 s) from complete transparency to full opacity to avoid flicker.
+- [ ] Planet starts at **sub-pixel size** (≈ 1 px across) and remains perfectly centred.
+- [ ] Continuously scale the planet up until it **fills the viewport**.
+- [ ] When the planet’s bounding box equals or exceeds the viewport, **stop** the master animation loop (no idle rotation or drift).
 
 ### 7 · Performance Guard-Rails
 - [ ] Cap max simultaneous `ImageBitmap` draw calls per frame.
@@ -63,6 +66,7 @@
 - [ ] The scene plays through all five layers deterministically with a single seed.
 - [ ] No dropped-frame warnings on reference hardware.
 - [ ] Seed regeneration creates a visibly different but reproducible fly-through.
+- [ ] Planet stays centred, non-rotating, fades in quickly and scales from ≈1 px to full screen, after which the animation loop stops.
 - [ ] Codebase passes CI linting and unit tests.
 
 © 2024 Early Universe Team – multi-layer animation upgrade
