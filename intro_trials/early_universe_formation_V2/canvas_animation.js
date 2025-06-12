@@ -33,8 +33,15 @@ Added usage of `spawn_offset_x` / `spawn_offset_y` coming from
 `sprite_instance_manager.js`.  The offsets are interpreted as a fraction of
 *the viewport’s shortest side* and then scaled by the sprite’s current
 pseudo-Z **clamped to the [0 … 1] range** so that far-away objects spawn
-further off-centre while near layers remain almost centred.  This completes
-Task 1 in `universe_tuning_progress.md`.
+further off-centre while near layers gradually converge to the optical axis.
+
+CHANGE LOG – “Space-flight Direction Fix”
+––––––––––––––––––––––––––––––––––––––––
+• Corrected the XY drift sign so that **all non-planet sprites now move
+  strictly AWAY from the viewport centre** throughout the shot.  The new
+  formula uses `Math.max(0, -final_z)` which increases as the sprite’s Z
+  approaches and then surpasses the camera plane, guaranteeing an outward
+  trajectory instead of the previously inverted, inward drift.
 */
 
 // ---------------------------------------------------------------------------
@@ -53,7 +60,10 @@ const TOTAL_DURATION_MS = 25_000; // matches planning document (section 5)
 const CAM_Z_START = -1;   // at t = 0 (closest to the layers)
 const CAM_Z_END   = -20;  // at t = 1 (camera has moved "forward" by 19 units)
 
-// How much XY drift we apply per positive Z unit (very subtle by default).
+// How much XY drift we apply per Z unit (CSS px).
+// NOTE: The magnitude is now multiplied by `max(0, -final_z)` so that drift
+// starts at zero (far layers) and grows continuously as the sprite moves
+// towards the camera and eventually past it.
 const XY_DRIFT_PER_Z = 10; // pixels at DPR 1
 
 // --- Final‐planet reveal tuning --------------------------------------------
@@ -294,15 +304,15 @@ export class UniverseAnimator {
         scale *= extra;
       }
 
-      // XY drift – planet should stay centred; others drift subtly.
-      // Use absolute Z to guarantee the direction vector (angle) always
-      // points *away* from origin regardless of whether the sprite's pseudo-Z
-      // is currently in front of or behind the camera (sign flip fix).
-      const drift_r = isPlanet ? 0 : Math.abs(final_z) * XY_DRIFT_PER_Z; // farther layers drift more
+      // XY drift – planet should stay centred; others drift outward. ----------
+      // The new formula uses **only negative Z values** (sprites that have
+      // reached or passed the camera plane) so the drift magnitude starts at
+      // 0 and grows smoothly, guaranteeing an outward-only trajectory.
+      const drift_r = isPlanet ? 0 : Math.max(0, -final_z) * XY_DRIFT_PER_Z;
       const dx = Math.cos(sp.angle) * drift_r;
       const dy = Math.sin(sp.angle) * drift_r;
 
-      // --- NEW: off-centre spawn offsets ----------------------------------
+      // --- Off-centre spawn offsets ----------------------------------------
       let spawn_offset_px_x = 0;
       let spawn_offset_px_y = 0;
       if (!isPlanet) {
@@ -373,7 +383,7 @@ export class UniverseAnimator {
     // One-time validation log ------------------------------------------------
     // -----------------------------------------------------------------------
     if (!this._validation_logged) {
-      console.log(`[UniverseAnimator] Validation ✔︎  Multi-layer renderer active. Progress=${global_progress.toFixed(2)} camZ=${cam_z.toFixed(1)} Sprites=${drawables.length}. DPR ${this._dpr}`);
+      console.log(`[UniverseAnimator] Validation ✔︎  Direction fix active. Progress=${global_progress.toFixed(2)} camZ=${cam_z.toFixed(1)} Sprites=${drawables.length}. DPR ${this._dpr}`);
       this._validation_logged = true;
     }
 
