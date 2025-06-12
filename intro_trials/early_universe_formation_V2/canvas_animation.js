@@ -29,6 +29,7 @@ Added in this revision (for Task 4 · Debug / Dev Helpers):
 // Imports --------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 import { rand } from "./deterministic_rng.js";
+import { asset_manifest } from "./preloader_module.js"; // (Task 1 · deterministic_progress.md)
 
 // Note: UniverseAnimator is exported at the bottom so that other modules can
 //       import it as a classical ES module.
@@ -100,6 +101,9 @@ export class UniverseAnimator {
     this._on_resize();
     window.addEventListener("resize", this._on_resize);
     this._register_dpr_listener();
+
+    // Diagnostic: verify import works (will be removed once Step 2 lands).
+    console.debug(`[UniverseAnimator] asset_manifest imported with ${asset_manifest.length} entries (diagnostic only).`);
   }
 
   // -----------------------------------------------------------------------
