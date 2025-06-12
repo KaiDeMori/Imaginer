@@ -21,49 +21,30 @@ function pad(num, len = 2) {
 }
 
 
-// Generate manifest lists for all PNGs in each asset subdirectory (no "big" distinction)
-const asset_manifest = (() => {
-  const base = "/assets/ai_universe";
-  const subdirs = [
-    "cosmic_fog",
-    "galaxy_streams",
-    "nebulae",
-    "star_clusters",
-    "alien_planet"
-  ];
-  const list = [];
+// --- Assets Loading Reloaded: programmatically generate asset_manifest ---
+// See assets/ai_universe/assets_loading_reloaded.md for approach summary.
 
-  // For each subdirectory, add all PNGs (no "big" distinction)
-  // If you want to make this dynamic, you could fetch the file list from the server.
-  // For now, we hardcode the known PNGs for each subdir (except planet, which is a single file)
+// Max number of PNGs in each asset folder (update as needed)
+const asset_max_numbers = {
+  cosmic_fog: 9,
+  galaxy_streams: 10,
+  nebulae: 13,
+  star_clusters: 3,
+  alien_planet: 1
+};
 
-  // cosmic_fog (5 textures)
-  for (let i = 1; i <= 5; i++) {
-    list.push(`${base}/cosmic_fog/${pad(i)}.png`);
+const asset_manifest = [];
+const base = "/assets/ai_universe";
+
+for (const [folder, max_num] of Object.entries(asset_max_numbers)) {
+  for (let i = 1; i <= max_num; i++) {
+    if (folder === "alien_planet") {
+      asset_manifest.push(`${base}/alien_planet/planet_totale.png`);
+      break;
+    }
+    asset_manifest.push(`${base}/${folder}/${pad(i)}.png`);
   }
-
-  // galaxy_streams (4 textures)
-  for (let i = 1; i <= 4; i++) {
-    list.push(`${base}/galaxy_streams/${pad(i)}.png`);
-  }
-
-  // nebulae (9 textures)
-  for (let i = 1; i <= 9; i++) {
-    list.push(`${base}/nebulae/${pad(i)}.png`);
-  }
-
-  // star_clusters (3 textures)
-  for (let i = 1; i <= 3; i++) {
-    list.push(`${base}/star_clusters/${pad(i)}.png`);
-  }
-
-  // planet hero texture (single file)
-  list.push(`${base}/alien_planet/planet_totale.png`);
-
-  return list;
-})();
-
-// Freeze to guard against accidental mutation.
+}
 Object.freeze(asset_manifest);
 
 // ---------------------------------------------------------------------------------

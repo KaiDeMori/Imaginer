@@ -64,10 +64,6 @@ _Path: /assets/ai_universe/cosmic_fog/_
 
 _Notes: Files 01-09 are cosmic fog PNGs._
 
-
-
-
-
 ## star_clusters
 _Path: /assets/ai_universe/star_clusters/_
 - 01.png
