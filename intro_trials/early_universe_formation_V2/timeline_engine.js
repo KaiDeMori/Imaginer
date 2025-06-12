@@ -45,7 +45,6 @@ const LAYER_TIMELINE = Object.freeze([
     z_end: -5,
     base_opacity: 1,
     fade_easing: "cubic_in_out",
-    // Increased distance_fade_end_z to -20 to prevent premature clipping near the camera
     distance_fade_end_z: -20
   },
   {
