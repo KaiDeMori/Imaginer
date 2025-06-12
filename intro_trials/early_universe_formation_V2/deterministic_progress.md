@@ -32,9 +32,9 @@ The *bullet-proof* fix is to build the candidate list directly from `asset_manif
 - [x] Mention that the `rand()` call is the *only* source of variability now.
 
 ### 4 · Regression tests / manual verification
-- [ ] Hard-refresh the page ≥ 20× with a fixed seed and confirm that the console always reports the same fog URL.
-- [ ] Temporarily log the *second* RNG value (the one used for `idx`) to ensure it remains unchanged across reloads.
-- [ ] Use `debug_preloader()` to make sure the selected URL is indeed present in `preloaded_bitmaps`.
+- [x] Hard-refresh the page ≥ 20× with a fixed seed and confirm that the console always reports the same fog URL.
+- [x] Temporarily log the *second* RNG value (the one used for `idx`) to ensure it remains unchanged across reloads.
+- [x] Use `debug_preloader()` to make sure the selected URL is indeed present in `preloaded_bitmaps`.
 
 ### 5 · Clean-up & polishing
 - [ ] ESLint & Prettier pass on `canvas_animation.js` after modifications.
@@ -53,8 +53,8 @@ The *bullet-proof* fix is to build the candidate list directly from `asset_manif
 ---
 ## 3 · Done-when checklist
 - [x] Reloading with the same seed always yields the **same** fog sprite.
-- [ ] A different seed produces **different** fog sprites (i.e. variability still works).
-- [ ] No console warnings/errors introduced by the refactor.
+- [x] A different seed produces **different** fog sprites (i.e. variability still works).
+- [x] No console warnings/errors introduced by the refactor.
 
 ---
 © 2024 Early Universe Team – deterministic sprite selection upgrade
