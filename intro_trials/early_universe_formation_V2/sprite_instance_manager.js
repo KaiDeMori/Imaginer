@@ -32,8 +32,8 @@ import { layers_config } from "./layers_model.js";
 // ---------------------------------------------------------------------------
 // Number of sprite instances we want per layer.
 const SPRITE_COUNT_PER_LAYER = Object.freeze({
-  cosmic_fog:     6,
-  galaxy_streams: 5, // reduced from 8 to 5 for less galaxy clutter
+  cosmic_fog:     8,
+  galaxy_streams: 7,
   nebulae:        10,
   star_clusters:  6,
   planet:         1, // single hero sprite
@@ -48,8 +48,8 @@ const SPRITE_COUNT_PER_LAYER = Object.freeze({
 
 // Radius of the annulus on which sprites initially spawn (world-space).
 const SPAWN_RADIUS = Object.freeze({
-  cosmic_fog:     1.2, // furthest out – should feel enveloping
-  galaxy_streams: 1.0,
+  cosmic_fog:     0.5, // furthest out – should feel enveloping
+  galaxy_streams: 2.0,
   nebulae:        0.8,
   star_clusters:  0.6,
   planet:         0.0, // planet stays dead-centre

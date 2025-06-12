@@ -37,8 +37,8 @@ chosen total duration (e.g. 25 s).
 */
 const LAYER_TIMELINE = Object.freeze([
   //  name,           fadeIn, fadeOut, zStart, zEnd
-  ["cosmic_fog",     0.04,   0.24,    100,     -5],
-  ["galaxy_streams", 0.16,   0.40,    100,      16 + (-93.75 * 0.24)],
+  ["cosmic_fog",     0.04,   0.24,    10,     -5],
+  ["galaxy_streams", 0.16,   0.40,    50,      16 + (-93.75 * 0.24)],
   ["nebulae",        0.32,   0.56,    100,      12 + (-117.19 * 0.24)],
   ["star_clusters",  0.48,   0.80,    100,      8 + (-146.49 * 0.32)],
   // Planet fades in quickly (0.72 → 0.80) but stays opaque afterwards.
@@ -91,6 +91,10 @@ function get_layer_states(global_progress) {
   /** @type {ReturnType<typeof get_layer_states>} */
   const states = [];
 
+  // Opacity tuning: sprites start with low opacity and fade out as they approach the camera
+  const BASE_OPACITY = 0.9; // tweak as desired for initial opacity
+  const CAM_Z_END = -20; // should match the furthest camera z in your animation
+
   for (const [name, p_in, p_out, z_start, z_end] of LAYER_TIMELINE) {
     let opacity = 0;
     let local_t = 0; // 0→1 inside the active window
@@ -101,16 +105,27 @@ function get_layer_states(global_progress) {
 
       // Fade-in/out: first & last 10 % of the window.
       const FADE_PORTION = 0.10;
+      let fade = 1;
       if (local_t < FADE_PORTION) {
         // Fade-in
-        opacity = linear_ease(local_t / FADE_PORTION);
+        fade = linear_ease(local_t / FADE_PORTION);
       } else if (local_t > 1 - FADE_PORTION) {
         // Fade-out (planet layer ignores fade-out so opacity stays at 1)
         const planet_layer = name === "planet";
-        opacity = planet_layer
+        fade = planet_layer
           ? 1
           : linear_ease((1 - local_t) / FADE_PORTION);
-      } else {
+      }
+
+      // Pseudo-Z – interpolate regardless of opacity so that sorting works.
+      const z = lerp(z_start, z_end, clamp(local_t, 0, 1));
+
+      // As z approaches camera, fade out further
+      // distance_factor = 1 when far, 0 when at camera
+      const distance_factor = clamp((z - CAM_Z_END) / (z_start - CAM_Z_END), 0, 1);
+      opacity = BASE_OPACITY * fade * distance_factor;
+      if (name === "planet" && fade === 1) {
+        // Planet stays fully opaque after fade-in
         opacity = 1;
       }
     } else if (p > p_out && name === "planet") {

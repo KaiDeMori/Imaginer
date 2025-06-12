@@ -16,7 +16,7 @@ html, body {
   position: fixed;
   inset: 0;
   background: #ffffff;
-  transition: opacity 1s ease-in-out;
+  transition: opacity 2s ease-in-out;
   z-index: 9999; /* top-most until it fades out */
 }
 
