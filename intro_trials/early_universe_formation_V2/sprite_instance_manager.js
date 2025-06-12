@@ -5,7 +5,7 @@ Sprite Instance Manager – Early Universe Formation V2
 Creates the **deterministic, per-layer sprite instance list** that will be
 consumed by the renderer (UniverseAnimator).
 
-Update 2024-06-XX
+PROGRESS NOTE:
 ––––––––––––––––––
 The rotation of the *planet* sprite must now be fully controllable and no
 longer seeded via the global RNG.  Two explicit constants have therefore been
@@ -15,7 +15,7 @@ introduced:
 These can be tweaked at build-time without affecting the deterministic random
 sequence that governs all other sprite properties.
 
-Added 2024-06-XX (Universe Tuning – Task 1 · Off-Centre Spawn)
+Universe Tuning – Task 1 · Off-Centre Spawn
 ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 Each non-planet sprite now receives two additional deterministic random
 properties:
@@ -24,6 +24,12 @@ properties:
 These values represent a **fraction of the viewport’s shortest side** and are
 applied later by the Canvas renderer, scaled by the sprite’s pseudo-Z, to make
 new sprites appear off-centre and strengthen the tunnel effect.
+
+Universe Tuning – Task 2 · Increased Rotation Dynamics
+––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+Non-planet sprites now get a *deterministic* rotation speed picked from
+±NON_PLANET_MAX_ROT_SPEED_RAD_S (was previously forced to 0).  This gives the
+scene more life without breaking determinism.
 */
 
 // ---------------------------------------------------------------------------
@@ -55,6 +61,9 @@ const SPAWN_OFFSET_RANGE  = 0.4;   // ±40 % of viewport shortest side (norm.)
 const PLANET_BASE_ROTATION_RAD = 0;     // tweak as desired (rad)
 const PLANET_ROT_SPEED_RAD_S   = 0.02;  // ≈ 1.1° per second
 
+// Non-planet rotation dynamics (Task 2) -------------------------------------
+const NON_PLANET_MAX_ROT_SPEED_RAD_S = 0.06; // ≈ 3.4° s⁻¹ – tweak as desired
+
 // ---------------------------------------------------------------------------
 // Types (JSDoc) --------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -67,7 +76,7 @@ const PLANET_ROT_SPEED_RAD_S   = 0.02;  // ≈ 1.1° per second
  * @property {number}       angle         – polar drift direction in radians (0 … 2π)
  * @property {number}       z_jitter      – additive Z offset around layer base Z
  * @property {number}       base_rotation – initial rotation in radians (for planet)
- * @property {number}       rot_speed     – rotation speed in rad/s  (for planet)
+ * @property {number}       rot_speed     – rotation speed in rad/s  (planet or general sprite)
  * @property {number}       spawn_offset_x – normalised X offset (−0.4…+0.4, planet=0)
  * @property {number}       spawn_offset_y – normalised Y offset (−0.4…+0.4, planet=0)
  */
@@ -121,7 +130,7 @@ function generate_sprite_instances(bitmaps_map) {
         angle: rand() * TWO_PI,
         z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER,
         base_rotation: is_planet ? PLANET_BASE_ROTATION_RAD : rand() * TWO_PI,
-        rot_speed:     is_planet ? PLANET_ROT_SPEED_RAD_S   : 0,
+        rot_speed:     is_planet ? PLANET_ROT_SPEED_RAD_S   : (rand() * 2 - 1) * NON_PLANET_MAX_ROT_SPEED_RAD_S,
         spawn_offset_x: is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE,
         spawn_offset_y: is_planet ? 0 : (rand() * 2 - 1) * SPAWN_OFFSET_RANGE,
       }));
@@ -138,4 +147,9 @@ if (typeof window !== "undefined") {
   window.generate_sprite_instances = generate_sprite_instances;
 }
 
-export { generate_sprite_instances, PLANET_BASE_ROTATION_RAD, PLANET_ROT_SPEED_RAD_S };
+export {
+  generate_sprite_instances,
+  PLANET_BASE_ROTATION_RAD,
+  PLANET_ROT_SPEED_RAD_S,
+  NON_PLANET_MAX_ROT_SPEED_RAD_S,
+};
