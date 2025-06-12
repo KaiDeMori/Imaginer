@@ -1,37 +1,51 @@
 "use strict";
 /*
-Canvas Animation Engine – Early Universe Formation V2
-----------------------------------------------------
-Renders a **very first** placeholder animation so that we can
-validate the rendering pipeline end-to-end:
-  • Handles hi-DPI resize aware canvas sizing.
-  • Runs a rAF loop.
-  • Picks one of the pre-loaded *cosmic fog* sprites and animates
-    it with a deterministic zoom-in / fade-out cycle.
-  • No timeline yet – the goal is just to confirm that ImageBitmaps
-    blit correctly and that the frame loop is stable.
+Canvas Animation Engine – Early Universe Formation V2 – Multi-Layer Edition
+---------------------------------------------------------------------------
+This revision fulfils *Task 4 · Rendering Pipeline* of
+`multi_layer_animation_progress.md`.
 
-Updated for deterministic_progress.md – Task 2 (Refactor fog-sprite selection):
-  • Candidate list now derives from the **alphabetically sorted**
-    `asset_manifest` instead of Map insertion order so that the index
-    chosen by `rand()` is fully deterministic irrespective of loading
-    timings.
-  • Log strings adapted; obsolete helper variables removed.
+Key upgrades compared with the previous placeholder build:
+  • Integrates the new timeline / layer model modules so the renderer
+    now drives *all* visual layers (cosmic fog → planet).
+  • Generates a deterministic sprite instance list via
+    `generate_sprite_instances()`.
+  • Each animation frame:
+        – Converts the master `elapsed` time → `global_progress` (0 → 1).
+        – Queries `get_layer_states(global_progress)` for per-layer
+          opacity, pseudo-Z and scale.
+        – Computes per-sprite final Z (layerZ + jitter) & scale, applies a
+          small XY drift based on the sprite’s angle and Z.
+        – Sorts visible sprites by Z (far → near) and blits them with the
+          correct globalAlpha.
+        – Culls fully transparent sprites to save draw calls.
+  • Once the master progress reaches 1, the scene *holds* on the final
+    planet frame.  The rAF loop keeps running so DevTools can still be
+    used for frame stepping / inspection.
 
-Added in the previous revision (Task 4 · Debug / Dev Helpers):
-  • Support for pause / resume / toggle of the rAF loop so that the
-    animation can be inspected frame-by-frame from DevTools.
-  • Public helpers: `pause()`, `resume()`, `toggle()`, and `is_running()`.
+Other features (hi-DPI handling, pause/resume helpers, FPS sampling, etc.)
+are retained from the original implementation.
 */
 
 // ---------------------------------------------------------------------------
 // Imports --------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-import { rand } from "./deterministic_rng.js";
-import { asset_manifest } from "./preloader_module.js"; // (Task 1 · deterministic_progress.md)
+import { rand } from "./deterministic_rng.js"; // only used for any future drift tweaks
+import { generate_sprite_instances } from "./sprite_instance_manager.js";
+import { get_layer_states } from "./timeline_engine.js";
 
-// Note: UniverseAnimator is exported at the bottom so that other modules can
-//       import it as a classical ES module.
+// ---------------------------------------------------------------------------
+// Constants ------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+const TOTAL_DURATION_MS = 25_000; // matches planning document (section 5)
+const CAM_Z             = -1;     // camera pseudo-Z used in perspective formula
+
+// How much XY drift we apply per positive Z unit (very subtle by default).
+const XY_DRIFT_PER_Z = 10; // pixels at DPR 1
+
+// ---------------------------------------------------------------------------
+// UniverseAnimator -----------------------------------------------------------
+// ---------------------------------------------------------------------------
 export class UniverseAnimator {
   /**
    * @param {HTMLCanvasElement} canvas_el   – target canvas (will be sized to window)
@@ -42,65 +56,32 @@ export class UniverseAnimator {
     this.ctx    = /** @type {CanvasRenderingContext2D} */ (this.canvas.getContext("2d"));
     if (!this.ctx) throw new Error("2D context unavailable");
 
-    this.bitmaps_map = bitmaps_map;
+    // -----------------------------------------------------------------------
+    // Sprite instances -------------------------------------------------------
+    // -----------------------------------------------------------------------
+    this.sprite_instances = generate_sprite_instances(bitmaps_map);
+    console.log(`[UniverseAnimator] Generated ${this.sprite_instances.length} sprite instances.`);
 
-    // ---------------------------------------------------------------------
-    // Deterministic *cosmic fog* bitmap selection (Task 2) ------------------
-    // ---------------------------------------------------------------------
-    // Candidate list is derived from `asset_manifest`, which is already
-    // alphabetically sorted and therefore deterministic. We simply filter
-    // for the cosmic-fog paths *once*, then pick a single URL using the
-    // seeded PRNG. The bitmap itself is looked up in `bitmaps_map`.
-    const fog_urls = asset_manifest.filter(url => url.includes("/cosmic_fog/"));
+    // Animation state --------------------------------------------------------
+    this._start_time = /** @type {number | null} */ (null);
+    this._paused_time_accum = 0; // keeps total paused duration so progress doesn’t jump
 
-    if (fog_urls.length === 0) {
-      console.warn("[UniverseAnimator] No cosmic_fog entries found in asset_manifest – animation will render blank.");
-      this.fog_bitmap      = null;
-      this.fog_bitmap_url  = null;
-    } else {
-      // Task 4 · Regression tests – log raw RNG value so testers can verify
-      // that the second PRNG call remains deterministic across reloads.
-      const rng_val = rand();
-      const idx = Math.floor(rng_val * fog_urls.length);
-      console.log(`[UniverseAnimator] RNG value for fog selection: ${rng_val}`);
-
-      const selected_url = fog_urls[idx];
-      const bmp = bitmaps_map.get(selected_url) || null;
-
-      if (!bmp) {
-        console.warn(`[UniverseAnimator] Fog URL '${selected_url}' not found in preloaded_bitmaps – check preloader consistency.`);
-      }
-
-      this.fog_bitmap_url = selected_url;
-      this.fog_bitmap     = bmp;
-
-      console.log(`[UniverseAnimator] Deterministic fog selection → idx ${idx} / ${fog_urls.length}, url '${selected_url}'.`);
-    }
-
-    // Animation state ------------------------------------------------------
-    this._start_time = /** @type {number | null} */ (null); // timestamp set on first frame
-
-    // FPS sampling ---------------------------------------------------------
+    // FPS sampling -----------------------------------------------------------
     this._fps_sample_window_ms = 2_000;   // 2-second rolling window
-    this._fps_frames_accum     = 0;       // frames collected inside window
-    this._fps_window_start_ts  = /** @type {number | null} */ (null);    // window start timestamp
+    this._fps_frames_accum     = 0;
+    this._fps_window_start_ts  = /** @type {number | null} */ (null);
 
-    // Validation flags -----------------------------------------------------
-    this._validation_logged     = false;  // first-frame validation
-    this._hi_dpi_validation_id  = 0;      // increments on every resize so we can pair log lines
-
-    // Current devicePixelRatio (kept for quick checks) ---------------------
+    // Hi-DPI / resize bookkeeping -------------------------------------------
+    this._validation_logged     = false;
+    this._hi_dpi_validation_id  = 0;
     this._dpr = window.devicePixelRatio || 1;
-    // Media-query list that tracks DPR changes (re-created in _register_dpr_listener)
     this._dpr_mql = /** @type {MediaQueryList | null} */ (null);
 
-    // ---------------------------------------------------------------------
-    // rAF control (Task 4) --------------------------------------------------
-    // ---------------------------------------------------------------------
-    this._running = false;      // Whether the animation loop is currently active
-    this._raf_id  = /** @type {number | null} */ (null); // handle returned by requestAnimationFrame
+    // rAF control ------------------------------------------------------------
+    this._running = false;
+    this._raf_id  = /** @type {number | null} */ (null);
 
-    // Bindings -------------------------------------------------------------
+    // Bindings ---------------------------------------------------------------
     this._update    = this._update.bind(this);
     this._on_resize = this._on_resize.bind(this);
 
@@ -108,125 +89,77 @@ export class UniverseAnimator {
     this._on_resize();
     window.addEventListener("resize", this._on_resize);
     this._register_dpr_listener();
-
-    // Diagnostic: verify import works (will be removed once Step 2 lands).
-    console.debug(`[UniverseAnimator] asset_manifest imported with ${asset_manifest.length} entries (diagnostic only).`);
   }
-  
-  // -----------------------------------------------------------------------
-  // Public ----------------------------------------------------------------
-  // -----------------------------------------------------------------------
-  /** Begin / resume the animation loop. */
-  start() {
-    if (this._running) return; // already running
 
+  // -------------------------------------------------------------------------
+  // Public helpers -----------------------------------------------------------
+  // -------------------------------------------------------------------------
+  start() {
+    if (this._running) return;
     this._running = true;
     this._raf_id = requestAnimationFrame(this._update);
   }
 
-  /** Pause the rAF loop (no-op if already paused). */
   pause() {
     if (!this._running) return;
     this._running = false;
-    if (this._raf_id !== null) {
-      cancelAnimationFrame(this._raf_id);
-      this._raf_id = null;
-    }
+    if (this._raf_id !== null) cancelAnimationFrame(this._raf_id);
+    this._raf_id = null;
+
+    // Track paused duration so progress can be compensated when resumed.
+    this._pause_start_ts = performance.now();
     console.log("[UniverseAnimator] Animation paused.");
   }
 
-  /** Resume the rAF loop if it is currently paused. */
   resume() {
     if (this._running) return;
-    console.log("[UniverseAnimator] Animation resumed.");
-    this.start();
-  }
+    this._running = true;
 
-  /** Toggle between paused ↔ running state. Returns the *new* state. */
-  toggle() {
-    if (this._running) {
-      this.pause();
-    } else {
-      this.resume();
+    if (this._pause_start_ts !== undefined) {
+      this._paused_time_accum += performance.now() - this._pause_start_ts;
+      this._pause_start_ts = undefined;
     }
-    return this._running;
+
+    this._raf_id = requestAnimationFrame(this._update);
+    console.log("[UniverseAnimator] Animation resumed.");
   }
 
-  /** Query helper – true if animation is actively running. */
+  toggle() { return this._running ? (this.pause(), false) : (this.resume(), true); }
   is_running() { return this._running; }
 
-  // -----------------------------------------------------------------------
-  // Private ---------------------------------------------------------------
-  // -----------------------------------------------------------------------
-  /**
-   * Sets up (or re-sets) a MediaQueryList listener so that we can react when
-   * the browser's `devicePixelRatio` changes without an actual resize event
-   * (e.g. the window is dragged between monitors with different scaling).
-   * We fall back to listening for the generic `resize` event when `matchMedia`
-   * is unavailable.
-   */
+  // -------------------------------------------------------------------------
+  // Hi-DPI helpers (unchanged) ----------------------------------------------
+  // -------------------------------------------------------------------------
   _register_dpr_listener() {
-    // Clean up any previous listener first.
     if (this._dpr_mql) {
       const mql = this._dpr_mql;
-      if (typeof mql.removeEventListener === "function") {
-        mql.removeEventListener("change", this._on_resize);
-      } else if (typeof mql.removeListener === "function") {
-        // Safari ≤ 14
-        mql.removeListener(this._on_resize);
-      }
+      if (typeof mql.removeEventListener === "function") mql.removeEventListener("change", this._on_resize);
+      else if (typeof mql.removeListener === "function") mql.removeListener(this._on_resize);
     }
 
     const query = `(resolution: ${this._dpr}dppx)`;
     try {
       this._dpr_mql = window.matchMedia(query);
       const mql = this._dpr_mql;
-      if (typeof mql.addEventListener === "function") {
-        mql.addEventListener("change", this._on_resize);
-      } else if (typeof mql.addListener === "function") {
-        // Safari ≤ 14
-        mql.addListener(this._on_resize);
-      }
-    } catch (err) {
-      // `matchMedia` might throw in very old browsers – not a concern for our
-      // desktop-only target, but we guard anyway.
-      console.warn("[UniverseAnimator] matchMedia unavailable → relying solely on window.resize for DPR changes.");
+      if (typeof mql.addEventListener === "function") mql.addEventListener("change", this._on_resize);
+      else if (typeof mql.addListener === "function") mql.addListener(this._on_resize);
+    } catch (_) {
       this._dpr_mql = null;
     }
   }
 
-  /**
-   * Validates that the canvas' backing-store size and the applied context
-   * transform are consistent with the current DPR. Emits a succinct console
-   * message; used by manual testers to verify hi-DPI correctness after every
-   * resize / monitor switch.
-   *
-   * @param {number} dpr – devicePixelRatio we just applied
-   * @param {number} css_w – latest CSS pixel width (window.innerWidth)
-   * @param {number} css_h – latest CSS pixel height (window.innerHeight)
-   */
   _validate_hi_dpi(dpr, css_w, css_h) {
     let ok = true;
+    if (this.canvas.width !== Math.round(css_w * dpr) || this.canvas.height !== Math.round(css_h * dpr)) ok = false;
 
-    // 1) Backing-store dimensions
-    if (this.canvas.width !== Math.round(css_w * dpr) || this.canvas.height !== Math.round(css_h * dpr)) {
-      ok = false;
-    }
-
-    // 2) Context transform (scale should equal DPR if getTransform available)
     if (ok && typeof this.ctx.getTransform === "function") {
       const m = this.ctx.getTransform();
-      if (Math.abs(m.a - dpr) > 0.01 || Math.abs(m.d - dpr) > 0.01) {
-        ok = false;
-      }
+      if (Math.abs(m.a - dpr) > 0.01 || Math.abs(m.d - dpr) > 0.01) ok = false;
     }
 
-    const id = ++this._hi_dpi_validation_id; // increment for clarity in logs
-    if (ok) {
-      console.log(`[UniverseAnimator] [Hi-DPI ✔︎ #${id}] DPR ${dpr}, canvas ${this.canvas.width}×${this.canvas.height} backing store correct.`);
-    } else {
-      console.warn(`[UniverseAnimator] [Hi-DPI ⚠︎ #${id}] Detected mismatch. DPR ${dpr}, canvas ${this.canvas.width}×${this.canvas.height} backing store, expected ${Math.round(css_w * dpr)}×${Math.round(css_h * dpr)}.`);
-    }
+    const id = ++this._hi_dpi_validation_id;
+    if (ok) console.log(`[UniverseAnimator] [Hi-DPI ✔︎ #${id}] DPR ${dpr}, canvas ${this.canvas.width}×${this.canvas.height}`);
+    else console.warn(`[UniverseAnimator] [Hi-DPI ⚠︎ #${id}] DPR ${dpr} mismatch.`);
   }
 
   _on_resize() {
@@ -234,10 +167,7 @@ export class UniverseAnimator {
     const w   = window.innerWidth;
     const h   = window.innerHeight;
 
-    // Bail early if neither DPR nor size changed (avoids redundant work).
-    if (dpr === this._dpr && w === (this.canvas.width / this._dpr) && h === (this.canvas.height / this._dpr)) {
-      return;
-    }
+    if (dpr === this._dpr && w === (this.canvas.width / this._dpr) && h === (this.canvas.height / this._dpr)) return;
 
     this._dpr = dpr;
 
@@ -246,98 +176,111 @@ export class UniverseAnimator {
     this.canvas.style.width  = w + "px";
     this.canvas.style.height = h + "px";
 
-    // Reset any existing transform *before* applying the new DPR scale.
-    if (typeof this.ctx.resetTransform === "function") {
-      this.ctx.resetTransform();
-    } else {
-      // Fallback for very old browsers (not expected in our target audience).
-      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    }
+    if (typeof this.ctx.resetTransform === "function") this.ctx.resetTransform();
+    else this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.scale(dpr, dpr);
 
-    console.log(`[UniverseAnimator] Canvas resized – CSS ${w}×${h}, internal ${this.canvas.width}×${this.canvas.height} @ DPR ${dpr}`);
-
-    // Quick hi-DPI self-test to satisfy Task 2.
     this._validate_hi_dpi(dpr, w, h);
-
-    // Re-initialise the DPR change listener to track future changes.
     this._register_dpr_listener();
   }
 
+  // -------------------------------------------------------------------------
+  // Core frame loop ----------------------------------------------------------
+  // -------------------------------------------------------------------------
   _update(ts) {
-    if (!this._running) return; // Safety: should never happen, but guards against edge-cases.
+    if (!this._running) return;
 
-    // ---------------------------------------------------------------------
-    // FPS sampling & reporting --------------------------------------------
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Establish timing / progress -------------------------------------------
+    // -----------------------------------------------------------------------
+    if (this._start_time === null) this._start_time = ts;
+    const elapsed = ts - this._start_time - this._paused_time_accum;
+    let global_progress = elapsed / TOTAL_DURATION_MS;
+    if (global_progress > 1) global_progress = 1; // clamp – hold on last frame
+
+    // -----------------------------------------------------------------------
+    // FPS sampling (unchanged) ----------------------------------------------
+    // -----------------------------------------------------------------------
     if (this._fps_window_start_ts === null) {
       this._fps_window_start_ts = ts;
       this._fps_frames_accum    = 0;
     }
     this._fps_frames_accum++;
-
     const fps_window_elapsed = ts - this._fps_window_start_ts;
     if (fps_window_elapsed >= this._fps_sample_window_ms) {
       const fps = this._fps_frames_accum / (fps_window_elapsed / 1000);
       const fps_msg = `[UniverseAnimator] Average FPS (last ${(fps_window_elapsed/1000).toFixed(1)} s): ${fps.toFixed(1)}`;
-      if (fps < 55) {
-        console.warn(fps_msg);
-      } else {
-        console.log(fps_msg);
-      }
+      if (fps < 55) console.warn(fps_msg); else console.log(fps_msg);
       this._fps_window_start_ts = ts;
       this._fps_frames_accum    = 0;
     }
 
-    // ---------------------------------------------------------------------
-    // Animation logic ------------------------------------------------------
-    // ---------------------------------------------------------------------
-    if (this._start_time === null) this._start_time = ts;
-    const elapsed   = (ts - this._start_time) / 1000; // seconds since start
+    // -----------------------------------------------------------------------
+    // Compute per-layer state ------------------------------------------------
+    // -----------------------------------------------------------------------
+    const layer_states_arr = get_layer_states(global_progress);
+    /** @type {Record<string, typeof layer_states_arr[number]>} */
+    const layer_states = {};
+    for (const ls of layer_states_arr) layer_states[ls.name] = ls;
 
-    // Temporarily: 10-second looping cycle ---------------------------------
-    const cycle     = 10;
-    const t_cycle   = elapsed % cycle;          // 0 … 10
-    const progress  = t_cycle / cycle;          // 0 … 1
+    // -----------------------------------------------------------------------
+    // Build draw list (cull transparent) ------------------------------------
+    // -----------------------------------------------------------------------
+    /** @type<Array<{ bmp: ImageBitmap, alpha: number, draw_x: number, draw_y: number, draw_w: number, draw_h: number, z: number }>> */
+    const drawables = [];
 
-    // Scale from 1 → 3 and back every cycle (yo-yo)
-    const scale = progress < 0.5
-      ? 1 + (progress / 0.5) * 2              // 1 → 3 over first half
-      : 3 - ((progress - 0.5) / 0.5) * 2;     // 3 → 1 over second half
+    const cx = this.canvas.width  / (2 * this._dpr);
+    const cy = this.canvas.height / (2 * this._dpr);
 
-    // Alpha fade (optional) – keep full opacity for now.
-    const alpha = 1;
+    for (const sp of this.sprite_instances) {
+      const ls = layer_states[sp.layer];
+      if (!ls) continue; // layer disabled?
+      if (ls.opacity <= 0.001) continue; // cull fully transparent
 
-    // Clear canvas ---------------------------------------------------------
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      const final_z = ls.z + sp.z_jitter;
+      const scale   = CAM_Z / (CAM_Z - final_z); // simple perspective
 
-    if (this.fog_bitmap) {
-      const bmp = this.fog_bitmap;
-      const cx  = this.canvas.width  / (2 * this._dpr);
-      const cy  = this.canvas.height / (2 * this._dpr);
-      const draw_w = bmp.width  * scale;
-      const draw_h = bmp.height * scale;
+      const drift_r = final_z * XY_DRIFT_PER_Z; // farther layers drift more
+      const dx = Math.cos(sp.angle) * drift_r;
+      const dy = Math.sin(sp.angle) * drift_r;
 
-      this.ctx.save();
-      this.ctx.globalAlpha = alpha;
-      this.ctx.translate(cx, cy);
-      this.ctx.drawImage(bmp, -draw_w / 2, -draw_h / 2, draw_w, draw_h);
-      this.ctx.restore();
+      const draw_w = sp.bitmap.width  * scale;
+      const draw_h = sp.bitmap.height * scale;
+
+      drawables.push({
+        bmp: sp.bitmap,
+        alpha: ls.opacity,
+        draw_x: cx + dx - draw_w / 2,
+        draw_y: cy + dy - draw_h / 2,
+        draw_w,
+        draw_h,
+        z: final_z,
+      });
     }
 
-    // ---------------------------------------------------------------------
-    // One-off validation log (runs after first rendered frame) ------------
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Sort & render ----------------------------------------------------------
+    // -----------------------------------------------------------------------
+    drawables.sort((a, b) => b.z - a.z); // far (big positive) → near (negative)
+
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    for (const d of drawables) {
+      this.ctx.globalAlpha = d.alpha;
+      this.ctx.drawImage(d.bmp, d.draw_x, d.draw_y, d.draw_w, d.draw_h);
+    }
+    this.ctx.globalAlpha = 1; // reset
+
+    // -----------------------------------------------------------------------
+    // One-time validation log ------------------------------------------------
+    // -----------------------------------------------------------------------
     if (!this._validation_logged) {
-      if (this.fog_bitmap) {
-        console.log(`[UniverseAnimator] Validation ✔︎  Cosmic fog sprite selected → '${this.fog_bitmap_url}'. Animation & rendering active. DPR ${this._dpr}`);
-      } else {
-        console.warn("[UniverseAnimator] Validation ⚠︎  No cosmic fog sprite could be validated. Check asset paths.");
-      }
+      console.log(`[UniverseAnimator] Validation ✔︎  Multi-layer renderer active. Progress=${global_progress.toFixed(2)}. Sprites=${drawables.length}. DPR ${this._dpr}`);
       this._validation_logged = true;
     }
 
-    // Schedule next frame --------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Schedule next frame ----------------------------------------------------
+    // -----------------------------------------------------------------------
     this._raf_id = requestAnimationFrame(this._update);
   }
 }
