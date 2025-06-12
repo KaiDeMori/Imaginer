@@ -12,6 +12,7 @@ this file is stored in /assets/ai_universe/assets_file_list.md
 
 
 
+
 ## nebulae
 _Path: /assets/ai_universe/nebulae/_
 - 01.png
@@ -23,12 +24,13 @@ _Path: /assets/ai_universe/nebulae/_
 - 07.png
 - 08.png
 - 09.png
-- big_01.png
-- big_02.png
-- big_03.png
-- big_04.png
+- 10.png
+- 11.png
+- 12.png
+- 13.png
 
-_Notes: Files 01-09 are standard nebulae. Files big_01 to big_04 are larger or more detailed variants._
+_Notes: Files 01-13 are nebulae PNGs._
+
 
 
 
@@ -38,48 +40,47 @@ _Path: /assets/ai_universe/galaxy_streams/_
 - 02.png
 - 03.png
 - 04.png
-- big_01.png
-- big_02.png
-- big_03.png
-- big_04.png
-- big_05.png
-- big_06.png
+- 05.png
+- 06.png
+- 07.png
+- 08.png
+- 09.png
+- 10.png
 
-_Notes: Files 01-04 are standard galaxy streams. Files big_01 to big_06 are larger or more detailed variants._
-
-
+_Notes: Files 01-10 are galaxy stream PNGs._
 
 
 ## cosmic_fog
 _Path: /assets/ai_universe/cosmic_fog/_
- - big_01.png
- - big_02.png
- - big_03.png
- - big_04.png
- - big_05.png
- - big_06.png
- - big_07.png
- - big_08.png
- - big_09.png
+- 01.png
+- 02.png
+- 03.png
+- 04.png
+- 05.png
+- 06.png
+- 07.png
+- 08.png
+- 09.png
 
-_Notes: Files big_01 to big_09 are large or detailed cosmic fog PNGs._
+_Notes: Files 01-09 are cosmic fog PNGs._
+
 
 
 
 
 ## star_clusters
 _Path: /assets/ai_universe/star_clusters/_
-- big_01.png
-- big_02.png
-- big_03.png
+- 01.png
+- 02.png
+- 03.png
 
-_Notes: Files big_01 to big_03 are large or detailed star cluster PNGs._
+_Notes: Files 01-03 are star cluster PNGs._
+
 
 
 ## alien_planet
 _Path: /assets/ai_universe/alien_planet/_
 - planet_totale.png
-
 
 _Notes: This folder contains the main target planet asset for the early universe cut-point. The planet is intended as the visual anchor for the final zoom/focus in the cinematic sequence, and serves as the transition point to the "Arrival at an Alien World" step. Integrate this asset as the last layer to appear, and use it for camera focus and cut-point planning._
 
