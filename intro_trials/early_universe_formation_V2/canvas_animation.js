@@ -3,17 +3,21 @@
 Canvas Animation Engine – Early Universe Formation V2 – Multi-Layer Edition
 ---------------------------------------------------------------------------
 This revision fulfils *Task 4 · Rendering Pipeline* of
-`multi_layer_animation_progress.md`.
+`multi_layer_animation_progress.md` **and Task 5 · Camera & Parallax Maths**.
 
-Key upgrades compared with the previous placeholder build:
+Key upgrades compared with the previous build:
   • Integrates the new timeline / layer model modules so the renderer
     now drives *all* visual layers (cosmic fog → planet).
+  • **NEW:** Implements a moving camera-Z curve (CAM_Z_START → CAM_Z_END)
+    instead of the previously fixed value.  This provides the planned
+    continuous zoom-in over the full 25 s shot and completes Task 5.
   • Generates a deterministic sprite instance list via
     `generate_sprite_instances()`.
   • Each animation frame:
         – Converts the master `elapsed` time → `global_progress` (0 → 1).
         – Queries `get_layer_states(global_progress)` for per-layer
-          opacity, pseudo-Z and scale.
+          opacity, pseudo-Z and base scale.
+        – Computes current `camera_z` via linear interpolation.
         – Computes per-sprite final Z (layerZ + jitter) & scale, applies a
           small XY drift based on the sprite’s angle and Z.
         – Sorts visible sprites by Z (far → near) and blits them with the
@@ -22,9 +26,6 @@ Key upgrades compared with the previous placeholder build:
   • Once the master progress reaches 1, the scene *holds* on the final
     planet frame.  The rAF loop keeps running so DevTools can still be
     used for frame stepping / inspection.
-
-Other features (hi-DPI handling, pause/resume helpers, FPS sampling, etc.)
-are retained from the original implementation.
 */
 
 // ---------------------------------------------------------------------------
@@ -38,10 +39,16 @@ import { get_layer_states } from "./timeline_engine.js";
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 const TOTAL_DURATION_MS = 25_000; // matches planning document (section 5)
-const CAM_Z             = -1;     // camera pseudo-Z used in perspective formula
+
+// Camera Z curve (Task 5) ----------------------------------------------------
+const CAM_Z_START = -1;   // at t = 0 (closest to the layers)
+const CAM_Z_END   = -20;  // at t = 1 (camera has moved "forward" by 19 units)
 
 // How much XY drift we apply per positive Z unit (very subtle by default).
 const XY_DRIFT_PER_Z = 10; // pixels at DPR 1
+
+// Simple linear interpolation helper (local to this module).
+function lerp(a, b, t) { return a + (b - a) * t; }
 
 // ---------------------------------------------------------------------------
 // UniverseAnimator -----------------------------------------------------------
@@ -198,6 +205,9 @@ export class UniverseAnimator {
     let global_progress = elapsed / TOTAL_DURATION_MS;
     if (global_progress > 1) global_progress = 1; // clamp – hold on last frame
 
+    // Current camera Z position (Task 5) ------------------------------------
+    const cam_z = lerp(CAM_Z_START, CAM_Z_END, global_progress);
+
     // -----------------------------------------------------------------------
     // FPS sampling (unchanged) ----------------------------------------------
     // -----------------------------------------------------------------------
@@ -238,7 +248,7 @@ export class UniverseAnimator {
       if (ls.opacity <= 0.001) continue; // cull fully transparent
 
       const final_z = ls.z + sp.z_jitter;
-      const scale   = CAM_Z / (CAM_Z - final_z); // simple perspective
+      const scale   = cam_z / (cam_z - final_z); // perspective incl. moving cam
 
       const drift_r = final_z * XY_DRIFT_PER_Z; // farther layers drift more
       const dx = Math.cos(sp.angle) * drift_r;
@@ -274,7 +284,7 @@ export class UniverseAnimator {
     // One-time validation log ------------------------------------------------
     // -----------------------------------------------------------------------
     if (!this._validation_logged) {
-      console.log(`[UniverseAnimator] Validation ✔︎  Multi-layer renderer active. Progress=${global_progress.toFixed(2)}. Sprites=${drawables.length}. DPR ${this._dpr}`);
+      console.log(`[UniverseAnimator] Validation ✔︎  Multi-layer renderer active. Progress=${global_progress.toFixed(2)} camZ=${cam_z.toFixed(1)} Sprites=${drawables.length}. DPR ${this._dpr}`);
       this._validation_logged = true;
     }
 
