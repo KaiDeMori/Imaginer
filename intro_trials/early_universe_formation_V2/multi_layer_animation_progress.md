@@ -25,8 +25,6 @@
 - [ ] Pre-compute per-sprite random offsets (angle, initial z-jitter).
 - [ ] Re-use `ImageBitmap` references across instances to save VRAM.
 
-> ⚠️  Note: The final **planet** sprite shall **not** carry any rotation or translation metadata; it remains locked to the screen centre for the entire shot.
-
 ### 4 · Rendering Pipeline
 - [ ] Sort visible instances by pseudo-Z every frame.
 - [ ] Blit all sprites with correct alpha & scale.
