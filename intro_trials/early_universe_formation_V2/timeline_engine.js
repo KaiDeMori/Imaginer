@@ -45,7 +45,8 @@ const LAYER_TIMELINE = Object.freeze([
     z_end: -5,
     base_opacity: 1,
     fade_easing: "cubic_in_out",
-    distance_fade_end_z: -10
+    // Increased distance_fade_end_z to -20 to prevent premature clipping near the camera
+    distance_fade_end_z: -20
   },
   {
     name: "galaxy_streams",
@@ -64,7 +65,7 @@ const LAYER_TIMELINE = Object.freeze([
     p_out: 0.56,
     z_start: 240,
     z_end: 12 + (-117.19 * 0.24),
-    base_opacity: 1,
+    base_opacity: 0.7,
     fade_easing: "linear",
     distance_fade_end_z: -40,
     distance_fade_start_z: 12 + (-117.19 * 0.24)

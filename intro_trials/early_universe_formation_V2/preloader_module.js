@@ -34,7 +34,7 @@ const asset_max_numbers = {
 };
 
 const asset_manifest = [];
-const base = "/assets/ai_universe";
+const base = "../../assets/ai_universe";
 
 for (const [folder, max_num] of Object.entries(asset_max_numbers)) {
   for (let i = 1; i <= max_num; i++) {
