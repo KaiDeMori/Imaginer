@@ -1,6 +1,6 @@
 # Multi-Layer Animation Upgrade – Progress Checklist
 
-*(This file tracks **Step 3** of our roadmap: “Upgrade the placeholder fog animation into the full multi-layer zoom-through sequence”.  Tick the boxes as subtasks are completed.)*
+*(This file tracks **Step 3** of our roadmap: “Upgrade the placeholder fog animation into the full multi-layer zoom-through sequence” in the file `Early_Universe_Formation_Planning_V2_.md`.  Tick the boxes as subtasks are completed.)*
 
 
 
@@ -48,8 +48,7 @@
 
 ### 8 · Debug / Dev Tooling
 - [x] Seed panel & DevTools globals (`toggle_anim`, etc.).
-- [ ] Frame freeze/step shortcuts.
-- [ ] Bounding-box overlay for collision/overlap debugging.
+- [x] Frame freeze shortcut.
 
 ### 9 · Clean-up & Polish
 - [ ] Remove console spam behind `LOG_VERBOSE` flag.
