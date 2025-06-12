@@ -43,7 +43,7 @@ const LAYER_TIMELINE = Object.freeze([
     p_out: 0.24,
     z_start: 10,
     z_end: -5,
-    base_opacity: 1,
+    base_opacity: .9,
     fade_easing: "cubic_in_out",
     distance_fade_end_z: -20
   },
