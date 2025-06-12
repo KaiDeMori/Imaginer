@@ -45,6 +45,10 @@ const LAYER_TIMELINE = Object.freeze([
   ["planet",         0.72,   0.80,    2,       0],
 ]);
 
+// Maximum layer Z-start (furthest positive Z) – useful for helper formulas
+// so we don't rely on the magic literal `10` elsewhere.
+const MAX_Z_POS = Math.max(...LAYER_TIMELINE.map(t => t[3])); // index 3 = zStart
+
 // Quick sanity guard – ensure every logical layer in `layers_config` appears
 // exactly once in the timeline table.
 {
@@ -144,4 +148,4 @@ if (typeof window !== "undefined" && window.location?.hash?.includes("dev")) {
 // ---------------------------------------------------------------------------
 // Module exports -------------------------------------------------------------
 // ---------------------------------------------------------------------------
-export { get_layer_states, ease_cubic_in_out };
+export { get_layer_states, ease_cubic_in_out, MAX_Z_POS };
