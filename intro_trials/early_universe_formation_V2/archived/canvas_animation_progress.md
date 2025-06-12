@@ -4,7 +4,7 @@
 
 ## Current Status Summary
 ✅  Wire-up & Bootstrapping completed.  
-✅  Placeholder cosmic-fog animation validated.  
+✅  Placeholder cosmic-fog animation validated (now with per-layer distance-based fade for smoothness).  
 ✅  Hi-DPI scaling validation integrated & manually verified.  
 ✅  Average FPS sampling & console reporting integrated.  
 ✅  Deterministic Asset Selection integrated.  
