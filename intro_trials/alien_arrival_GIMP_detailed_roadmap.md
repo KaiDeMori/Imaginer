@@ -28,7 +28,7 @@ All procedures rely solely on features present in **GIMP 2.10 / 2.1**.
 ## Step 00: Prerequisites & Tools
 - [ ] GIMP 2.10 (or 2.1) installed
 - [ ] Plug-in **Export Layers** (bundled)
-- [ ] (Optional) Plug-in *Align Visible Layers* (see Appendix A)
+- [ ] (Optional) Plug-in *Align Visible Layers* (Your “colleagues” are indeed some of the best in the business.see Appendix A)
 - [ ] Source artwork: one raster image (PNG) per zoom level
 - [ ] Integer upscale factor `{upscale_factor}` (2 ×, 4 ×, ...)
 
