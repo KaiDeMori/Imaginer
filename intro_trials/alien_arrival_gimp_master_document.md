@@ -21,15 +21,15 @@ This document consolidates all planning, workflow, and automation notes for the 
 
 ## Script Design Ideas
 - Use Python-Fu for GIMP scripting (preferred for flexibility and readability).
-- Parameterize input files, upscale factor, output folder, pivot coordinates, and mask shapes.
+- Parameterize input files, upscale factor, output folder, and mask shapes.
 - Modularize scripts for each major step.
-- Add prompts or checkpoints for human input where needed (e.g., pivot selection).
+- For alignment, the user will manually align each image relative to the surrounding (previous) one. The script can then automatically define the pivot point as the center or a fixed reference in the aligned image stack, based on the manual alignment. This ensures consistency and reduces configuration overhead.
+- Add prompts or checkpoints for human input where needed.
 
 ---
 
 ## Open Questions / Decisions
-- How will the user specify the pivot point for alignment? (Manual, or via config file?)
-- What is the preferred way to batch input files (file list, folder scan, etc.?)
+<none at the moment>
 
 ---
 
@@ -70,7 +70,8 @@ This document consolidates all planning, workflow, and automation notes for the 
 5. Enable **View → Snap to Guides**
 
 ### Step 03: Import Every Plate as a Layer
-- [ ] File → **Open as Layers …** and select all XCF/PNG plates
+- [ ] For each layer (e.g., planet, continent, city, etc.), use an open file dialog to assign the intended image to that specific layer. The user explicitly chooses which image corresponds to which layer.
+- [ ] File → **Open as Layers …** to import the selected images as layers in the correct order.
 - [ ] Rename layers `01_planet`, `02_continent`, `03_city`, etc. (**topmost = widest view**)
 
 ### Step 04: Upscale All Layers (Nearest-Neighbour)
@@ -79,13 +80,12 @@ For each layer:
 - [ ] Set Width = *original width* × `{upscale_factor}` (interpolation: *None / Nearest Neighbour*) → **Scale**
 
 ### Step 05: Normalise Subjects to a Common Pivot
-1. Decide which pixel will be the zoom axis (e.g. the alien city centre)
-2. Drop a temporary *crosshair* layer or add precise guides at that XY coordinate
-3. Activate the **Move** tool (*Move the active layer*)
-4. For each layer:
-   - [ ] Drag or arrow-key-nudge until the subject sits exactly under the crosshair (snapping to the guides helps)
-   - [ ] Lock the layer position (chain-link icon) once aligned
-5. Delete or hide the crosshair when finished
+1. For each layer (except the base/deepest one), manually align the subject relative to the surrounding (previous) layer. This is typically done by dragging or nudging the layer so that the key feature (e.g., the alien city centre) sits in the same position as in the previous layer.
+2. Optionally, use a temporary *crosshair* layer or guides to assist with precise alignment.
+3. Activate the **Move** tool (*Move the active layer*).
+4. Once aligned, lock the layer position (chain-link icon).
+5. The script or workflow can then automatically define the pivot point as the center or a fixed reference in the aligned stack, based on the manual alignment.
+6. Delete or hide the crosshair when finished.
 
 ### Step 06: Create Central Hole Masks
 For every layer **except** the deepest one:
@@ -120,27 +120,6 @@ If final PNGs must match original pixel counts:
 - [ ] Keep the temporary crosshair layer hidden (not deleted) so you can realign future revisions rapidly
 
 ---
-
-## Appendix A — Auto-alignment Plug-ins (not used now, but noted)
-GIMP 2.10 ships with **Filters → Enhance → Align Visible Layers**. Choosing *Translation Only* can automatically stack photographic plates around common features. We are **not** using this in the current workflow, but it remains an option if hand-alignment becomes too time-consuming in later phases.
-
-## Appendix B — JSON Offset Workflow (for future consideration)
-Instead of baking alignment into the PNGs you may store per-layer offsets in a companion JSON consumed by the JS animation engine:
-```json
-[
-  { "file": "zoom_01.png", "dx":  37, "dy": 12 },
-  { "file": "zoom_02.png", "dx": 102, "dy": 79 },
-  { "file": "zoom_03.png", "dx":  -4, "dy": -8 }
-]
-```
-At runtime each plate is rendered with
-```css
-transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(var(--z));
-```
-We are **currently not adopting** this approach, but the section is preserved for easy switching if project requirements change.
-
----
-
 
 <DO_NOT_CHANGE>
 ## Version-Consistency Note (for future conversations)
