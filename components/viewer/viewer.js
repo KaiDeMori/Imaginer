@@ -230,6 +230,9 @@ export class Viewer {
             for (let i = 0; i < this.mask_data.length; ++i) {
                 if (this.mask_data[i]) { is_empty = false; break; }
             }
+            // Get the record to update uuid if needed
+            let rec = await window.sessionStore.get(this.image_id);
+            let uuid = rec && rec.uuid ? rec.uuid : (window.crypto?.randomUUID ? window.crypto.randomUUID() : (Math.random().toString(36).slice(2) + Date.now()));
             if (!is_empty) {
                 // Convert mask_data to PNG blob
                 const mask_canvas = document.createElement('canvas');
@@ -249,7 +252,9 @@ export class Viewer {
                 // Export as PNG blob
                 const mask_blob = await new Promise(res => mask_canvas.toBlob(res, 'image/png'));
                 console.debug('[Imaginer] Mask created and saved for image_id:', this.image_id, mask_blob);
-                await window.sessionStore.update(this.image_id, { mask_blob });
+                await window.sessionStore.update(this.image_id, { mask_blob, uuid });
+                // Attach uuid in memory to bitmap (for DnD, etc.)
+                if (this.bitmap) this.bitmap.imaginer_uuid = uuid;
             } else {
                 // Remove mask_blob if mask is empty
                 console.debug('[Imaginer] Mask REMOVED (empty) for image_id:', this.image_id);

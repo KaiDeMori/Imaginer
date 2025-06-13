@@ -29,6 +29,10 @@ export class Gallery {
       if (rec && typeof rec.created === 'number') {
         this.records_by_created[rec.created] = rec;
       }
+      // Attach uuid in memory to blob for DnD
+      if (rec && rec.image_blob && rec.uuid) {
+        rec.image_blob.imaginer_uuid = rec.uuid;
+      }
       this.addThumbnail(rec.image_blob, rec.prompt_text, rec.created);
     }
   }

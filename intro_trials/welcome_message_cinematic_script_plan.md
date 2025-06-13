@@ -39,9 +39,10 @@
 
 ### **5. Final Reveal: Alien Imaginer**
 - **Visuals:**
-  - Scene transitions to an alien character using the Imaginer app.
+  - Scene transitions to an alien character, using a futuristic display device.
   - The alien humorously generates "fictional" images of "weird" aliens—humans.
-  - The screen fades to the Imaginer logo, animated with a playful glow or rotation.
+  - We stop on a view of the screen of the alien and flip through a few images of generated humans in funny situations. And some cute cats now and then, for good measure and because everyone knows: cats secretly rule the universe. :-) jk oc
+  
 
 ---
 

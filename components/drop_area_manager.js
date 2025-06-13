@@ -3,25 +3,29 @@
 // Naming follows loose_snake_case as per project standards.
 
 /**
- * Manages dropped images and their associated masks for the image edit feature.
+ * Manages dropped images and their associated masks and UUIDs for the image edit feature.
  * Only the mask of the first image is used for the API request.
  */
 class drop_area_manager {
     constructor() {
         /**
-         * @type {Array<{ image: File, mask: File|null }>}
-         * Each entry: { image: File, mask: File|null }
+         * @type {Array<{ image: File, mask: File|null, uuid?: string }>}
+         * Each entry: { image: File, mask: File|null, uuid?: string }
          */
         this.dropped_images = [];
     }
 
     /**
-     * Add a new image (and optional mask) to the drop area.
+     * Add a new image (and optional mask) to the drop area, with optional uuid.
      * @param {File} image_file - The image file to add.
      * @param {File|null} mask_file - The mask file to associate, or null.
+     * @param {string|null} uuid - The uuid to associate, or null.
      */
-    add_image(image_file, mask_file = null) {
-        this.dropped_images.push({ image: image_file, mask: mask_file });
+    add_image(image_file, mask_file = null, uuid = null) {
+        if (uuid) {
+            image_file.imaginer_uuid = uuid;
+        }
+        this.dropped_images.push({ image: image_file, mask: mask_file, uuid: uuid || image_file.imaginer_uuid });
     }
 
     /**
@@ -60,8 +64,16 @@ class drop_area_manager {
     }
 
     /**
-     * Get the list of dropped images (with masks).
-     * @returns {Array<{ image: File, mask: File|null }>}
+     * Get the UUIDs of all dropped images (for orphan cleanup).
+     * @returns {Set<string>}
+     */
+    get_all_uuids() {
+        return new Set(this.dropped_images.map(entry => entry.uuid).filter(Boolean));
+    }
+
+    /**
+     * Get the list of dropped images (with masks and uuids).
+     * @returns {Array<{ image: File, mask: File|null, uuid?: string }>}
      */
     get_images() {
         return this.dropped_images;

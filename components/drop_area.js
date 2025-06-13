@@ -44,6 +44,11 @@ function handle_drop(event, render_callback) {
     // For each file, check if it's an image or a mask (simple PNG mask detection)
     files.forEach(file => {
         if (file.type.startsWith('image/')) {
+            // Check for in-memory UUID property
+            let uuid = file.imaginer_uuid || null;
+            // If not present, check for a custom property (for future extensibility)
+            if (!uuid && file.uuid) uuid = file.uuid;
+
             // For now, assume mask is a PNG with 'mask' in the filename
             if (file.name.toLowerCase().includes('mask') && file.type === 'image/png') {
                 // Try to associate with the last image
@@ -52,14 +57,35 @@ function handle_drop(event, render_callback) {
                     images[images.length - 1].mask = file;
                 } else {
                     // No image to associate, just add as image (no mask)
-                    drop_area_manager.add_image(file, null);
+                    drop_area_manager.add_image(file, null, uuid);
                 }
             } else {
-                drop_area_manager.add_image(file, null);
+                // If UUID is present, try to find mask in sessionStore
+                if (uuid && window.sessionStore) {
+                    window.sessionStore.get_all({ reverse: false }).then(records => {
+                        const rec = records.find(r => r.uuid === uuid && r.mask_blob);
+                        if (rec && rec.mask_blob) {
+                            // Attach mask from sessionStore
+                            drop_area_manager.add_image(file, rec.mask_blob, uuid);
+                        } else {
+                            // UUID not found in sessionStore, treat as new image
+                            file.imaginer_uuid = null;
+                            drop_area_manager.add_image(file, null, null);
+                        }
+                        render_callback();
+                    });
+                } else {
+                    drop_area_manager.add_image(file, null, uuid);
+                    render_callback();
+                }
             }
         }
     });
-    render_callback();
+    // If any async mask lookup, render_callback will be called in the promise above
+    // Otherwise, call it here
+    if (!files.some(file => file.type.startsWith('image/') && file.imaginer_uuid)) {
+        render_callback();
+    }
 }
 
 /**

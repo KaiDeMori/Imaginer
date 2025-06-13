@@ -68,11 +68,11 @@ _See `asset_file_list.md` for a detailed, up-to-date list of all asset files._
   - [x] galaxy streams PNGs
   - [x] star clusters PNGs
   - [x] cosmic fog PNGs
-- [ ] Generate and integrate a "target planet" asset for preview and cut-point
-- [ ] Design HTML structure for layered universe scene
-- [ ] Implement CSS/JS for animated reveals and transitions
-- [ ] Integrate assets and test performance
-- [ ] Refine visual effects and timing
+- [x] Generate and integrate a "target planet" asset for preview and cut-point
+- [x] Design HTML structure for layered universe scene
+- [x] Implement CSS/JS for animated reveals and transitions
+- [x] Integrate assets and test performance
+- [x] Refine visual effects and timing
 
 ---
 
@@ -102,6 +102,6 @@ _See `asset_file_list.md` for a detailed, up-to-date list of all asset files._
 
 **End State:**
 
-- The scene settles with the camera focused on the area where the planet will be introduced in the next step.
+- The scene settles with the camera focused on the slowly rotating planet in full view.
 
 This approach creates a cinematic, organic universe formation, guiding the viewer’s attention naturally toward the next focal point (the planet), all while maintaining a smooth, immersive flow.

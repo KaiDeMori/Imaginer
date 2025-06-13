@@ -26,16 +26,24 @@ export class Session_store {
 
     async _open_db() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('imaginer-db', 1);
+            const request = indexedDB.open('imaginer-db', 2); // bump version for uuid
 
             request.onupgradeneeded = (event) => {
                 const db = /** @type {IDBDatabase} */ (event.target.result);
+                let store;
                 if (!db.objectStoreNames.contains('images')) {
-                    const store = db.createObjectStore('images', {
+                    store = db.createObjectStore('images', {
                         keyPath: 'id',
                         autoIncrement: true
                     });
                     store.createIndex('created', 'created', { unique: false });
+                    store.createIndex('uuid', 'uuid', { unique: false });
+                } else {
+                    store = event.target.transaction.objectStore('images');
+                    // Add uuid index if not present
+                    if (!store.indexNames.contains('uuid')) {
+                        store.createIndex('uuid', 'uuid', { unique: false });
+                    }
                 }
             };
 
@@ -115,6 +123,10 @@ export class Session_store {
         return new Promise((resolve, reject) => {
             const tx = db.transaction('images', 'readwrite');
             const store = tx.objectStore('images');
+            // Ensure uuid is present
+            if (!record.uuid) {
+                record.uuid = window.crypto?.randomUUID ? window.crypto.randomUUID() : (Math.random().toString(36).slice(2) + Date.now());
+            }
             const request = store.add(record);
             request.onsuccess = () => {
                 resolve(request.result); // the generated id
@@ -141,6 +153,10 @@ export class Session_store {
                     reject(new Error('Record not found'));
                     return;
                 }
+                // If updates include uuid, ensure it's set
+                if (updates.uuid && !record.uuid) {
+                    record.uuid = updates.uuid;
+                }
                 Object.assign(record, updates);
                 const put_req = store.put(record);
                 put_req.onsuccess = () => resolve();
@@ -149,6 +165,39 @@ export class Session_store {
             get_req.onerror = () => reject(get_req.error);
         });
     }
+
+    // Remove orphaned mask records (where uuid is not present in any current image)
+    // @param {Set<string>} valid_uuids - Set of UUIDs currently in use by images
+    // @returns {Promise<number>} Number of deleted records
+    cleanup_orphaned_masks(valid_uuids) {
+        // Returns a Promise<number>
+        return this._db_promise.then(function(db) {
+            return new Promise(function(resolve, reject) {
+                var tx = db.transaction('images', 'readwrite');
+                var store = tx.objectStore('images');
+                var request = store.openCursor();
+                var deleted = 0;
+                request.onsuccess = function() {
+                    var cursor = request.result;
+                    if (cursor) {
+                        var rec = cursor.value;
+                        if (rec.mask_blob && rec.uuid && !valid_uuids.has(rec.uuid)) {
+                            // Orphaned mask, delete mask_blob
+                            rec.mask_blob = null;
+                            cursor.update(rec);
+                            deleted++;
+                        }
+                        cursor.continue();
+                    } else {
+                        resolve(deleted);
+                    }
+                };
+                request.onerror = function() { reject(request.error); };
+            });
+        });
+    }
+    
+    // ...existing code...
 
     /**
      * Get a record by id, including mask_blob if present
