@@ -1,5 +1,13 @@
 # AIxGIMP Automation Planning
 
+**Related:** See also: [alien_arrival_GIMP_detailed_roadmap.md](alien_arrival_GIMP_detailed_roadmap.md)
+---
+
+## User Input Summary
+These steps require manual user input or creative judgment:
+- Image alignment: User aligns each image relative to the previous one before automation continues.
+- Freehand masking: User may use the eraser or other tools to hide seams along terrain or coastlines before running the next automation step.
+
 ## Purpose
 This file will serve as a collaborative planning space for automating the Alien Arrival GIMP workflow. It will track automation goals, script design, open questions, and progress.
 
@@ -36,11 +44,6 @@ This file will serve as a collaborative planning space for automating the Alien 
 - How will the user specify the pivot point for alignment? (Manual, or via config file?)
 - What is the preferred way to batch input files (file list, folder scan, etc.)?
   
-**Resolved Questions (integrated above):**
-- The workflow will allow for freehand masking (e.g., eraser tool) to hide seams along terrain or coastlines before automation continues. (See Next Actions)
-- The script will save intermediate XCFs as well as final PNGs for recovery and further editing. (See Script Design Ideas)
-- The user will align each image relative to the previous one interactively, then automation will continue. (See Next Actions)
-
 ---
 
 ## Next Actions
@@ -57,3 +60,6 @@ This file will serve as a collaborative planning space for automating the Alien 
 - Please add ideas, questions, or comments below!
 
 ---
+
+## Version-Consistency Note (for future conversations)
+The assistant that produced this planning file is trained primarily on **GIMP 2.1**. As a result, it sometimes "hallucinates" features that do not exist until GIMP 3.0+. **For this project we intentionally limit ourselves to functionality that is present in GIMP 2.10/2.1**. Please assume that every step above relies only on those capabilities. If you discover that a step behaves differently in your actual install (currently **GIMP 3.0.4**), **let the assistant know** so the instructions and scripts can be updated accordingly.
