@@ -3,6 +3,10 @@ _Codename `AIxGIMP`_
 
 ---
 
+## Why GIMP? (Open-Source Advocacy)
+This project also aims to boost acceptance of GIMP as a powerful, open-source, and now truly mature software solution for creative workflows. By demonstrating how AI-driven automation and creative support can enhance GIMP’s capabilities, and by sharing advanced, reproducible, and collaborative processes, we hope to encourage wider adoption of GIMP in both professional and enthusiast communities.
+
+
 ## Purpose & Scope
 This document consolidates all planning, workflow, and automation notes for the Alien Arrival GIMP infinite zoom project. It combines the detailed step-by-step process, automation goals, script design ideas, and open questions into a single, authoritative reference. For all contributors: this is the canonical source for both manual and automated workflow development.
 
