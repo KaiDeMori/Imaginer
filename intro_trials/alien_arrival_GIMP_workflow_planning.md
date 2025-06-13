@@ -8,10 +8,9 @@
 
 1. GIMP 2.10 or newer (menu names below follow 2.10).
 2. Plug-in “Export Layers”
-   • Included in default Windows builds; otherwise install from
-   https://github.com/khalim19/gimp-plugin-export-layers .
+   • Included
 3. Source artwork
-   • One raster image (PNG/TIFF/etc.) per zoom level, already rendered at its *native* pixel dimensions.
+   • One raster image (PNG) per zoom level, already rendered at its *native* pixel dimensions.
 4. A calculator (or paper) to pick an **integer upscale factor** (2×, 4×, etc.).
 
 -------------------------------------------------------------------------------
