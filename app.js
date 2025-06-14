@@ -429,3 +429,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
   update_generate_button();
 });
+
+// --- Hard reset function: clears all Imaginer data in the browser ---
+window.hard_reset = function hard_reset() {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    if (window.indexedDB && indexedDB.databases) {
+      indexedDB.databases().then(dbs => {
+        dbs.forEach(db => indexedDB.deleteDatabase(db.name));
+      });
+    } else {
+      // Fallback: try to delete common Imaginer DBs if you know their names
+      // indexedDB.deleteDatabase('imaginer_db');
+    }
+    console.log('Imaginer data has been hard reset.');
+  } catch (e) {
+    console.error('Error during hard reset:', e);
+  }
+};
