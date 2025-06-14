@@ -253,6 +253,15 @@ export class Viewer {
                 const mask_blob = await new Promise(res => mask_canvas.toBlob(res, 'image/png'));
                 console.debug('[Imaginer] Mask created and saved for image_id:', this.image_id, mask_blob);
                 await window.sessionStore.update(this.image_id, { mask_blob, uuid });
+                // Dispatch event to notify gallery of mask update
+                window.dispatchEvent(new CustomEvent('imaginer.mask-updated', {
+                  detail: {
+                    created: rec && rec.created,
+                    image_id: this.image_id,
+                    mask_blob,
+                    uuid
+                  }
+                }));
                 // Attach uuid in memory to bitmap (for DnD, etc.)
                 if (this.bitmap) this.bitmap.imaginer_uuid = uuid;
             } else {

@@ -1,6 +1,15 @@
 // gallery.js – Thumbnail grid with placeholder support
 export class Gallery {
   constructor(root, viewer) {
+    // Listen for mask updates to synchronize in-memory records
+    window.addEventListener('imaginer.mask-updated', (e) => {
+      const { created, mask_blob, uuid } = e.detail || {};
+      if (created && this.records_by_created && this.records_by_created[created]) {
+        const rec = this.records_by_created[created];
+        rec.mask_blob = mask_blob;
+        rec.uuid = uuid;
+      }
+    });
     this.root = root;
     this.viewer = viewer;
     this.grid = document.createElement('div');
@@ -74,15 +83,21 @@ export class Gallery {
       // Store the blob and metadata in a global singleton for retrieval on drop
       if (!window.imaginer_gallery_drag_store) window.imaginer_gallery_drag_store = {};
       const drag_id = 'drag_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
-      // Try to get mask_blob if available in the record
+      // Try to get mask_blob and uuid if available in the record
       let mask_blob = null;
+      let uuid = null;
       if (typeof created === 'number' && this.records_by_created) {
         const rec = this.records_by_created[created];
-        if (rec && rec.mask_blob instanceof Blob) {
-          mask_blob = rec.mask_blob;
+        if (rec) {
+          if (rec.mask_blob instanceof Blob) {
+            mask_blob = rec.mask_blob;
+          }
+          if (rec.uuid) {
+            uuid = rec.uuid;
+          }
         }
       }
-      window.imaginer_gallery_drag_store[drag_id] = { blob, promptText, created, mask_blob };
+      window.imaginer_gallery_drag_store[drag_id] = { blob, promptText, created, mask_blob, uuid };
       event.dataTransfer.setData('application/x-imaginer-blob-id', drag_id);
     });
 

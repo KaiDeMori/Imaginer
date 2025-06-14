@@ -172,7 +172,7 @@ export class Prompt_panel {
       // --- Check for internal gallery drag ---
       const drag_id = event.dataTransfer.getData('application/x-imaginer-blob-id');
       if (drag_id && window.imaginer_gallery_drag_store && window.imaginer_gallery_drag_store[drag_id]) {
-        const { blob, promptText, created, mask_blob } = window.imaginer_gallery_drag_store[drag_id];
+        const { blob, promptText, created, mask_blob, uuid } = window.imaginer_gallery_drag_store[drag_id];
         // Only accept PNGs for now
         if (blob && blob.type === 'image/png') {
           // Give the blob a name for thumbnail UI
@@ -183,7 +183,7 @@ export class Prompt_panel {
             mask_file = new File([mask_blob], 'mask.png', { type: 'image/png' });
           }
           import('./drop_area_manager.js').then(({ default: drop_area_manager }) => {
-            drop_area_manager.add_image(blob, mask_file);
+            drop_area_manager.add_image(blob, mask_file, uuid);
             this.dropped_images = drop_area_manager.get_images().map(entry => entry.image);
             this._update_input_image_thumbnails();
           });
