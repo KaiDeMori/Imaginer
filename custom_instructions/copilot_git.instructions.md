@@ -7,6 +7,27 @@ applyTo: '**'
 ## Scope
 These standards apply to all Git operations automated by GitHub Copilot within this workspace.
 
+## Command Concatenation for Copilot Git Automation
+
+- For all Git workflow automation performed by Copilot as described in these instructions, always concatenate multiple shell or terminal commands into a single command line using `&&` (e.g., `git add . && git commit -m "msg" && git push`).
+- Do not execute Git-related commands separately or in sequence unless explicitly instructed.
+- This rule applies only to Copilot’s Git automation and does not affect other shell command usage outside these instructions.
+
+## Commit Comment Generation Rules
+- **Never mention file names** in commit messages. File names are already referenced in the Git workflow and do not need to be repeated in the commit message.
+- **Read the actual file contents** that are being committed to generate meaningful commit messages. Do not guess or invent what was changed—summarize based on the real content.
+- **Prefix commit messages** according to the type of change:
+  - `doc`: For changes to documentation or markdown files.
+  - `feature`: For new features or significant enhancements.
+  - `bug`: For bugfixes or corrections.
+  - `refactor`: For code refactoring or restructuring without changing external behavior.
+  - `test`: For changes or additions to tests.
+  - `chore`: For maintenance, build scripts, or non-functional changes.
+  - `style`: For formatting, whitespace, or stylistic changes that do not affect code logic.
+  - `perf`: For performance improvements.
+  - `fun`: For fun or experimental changes that do not fit other categories.
+- **If multiple types apply**, use the most significant one or combine as needed (e.g., `feature, doc`).
+
 ## Git Workflow Automation
 - Use Copilot to automate standard Git operations via terminal commands.
 - Supported actions include:
