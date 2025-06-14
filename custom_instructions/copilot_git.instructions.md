@@ -23,6 +23,8 @@ These standards apply to all Git operations automated by GitHub Copilot within t
   3. Commit with the generated message (`git commit -m "<auto message>"`).
   4. Push to the remote (`git push`).
 
+Do not issue a second `git push` if the first is still in progress or has completed successfully.
+
 ## Examples
   - `gitit!`
   - `commit the file example.md please.`
