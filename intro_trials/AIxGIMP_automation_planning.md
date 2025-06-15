@@ -67,6 +67,24 @@ Batch input will be handled using a file list (e.g., text, CSV, or JSON). This a
 
 ---
 
+## Incremental Layer Addition: Minimal Adjustment Workflow
+
+When adding a new (deeper) image to an existing, aligned stack:
+
+- Only the new image and the mask on the layer directly above it typically need to be updated.
+- There is no need to re-align or re-mask the upper layers unless the addition reveals a problem or you want to make further creative changes.
+- This approach avoids unnecessary work and keeps the workflow efficient.
+
+**Recommended Steps:**
+1. Open the latest XCF file containing your current stack.
+2. Import the new image as a new bottom layer.
+3. Upscale and align the new layer to match the pivot/feature of the layer above.
+4. Adjust the mask on the layer directly above to reveal the new layer as needed.
+5. Optionally, review the stack visually to confirm everything looks correct.
+6. Export the updated stack as needed.
+
+---
+
 ## Collaboration Notes
 - Please add ideas, questions, or comments below!
 

@@ -130,6 +130,11 @@ If final PNGs must match original pixel counts:
 
 ---
 
+> **Note on Incremental Layer Addition:**
+> When adding a new (deeper) image to an existing, aligned stack, only the new image and the mask on the layer directly above it typically need to be updated. There is no need to re-align or re-mask the upper layers unless the addition reveals a problem or further creative changes are desired. This keeps the workflow efficient and focused.
+
+---
+
 <DO_NOT_CHANGE>
 ## Version-Consistency Note (for future conversations)
 The assistant that produced this roadmap is trained primarily on **GIMP 2.1**.  As a result, it sometimes "hallucinates" features that do not exist until GIMP 3.0+.  **For this project we intentionally limit ourselves to functionality that is present in GIMP 2.10/2.1**.  Please assume that every step above relies only on those capabilities.  If you discover that a step behaves differently in your actual install (currently **GIMP 3.0.4**), **let the assistant know** so the instructions can be updated accordingly.
