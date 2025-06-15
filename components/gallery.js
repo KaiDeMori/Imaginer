@@ -1,13 +1,22 @@
 // gallery.js – Thumbnail grid with placeholder support
 export class Gallery {
   constructor(root, viewer) {
-    // Listen for mask updates to synchronize in-memory records
+    // Listen for mask updates to synchronize in-memory records and update UI
     window.addEventListener('imaginer.mask-updated', (e) => {
       const { created, mask_blob, uuid } = e.detail || {};
       if (created && this.records_by_created && this.records_by_created[created]) {
         const rec = this.records_by_created[created];
         rec.mask_blob = mask_blob;
         rec.uuid = uuid;
+        // Update mask-active attribute on the thumbnail container
+        if (this._thumbnail_containers && this._thumbnail_containers[created]) {
+          const container = this._thumbnail_containers[created];
+          if (mask_blob instanceof Blob) {
+            container.setAttribute('mask-active', '');
+          } else {
+            container.removeAttribute('mask-active');
+          }
+        }
       }
     });
     this.root = root;
@@ -65,12 +74,25 @@ export class Gallery {
     const url = URL.createObjectURL(blob);
     // Container for image and download button
     const container = document.createElement('div');
+    container.classList.add('gallery-thumb');
     Object.assign(container.style, {
       position: 'relative',
       width: '100%',
       aspectRatio: '1 / 1',
       display: 'block',
     });
+    // Add mask-active attribute if mask_blob is present
+    if (typeof created === 'number' && this.records_by_created && this.records_by_created[created]) {
+      const rec = this.records_by_created[created];
+      if (rec && rec.mask_blob instanceof Blob) {
+        container.setAttribute('mask-active', '');
+      }
+    }
+    // Store a reference for later updates
+    if (typeof created === 'number') {
+      if (!this._thumbnail_containers) this._thumbnail_containers = {};
+      this._thumbnail_containers[created] = container;
+    }
     // --- Make the container draggable for DnD to prompt panel ---
     container.draggable = true;
     container.addEventListener('dragstart', (event) => {

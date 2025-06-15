@@ -268,6 +268,15 @@ export class Viewer {
                 // Remove mask_blob if mask is empty
                 console.debug('[Imaginer] Mask REMOVED (empty) for image_id:', this.image_id);
                 await window.sessionStore.update(this.image_id, { mask_blob: null });
+                // Dispatch event to notify gallery of mask removal
+                window.dispatchEvent(new CustomEvent('imaginer.mask-updated', {
+                  detail: {
+                    created: rec && rec.created,
+                    image_id: this.image_id,
+                    mask_blob: null,
+                    uuid
+                  }
+                }));
             }
         }
 
