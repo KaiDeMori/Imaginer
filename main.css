@@ -1,5 +1,5 @@
 /* Red outline for input image thumbnails with mask */
-.input-image-thumb[mask-active] {
+.input-image-thumb[mask-active], .gallery-thumb[mask-active] {
   border: 2px solid #e53935 !important;
   box-sizing: border-box;
 }
