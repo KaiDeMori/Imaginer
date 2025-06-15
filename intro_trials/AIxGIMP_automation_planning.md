@@ -1,3 +1,11 @@
+---
+## GIMP 3 Python Plug-in Migration Details
+
+- GIMP 3 no longer supports the old Python-Fu (gimpfu) system. Plug-ins must be written in Python 3 using PyGObject (GObject Introspection).
+- Menu registration and parameter handling are different; plug-ins use the new GIMP 3 API and XML-based or decorator-based procedure registration.
+- Existing scripts using `from gimpfu import *` and `register(...)` will not work in GIMP 3 and must be rewritten.
+- Refer to the official GIMP 3 Python documentation and migration guides for up-to-date examples and best practices.
+
 # AIxGIMP Automation Planning
 
 **Related:** See also: [alien_arrival_gimp_master_document.md](alien_arrival_gimp_master_document.md)
@@ -21,6 +29,7 @@ This file will serve as a collaborative planning space for automating the Alien 
 ---
 
 ## Steps to Automate (from roadmap)
+**Upscaling factor for this workflow is set to 4× (e.g., 1024x1024 → 4096x4096).**
 - [ ] Step 01: Prepare Individual XCF Files
 - [ ] Step 02: Create the Master Alignment Canvas
 - [ ] Step 03: Import Every Plate as a Layer

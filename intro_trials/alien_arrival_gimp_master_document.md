@@ -1,3 +1,8 @@
+---
+## GIMP 3 Plug-in Compatibility Note
+
+GIMP 3 introduces a new Python plug-in system based on Python 3 and PyGObject. The previous Python-Fu (gimpfu) scripts are not compatible and must be rewritten using the new API. All future automation scripts for this project must use the GIMP 3 plug-in conventions to ensure compatibility.
+
 # Alien Arrival — GIMP Master Document (Workflow & Automation)
 _Codename `AIxGIMP`_
 
@@ -48,7 +53,7 @@ Batch input is specified using a plain text file, with one filename per line. Ex
 The automation will read this file to determine the order and selection of input images.
 
 ### Variables
-- `{upscale_factor}`: Integer upscale factor (e.g., 2, 4, ...)
+- `{upscale_factor}`: Integer upscale factor (set to 4 for this workflow; e.g., 1024x1024 → 4096x4096)
 - `{output_folder}`: Output directory for exported PNGs (default: `export/`)
 
 ### Step 00: Prerequisites & Tools
