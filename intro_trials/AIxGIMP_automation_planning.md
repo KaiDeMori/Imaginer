@@ -1,12 +1,18 @@
 ---
+
 ## GIMP 3 Python Plug-in Migration Details
 
-- GIMP 3 no longer supports the old Python-Fu (gimpfu) system. Plug-ins must be written in Python 3 using PyGObject (GObject Introspection).
-- Menu registration and parameter handling are different; plug-ins use the new GIMP 3 API and XML-based or decorator-based procedure registration.
-- Existing scripts using `from gimpfu import *` and `register(...)` will not work in GIMP 3 and must be rewritten.
-- Refer to the official GIMP 3 Python documentation and migration guides for up-to-date examples and best practices.
+See: [GIMP 3 API Migration Notes](GIMP/gimp3_api_migration_notes.md)
 
 # AIxGIMP Automation Planning
+
+## Expected Specs for Imported Images
+- Size: 1024×1024 pixels (before upscaling)
+- Color space: RGB color (GIMP built-in sRGB)
+- Precision: 8-bit non-linear integer
+- Format: PNG
+
+All images used in the workflow should match these specs for best results.
 
 **Related:** See also: [alien_arrival_gimp_master_document.md](alien_arrival_gimp_master_document.md)
 ---

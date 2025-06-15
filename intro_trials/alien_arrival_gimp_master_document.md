@@ -1,9 +1,18 @@
 ---
+
 ## GIMP 3 Plug-in Compatibility Note
 
-GIMP 3 introduces a new Python plug-in system based on Python 3 and PyGObject. The previous Python-Fu (gimpfu) scripts are not compatible and must be rewritten using the new API. All future automation scripts for this project must use the GIMP 3 plug-in conventions to ensure compatibility.
+See: [GIMP 3 API Migration Notes](GIMP/gimp3_api_migration_notes.md)
 
 # Alien Arrival — GIMP Master Document (Workflow & Automation)
+
+## Expected Specs for Imported Images
+- Size: 1024×1024 pixels (before upscaling)
+- Color space: RGB color (GIMP built-in sRGB)
+- Precision: 8-bit non-linear integer
+- Format: PNG
+
+All images used in the workflow should match these specs for best results.
 _Codename `AIxGIMP`_
 
 ---
