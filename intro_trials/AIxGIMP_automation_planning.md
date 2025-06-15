@@ -40,10 +40,22 @@ This file will serve as a collaborative planning space for automating the Alien 
 
 ---
 
-## Open Questions
-- What is the preferred way to batch input files (file list, folder scan, etc.)?
-  
----
+
+## Batch Input Decision
+## Sample File List
+Batch input is specified using a plain text file, with one filename per line. Example:
+
+```
+01_planet.png
+02_continent.png
+03_city.png
+```
+
+The automation will read this file to determine the order and selection of input images.
+Batch input will be handled using a file list (e.g., text, CSV, or JSON). This approach was chosen because:
+- It is the least error-prone to implement (straightforward logic)
+- It is easy to check in to git, so any iteration is automatically maintained
+
 
 ## Next Actions
 - [ ] Review and finalize automation goals and open questions.

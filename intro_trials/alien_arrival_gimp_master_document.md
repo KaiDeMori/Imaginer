@@ -8,7 +8,7 @@ This project also aims to boost acceptance of GIMP as a powerful, open-source, a
 
 
 ## Purpose & Scope
-This document consolidates all planning, workflow, and automation notes for the Alien Arrival GIMP infinite zoom project. It combines the detailed step-by-step process, automation goals, script design ideas, and open questions into a single, authoritative reference. For all contributors: this is the canonical source for both manual and automated workflow development.
+This document consolidates all planning, workflow, and automation notes for the Alien Arrival GIMP infinite zoom project. It combines the detailed step-by-step process, automation goals, and script design ideas into a single, authoritative reference. Batch input is handled via a file list for reproducibility and ease of version control. For all contributors: this is the canonical source for both manual and automated workflow development.
 
 ---
 
@@ -20,6 +20,8 @@ This document consolidates all planning, workflow, and automation notes for the 
 ---
 
 ## Script Design Ideas
+## Why Python-Fu Plug-ins?
+Python-Fu plug-ins are powerful, easy to maintain, and support batch processing and file I/O. They are the best fit for complex, reproducible automation in GIMP.
 - Use Python-Fu for GIMP scripting (preferred for flexibility and readability).
 - Parameterize input files, upscale factor, output folder, and mask shapes.
 - Modularize scripts for each major step.
@@ -33,6 +35,17 @@ This document consolidates all planning, workflow, and automation notes for the 
 ---
 
 ## Detailed Workflow (Step-by-Step)
+
+## Sample File List
+Batch input is specified using a plain text file, with one filename per line. Example:
+
+```
+01_planet.png
+02_continent.png
+03_city.png
+```
+
+The automation will read this file to determine the order and selection of input images.
 
 ### Variables
 - `{upscale_factor}`: Integer upscale factor (e.g., 2, 4, ...)
