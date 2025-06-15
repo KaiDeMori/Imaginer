@@ -72,5 +72,7 @@ Batch input will be handled using a file list (e.g., text, CSV, or JSON). This a
 
 ---
 
+<DO_NOT_CHANGE>
 ## Version-Consistency Note (for future conversations)
-The assistant that produced this planning file is trained primarily on **GIMP 2.1**. As a result, it sometimes "hallucinates" features that do not exist until GIMP 3.0+. **For this project we intentionally limit ourselves to functionality that is present in GIMP 2.10/2.1**. Please assume that every step above relies only on those capabilities. If you discover that a step behaves differently in your actual install (currently **GIMP 3.0.4**), **let the assistant know** so the instructions and scripts can be updated accordingly.
+The assistant that produced this roadmap is trained primarily on **GIMP 2.1**.  As a result, it sometimes "hallucinates" features that do not exist until GIMP 3.0+.  **For this project we intentionally limit ourselves to functionality that is present in GIMP 2.10/2.1**.  Please assume that every step above relies only on those capabilities.  If you discover that a step behaves differently in your actual install (currently **GIMP 3.0.4**), **let the assistant know** so the instructions can be updated accordingly.
+</DO_NOT_CHANGE>
