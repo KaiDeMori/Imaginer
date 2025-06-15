@@ -37,4 +37,35 @@ When the mask feature palette is disabled ("basic mode"), the following UI eleme
 - When mask features are enabled, all UI and functionality should be restored as normal.
 
 ---
+
+## Implementation Plan: Mask Mode Toggle
+
+Below is a list of files to update for a strict Mask Mode toggle implementation, with notes for each:
+
+1. **components/config_dialog.js**
+   - Add a new checkbox for "Enable Mask Mode" (or similar wording).
+   - Save the setting to localStorage (e.g., `imaginer.enable_mask_mode`).
+   - On change, trigger a UI update (possibly via a custom event or by reloading relevant UI).
+
+2. **components/config_dialog.css**
+   - (Optional) Style the new checkbox and hide mask-related config options when Mask Mode is disabled.
+
+3. **components/viewer/viewer.js**
+   - On initialization and when the setting changes, hide or disable all mask-related UI (mask mode button, remove masks button, mask overlays, etc.).
+   - Prevent mask-related actions/events if Mask Mode is disabled.
+
+4. **components/gallery.js**
+   - Hide mask indicators (e.g., red border, `[mask-active]` attribute) when Mask Mode is disabled.
+   - Prevent mask drag-and-drop if Mask Mode is disabled.
+
+5. **components/prompt_panel.js**
+   - Hide or disable any mask-related options or controls in the prompt panel when Mask Mode is disabled.
+
+6. **main.css**
+   - (Optional) Add or adjust CSS to ensure mask-related UI is hidden when Mask Mode is disabled.
+
+7. **Any other mask-related files (e.g., mask_manager.js, mask_mode_behaviour.js)**
+   - Ensure no mask logic is triggered or visible when Mask Mode is disabled.
+
+---
 This checklist should be referenced when implementing or reviewing the mask mode toggle feature for a strict "basic mode" experience.
