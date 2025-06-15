@@ -1,0 +1,2 @@
+planet_totale.png
+continent.png
