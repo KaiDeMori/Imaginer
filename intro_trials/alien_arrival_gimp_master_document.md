@@ -58,6 +58,8 @@ The automation will read this file to determine the order and selection of input
 - [ ] Source artwork: one raster image (PNG) per zoom level
 - [ ] Integer upscale factor `{upscale_factor}` (2 ×, 4 ×, ...)
 
+The plug-ins path is set in GIMP under Edit → Preferences → Folders → Plug-ins. Adding the project’s development folder (e.g., `plug-ins/infinite_zoom_plugins`) to this path ensures GIMP loads the latest scripts from the workspace and avoids duplication.
+
 ### Step 01: Prepare Individual XCF Files (optional)
 - [ ] Open each source PNG file
 - [ ] File → **Save As …** → `01_planet.xcf`, `02_continent.xcf`, `03_city.xcf`, etc.
