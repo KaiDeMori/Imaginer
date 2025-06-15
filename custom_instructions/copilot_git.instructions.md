@@ -26,6 +26,7 @@ These standards apply to all Git operations automated by GitHub Copilot within t
   - `style`: For formatting, whitespace, or stylistic changes that do not affect code logic.
   - `perf`: For performance improvements.
   - `fun`: For fun or experimental changes that do not fit other categories.
+  - `archive`: For file movements into an `archive` folder.
 - **If multiple types apply**, use the most significant one or combine as needed (e.g., `feature, doc`).
 
 ## Git Workflow Automation
@@ -43,7 +44,6 @@ These standards apply to all Git operations automated by GitHub Copilot within t
   2. Stage only the files that were edited or developed in the current conversation (e.g., `git add <file1> <file2> ...`), not all files (`git add .`).
   3. Commit with the generated message (`git commit -m "<auto message>"`).
   4. Push to the remote (`git push`).
-- **If no file changes are detected in the current conversation**, Copilot must first run a `git status` command to verify if there are any unstaged or uncommitted changes. Usually, there will be changes, so Copilot should explicitly verify this before reporting that there are no files to commit.
 
 ## Shortcut: `geronimo!`
 **Note:** `geronimo!` is a workflow shortcut for Copilot to automate a full commit-and-push process for all changes in the workspace.
@@ -53,8 +53,8 @@ When the request contains `geronimo!`, Copilot will:
   2. Stage all changes in the workspace (`git add .`).
   3. Commit all staged changes with the generated message (`git commit -m "<auto message>"`).
   4. Push to the remote (`git push`).
-
-Do not issue a second `git push` if the first is still in progress or has completed successfully.
+- **If no file changes are detected in the current conversation**, Copilot must first run a `git status` command to verify if there are any unstaged or uncommitted changes. Usually, there will be changes, so Copilot should explicitly verify this before reporting that there are no files to commit.
+- Do not issue a second `git push` if the first is still in progress or has completed successfully.
 
 ## Examples
 - `gitit!`
