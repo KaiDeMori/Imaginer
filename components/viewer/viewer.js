@@ -23,13 +23,30 @@ export class Viewer {
        Construction
     ------------------------------------------------------------------ */
     constructor() {
+
         /* Overlay node ------------------------------------------------ */
         this.overlay = document.createElement('div');
         this.overlay.id = 'imaginer-viewer';
         this.overlay.classList.add('viewer_overlay');
         document.body.appendChild(this.overlay);
 
-        /* Remove mode button */
+        // --- Mask mode controls container (flex, right-aligned) ---
+        this.mask_mode_controls = document.createElement('div');
+        this.mask_mode_controls.classList.add('mask_mode_controls');
+        Object.assign(this.mask_mode_controls.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-end',
+            gap: '8px',
+            position: 'absolute',
+            top: '16px',
+            right: '24px',
+            zIndex: 10,
+            width: 'auto',
+            whiteSpace: 'nowrap'
+        });
+
         this.mask_mode = false;
         // Mask data and offscreen cache
         this.mask_data = null; // Uint8ClampedArray for alpha mask
@@ -45,24 +62,24 @@ export class Viewer {
             e.stopPropagation();
             this.toggle_mask_mode();
         });
-        // Dynamically manage mask mode button visibility
-        this.update_mask_mode_button_visibility();
 
-        // Remove masks button (initially hidden)
         this.remove_masks_button = document.createElement('button');
         this.remove_masks_button.textContent = 'Remove Masks';
         this.remove_masks_button.classList.add('remove_masks_button');
+        // Start hidden, will be shown in mask mode
         this.remove_masks_button.style.display = 'none';
         this.remove_masks_button.addEventListener('click', (e) => {
             e.stopPropagation();
             this.remove_all_masks();
         });
-        // Insert after mask_mode_button if present, else just append
-        if (this.overlay.contains(this.mask_mode_button)) {
-            this.overlay.insertBefore(this.remove_masks_button, this.mask_mode_button.nextSibling);
-        } else {
-            this.overlay.appendChild(this.remove_masks_button);
-        }
+
+        // Add both buttons to the controls container
+        this.mask_mode_controls.appendChild(this.mask_mode_button);
+        this.mask_mode_controls.appendChild(this.remove_masks_button);
+        this.overlay.appendChild(this.mask_mode_controls);
+
+        // Dynamically manage mask mode button visibility
+        this.update_mask_mode_button_visibility();
 
         /* Canvas ------------------------------------------------------- */
         this.canvas = document.createElement('canvas');
@@ -116,15 +133,11 @@ export class Viewer {
      */
     update_mask_mode_button_visibility() {
         const show_mask_mode = localStorage.getItem('imaginer.show_mask_mode_button') !== 'false';
-        const button_in_dom = this.overlay.contains(this.mask_mode_button);
-        if (show_mask_mode && !button_in_dom) {
-            this.overlay.appendChild(this.mask_mode_button);
-            // Also re-insert remove_masks_button after mask_mode_button if present
-            if (this.overlay.contains(this.remove_masks_button)) {
-                this.overlay.insertBefore(this.remove_masks_button, this.mask_mode_button.nextSibling);
-            }
-        } else if (!show_mask_mode && button_in_dom) {
-            this.overlay.removeChild(this.mask_mode_button);
+        // Show/hide the mask_mode_controls container as a whole
+        if (show_mask_mode) {
+            this.mask_mode_controls.style.display = 'flex';
+        } else {
+            this.mask_mode_controls.style.display = 'none';
         }
     }
 
@@ -309,7 +322,7 @@ export class Viewer {
         this.behaviour.set_mode(this.mask_mode ? 'mask' : 'viewer');
         // Show/hide mask_mode_button based on mask_mode
         if (this.mask_mode) {
-            this.remove_masks_button.style.display = '';
+            this.remove_masks_button.style.display = 'inline-block';
         } else {
             this.remove_masks_button.style.display = 'none';
         }
