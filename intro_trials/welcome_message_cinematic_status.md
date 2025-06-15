@@ -1,7 +1,6 @@
 # Welcome Message Cinematic Status
 
 > **File:** `welcome_message_cinematic_status.md`  
-> **Location:** `c:/Users/devboese/Documents/_dev/Imaginer/`
 
 ## Progress Overview
 - **Current Status:** Planning phase
