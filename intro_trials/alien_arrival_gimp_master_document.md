@@ -13,6 +13,8 @@ See: [GIMP 3 API Migration Notes](GIMP/gimp3_api_migration_notes.md)
 - Format: PNG
 
 All images used in the workflow should match these specs for best results.
+
+## File List and Image Directory Requirement
 _Codename `AIxGIMP`_
 
 ---

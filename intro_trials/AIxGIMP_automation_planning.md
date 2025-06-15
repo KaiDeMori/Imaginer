@@ -14,6 +14,9 @@ See: [GIMP 3 API Migration Notes](GIMP/gimp3_api_migration_notes.md)
 
 All images used in the workflow should match these specs for best results.
 
+## File List and Image Directory Requirement
+The file list (e.g., `alien_arrival_sequence.txt`) and all referenced images must be in the same directory. Only file names (no directories or paths) should be used in the file list for safety and portability. The import process will always look for images in the same directory as the file list.
+
 **Related:** See also: [alien_arrival_gimp_master_document.md](alien_arrival_gimp_master_document.md)
 ---
 
