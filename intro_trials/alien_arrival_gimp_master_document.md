@@ -26,12 +26,6 @@ This document consolidates all planning, workflow, and automation notes for the 
 - For alignment, the user will manually align each image relative to the surrounding (previous) one. The script can then automatically define the pivot point as the center or a fixed reference in the aligned image stack, based on the manual alignment. This ensures consistency and reduces configuration overhead.
 - Add prompts or checkpoints for human input where needed.
 
----
-
-## Open Questions / Decisions
-<none at the moment>
-
----
 
 ## Collaboration Notes
 - Please add ideas, questions, or comments below!

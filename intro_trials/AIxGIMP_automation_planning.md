@@ -1,6 +1,6 @@
 # AIxGIMP Automation Planning
 
-**Related:** See also: [alien_arrival_GIMP_detailed_roadmap.md](alien_arrival_GIMP_detailed_roadmap.md)
+**Related:** See also: [alien_arrival_gimp_master_document.md](alien_arrival_gimp_master_document.md)
 ---
 
 ## User Input Summary
@@ -40,8 +40,7 @@ This file will serve as a collaborative planning space for automating the Alien 
 
 ---
 
-## Open Questions / Decisions
-- How will the user specify the pivot point for alignment? (Manual, or via config file?)
+## Open Questions
 - What is the preferred way to batch input files (file list, folder scan, etc.)?
   
 ---
