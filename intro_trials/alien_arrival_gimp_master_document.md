@@ -1,10 +1,5 @@
 ---
 
-
-## GIMP 2.10 Plug-in Compatibility Note
-
-See: [GIMP 2.10 Python-Fu Notes](GIMP/gimp3_api_migration_notes.md)
-
 # Alien Arrival — GIMP Master Document (Workflow & Automation)
 
 ## Expected Specs for Imported Images
