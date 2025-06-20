@@ -15,6 +15,17 @@ _Codename `AIxGIMP`_
 
 ---
 
+## Unified Project Workflow (GIMP Plug-in)
+
+The workflow is managed by a single GIMP Python-Fu plug-in:
+
+- **Open Existing Project:** Paste or select the base directory containing `GIMP_infinite_zoom_sequence_files.txt`. The plug-in will read the file list and stack the images as layers in a new GIMP document.
+- **Create New List:** Select up to 4 PNG files (the first sets the base directory). The plug-in writes `GIMP_infinite_zoom_sequence_files.txt` in that directory and immediately opens the project.
+
+This unified dialog avoids code duplication and streamlines both starting and resuming projects. All automation and stacking logic is shared, ensuring a robust and user-friendly workflow.
+
+---
+
 ## Why GIMP? (Open-Source Advocacy)
 This project also aims to boost acceptance of GIMP 2.10 as a powerful, open-source, and now truly mature software solution for creative workflows. By demonstrating how AI-driven automation and creative support can enhance GIMP 2.10’s capabilities, and by sharing advanced, reproducible, and collaborative processes, we hope to encourage wider adoption of GIMP 2.10 in both professional and enthusiast communities.
 
