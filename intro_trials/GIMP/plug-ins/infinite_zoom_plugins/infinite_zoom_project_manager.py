@@ -111,9 +111,7 @@ register(
     "",
     [
         (PF_OPTION, "mode", "Action", 0, ["Open existing project", "Create new list & open"]),
-        (PF_LABEL, "label_open", "--- Open Mode ---"),
         (PF_FILE, "project_file", "Project file (for open mode only)", None),
-        (PF_LABEL, "label_create", "--- Create Mode ---"),
         (PF_FILE, "png1", "PNG file 1 (sets base directory, for create mode only)", None),
         (PF_FILE, "png2", "PNG file 2 (for create mode only)", None),
         (PF_FILE, "png3", "PNG file 3 (for create mode only)", None),
