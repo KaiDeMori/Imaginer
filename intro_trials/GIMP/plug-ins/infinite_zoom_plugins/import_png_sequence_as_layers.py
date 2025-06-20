@@ -66,7 +66,7 @@ register(
     "Import PNG Sequence as Layers...",
     "",
     [
-        (PF_FILE, "file_list_path", "Text file with PNG file list", None),
+        (PF_STRING, "file_list_path", "Path to text file with PNG file list", ""),
     ],
     [],
     import_png_sequence_as_layers,
