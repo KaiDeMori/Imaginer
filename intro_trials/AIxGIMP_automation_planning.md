@@ -1,8 +1,9 @@
 ---
 
-## GIMP 3 Python Plug-in Migration Details
 
-See: [GIMP 3 API Migration Notes](GIMP/gimp3_api_migration_notes.md)
+## GIMP 2.10 Python-Fu Plug-in Details
+
+See: [GIMP 2.10 Python-Fu Notes](GIMP/gimp3_api_migration_notes.md)
 
 # AIxGIMP Automation Planning
 
@@ -51,7 +52,7 @@ This file will serve as a collaborative planning space for automating the Alien 
 ---
 
 ## Script Design Ideas
-- Use Python-Fu for GIMP scripting (preferred for flexibility and readability).
+- Use Python-Fu for GIMP 2.10 scripting (preferred for flexibility and readability).
 - Parameterize input files, upscale factor, output folder, pivot coordinates, and mask shapes.
 - Modularize scripts for each major step.
 - Add prompts or checkpoints for human input where needed (e.g., pivot selection).
@@ -110,5 +111,5 @@ When adding a new (deeper) image to an existing, aligned stack:
 
 <DO_NOT_CHANGE>
 ## Version-Consistency Note (for future conversations)
-The assistant that produced this roadmap is trained primarily on **GIMP 2.1**.  As a result, it sometimes "hallucinates" features that do not exist until GIMP 3.0+.  **For this project we intentionally limit ourselves to functionality that is present in GIMP 2.10/2.1**.  Please assume that every step above relies only on those capabilities.  If you discover that a step behaves differently in your actual install (currently **GIMP 3.0.4**), **let the assistant know** so the instructions can be updated accordingly.
+This project is exclusively for **GIMP 2.10**. All steps above rely only on GIMP 2.10 capabilities. If you discover that a step behaves differently in your actual install, please let the assistant know so the instructions can be updated accordingly.
 </DO_NOT_CHANGE>

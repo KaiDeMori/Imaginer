@@ -1,8 +1,9 @@
 ---
 
-## GIMP 3 Plug-in Compatibility Note
 
-See: [GIMP 3 API Migration Notes](GIMP/gimp3_api_migration_notes.md)
+## GIMP 2.10 Plug-in Compatibility Note
+
+See: [GIMP 2.10 Python-Fu Notes](GIMP/gimp3_api_migration_notes.md)
 
 # Alien Arrival — GIMP Master Document (Workflow & Automation)
 
@@ -20,7 +21,7 @@ _Codename `AIxGIMP`_
 ---
 
 ## Why GIMP? (Open-Source Advocacy)
-This project also aims to boost acceptance of GIMP as a powerful, open-source, and now truly mature software solution for creative workflows. By demonstrating how AI-driven automation and creative support can enhance GIMP’s capabilities, and by sharing advanced, reproducible, and collaborative processes, we hope to encourage wider adoption of GIMP in both professional and enthusiast communities.
+This project also aims to boost acceptance of GIMP 2.10 as a powerful, open-source, and now truly mature software solution for creative workflows. By demonstrating how AI-driven automation and creative support can enhance GIMP 2.10’s capabilities, and by sharing advanced, reproducible, and collaborative processes, we hope to encourage wider adoption of GIMP 2.10 in both professional and enthusiast communities.
 
 
 ## Purpose & Scope
@@ -37,8 +38,8 @@ This document consolidates all planning, workflow, and automation notes for the 
 
 ## Script Design Ideas
 ## Why Python-Fu Plug-ins?
-Python-Fu plug-ins are powerful, easy to maintain, and support batch processing and file I/O. They are the best fit for complex, reproducible automation in GIMP.
-- Use Python-Fu for GIMP scripting (preferred for flexibility and readability).
+Python-Fu plug-ins are powerful, easy to maintain, and support batch processing and file I/O. They are the best fit for complex, reproducible automation in GIMP 2.10.
+- Use Python-Fu for GIMP 2.10 scripting (preferred for flexibility and readability).
 - Parameterize input files, upscale factor, output folder, and mask shapes.
 - Modularize scripts for each major step.
 - For alignment, the user will manually align each image relative to the surrounding (previous) one. The script can then automatically define the pivot point as the center or a fixed reference in the aligned image stack, based on the manual alignment. This ensures consistency and reduces configuration overhead.
@@ -68,13 +69,13 @@ The automation will read this file to determine the order and selection of input
 - `{output_folder}`: Output directory for exported PNGs (default: `export/`)
 
 ### Step 00: Prerequisites & Tools
-- [ ] GIMP 2.10 (or 2.1) installed
+- [ ] GIMP 2.10 installed
 - [ ] Plug-in **Export Layers** (bundled)
 - [ ] (Optional) Plug-in *Align Visible Layers*
 - [ ] Source artwork: one raster image (PNG) per zoom level
 - [ ] Integer upscale factor `{upscale_factor}` (2 ×, 4 ×, ...)
 
-The plug-ins path is set in GIMP under Edit → Preferences → Folders → Plug-ins. Adding the project’s development folder (e.g., `plug-ins/infinite_zoom_plugins`) to this path ensures GIMP loads the latest scripts from the workspace and avoids duplication.
+The plug-ins path is set in GIMP 2.10 under Edit → Preferences → Folders → Plug-ins. Adding the project’s development folder (e.g., `plug-ins/infinite_zoom_plugins`) to this path ensures GIMP loads the latest scripts from the workspace and avoids duplication.
 
 ### Step 01: Prepare Individual XCF Files (optional)
 - [ ] Open each source PNG file
@@ -153,5 +154,5 @@ If final PNGs must match original pixel counts:
 
 <DO_NOT_CHANGE>
 ## Version-Consistency Note (for future conversations)
-The assistant that produced this roadmap is trained primarily on **GIMP 2.1**.  As a result, it sometimes "hallucinates" features that do not exist until GIMP 3.0+.  **For this project we intentionally limit ourselves to functionality that is present in GIMP 2.10/2.1**.  Please assume that every step above relies only on those capabilities.  If you discover that a step behaves differently in your actual install (currently **GIMP 3.0.4**), **let the assistant know** so the instructions can be updated accordingly.
+This project is exclusively for **GIMP 2.10**. All steps above rely only on GIMP 2.10 capabilities. If you discover that a step behaves differently in your actual install, please let the assistant know so the instructions can be updated accordingly.
 </DO_NOT_CHANGE>
