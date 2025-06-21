@@ -14,10 +14,12 @@ The project involves creating an "infinity zoom" animation using a series of ima
 
 ## Zoom Factors
 - Zoom factors vary between layers (mostly 50%, but some layers are 25% or 10%).
+  **Note:** Specify zoom factors as whole-number percentages (e.g., use `50` for 50%, `25` for 25%). Do not use decimal fractions like `0.5` or `0.25`.
 - The layer data array defines each layer and its zoom percentage.
 
 ### Example Layer Data Array Format
 ```
+    // Zoom factors must be whole-number percentages (e.g., 50, 25), not decimals (e.g., 0.5, 0.25)
     const LAYERS_DATA = [
         { zoom: 25, image: '60_alien_island.png' },
         { zoom: 25, image: '70_alien_forest.png' },

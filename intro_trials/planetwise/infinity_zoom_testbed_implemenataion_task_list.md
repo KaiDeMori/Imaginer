@@ -6,9 +6,11 @@
 - [ ] Project Structure & Data
   - [ ] Create a simple HTML file with a `<canvas>` filling the viewport
   - [ ] Embed the layer data directly in the code as a JavaScript array
+    - **Note:** Specify zoom factors as whole-number percentages (e.g., use `50` for 50%, `25` for 25%). Do not use decimal fractions like `0.5` or `0.25`.
   - [ ] Define a constant for the image folder path
 - [ ] Data Parsing & Image Preloading
   - [ ] Parse the embedded layer data into an array of `{zoom, image}` objects
+    - Zoom factors must be whole-number percentages (e.g., 50, 25), not decimals (e.g., 0.5, 0.25)
   - [ ] Preload all images before starting the animation
   - [ ] Store images in an array matching the parsed layer order
 - [ ] Canvas Setup & Resizing
