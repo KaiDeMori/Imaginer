@@ -21,10 +21,10 @@ The project involves creating an "infinity zoom" animation using a series of ima
 ```
     // Zoom factors must be whole-number percentages (e.g., 50, 25), not decimals (e.g., 0.5, 0.25)
     const LAYERS_DATA = [
-        { zoom: 25, image: '60_alien_island.png' },
-        { zoom: 25, image: '70_alien_forest.png' },
-        { zoom: 25, image: '80_alien_village.png' },
-        { zoom: 25, image: '90_alien_hut.png' },
+        { zoom: 25, image: 'Planet_totale.png' },
+        { zoom: 25, image: 'Planet_close.png' },
+        { zoom: 25, image: 'Continent.png' },
+        { zoom: 25, image: 'Continent_Detail.png' },
     ];
 ```
 
