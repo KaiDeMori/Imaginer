@@ -28,7 +28,9 @@
   - [ ] Draw layers in order: outermost to innermost
 - [ ] Drawing Logic
   - [ ] Draw each visible image layer, perfectly centered and scaled
-  - [ ] Ensure no borders/empty space (cover the viewport)
+    - [ ] Each image must be drawn preserving its original aspect ratio, preventing any stretching or distortion.
+    - [ ] The drawing logic should fit each image to the viewport as much as possible, centering it and allowing letterboxing if aspect ratios differ.
+  - [ ] Ensure no borders/empty space (cover the viewport) unless aspect ratio differences require letterboxing
   - [ ] Only draw layers that are visible or in transition
 - [ ] Minimal Threshold & Looping
   - [ ] Define a minimal size threshold for when a layer becomes visible

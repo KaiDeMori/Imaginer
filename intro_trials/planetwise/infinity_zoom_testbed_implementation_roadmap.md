@@ -24,15 +24,22 @@
 - Use `requestAnimationFrame` for the animation loop.
 - When the innermost layer is reached, reset to loop.
 
-- For each frame:
-  - Calculate the current zoom level.
-  - Ensure the zoom logic causes each new image layer to appear larger as the animation progresses (zooming in only; images must not shrink).
-  - Determine which layers are visible (above minimal threshold).
-  - For each visible layer, compute its scale and draw it, centered and scaled to fill the viewport.
-  - Draw layers in order: outermost to innermost.
+### For each frame
+
+- Calculate the current zoom level.
+- Ensure the zoom logic causes each new image layer to appear larger as the animation progresses (zooming in only; images must not shrink).
+- Determine which layers are visible (above minimal threshold).
+- For each visible layer, compute its scale and draw it, centered and scaled to fill the viewport.
+- Draw layers in order: outermost to innermost.
+
+
+
+### Drawing logic
 
 - Draw each visible image layer, perfectly centered and scaled.
-- Ensure no borders/empty space (cover the viewport).
+- Each image is drawn preserving its original aspect ratio, preventing any stretching or distortion.
+- The drawing logic ensures the image fills the viewport as much as possible without altering its aspect ratio (letterboxing may occur if the aspect ratios differ).
+- Ensure no borders/empty space (cover the viewport) unless aspect ratio differences require letterboxing.
 - Only draw layers that are visible or in transition.
 - **Check:** If images appear to get smaller as the animation progresses, the zoom direction is incorrect and must be fixed to ensure zooming in.
 

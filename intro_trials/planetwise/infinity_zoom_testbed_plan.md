@@ -30,7 +30,7 @@ The project involves creating an "infinity zoom" animation using a series of ima
 
 
 ## Animation Requirements
-- The animation must always be full-screen, filling the entire browser viewport. The canvas should resize dynamically to match the window size, and the zoomed images should scale to fill the viewport without borders or empty space.
+- The animation must always be full-screen, filling the entire browser viewport. The canvas should resize dynamically to match the window size, and the zoomed images should scale to fill the viewport as much as possible while preserving their original aspect ratio (no stretching or distortion). If the image and viewport aspect ratios differ, letterboxing may occur.
 - The animation must visually zoom in: each new image layer should appear larger, giving the impression of moving deeper into the scene. At no point should the animation create a zooming out effect (where images get smaller and recede).
 - Use `requestAnimationFrame` for smooth animation.
 - No need to define the number of images in the code; it will be determined by the number of entries in the layer data array.
@@ -49,7 +49,7 @@ For this testbed, we will use a `<canvas>` element for rendering the animation. 
 
 This is an experimental decision and may be revisited as we learn more from implementation and testing. If new requirements or discoveries suggest a different approach, we can adapt accordingly.
 
-For now, only the necessary image layers are drawn (fully opaque and stacked in order as needed). Future enhancements may include transparency or edge blurring to improve the visual transition between layers.
+For now, only the necessary image layers are drawn (fully opaque and stacked in order as needed). Each image is rendered preserving its original aspect ratio, ensuring no stretching or distortion occurs. The drawing logic fits each image to the viewport as much as possible, centering it and allowing letterboxing if aspect ratios differ. Future enhancements may include transparency or edge blurring to improve the visual transition between layers.
 
 
 ## Animation Concept Clarification
