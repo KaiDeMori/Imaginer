@@ -28,6 +28,7 @@ The project involves creating an "infinity zoom" animation using a series of ima
 ``
 
 ## Animation Requirements
+- The animation must always be full-screen, filling the entire browser viewport. The canvas should resize dynamically to match the window size, and the zoomed images should scale to fill the viewport without borders or empty space.
 - Use `requestAnimationFrame` for smooth animation.
 - No need to define the number of images in the code; it will be determined by the number of lines in `layers.txt`.
 - For each frame, only draw the image layers that are currently visible or in transition (i.e., those whose scaled size is above a minimal threshold).
