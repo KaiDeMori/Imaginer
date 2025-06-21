@@ -1,43 +1,44 @@
 # Infinity Zoom Animation Testbed Plan
 
 ## Overview
-**Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this test app. The `layers.txt` data has been embedded directly into the HTML file to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code (default:`zoom_images`), and only image filenames are listed in the data array for reduced repetition and easier maintenance.
+**Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this test app. The layer data (zoom factors and image filenames) is embedded directly in the HTML or code to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code (default:`zoom_images`), and only image filenames are listed in the data array for reduced repetition and easier maintenance.
 
 The project involves creating an "infinity zoom" animation using a series of images. Each image represents a zoomed-in layer of the previous one, sharing the same center. The animation smoothly transitions between these layers by introducing each new layer at a tiny scale and growing it as the zoom progresses. Only the image layers that are currently visible or in transition are drawn at any moment, ensuring seamless and efficient rendering. For now, the animation only supports zooming in (not zooming out).
 
 ## Image Details
 - All images are 2048x2048 pixels.
 - Images can have arbitrary filenames (e.g., `planet.png`, `continent.png`, `alien.png`).
-- The order of layers is determined by their order in the data array or in `layers.txt`, not by filename numbering or padding.
+- The order of layers is determined by their order in the data array, not by filename numbering or padding.
 
 ## Zoom Factors
 - Zoom factors vary between layers (mostly 50%, but some layers are 25% or 10%).
-- A text file (`layers.txt`) will define each layer and its zoom percentage.
+- The layer data array defines each layer and its zoom percentage.
 
-### Example `layers.txt` Format
+### Example Layer Data Array Format
 ```
-50,planet.png
-50,planet.png
-25,planet.png
-50,planet.png
-50,continent.png
-10,city.png
-50,street.png
-50,garden.png
-50,alien.png
-``
+[
+  { zoom: 50, filename: 'planet.png' },
+  { zoom: 50, filename: 'planet.png' },
+  { zoom: 25, filename: 'planet.png' },
+  { zoom: 50, filename: 'planet.png' },
+  { zoom: 50, filename: 'continent.png' },
+  { zoom: 10, filename: 'city.png' },
+  { zoom: 50, filename: 'street.png' },
+  { zoom: 50, filename: 'garden.png' },
+  { zoom: 50, filename: 'alien.png' }
+]
 
 ## Animation Requirements
 - The animation must always be full-screen, filling the entire browser viewport. The canvas should resize dynamically to match the window size, and the zoomed images should scale to fill the viewport without borders or empty space.
 - Use `requestAnimationFrame` for smooth animation.
-- No need to define the number of images in the code; it will be determined by the number of lines in `layers.txt`.
+- No need to define the number of images in the code; it will be determined by the number of entries in the layer data array.
 - For each frame, only draw the image layers that are currently visible or in transition (i.e., those whose scaled size is above a minimal threshold).
 - For testing purposes, the animation repeats (loops) automatically after reaching the innermost layer, restarting the zoom-in sequence.
 
 
 ## Additional Considerations
 - The animation should be simple and auto-looping.
-- The zoom factors and image sequence can be easily adjusted by modifying `layers.txt`.
+- The zoom factors and image sequence can be easily adjusted by modifying the embedded layer data array.
 
 
 ## Rendering Method Decision (Experimental)
