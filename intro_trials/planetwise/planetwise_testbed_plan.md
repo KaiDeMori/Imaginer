@@ -1,7 +1,7 @@
 # Infinity Zoom Animation Testbed Plan
 
 ## Overview
-**Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this plan. The `layers.txt` data has been embedded directly into the HTML file to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code (default:`zoom_images`), and only image filenames are listed in the data array for reduced repetition and easier maintenance.
+**Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this test app. The `layers.txt` data has been embedded directly into the HTML file to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code (default:`zoom_images`), and only image filenames are listed in the data array for reduced repetition and easier maintenance.
 
 The project involves creating an "infinity zoom" animation using a series of images. Each image represents a zoomed-in layer of the previous one, sharing the same center. The animation smoothly transitions between these layers by introducing each new layer at a tiny scale and growing it as the zoom progresses. Only the image layers that are currently visible or in transition are drawn at any moment, ensuring seamless and efficient rendering. For now, the animation only supports zooming in (not zooming out).
 
@@ -16,16 +16,16 @@ The project involves creating an "infinity zoom" animation using a series of ima
 
 ### Example `layers.txt` Format
 ```
-50,01_planet.png
-50,02_planet.png
-25,03_planet.png
-50,04_planet.png
-50,05_continent.png
-10,06_city.png
-50,07_street.png
-50,08_garden.png
-50,09_alien.png
-```
+50,planet.png
+50,planet.png
+25,planet.png
+50,planet.png
+50,continent.png
+10,city.png
+50,street.png
+50,garden.png
+50,alien.png
+``
 
 ## Animation Requirements
 - Use `requestAnimationFrame` for smooth animation.
