@@ -3,12 +3,12 @@
 ## Overview
 **Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this plan. The `layers.txt` data has been embedded directly into the HTML file to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code, and only image filenames are listed in the data array for reduced repetition and easier maintenance.
 
-The project involves creating an "infinity zoom" animation using a series of images. Each image represents a zoomed-in layer of the previous one, sharing the same center. The animation smoothly transitions between these layers by introducing each new layer at a tiny scale and growing it as the zoom progresses. Only the image layers that are currently visible or in transition are drawn at any moment, ensuring seamless and efficient rendering.
+The project involves creating an "infinity zoom" animation using a series of images. Each image represents a zoomed-in layer of the previous one, sharing the same center. The animation smoothly transitions between these layers by introducing each new layer at a tiny scale and growing it as the zoom progresses. Only the image layers that are currently visible or in transition are drawn at any moment, ensuring seamless and efficient rendering. For now, the animation only supports zooming in (not zooming out).
 
 ## Image Details
 - All images are 2048x2048 pixels.
-- Images are named sequentially (e.g., `01_planet.png`, `02_planet.png`, ..., `09_alien.png`).
-- The initial number in the filename indicates the layer order.
+- Images can have arbitrary filenames (e.g., `planet.png`, `continent.png`, `alien.png`).
+- The order of layers is determined by their order in the data array or in `layers.txt`, not by filename numbering or padding.
 
 ## Zoom Factors
 - Zoom factors vary between layers (mostly 50%, but some layers are 25% or 10%).
@@ -29,7 +29,6 @@ The project involves creating an "infinity zoom" animation using a series of ima
 
 ## Animation Requirements
 - Use `requestAnimationFrame` for smooth animation.
-- Loop the animation back and forth continuously.
 - No need to define the number of images in the code; it will be determined by the number of lines in `layers.txt`.
 - For each frame, only draw the image layers that are currently visible or in transition (i.e., those whose scaled size is above a minimal threshold).
 
@@ -53,13 +52,13 @@ For now, only the necessary image layers are drawn (fully opaque and stacked in 
 
 ### Layer Visibility and Transition Logic
 
-At any moment, only the image layers that are currently visible or in transition are drawn. The process works as follows:
+At any moment, only the image layers that are currently visible or in transition are drawn. The process works as follows (zooming in only):
 
-- The animation starts by displaying the first (outermost) image layer, filling the view.
+- The animation starts by displaying the first (outermost) image layer, filling the view. This is always drawn as the current base layer.
 - As the zoom progresses, the next (deeper) image layer is introduced at a very small scale (almost a pixel), perfectly aligned and centered.
-- As you continue zooming in, the new layer grows in size. When it fills the view, it becomes the new base layer.
+- As you continue zooming in, the new layer grows in size. When it fills the view, it becomes the new base layer and is always drawn.
 - Depending on the zoom factor between layers, it may be necessary to show more than two layers at once. If the next-next layer's scaled size exceeds a minimal threshold (e.g., a few pixels), it is also drawn, starting at a tiny scale.
-- For each frame, the code checks which deeper layers are large enough to be visible (above a minimal threshold) and draws them in order, from outermost to innermost.
+- For each frame, the code checks which deeper layers (including the current base layer) are large enough to be visible (above a minimal threshold) and draws them in order, from outermost to innermost.
 - This ensures that all relevant layers are drawn for smooth transitions, and no abrupt popping-in of new images occurs.
 
-All visible layers are perfectly aligned and share the same center point. The effect is a seamless, continuous zoom, where each new layer appears as soon as it is large enough to be seen, giving the illusion of infinite depth.
+All visible layers are perfectly aligned and share the same center point. The effect is a seamless, continuous zoom, where each new layer appears as soon as it is large enough to be seen, giving the illusion of infinite depth. (Zooming out is not supported in this version.)
