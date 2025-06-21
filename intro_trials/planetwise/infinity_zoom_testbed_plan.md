@@ -3,6 +3,8 @@
 ## Overview
 **Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this test app. The layer data (zoom factors and image filenames) is embedded directly in the HTML or code to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code (default:`zoom_images`), and only image filenames are listed in the data array for reduced repetition and easier maintenance.
 
+**Important:** The animation must always create a visual effect of zooming in—each new image layer appears larger, filling the viewport as the animation progresses. The effect should be that the viewer is moving deeper into the image stack, not zooming out. This requirement is fundamental to the intended experience. See below for clarification.
+
 The project involves creating an "infinity zoom" animation using a series of images. Each image represents a zoomed-in layer of the previous one, sharing the same center. The animation smoothly transitions between these layers by introducing each new layer at a tiny scale and growing it as the zoom progresses. Only the image layers that are currently visible or in transition are drawn at any moment, ensuring seamless and efficient rendering. For now, the animation only supports zooming in (not zooming out).
 
 ## Image Details
@@ -30,6 +32,7 @@ The project involves creating an "infinity zoom" animation using a series of ima
 
 ## Animation Requirements
 - The animation must always be full-screen, filling the entire browser viewport. The canvas should resize dynamically to match the window size, and the zoomed images should scale to fill the viewport without borders or empty space.
+- The animation must visually zoom in: each new image layer should appear larger, giving the impression of moving deeper into the scene. At no point should the animation create a zooming out effect (where images get smaller and recede).
 - Use `requestAnimationFrame` for smooth animation.
 - No need to define the number of images in the code; it will be determined by the number of entries in the layer data array.
 - For each frame, only draw the image layers that are currently visible or in transition (i.e., those whose scaled size is above a minimal threshold).
@@ -51,6 +54,12 @@ For now, only the necessary image layers are drawn (fully opaque and stacked in 
 
 
 ## Animation Concept Clarification
+
+**Zoom Direction Clarification:**
+
+All visible layers are perfectly aligned and share the same center point. The effect is a seamless, continuous zoom in, where each new layer appears as soon as it is large enough to be seen, giving the illusion of infinite depth. **Zooming out (where images get smaller) is not supported and should not occur.**
+
+**Tip:** To avoid confusion, always check that the animation logic causes images to grow larger as the animation progresses, not shrink. If the images appear to get smaller, the zoom direction is incorrect.
 
 
 ### Layer Visibility and Transition Logic

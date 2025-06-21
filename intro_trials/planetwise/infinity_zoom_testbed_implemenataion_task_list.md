@@ -1,4 +1,7 @@
+
 # Infinity Zoom Testbed Implementation Task List
+
+**Important:** The animation must always create a visual effect of zooming in—each new image layer appears larger, filling the viewport as the animation progresses. The effect should be that the viewer is moving deeper into the image stack, not zooming out. This is a core requirement for all tasks below.
 
 - [ ] Project Structure & Data
   - [ ] Create a simple HTML file with a `<canvas>` filling the viewport
@@ -17,6 +20,7 @@
   - [ ] When the innermost layer is reached, reset to loop
 - [ ] Zoom & Layer Transition Logic
   - [ ] For each frame, calculate the current zoom level
+  - [ ] Ensure the zoom logic causes each new image layer to appear larger as the animation progresses (zooming in only; images must not shrink)
   - [ ] Determine which layers are visible (above minimal threshold)
   - [ ] For each visible layer, compute its scale and draw it, centered and scaled to fill the viewport
   - [ ] Draw layers in order: outermost to innermost
