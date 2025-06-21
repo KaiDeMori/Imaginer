@@ -1,7 +1,7 @@
 # Infinity Zoom Animation Testbed Plan
 
 ## Overview
-**Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this test app. The layer data (zoom factors and image filenames) is embedded directly in the HTML or code to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code (default:`zoom_images`), and only image filenames are listed in the data array for reduced repetition and easier maintenance.
+**Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this test app. The layer data (zoom factors and image names) is embedded directly in the HTML or code to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code (default:`zoom_images`), and only image names are listed in the data array for reduced repetition and easier maintenance.
 
 **Important:** The animation must always create a visual effect of zooming in—each new image layer appears larger, filling the viewport as the animation progresses. The effect should be that the viewer is moving deeper into the image stack, not zooming out. This requirement is fundamental to the intended experience. See below for clarification.
 
@@ -9,8 +9,8 @@ The project involves creating an "infinity zoom" animation using a series of ima
 
 ## Image Details
 - All images are 2048x2048 pixels.
-- Images can have arbitrary filenames (e.g., `planet.png`, `continent.png`, `alien.png`).
-- The order of layers is determined by their order in the data array, not by filename numbering or padding.
+- Images can have arbitrary names (e.g., `planet.png`, `continent.png`, `alien.png`).
+- The order of layers is determined by their order in the data array, not by image name numbering or padding.
 
 ## Zoom Factors
 - Zoom factors vary between layers (mostly 50%, but some layers are 25% or 10%).
@@ -19,15 +19,15 @@ The project involves creating an "infinity zoom" animation using a series of ima
 ### Example Layer Data Array Format
 ```
 [
-  { zoom: 50, filename: 'planet.png' },
-  { zoom: 50, filename: 'planet.png' },
-  { zoom: 25, filename: 'planet.png' },
-  { zoom: 50, filename: 'planet.png' },
-  { zoom: 50, filename: 'continent.png' },
-  { zoom: 10, filename: 'city.png' },
-  { zoom: 50, filename: 'street.png' },
-  { zoom: 50, filename: 'garden.png' },
-  { zoom: 50, filename: 'alien.png' }
+  { zoom: 50, image: 'planet.png' },
+  { zoom: 50, image: 'planet.png' },
+  { zoom: 25, image: 'planet.png' },
+  { zoom: 50, image: 'planet.png' },
+  { zoom: 50, image: 'continent.png' },
+  { zoom: 10, image: 'city.png' },
+  { zoom: 50, image: 'street.png' },
+  { zoom: 50, image: 'garden.png' },
+  { zoom: 50, image: 'alien.png' }
 ]
 
 ## Animation Requirements

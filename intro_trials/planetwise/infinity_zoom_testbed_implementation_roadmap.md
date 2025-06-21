@@ -5,11 +5,11 @@
 
 ## 1. Project Structure & Data
 - Create a simple HTML file with a `<canvas>` filling the viewport.
-- Embed the layer data (zoom factor, image filename per line) directly in the code or HTML.
+- Embed the layer data (zoom factor, image name per line) directly in the code or HTML.
 - Define a constant for the image folder path.
 
 ## 2. Data Parsing & Image Preloading
-- Parse the embedded layer data into an array of `{zoom_factor, filename}` objects.
+- Parse the embedded layer data into an array of `{zoom_factor, image}` objects.
 - Preload all images before starting the animation.
 - Store images in an array matching the parsed layer order.
 
