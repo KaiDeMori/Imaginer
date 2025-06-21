@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1024, initial-scale=1.0">
+    <title>Infinity Zoom Animation Testbed</title>
+    <style>
+        body {
+            background: #181818;
+            color: #eee;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+        #zoom_canvas {
+            background: #222;
+            margin-top: 32px;
+            box-shadow: 0 0 16px #000a;
+        }
+        .info {
+            margin-top: 1em;
+            font-size: 1em;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <h2>Infinity Zoom Animation Testbed</h2>
+    <canvas id="zoom_canvas" width="512" height="512"></canvas>
+    <div class="info">Zooming through layers... (images must be in the same folder as this file)</div>
+    <script>
+    // --- Config ---
+    const IMAGE_FOLDER = 'zoom_images'; // relative to this HTML file
+    // Embedded layers.txt data (zoom%,filename)
+    // Each object: { zoom, filename } (property order: zoom, filename)
+    const LAYERS_DATA = [
+            { zoom: 25, image: 'alien_island.png' },
+            { zoom: 25, image: 'alien_forest.png' },
+            { zoom: 25, image: 'alien_village.png' },
+    ];
+    const CANVAS_SIZE = 512;
+    const ANIMATION_DURATION = 4000; // ms for full zoom-in or zoom-out
+
+    // --- Load images ---
+    function load_images(layers, folder) {
+        return Promise.all(layers.map(layer => {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.src = folder + '/' + layer.image;
+                img.onload = () => resolve(img);
+                img.onerror = () => {
+                    // Draw placeholder if missing
+                    const ph = document.createElement('canvas');
+                    ph.width = ph.height = CANVAS_SIZE;
+                    const ctx = ph.getContext('2d');
+                    ctx.fillStyle = '#444';
+                    ctx.fillRect(0,0,CANVAS_SIZE,CANVAS_SIZE);
+                    ctx.strokeStyle = '#f55';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(8,8,CANVAS_SIZE-16,CANVAS_SIZE-16);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '20px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(layer.image, CANVAS_SIZE/2, CANVAS_SIZE/2);
+                    resolve(ph);
+                };
+            });
+        }));
+    }
+
+    // --- Animation logic ---
+    function start_zoom_animation(canvas, layers, images) {
+        const ctx = canvas.getContext('2d');
+        // Precompute zoom factors as scale multipliers
+        const zooms = layers.map(layer => layer.zoom/100);
+        // Compute cumulative zoom for each layer
+        const cumulative_zooms = [1];
+        for (let i=0; i<zooms.length; ++i) {
+            cumulative_zooms.push(cumulative_zooms[i] * zooms[i]);
+        }
+        // Animation state
+        let direction = 1; // 1 = zoom in, -1 = zoom out
+        let t0 = performance.now();
+
+        function draw(now) {
+            let t = (now - t0) % (2*ANIMATION_DURATION);
+            if (t > ANIMATION_DURATION) {
+                t = 2*ANIMATION_DURATION - t;
+                direction = -1;
+            } else {
+                direction = 1;
+            }
+            // progress: 0 (start) to 1 (end)
+            const progress = t / ANIMATION_DURATION;
+            // Compute current zoom level (between 0 and layers.length)
+            const total_layers = layers.length;
+            const zoom_pos = progress * total_layers;
+            // For each layer, compute its scale
+            ctx.clearRect(0,0,CANVAS_SIZE,CANVAS_SIZE);
+            ctx.save();
+            ctx.translate(CANVAS_SIZE/2, CANVAS_SIZE/2);
+            for (let i=0; i<total_layers; ++i) {
+                // Layer is visible if i <= zoom_pos
+                let layer_progress = Math.min(Math.max(zoom_pos - i, 0), 1);
+                // Compute scale for this layer
+                let base_scale = cumulative_zooms[i];
+                let next_scale = cumulative_zooms[i+1];
+                let scale = base_scale * Math.pow(next_scale/base_scale, layer_progress);
+                // Draw image centered
+                ctx.save();
+                ctx.scale(scale, scale);
+                ctx.drawImage(images[i], -CANVAS_SIZE/2, -CANVAS_SIZE/2, CANVAS_SIZE, CANVAS_SIZE);
+                ctx.restore();
+            }
+            ctx.restore();
+            requestAnimationFrame(draw);
+        }
+        requestAnimationFrame(draw);
+    }
+
+    // --- Main ---
+    const canvas = document.getElementById('zoom_canvas');
+    load_images(LAYERS_DATA, IMAGE_FOLDER).then(images => {
+        start_zoom_animation(canvas, LAYERS_DATA, images);
+    });
+    </script>
+</body>
+</html>
