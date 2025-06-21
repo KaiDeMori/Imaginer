@@ -18,17 +18,14 @@ The project involves creating an "infinity zoom" animation using a series of ima
 
 ### Example Layer Data Array Format
 ```
-[
-  { zoom: 50, image: 'planet.png' },
-  { zoom: 50, image: 'planet.png' },
-  { zoom: 25, image: 'planet.png' },
-  { zoom: 50, image: 'planet.png' },
-  { zoom: 50, image: 'continent.png' },
-  { zoom: 10, image: 'city.png' },
-  { zoom: 50, image: 'street.png' },
-  { zoom: 50, image: 'garden.png' },
-  { zoom: 50, image: 'alien.png' }
-]
+    const LAYERS_DATA = [
+        { zoom: 25, image: '60_alien_island.png' },
+        { zoom: 25, image: '70_alien_forest.png' },
+        { zoom: 25, image: '80_alien_village.png' },
+        { zoom: 25, image: '90_alien_hut.png' },
+    ];
+```
+
 
 ## Animation Requirements
 - The animation must always be full-screen, filling the entire browser viewport. The canvas should resize dynamically to match the window size, and the zoomed images should scale to fill the viewport without borders or empty space.

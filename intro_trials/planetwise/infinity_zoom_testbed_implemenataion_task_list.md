@@ -8,7 +8,7 @@
   - [x] Embed the layer data directly in the code as a JavaScript array
   - [x] Define a constant for the image folder path
 - [ ] Data Parsing & Image Preloading
-  - [x] Parse the embedded layer data into an array of `{zoom_factor, image}` objects
+  - [x] Parse the embedded layer data into an array of `{zoom, image}` objects
   - [x] Preload all images before starting the animation
   - [x] Store images in an array matching the parsed layer order
 - [ ] Canvas Setup & Resizing
