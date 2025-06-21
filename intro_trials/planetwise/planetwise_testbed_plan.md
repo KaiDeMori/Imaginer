@@ -1,7 +1,7 @@
 # Infinity Zoom Animation Testbed Plan
 
 ## Overview
-**Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this plan. The `layers.txt` data has been embedded directly into the HTML file to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code, and only image filenames are listed in the data array for reduced repetition and easier maintenance.
+**Note:** This document outlines a testbed plan for the infinity zoom animation. The goal is to test the system's behavior under minimal complexity. As such, no error handling or additional features are included in this plan. The `layers.txt` data has been embedded directly into the HTML file to ensure compatibility when running locally without a server. The image folder is now defined as a constant in the code (default:`zoom_images`), and only image filenames are listed in the data array for reduced repetition and easier maintenance.
 
 The project involves creating an "infinity zoom" animation using a series of images. Each image represents a zoomed-in layer of the previous one, sharing the same center. The animation smoothly transitions between these layers by introducing each new layer at a tiny scale and growing it as the zoom progresses. Only the image layers that are currently visible or in transition are drawn at any moment, ensuring seamless and efficient rendering. For now, the animation only supports zooming in (not zooming out).
 
@@ -31,6 +31,7 @@ The project involves creating an "infinity zoom" animation using a series of ima
 - Use `requestAnimationFrame` for smooth animation.
 - No need to define the number of images in the code; it will be determined by the number of lines in `layers.txt`.
 - For each frame, only draw the image layers that are currently visible or in transition (i.e., those whose scaled size is above a minimal threshold).
+- For testing purposes, the animation repeats (loops) automatically after reaching the innermost layer, restarting the zoom-in sequence.
 
 
 ## Additional Considerations

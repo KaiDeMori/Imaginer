@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity Zoom Testbed</title>
+    <style>
+        body { background: #222; color: #eee; font-family: sans-serif; text-align: center; }
+        canvas { background: #111; margin: 2em auto; display: block; border: 1px solid #444; }
+    </style>
+</head>
+<body>
+    <h2>Infinity Zoom Animation Testbed</h2>
+    <canvas id="zoom_canvas" width="512" height="512"></canvas>
+    <script>
+    // --- Configurable Data ---
+    const LAYERS_DATA = [
+        { zoom: 25, image: '60_alien_island.png' },
+        { zoom: 25, image: '70_alien_forest.png' },
+        { zoom: 25, image: '80_alien_village.png' },
+        { zoom: 25, image: '90_alien_hut.png' },
+    ];
+    const IMAGE_FOLDER = 'zoom_images/'; // Ensure trailing slash for correct path
+    const CANVAS_SIZE = 512;
+    const BASE_IMAGE_SIZE = 2048;
+    const MIN_VISIBLE_SIZE = 2; // px, threshold for drawing a layer
+    const ZOOM_SPEED = 0.5; // percent per frame (tweak for speed)
+
+    // --- Image Loading ---
+    function load_images(layers, callback) {
+        let loaded = 0;
+        layers.forEach(layer => {
+            const img = new Image();
+            img.src = IMAGE_FOLDER + layer.image;
+            img.onload = () => {
+                layer.img = img;
+                loaded++;
+                if (loaded === layers.length) callback();
+            };
+            img.onerror = () => {
+                // Draw placeholder if missing
+                const c = document.createElement('canvas');
+                c.width = c.height = BASE_IMAGE_SIZE;
+                const ctx = c.getContext('2d');
+                ctx.fillStyle = '#333';
+                ctx.fillRect(0,0,BASE_IMAGE_SIZE,BASE_IMAGE_SIZE);
+                ctx.strokeStyle = '#f00';
+                ctx.lineWidth = 16;
+                ctx.beginPath();
+                ctx.moveTo(0,0); ctx.lineTo(BASE_IMAGE_SIZE,BASE_IMAGE_SIZE);
+                ctx.moveTo(BASE_IMAGE_SIZE,0); ctx.lineTo(0,BASE_IMAGE_SIZE);
+                ctx.stroke();
+                layer.img = c;
+                loaded++;
+                if (loaded === layers.length) callback();
+            };
+        });
+    }
+
+    // --- Animation State ---
+    let zoom_progress = 0; // 0=start, increases to 100*LAYERS_DATA.length
+
+    // --- Animation Loop ---
+    function animate() {
+        const ctx = document.getElementById('zoom_canvas').getContext('2d');
+        ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+        // Compute which layers to draw and their scales
+        let total_zoom = zoom_progress;
+        let scale = 1;
+        let draw_layers = [];
+        for (let i = 0; i < LAYERS_DATA.length; ++i) {
+            draw_layers.push({
+                img: LAYERS_DATA[i].img,
+                scale: scale,
+            });
+            // Prepare for next layer
+            scale *= LAYERS_DATA[i].zoom / 100;
+            total_zoom -= 100;
+            if (scale * BASE_IMAGE_SIZE < MIN_VISIBLE_SIZE) break;
+        }
+
+        // Draw from bottom (outermost) to top (innermost)
+        for (let i = 0; i < draw_layers.length; ++i) {
+            const {img, scale} = draw_layers[i];
+            const size = BASE_IMAGE_SIZE * scale;
+            const x = (CANVAS_SIZE - size) / 2;
+            const y = (CANVAS_SIZE - size) / 2;
+            ctx.drawImage(img, x, y, size, size);
+        }
+
+        // Advance zoom
+        zoom_progress += ZOOM_SPEED;
+        // Loop the animation for testing purposes
+        if (zoom_progress > 100 * LAYERS_DATA.length) zoom_progress = 0;
+
+        requestAnimationFrame(animate);
+    }
+
+    // --- Main ---
+    load_images(LAYERS_DATA, () => {
+        requestAnimationFrame(animate);
+    });
+    </script>
+</body>
+</html>
