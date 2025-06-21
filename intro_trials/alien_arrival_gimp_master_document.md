@@ -110,6 +110,7 @@ The plug-ins path is set in GIMP 2.10 under Edit → Preferences → Folders →
 For each layer:
 - [ ] Layer → **Scale Layer …**
 - [ ] Set Width = *original width* × `{upscale_factor}` (interpolation: *None / Nearest Neighbour*) → **Scale**
+- [ ] Ensure deeper layers (e.g., continent) are scaled slightly smaller than the topmost layer (e.g., planet) by using a slightly reduced upscale factor (e.g., 3.75× instead of 4×).
 
 ### Step 05: Normalise Subjects to a Common Pivot
 1. For each layer (except the base/deepest one), manually align the subject relative to the surrounding (previous) layer. This is typically done by dragging or nudging the layer so that the key feature (e.g., the alien city centre) sits in the same position as in the previous layer.
@@ -128,7 +129,7 @@ For every layer **except** the deepest one:
    - Hold **Ctrl + Shift** while dragging to keep the selection centred on the pivot
 4. [ ] Edit → **Fill with FG Color** (*black*)
 5. [ ] Select → **None**
-6. [ ] Ensure each hole is slightly smaller than the one below it
+6. [ ] Ensure each hole is slightly smaller than the one below it, and verify visibility of deeper layers through the mask.
 
 ### Step 07: Nesting Check
 - [ ] Toggle layer visibility to confirm that deeper plates appear through the holes

@@ -36,14 +36,14 @@ def stack_images_from_project_file(project_file_path):
     height = temp_image.height
     image = pdb.gimp_image_new(width, height, RGB)
     pdb.gimp_image_delete(temp_image)
+    # Insert each layer at the end so the first image is on top
     for png_path in png_paths:
         if not os.path.isfile(png_path):
-            pdb.gimp_message("File not found: {}".format(png_path))
             continue
         layer = pdb.gimp_file_load_layer(image, png_path)
         layer_name = os.path.splitext(os.path.basename(png_path))[0]
         layer.name = layer_name
-        pdb.gimp_image_insert_layer(image, layer, None, 0)
+        pdb.gimp_image_insert_layer(image, layer, None, len(image.layers))
     gimp.Display(image)
     gimp.displays_flush()
 
@@ -89,7 +89,7 @@ def infinite_zoom_project_manager(mode, project_file, png1, png2, png3, png4):
             layer = pdb.gimp_file_load_layer(image, png_path)
             layer_name = os.path.splitext(os.path.basename(png_path))[0]
             layer.name = layer_name
-            pdb.gimp_image_insert_layer(image, layer, None, 0)
+            pdb.gimp_image_insert_layer(image, layer, None, len(image.layers))
         # Save the image as 'infinite_zoom_project.xcf' in the base directory, but do not overwrite if it exists
         xcf_path = os.path.join(base_dir, "infinite_zoom_project.xcf")
         if os.path.exists(xcf_path):
