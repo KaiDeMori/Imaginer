@@ -45,10 +45,9 @@ function setup_canvas() {
 window.onload = function () {
    preload_images(LAYERS_DATA, function (loaded_images) {
       images = loaded_images;
-      if (typeof log_loaded_images === 'function') {
-         log_loaded_images(images);
-      }
+      log_loaded_images(images);
       log('animation loop started');
       setup_canvas();
+      animation_loop();
    });
 };
