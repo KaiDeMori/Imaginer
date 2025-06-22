@@ -113,16 +113,39 @@ function get_visible_layers(elapsed_time, layers_data) {
  * Draws a single image layer, centered and scaled to fill the viewport.
  */
 function draw_layer(ctx, image, scale, canvas_width, canvas_height) {
-    // Draw the image centered and scaled, preserving aspect ratio.
-    // Fill the viewport as much as possible, allow letterboxing if needed.
+    // Compute the scaled image size
+    const scaled_width = image.width * scale;
+    const scaled_height = image.height * scale;
+
+    // Compute the fitting factor to fill the viewport as much as possible
+    const fit_factor = Math.min(
+        canvas_width / scaled_width,
+        canvas_height / scaled_height
+    );
+
+    const draw_width = scaled_width * fit_factor;
+    const draw_height = scaled_height * fit_factor;
+
+    // Center the image
+    const x = (canvas_width - draw_width) / 2;
+    const y = (canvas_height - draw_height) / 2;
+
+    ctx.drawImage(image, x, y, draw_width, draw_height);
 }
 
 /**
  * Loops through visible layers and draws each using the correct scale.
  */
 function draw_layers(ctx, images, visible_layers, elapsed_time, layers_data, canvas_width, canvas_height) {
-    // For each visible layer, compute its scale and draw it using draw_layer.
-    // Draw from outermost to innermost.
+    // Draw each visible layer in order (outermost to innermost)
+    for (let i = 0; i < visible_layers.length; i++) {
+        const layer_index = visible_layers[i];
+        const image = images[layer_index];
+        const scale = get_layer_scale(layer_index, elapsed_time, layers_data);
+        if (image) {
+            draw_layer(ctx, image, scale, canvas_width, canvas_height);
+        }
+    }
 }
 
 /**
@@ -130,7 +153,28 @@ function draw_layers(ctx, images, visible_layers, elapsed_time, layers_data, can
  * Calls time tracking, zoom state, and drawing functions each frame.
  */
 function animation_loop() {
-    // Use requestAnimationFrame to loop.
-    // Track elapsed time, determine zoom state, and draw visible layers each frame.
-    // Reset animation when innermost layer is fully zoomed in.
+    // Assumes canvas, ctx, images, and LAYERS_DATA are available in the outer scope
+    if (!canvas || !ctx || !images || !LAYERS_DATA) {
+        requestAnimationFrame(animation_loop);
+        return;
+    }
+
+    // Get current canvas size
+    const canvas_width = canvas.width;
+    const canvas_height = canvas.height;
+
+    // Track elapsed time
+    const elapsed_time = track_animation_time();
+
+    // Determine which layers are visible
+    const visible_layers = get_visible_layers(elapsed_time, LAYERS_DATA);
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas_width, canvas_height);
+
+    // Draw all visible layers
+    draw_layers(ctx, images, visible_layers, elapsed_time, LAYERS_DATA, canvas_width, canvas_height);
+
+    // Loop
+    requestAnimationFrame(animation_loop);
 }
