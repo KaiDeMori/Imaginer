@@ -1,13 +1,15 @@
-function log_animation_loop_started() {
-    if (!DEBUG) return;
-    console.info(LOG_PREFIX + 'animation loop started');
-}
-function log_loaded_images(images) {
-    if (!DEBUG) return;
-    console.info(`${LOG_PREFIX}Infinity Zoom: Loaded ${images.length} images!`);
-    images.forEach((img, i) => {
-        console.info(`${LOG_PREFIX}[${i + 1}/${images.length}] → ${img.src}`);
-    });
-}
 const DEBUG = true;
 const LOG_PREFIX = ' 🌀 — ';
+
+function log(msg) {
+    if (!DEBUG) return;
+    console.info(LOG_PREFIX + msg);
+}
+
+function log_loaded_images(images) {
+    if (!DEBUG) return;
+    log(`Infinity Zoom: Loaded ${images.length} images!`);
+    images.forEach((img, i) => {
+        log(`[${i + 1}/${images.length}] → ${img.src}`);
+    });
+}

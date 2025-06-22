@@ -1,6 +1,7 @@
 
 // Handles time-based zoom state and animation logic for the infinity zoom testbed.
 // All logic is browser-compatible and uses loose_snake_case naming.
+// Logging is handled via the generic log(msg) function.
 
 /**
  * Tracks the total elapsed time since animation start or last reset.
