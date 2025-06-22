@@ -61,26 +61,34 @@ function get_layer_scale(layer_index, elapsed_time, layers_data) {
     const total_duration = LAYER_DURATION * num_layers;
     // Loop animation
     const t = elapsed_time % total_duration;
-    // For the given layer, find its transition window
-    const layer_start_time = layer_index * LAYER_DURATION;
-    const layer_end_time = ((layer_index + 1) % num_layers) * LAYER_DURATION;
-    // Determine if we are in this layer's transition window
-    let scale;
-    if (t >= layer_start_time && t < layer_start_time + LAYER_DURATION) {
-        // In this layer's transition
-        const prev_layer = (layer_index - 1 + num_layers) % num_layers;
-        const progress = (t - layer_start_time) / LAYER_DURATION;
-        const prev_zoom = layers_data[prev_layer].zoom / 100;
-        const curr_zoom = layers_data[layer_index].zoom / 100;
-        scale = prev_zoom + (curr_zoom - prev_zoom) * progress;
-    } else if (t >= layer_end_time) {
-        // After this layer's transition, fully zoomed in
-        scale = layers_data[layer_index].zoom / 100;
-    } else {
-        // Before this layer's transition, not visible
-        scale = 0;
+    // Determine which transition is currently active
+    const current_transition = Math.floor(t / LAYER_DURATION);
+    const transition_progress = (t % LAYER_DURATION) / LAYER_DURATION;
+
+    // Calculate the cumulative product of zooms up to (but not including) this layer
+    function get_cumulative_zoom(up_to_index) {
+        let product = 1.0;
+        for (let i = 0; i < up_to_index; i++) {
+            product *= layers_data[i].zoom / 100;
+        }
+        return product;
     }
-    return scale;
+
+    // If this layer is the one currently being zoomed into, interpolate its scale
+    if (layer_index === current_transition) {
+        // Previous cumulative zoom (up to previous layer)
+        const prev_cumulative = get_cumulative_zoom(layer_index);
+        // This layer's cumulative zoom (includes this layer)
+        const curr_cumulative = get_cumulative_zoom(layer_index + 1);
+        // Interpolate between previous and current cumulative zoom
+        return prev_cumulative + (curr_cumulative - prev_cumulative) * transition_progress;
+    } else if (layer_index < current_transition) {
+        // This layer is fully zoomed in (use its cumulative zoom)
+        return get_cumulative_zoom(layer_index + 1);
+    } else {
+        // This layer is not yet visible
+        return 0;
+    }
 }
 
 /**
