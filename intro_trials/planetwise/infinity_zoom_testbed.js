@@ -1,3 +1,30 @@
+function update_zoom_progress() {
+    // Advances zoom_progress each frame and loops it if needed.
+    // This should increment zoom_progress by a fixed amount per frame.
+    // If zoom_progress exceeds the number of layers, reset to 0 to loop.
+}
+
+function get_layer_scale(layer_index, zoom_progress) {
+    // Calculates the current scale for a given layer based on zoom_progress and the layer’s zoom factor.
+    // Use the zoom factors from LAYERS_DATA to determine the scale for each layer.
+    // This will be used to scale the image when drawing.
+}
+
+function get_visible_layers(zoom_progress) {
+    // Determines which layers should be visible (drawn) for the current zoom_progress.
+    // Contains the logic for when to start drawing a new layer and when to stop drawing (remove) an old one.
+    // Returns an array of layer indices that should be drawn for the current frame.
+}
+
+function draw_layer(image, scale) {
+    // Draws a single image layer, centered and scaled to the viewport.
+    // Uses the calculated scale to size the image appropriately.
+}
+
+function draw_layers() {
+    // Loops through visible layers and calls draw_layer for each.
+    // Uses get_visible_layers and get_layer_scale to determine what to draw and how.
+}
  
 const IMAGE_FOLDER = 'zoom_images';
 const LAYERS_DATA = [
@@ -9,6 +36,8 @@ const LAYERS_DATA = [
 
 let images = [];
 let canvas, ctx;
+
+let zoom_progress = 0;
 
 function preload_images(layer_data, callback) {
    let loaded = 0;
