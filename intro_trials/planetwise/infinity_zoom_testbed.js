@@ -27,6 +27,10 @@ function draw_layers() {
 }
  
 const IMAGE_FOLDER = 'zoom_images';
+
+// Each layer's "zoom" value specifies how much smaller (in percent) this layer is compared to the previous one.
+// The absolute scale for a layer is the product of all previous zooms (as fractions).
+// For example, if zooms are [50, 50, 25], then the scale for the third layer is 1.0 * 0.5 * 0.5 * 0.25 = 0.0625.
 const LAYERS_DATA = [
    { zoom: 25, image: '60_alien_island.png' },
    { zoom: 25, image: '70_alien_forest.png' },

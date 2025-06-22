@@ -26,17 +26,61 @@ function reset_animation_time() {
  * Returns an object with visible layer indices and their current scales.
  */
 function get_current_zoom_state(elapsed_time, layers_data) {
-    // Use elapsed_time and the zoom factors to determine which layers are visible and their scales.
-    // Return an object like { visible_layers: [...], scales: [...] }
+    // Improved: interpolate scale between previous and current layer's zoom values.
+    // Each layer transition takes the same amount of time (e.g., 2000ms per layer)
+    const LAYER_DURATION = 2000; // ms per layer (adjust as needed)
+    const num_layers = layers_data.length;
+    const total_duration = LAYER_DURATION * num_layers;
+    // Loop animation
+    const t = elapsed_time % total_duration;
+    const current_layer = Math.floor(t / LAYER_DURATION);
+    const prev_layer = (current_layer - 1 + num_layers) % num_layers;
+    const layer_progress = (t % LAYER_DURATION) / LAYER_DURATION;
+    // Get zoom values for previous and current layer
+    const prev_zoom = layers_data[prev_layer].zoom / 100;
+    const curr_zoom = layers_data[current_layer].zoom / 100;
+    // Interpolate scale from prev_zoom to curr_zoom
+    const scale = prev_zoom + (curr_zoom - prev_zoom) * layer_progress;
+    return {
+        visible_layers: [current_layer],
+        scales: [scale]
+    };
 }
 
 /**
- * Calculates the scale for a specific layer at the current elapsed time.
+ * Calculates the absolute scale for a given layer.
+ * The scale is the product of all previous layers' zoom values (as fractions).
+ * For example, for layer n: scale = 1.0 * (zoom_2/100) * (zoom_3/100) * ... * (zoom_n/100)
+ * This ensures each layer is drawn at the correct size relative to the original image.
  * Ensures each new layer grows larger as time progresses.
  */
 function get_layer_scale(layer_index, elapsed_time, layers_data) {
-    // Use the zoom factors and elapsed_time to compute the current scale for the given layer.
-    // Ensure the scale increases over time for zoom-in effect.
+    // Each layer transition takes the same amount of time as in get_current_zoom_state
+    const LAYER_DURATION = 2000; // ms per layer (should match get_current_zoom_state)
+    const num_layers = layers_data.length;
+    const total_duration = LAYER_DURATION * num_layers;
+    // Loop animation
+    const t = elapsed_time % total_duration;
+    // For the given layer, find its transition window
+    const layer_start_time = layer_index * LAYER_DURATION;
+    const layer_end_time = ((layer_index + 1) % num_layers) * LAYER_DURATION;
+    // Determine if we are in this layer's transition window
+    let scale;
+    if (t >= layer_start_time && t < layer_start_time + LAYER_DURATION) {
+        // In this layer's transition
+        const prev_layer = (layer_index - 1 + num_layers) % num_layers;
+        const progress = (t - layer_start_time) / LAYER_DURATION;
+        const prev_zoom = layers_data[prev_layer].zoom / 100;
+        const curr_zoom = layers_data[layer_index].zoom / 100;
+        scale = prev_zoom + (curr_zoom - prev_zoom) * progress;
+    } else if (t >= layer_end_time) {
+        // After this layer's transition, fully zoomed in
+        scale = layers_data[layer_index].zoom / 100;
+    } else {
+        // Before this layer's transition, not visible
+        scale = 0;
+    }
+    return scale;
 }
 
 /**
@@ -44,8 +88,16 @@ function get_layer_scale(layer_index, elapsed_time, layers_data) {
  * Returns an array of layer indices to be drawn.
  */
 function get_visible_layers(elapsed_time, layers_data) {
-    // Check which layers' scaled size is above a minimal threshold for visibility.
-    // Return an array of indices for visible layers.
+    // Minimal threshold for visibility (e.g., 0.01 = 1% of original size)
+    const MIN_VISIBLE_SCALE = 0.01;
+    const visible = [];
+    for (let i = 0; i < layers_data.length; i++) {
+        const scale = get_layer_scale(i, elapsed_time, layers_data);
+        if (scale > MIN_VISIBLE_SCALE) {
+            visible.push(i);
+        }
+    }
+    return visible;
 }
 
 /**

@@ -1,4 +1,9 @@
 
+**Zoom Property Explanation:**
+The `zoom` value for each layer specifies how much smaller (in percent) the current layer is compared to the previous one. For example, a zoom of `50` means the visible area of this layer is 50% the width and height of the previous layer. The absolute scale of any layer is the product of all previous layers' zoom values (as fractions). For example, if the zoom values for layers 2, 3, and 4 are 50, 50, and 25, then the scale for layer 4 is:
+`scale_4 = 1.0 × (50/100) × (50/100) × (25/100) = 0.0625`
+This means layer 4 is 6.25% the size of the original image.
+
 # Infinity Zoom Testbed Implementation Roadmap
 
 **Important:** The animation must always create a visual effect of zooming in—each new image layer appears larger, filling the viewport as the animation progresses. The effect should be that the viewer is moving deeper into the image stack, not zooming out. This is a core requirement for all implementation steps below.
