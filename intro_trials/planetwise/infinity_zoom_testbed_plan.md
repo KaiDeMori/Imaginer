@@ -17,7 +17,7 @@ The project involves creating an "infinity zoom" animation using a series of ima
   **Note:** Specify zoom factors as whole-number percentages (e.g., use `50` for 50%, `25` for 25%). Do not use decimal fractions like `0.5` or `0.25`.
 - The layer data array defines each layer and its zoom percentage.
 
-### Example Layer Data Array Format
+### Example Layers Data Array Format
 ```
     // Zoom factors must be whole-number percentages (e.g., 50, 25), not decimals (e.g., 0.5, 0.25)
     const LAYERS_DATA = [
