@@ -1,30 +1,5 @@
-function update_zoom_progress() {
-    // Advances zoom_progress each frame and loops it if needed.
-    // This should increment zoom_progress by a fixed amount per frame.
-    // If zoom_progress exceeds the number of layers, reset to 0 to loop.
-}
-
-function get_layer_scale(layer_index, zoom_progress) {
-    // Calculates the current scale for a given layer based on zoom_progress and the layer’s zoom factor.
-    // Use the zoom factors from LAYERS_DATA to determine the scale for each layer.
-    // This will be used to scale the image when drawing.
-}
-
-function get_visible_layers(zoom_progress) {
-    // Determines which layers should be visible (drawn) for the current zoom_progress.
-    // Contains the logic for when to start drawing a new layer and when to stop drawing (remove) an old one.
-    // Returns an array of layer indices that should be drawn for the current frame.
-}
-
-function draw_layer(image, scale) {
-    // Draws a single image layer, centered and scaled to the viewport.
-    // Uses the calculated scale to size the image appropriately.
-}
-
-function draw_layers() {
-    // Loops through visible layers and calls draw_layer for each.
-    // Uses get_visible_layers and get_layer_scale to determine what to draw and how.
-}
+// All animation logic is delegated to infinity_zoom_animator.js
+// This file only handles image loading, canvas setup, and drawing using the animator's state/scale functions.
  
 const IMAGE_FOLDER = 'zoom_images';
 
@@ -40,8 +15,6 @@ const LAYERS_DATA = [
 
 let images = [];
 let canvas, ctx;
-
-let zoom_progress = 0;
 
 function preload_images(layer_data, callback) {
    let loaded = 0;
@@ -71,27 +44,38 @@ function setup_canvas() {
    window.addEventListener('resize', resize_canvas);
 }
 
+
+function draw_layer(image, scale) {
+    // Center and scale image to fill viewport, preserving aspect ratio
+    const iw = image.width;
+    const ih = image.height;
+    const vw = canvas.width;
+    const vh = canvas.height;
+    const aspect_img = iw / ih;
+    const aspect_view = vw / vh;
+    let draw_w, draw_h;
+    if (aspect_img > aspect_view) {
+        draw_w = vw * scale;
+        draw_h = draw_w / aspect_img;
+    } else {
+        draw_h = vh * scale;
+        draw_w = draw_h * aspect_img;
+    }
+    ctx.save();
+    ctx.translate(vw / 2, vh / 2);
+    ctx.drawImage(image, -draw_w / 2, -draw_h / 2, draw_w, draw_h);
+    ctx.restore();
+}
+
 function animation_loop() {
-   ctx.clearRect(0, 0, canvas.width, canvas.height);
-   if (images.length > 0 && images[0].complete) {
-      const img = images[0];
-      const viewport_w = canvas.width * 0.8;
-      const viewport_h = canvas.height * 0.8;
-      const img_aspect = img.width / img.height;
-      const viewport_aspect = viewport_w / viewport_h;
-      let draw_w, draw_h;
-      if (img_aspect > viewport_aspect) {
-         draw_w = viewport_w;
-         draw_h = viewport_w / img_aspect;
-      } else {
-         draw_h = viewport_h;
-         draw_w = viewport_h * img_aspect;
-      }
-      const x = (canvas.width - draw_w) / 2;
-      const y = (canvas.height - draw_h) / 2;
-      ctx.drawImage(img, x, y, draw_w, draw_h);
-   }
-   requestAnimationFrame(animation_loop);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const elapsed_time = track_animation_time();
+    const visible_layers = get_visible_layers(elapsed_time, LAYERS_DATA);
+    for (const i of visible_layers) {
+        const scale = get_layer_scale(i, elapsed_time, LAYERS_DATA);
+        draw_layer(images[i], scale);
+    }
+    requestAnimationFrame(animation_loop);
 }
 
 window.onload = function () {
