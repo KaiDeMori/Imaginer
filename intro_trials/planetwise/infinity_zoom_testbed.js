@@ -56,11 +56,12 @@ function animation_loop() {
 window.onload = function () {
    preload_images(LAYERS_DATA, function (loaded_images) {
       images = loaded_images;
-      // Console info output for loaded images
-      console.info('Loaded images:', images.map((img, i) => ({
-         index: i,
-         src: img.src
-      })));
+      // Console info output for loaded images with creative emoji and formatting
+      const zoom_emoji = '🌀';
+      console.info(`${zoom_emoji} Infinity Zoom: Loaded ${images.length} images!`);
+      images.forEach((img, i) => {
+         console.info(`${zoom_emoji} [${i + 1}/${images.length}] → ${img.src}`);
+      });
       setup_canvas();
       animation_loop();
    });
