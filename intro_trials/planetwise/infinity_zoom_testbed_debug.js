@@ -1,3 +1,7 @@
+function log_animation_loop_started() {
+    if (!DEBUG) return;
+    console.info(LOG_PREFIX + 'animation loop started');
+}
 function log_loaded_images(images) {
     if (!DEBUG) return;
     console.info(`${LOG_PREFIX}Infinity Zoom: Loaded ${images.length} images!`);
