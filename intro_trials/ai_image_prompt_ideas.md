@@ -43,3 +43,8 @@ Maintain consistent art style, color palette, and character design throughout al
 ---
 
 Add more prompt ideas as needed for new visual effects or asset types.
+
+
+# Alien landing
+
+Directly overhead, bird's-eye view. View from directly above. A unique alien is lying on its stomach in a garden full of alien plants and flowers. The alien is furry, cute, with five legs, and is quite big and long. It looks relaxed and cozy, gazing at a minimalistic futuristic reading device lying in the "grass" before it. Photorealistic.
