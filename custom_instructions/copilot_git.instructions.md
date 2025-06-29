@@ -53,7 +53,8 @@ When the request contains `geronimo!`, Copilot will:
   2. Stage all changes in the workspace (`git add .`).
   3. Commit all staged changes with the generated message (`git commit -m "<auto message>"`).
   4. Push to the remote (`git push`).
-- **If no file changes are detected in the current conversation**, Copilot must first run a `git status` command to verify if there are any unstaged or uncommitted changes. Usually, there will be changes, so Copilot should explicitly verify this before reporting that there are no files to commit.
+ - **If no file changes are detected in the current conversation**, Copilot must first run a `git status` command to verify if there are any unstaged or uncommitted changes. Usually, there will be changes, so Copilot should explicitly verify this before reporting that there are no files to commit.
+
 - Do not issue a second `git push` if the first is still in progress or has completed successfully.
 
 ## Examples
