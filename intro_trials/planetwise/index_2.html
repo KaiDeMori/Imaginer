@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Constant-Ratio Canvas Zoom Demo</title>
+<style>
+    html, body { margin:0; height:100%; overflow:hidden; background:#000; }
+    canvas     { display:block; width:100vw; height:100vh; }
+</style>
+</head>
+<body>
+<canvas></canvas>
+
+<script>
+/* ---------- CONFIG ---------- */
+const IMAGE_SRC          = 'zoom_images/60_alien_island.png'; // <-- put your file here
+const RATIO_PER_SECOND   = 1.1;              // 1 .6× bigger every second
+const INITIAL_SCALE      = 0.1;             // starts at 20 % of bitmap size
+/* ---------------------------- */
+
+const canvas = document.querySelector('canvas');
+const ctx    = canvas.getContext('2d');
+let   vw = innerWidth, vh = innerHeight;
+
+function resize() {
+    vw = innerWidth; vh = innerHeight;
+    canvas.width  = vw;
+    canvas.height = vh;
+}
+addEventListener('resize', resize);
+resize();
+
+/* ---------- preload ---------- */
+const img = new Image();
+img.src   = IMAGE_SRC;
+img.onload = () => zoom(img);
+
+/* ---------- animation ---------- */
+function zoom(image) {
+    const bmpSide = image.width;       // image is square by assumption
+    let   scale   = INITIAL_SCALE;
+    let   lastT   = performance.now();
+
+    const lnRatio = Math.log(RATIO_PER_SECOND);     // pre-compute for speed
+
+    function frame(now) {
+        const dt = (now - lastT) / 1000;            // seconds
+        lastT = now;
+
+        // multiplicative update → constant percentage growth
+        scale *= Math.exp(lnRatio * dt);
+
+        ctx.clearRect(0, 0, vw, vh);
+
+        const drawSide = bmpSide * scale;
+        const x = (vw - drawSide) / 2;
+        const y = (vh - drawSide) / 2;
+        ctx.drawImage(image, x, y, drawSide, drawSide);
+
+        // stop when the image fully covers the smaller viewport dimension
+        if (drawSide < Math.min(vw, vh)) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
