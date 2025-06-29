@@ -9,48 +9,9 @@ const LAYERS_DATA = [
 ];
 
 
-let images = [];
-let images_loaded = false;
-let image_load_callbacks = [];
 let canvas, ctx;
 
 
-function preload_images(layer_data) {
-   if (images_loaded) return; // Prevent double loading
-   let loaded = 0;
-   const total = layer_data.length;
-   images = new Array(total);
-   if (total === 0) {
-      images_loaded = true;
-      image_load_callbacks.forEach(cb => cb(images));
-      image_load_callbacks = [];
-      return;
-   }
-   log(`Loading ${total} images...`);
-   layer_data.forEach((layer, i) => {
-      const img = new Image();
-      img.onload = () => {
-         images[i] = img;
-         loaded++;
-         log(`[${loaded}/${total}] → ${img.src}`);
-         if (loaded === total) {
-            images_loaded = true;
-            log(`Loaded ${images.length} images!`);
-            image_load_callbacks.forEach(cb => cb(images));
-            image_load_callbacks = [];
-         }
-      };
-      img.src = `${IMAGE_FOLDER}/${layer.image}`;
-   });
-}
-
-function on_images_loaded(callback) {
-   if (images_loaded) {
-      callback(images);
-   } else {
-      image_load_callbacks.push(callback);
-   }
-}
 
 function resize_canvas() {
    canvas.width = window.innerWidth;
