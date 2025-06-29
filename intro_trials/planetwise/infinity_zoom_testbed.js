@@ -8,23 +8,48 @@ const LAYERS_DATA = [
    { zoom: 25, image: '90_alien_hut.png' },
 ];
 
+
 let images = [];
+let images_loaded = false;
+let image_load_callbacks = [];
 let canvas, ctx;
 
-function preload_images(layer_data, callback) {
+
+function preload_images(layer_data) {
+   if (images_loaded) return; // Prevent double loading
    let loaded = 0;
    const total = layer_data.length;
-   const result = [];
-   if (total === 0) callback([]);
+   images = new Array(total);
+   if (total === 0) {
+      images_loaded = true;
+      image_load_callbacks.forEach(cb => cb(images));
+      image_load_callbacks = [];
+      return;
+   }
+   log(`Loading ${total} images...`);
    layer_data.forEach((layer, i) => {
       const img = new Image();
       img.onload = () => {
-         result[i] = img;
+         images[i] = img;
          loaded++;
-         if (loaded === total) callback(result);
+         log(`[${loaded}/${total}] → ${img.src}`);
+         if (loaded === total) {
+            images_loaded = true;
+            log(`Loaded ${images.length} images!`);
+            image_load_callbacks.forEach(cb => cb(images));
+            image_load_callbacks = [];
+         }
       };
       img.src = `${IMAGE_FOLDER}/${layer.image}`;
    });
+}
+
+function on_images_loaded(callback) {
+   if (images_loaded) {
+      callback(images);
+   } else {
+      image_load_callbacks.push(callback);
+   }
 }
 
 function resize_canvas() {
@@ -38,16 +63,3 @@ function setup_canvas() {
    resize_canvas();
    window.addEventListener('resize', resize_canvas);
 }
-
-
-
-
-window.onload = function () {
-   preload_images(LAYERS_DATA, function (loaded_images) {
-      images = loaded_images;
-      log_loaded_images(images);
-      log('animation loop started');
-      setup_canvas();
-      animation_loop();
-   });
-};
