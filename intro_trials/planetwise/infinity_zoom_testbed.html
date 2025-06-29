@@ -16,9 +16,15 @@
    <script>
       // Start loading images as early as possible, after LAYERS_DATA is defined
       window.infinity_zoom_preloader.preload_images(LAYERS_DATA);
-      window.infinity_zoom_preloader.on_images_loaded(function () {
+      window.infinity_zoom_preloader.on_images_loaded(function (images) {
          setup_canvas();
-         //TBD
+         // Start the infinity zoom animation after canvas and images are ready
+         window.infinity_zoom_engine.start_infinity_zoom(
+            document.getElementById('zoom_canvas'),
+            document.getElementById('zoom_canvas').getContext('2d'),
+            LAYERS_DATA,
+            images
+         );
       });
    </script>
 </body>

@@ -51,16 +51,12 @@ const LAYERS_DATA = [
 * When the current top layer reaches one-hundred percent of the viewport’s inner dimension, the underneath layer is discarded and the process continues with the new pair.
 * The animation ends when the final layer has filled the viewport.
 
-## Duration Handling
-* Two exclusive configuration options exist. Only **one** is present in the final build.
-
-  * *Overall duration* – the entire zoom from first to last layer completes in a fixed, known amount of time.  
-    For every layer the required growth constant `k` is solved so that the scale reaches the viewport boundary exactly at the requested end time.
+## Speed Handling
 
   * *Tempo* – a constant *growth ratio per second* value defines by how much (e.g. ×1.6) the visible diameter grows each second.  
     The multiplicative rule from the previous section is applied using the corresponding `k = \ln(\text{ratio})`.
 
-* Regardless of which option is chosen, the update is computed exclusively with elapsed real time obtained inside the rAF callback, thereby ensuring frame-rate independence.
+* The update is computed exclusively with elapsed real time obtained inside the rAF callback, thereby ensuring frame-rate independence.
 
 ## Preloading Obligation
 * All images referenced in `LAYERS_DATA` are fully pre-loaded before the first animation frame.  
