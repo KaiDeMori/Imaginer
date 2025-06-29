@@ -66,17 +66,18 @@ If `drawScale_n ≥ 1` the layer is currently filling (or overfilling) the viewp
 
 -----
 
-## Looping Logic
+## Animation End Logic (No Looping)
 Let `deepestLayer` be `LAYERS_DATA.length – 1`.
-The sequence restarts whenever the deepest layer is **visually full-size**:
+The animation starts with the first frame and ends when the deepest layer is **visually full-size** (i.e., when it fills the viewport from inside):
 
 ```js
 if (drawScale_deepest >= 1) {
-  startTime = now;              // Reset the clock → S_outer(t) = 1 again
+  // Stop the animation; the last frame is now filling the viewport
+  // (No reset, no looping)
 }
 ```
 
-Because every scale is calculated from `(now − startTime)` the whole stack re-initialises automatically — no mutable accumulator required.
+Because every scale is calculated from `(now − startTime)`, the animation is deterministic and does not require any looping or re-initialization.
 
 -----
 
