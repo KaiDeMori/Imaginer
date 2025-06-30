@@ -98,27 +98,37 @@ gl_FragColor = vec4(color.rgb, color.a * alpha);
 
 ## Implementation Checklist (WebGL Engine)
 
-- [ ] 1. WebGL Setup
+- [x] 1. WebGL Setup
     - Initialize WebGL2 context
     - Set up viewport and handle resizing
-- [ ] 2. Shaders & Geometry
-    - Vertex shader for full-viewport quad
-    - Fragment shader for feathered alpha
+
+- [ ] 2. Minimal Shaders & Geometry
+    - Vertex and fragment shader for a solid color quad
     - Quad geometry buffer
-- [ ] 3. Texture Management
-    - Create textures for each image
-    - Upload images as textures
-- [ ] 4. Animation State
-    - Track active layers, scale, and state
-    - Track zoom level and elapsed time
-- [ ] 5. Animation Loop
-    - Use requestAnimationFrame
-    - Update scales, handle layer transitions
-    - Draw all active layers, back-to-front
-- [ ] 6. Drawing Logic
-    - Set up transforms, bind textures, set uniforms
-    - Draw quad for each layer
-- [ ] 7. End Condition
-    - Stop animation when only one layer remains and fills viewport
-- [ ] 8. (Optional) Texture Cleanup
-    - Delete textures for inactive layers (for large stacks)
+    - Test: See a colored quad on the canvas
+
+- [ ] 3. Texture Display (Single Image)
+    - Load and display a single image as a texture
+    - Test: See the first image layer rendered, no animation
+
+- [ ] 4. Feathering Shader
+    - Add feathering logic to the fragment shader
+    - Test: See the image with feathered edges
+
+- [ ] 5. Layer Stack (Static)
+    - Add logic for multiple layers, rendered statically
+    - Test: See all layers stacked, correct order and feathering
+
+- [ ] 6. Animation Loop (Zoom)
+    - Implement exponential zoom for the top layer
+    - Test: See the top layer zoom in smoothly
+
+- [ ] 7. Layer Transition Logic
+    - Remove background layer when top layer fills viewport
+    - Test: See transition from one layer to the next
+
+- [ ] 8. Texture Cleanup
+    - Remove textures for layers no longer visible
+
+- [ ] 9. Final Polish
+    - Refactor, optimize, and ensure all requirements are met
