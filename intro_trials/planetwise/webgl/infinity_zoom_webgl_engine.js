@@ -109,8 +109,18 @@ function make_matrix(img, canvas) {
    return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
 }
 
+// Compose a 3x3 rotation matrix (clockwise, angle in radians)
+function make_rotation_matrix(angle) {
+   const c = Math.cos(angle);
+   const s = Math.sin(angle);
+   return [c, s, 0, -s, c, 0, 0, 0, 1];
+}
+
 // Minimum size for a layer to be rendered in pixels
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
+
+// Global rotation speed (radians per second, clockwise)
+const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // ~1 rotation per 2 minutes
 
 // Export a single entry point for the engine
 window.infinity_zoom_webgl_engine = {
@@ -159,6 +169,7 @@ window.infinity_zoom_webgl_engine = {
       // Animation loop
       let last_time = null;
       let running = true;
+      let rotation = 0;
       function animate(ts) {
          if (!running) return;
          if (!last_time) last_time = ts;
@@ -169,6 +180,9 @@ window.infinity_zoom_webgl_engine = {
          for (let i = 0; i < active_layers.length; i++) {
             active_layers[i].scale *= Math.exp(Math.log(1.2) * dt);
          }
+
+         // Update global rotation (clockwise)
+         rotation -= INFINITY_ZOOM_ROTATION_SPEED * dt;
 
          // Remove previous layer if next covers viewport (including feather)
          while (active_layers.length > 1) {
@@ -198,9 +212,25 @@ window.infinity_zoom_webgl_engine = {
             const min_dim = Math.min(canvas.width, canvas.height);
             const draw_size = layer.scale * min_dim;
             if (draw_size < INFINITY_ZOOM_MINIMUM_RENDER_SIZE) continue;
-            const mat = make_matrix(img, canvas).slice();
-            mat[0] *= layer.scale;
-            mat[4] *= layer.scale;
+            // Compose rotation * scale * aspect matrix
+            const base_mat = make_matrix(img, canvas);
+            // Apply scale
+            base_mat[0] *= layer.scale;
+            base_mat[4] *= layer.scale;
+            // Apply rotation (centered)
+            const rot = make_rotation_matrix(rotation);
+            // Matrix multiply: rot * base_mat (both 3x3)
+            const mat = [
+               rot[0] * base_mat[0] + rot[1] * base_mat[3],
+               rot[0] * base_mat[1] + rot[1] * base_mat[4],
+               rot[0] * base_mat[2] + rot[1] * base_mat[5],
+               rot[3] * base_mat[0] + rot[4] * base_mat[3],
+               rot[3] * base_mat[1] + rot[4] * base_mat[4],
+               rot[3] * base_mat[2] + rot[4] * base_mat[5],
+               rot[6] * base_mat[0] + rot[7] * base_mat[3] + base_mat[6],
+               rot[6] * base_mat[1] + rot[7] * base_mat[4] + base_mat[7],
+               rot[6] * base_mat[2] + rot[7] * base_mat[5] + base_mat[8]
+            ];
             draw_textured_quad(gl, prog, layer.texture, mat);
          }
 
