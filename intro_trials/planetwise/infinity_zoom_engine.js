@@ -1,7 +1,7 @@
 // Infinity Zoom Animation Engine
 
 // Growth ratio per second
-const INFINITY_ZOOM_GROWTH_RATIO = 2;
+const INFINITY_ZOOM_GROWTH_RATIO = 1.2;
 
 // Growth constant for exponential scaling
 const INFINITY_ZOOM_GROWTH_CONSTANT = Math.log(INFINITY_ZOOM_GROWTH_RATIO);
@@ -17,14 +17,20 @@ let zoom_last_timestamp = null;
 let zoom_canvas = null;
 let zoom_ctx = null;
 
-function init_zoom_layers(layers_data, images) {
+function init_zoom_layers(layers_data, images, max_size) {
    // Each layer gets its own scale, starting at 100% for the bottom layer
-   zoom_layers = layers_data.map((layer, i) => ({
-      ...layer,
-      image_obj: images[i],
-      // Initial scale: 1 for the bottom layer, then multiplied by zoom for each above
-      scale: null // will be set below
-   }));
+   zoom_layers = layers_data.map((layer, i) => {
+      const image_obj = images[i];
+      // Pre-render feathered image for this layer
+      const feather_px = Math.max(2, max_size * 0.08); // 8% or at least 2px
+      const feathered_image = create_feathered_image_fixed(image_obj, max_size, feather_px);
+      return {
+         ...layer,
+         image_obj,
+         feathered_image,
+         scale: null // will be set below
+      };
+   });
    // Set initial scales: first entry (island) is 1, each next is cumulative product of previous zooms
    let scale = 1;
    for (let i = 0; i < zoom_layers.length; i++) {
@@ -37,6 +43,53 @@ function init_zoom_layers(layers_data, images) {
    zoom_active_layers = zoom_layers.slice();
 }
 
+// Create a feathered version of an image at a given size
+function create_feathered_image_fixed(image, size, feather_px) {
+   const off_canvas = document.createElement('canvas');
+   off_canvas.width = off_canvas.height = size;
+   const off_ctx = off_canvas.getContext('2d');
+   // Draw image at integer position (no 0.5px shift)
+   off_ctx.drawImage(image, 0, 0, size, size);
+   // Create mask
+   const mask_canvas = document.createElement('canvas');
+   mask_canvas.width = mask_canvas.height = size;
+   const mask_ctx = mask_canvas.getContext('2d');
+   // Solid center
+   mask_ctx.fillStyle = 'rgba(0,0,0,1)';
+   mask_ctx.fillRect(feather_px, feather_px, size - 2 * feather_px, size - 2 * feather_px);
+   // Feathered edges (left, right, top, bottom)
+   let grad;
+   // Left
+   grad = mask_ctx.createLinearGradient(0, 0, feather_px, 0);
+   grad.addColorStop(0, 'rgba(0,0,0,0)');
+   grad.addColorStop(1, 'rgba(0,0,0,1)');
+   mask_ctx.fillStyle = grad;
+   mask_ctx.fillRect(0, feather_px, feather_px, size - 2 * feather_px);
+   // Right
+   grad = mask_ctx.createLinearGradient(size - feather_px, 0, size, 0);
+   grad.addColorStop(0, 'rgba(0,0,0,1)');
+   grad.addColorStop(1, 'rgba(0,0,0,0)');
+   mask_ctx.fillStyle = grad;
+   mask_ctx.fillRect(size - feather_px, feather_px, feather_px, size - 2 * feather_px);
+   // Top
+   grad = mask_ctx.createLinearGradient(0, 0, 0, feather_px);
+   grad.addColorStop(0, 'rgba(0,0,0,0)');
+   grad.addColorStop(1, 'rgba(0,0,0,1)');
+   mask_ctx.fillStyle = grad;
+   mask_ctx.fillRect(feather_px, 0, size - 2 * feather_px, feather_px);
+   // Bottom
+   grad = mask_ctx.createLinearGradient(0, size - feather_px, 0, size);
+   grad.addColorStop(0, 'rgba(0,0,0,1)');
+   grad.addColorStop(1, 'rgba(0,0,0,0)');
+   mask_ctx.fillStyle = grad;
+   mask_ctx.fillRect(feather_px, size - feather_px, size - 2 * feather_px, feather_px);
+   // Apply mask to offscreen image
+   off_ctx.globalCompositeOperation = 'destination-in';
+   off_ctx.drawImage(mask_canvas, 0, 0, size, size);
+   off_ctx.globalCompositeOperation = 'source-over';
+   return off_canvas;
+}
+
 function draw_zoom_layers() {
    if (!zoom_canvas || !zoom_ctx) return;
    // Clear canvas
@@ -45,7 +98,7 @@ function draw_zoom_layers() {
    const drawn_images = [];
    for (let i = 0; i < zoom_active_layers.length; i++) {
       const layer = zoom_active_layers[i];
-      if (!layer.image_obj) continue;
+      if (!layer.image_obj || !layer.feathered_image) continue;
       // Calculate size to draw
       const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
       const draw_size = min_dim * layer.scale;
@@ -54,7 +107,8 @@ function draw_zoom_layers() {
       drawn_images.push(layer.image);
       const x = (zoom_canvas.width - draw_size) / 2;
       const y = (zoom_canvas.height - draw_size) / 2;
-      zoom_ctx.drawImage(layer.image_obj, x, y, draw_size, draw_size);
+      // Use pre-rendered feathered image for this layer, scale to draw_size
+      zoom_ctx.drawImage(layer.feathered_image, x, y, draw_size, draw_size);
    }
 }
 
@@ -107,7 +161,9 @@ function zoom_animation_frame(ts) {
 function start_infinity_zoom(canvas, ctx, layers_data, images) {
    zoom_canvas = canvas;
    zoom_ctx = ctx;
-   init_zoom_layers(layers_data, images);
+   const max_size = Math.max(canvas.width, canvas.height);
+   init_zoom_layers(layers_data, images, max_size);
+
    zoom_animation_running = true;
    zoom_last_timestamp = null;
    log('Animation started.');
