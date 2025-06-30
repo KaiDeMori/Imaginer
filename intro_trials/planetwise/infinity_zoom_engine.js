@@ -17,11 +17,7 @@ const FEATHER_MIN_PX = 2;     // At least 2px feather
 
 
 // Debug: Stop animation after first frame
-const DEBUG_STOP_ON_FIRST_FRAME = true;
-
-// Debug: Show first feathered image in the DOM
-const DEBUG_SHOW_FIRST_FEATHERED_IMAGE = true;
-
+const DEBUG_STOP_ON_FIRST_FRAME = false;
 
 let zoom_layers = [];
 let zoom_active_layers = [];
@@ -38,18 +34,7 @@ function init_zoom_layers(layers_data, images, max_size) {
       const feather_px = Math.max(FEATHER_MIN_PX, max_size * FEATHER_PERCENT);
       const feathered_image = create_feathered_image_fixed(image_obj, max_size, feather_px);
 
-      // DEBUG: Show the first feathered image in the DOM for inspection
-      if (DEBUG_SHOW_FIRST_FEATHERED_IMAGE && i === 0 && typeof document !== 'undefined') {
-         const img = document.createElement('img');
-         img.src = feathered_image.toDataURL();
-         img.style.position = 'fixed';
-         img.style.left = '10px';
-         img.style.top = '10px';
-         img.style.zIndex = 9999;
-         img.style.border = '2px solid magenta';
-         img.title = 'First feathered image (debug)';
-         document.body.appendChild(img);
-      }
+
 
       return {
          ...layer,
@@ -81,9 +66,9 @@ function create_feathered_image_fixed(image, size, feather_px) {
    const mask_canvas = document.createElement('canvas');
    mask_canvas.width = mask_canvas.height = size;
    const mask_ctx = mask_canvas.getContext('2d');
-   // Solid center
+   // Solid center (overlap by 1px to cover gradient artefacts)
    mask_ctx.fillStyle = 'rgba(0,0,0,1)';
-   mask_ctx.fillRect(feather_px, feather_px, size - 2 * feather_px, size - 2 * feather_px);
+   mask_ctx.fillRect(feather_px - 1, feather_px - 1, size - 2 * (feather_px - 1), size - 2 * (feather_px - 1));
    // Feathered edges (left, right, top, bottom)
    let grad;
    // Left
