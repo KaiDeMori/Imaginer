@@ -110,6 +110,10 @@ function make_matrix(img, canvas) {
 }
 
 // Export a single entry point for the engine
+
+// Minimum size for a layer to be rendered in pixels
+const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
+
 window.infinity_zoom_webgl_engine = {
    start_infinity_zoom_webgl: function (canvas, layers, images) {
       const gl = canvas.getContext('webgl2');
@@ -118,49 +122,102 @@ window.infinity_zoom_webgl_engine = {
       const prog = create_textured_quad_program(gl);
       gl.useProgram(prog);
       setup_textured_quad_buffer(gl, prog);
-      // Enable alpha blending for feathered border
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      // Create textures for the first two images (if available)
-      let tex0 = null, tex1 = null;
-      if (images.length > 0) {
-         tex0 = create_texture_from_image(gl, images[0]);
-      }
-      if (images.length > 1) {
-         tex1 = create_texture_from_image(gl, images[1]);
-      }
-      // Set feather width (8% typical)
       const u_feather = gl.getUniformLocation(prog, 'u_feather');
       gl.uniform1f(u_feather, 0.08);
 
-      // Animate just the first layer using exponential time-based scaling
-      if (images.length > 0 && tex0) {
-         let scale0 = 1.0;
-         const GROWTH_RATIO = 1.2;
-         const GROWTH_CONSTANT = Math.log(GROWTH_RATIO);
-         let last_time = null;
-         function animate_first_layer(ts) {
-            if (!last_time) last_time = ts;
-            const dt = (ts - last_time) / 1000;
-            last_time = ts;
-            scale0 *= Math.exp(GROWTH_CONSTANT * dt);
-            gl.clearColor(0, 0, 0, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            const mat0 = make_matrix(images[0], canvas).slice();
-            mat0[0] *= scale0;
-            mat0[4] *= scale0;
-            draw_textured_quad(gl, prog, tex0, mat0);
-            // Optionally, stop when the layer covers the viewport (including feather)
+      // --- Layer state ---
+      // Each active layer: { idx, scale, texture }
+      let active_layers = [];
+      // Precompute initial scales for all layers
+      let scale = 1.0;
+      for (let i = 0; i < layers.length; i++) {
+         active_layers.push({
+            idx: i,
+            scale: scale,
+            texture: null
+         });
+         if (i < layers.length - 1) {
+            scale *= layers[i + 1].zoom / 100;
+         }
+      }
+
+      // Texture management: create textures as needed
+      function ensure_texture(layer_idx) {
+         const layer = active_layers[layer_idx];
+         if (!layer.texture && images[layer.idx]) {
+            layer.texture = create_texture_from_image(gl, images[layer.idx]);
+         }
+      }
+      function delete_texture(layer) {
+         if (layer.texture) {
+            gl.deleteTexture(layer.texture);
+            layer.texture = null;
+         }
+      }
+
+      // Animation loop
+      let last_time = null;
+      let running = true;
+      function animate(ts) {
+         if (!running) return;
+         if (!last_time) last_time = ts;
+         const dt = (ts - last_time) / 1000;
+         last_time = ts;
+
+         // Exponential scale update for all active layers
+         for (let i = 0; i < active_layers.length; i++) {
+            active_layers[i].scale *= Math.exp(Math.log(1.2) * dt);
+         }
+
+         // Remove previous layer if next covers viewport (including feather)
+         while (active_layers.length > 1) {
+            const next = active_layers[1];
             const min_dim = Math.min(canvas.width, canvas.height);
             const feather_px = Math.max(2, Math.max(canvas.width, canvas.height) * 0.08);
-            const draw_size = scale0 * min_dim;
+            const draw_size = next.scale * min_dim;
             if ((draw_size - 2 * feather_px) >= canvas.width && (draw_size - 2 * feather_px) >= canvas.height) {
-               // Animation complete
+               // Remove previous (background) layer
+               delete_texture(active_layers[0]);
+               active_layers.shift();
+            } else {
+               break;
+            }
+         }
+
+         // Clear
+         gl.clearColor(0, 0, 0, 1);
+         gl.clear(gl.COLOR_BUFFER_BIT);
+
+         // Draw all active layers, back-to-front
+         for (let i = 0; i < active_layers.length; i++) {
+            const layer = active_layers[i];
+            ensure_texture(i);
+            const img = images[layer.idx];
+            if (!img || !layer.texture) continue;
+            const min_dim = Math.min(canvas.width, canvas.height);
+            const draw_size = layer.scale * min_dim;
+            if (draw_size < INFINITY_ZOOM_MINIMUM_RENDER_SIZE) continue;
+            const mat = make_matrix(img, canvas).slice();
+            mat[0] *= layer.scale;
+            mat[4] *= layer.scale;
+            draw_textured_quad(gl, prog, layer.texture, mat);
+         }
+
+         // End if only one layer left and it fills the viewport (including feather)
+         if (active_layers.length === 1) {
+            const layer = active_layers[0];
+            const min_dim = Math.min(canvas.width, canvas.height);
+            const feather_px = Math.max(2, Math.max(canvas.width, canvas.height) * 0.08);
+            const draw_size = layer.scale * min_dim;
+            if ((draw_size - 2 * feather_px) >= canvas.width && (draw_size - 2 * feather_px) >= canvas.height) {
+               running = false;
                return;
             }
-            requestAnimationFrame(animate_first_layer);
          }
-         requestAnimationFrame(animate_first_layer);
+         requestAnimationFrame(animate);
       }
+      requestAnimationFrame(animate);
    }
 };

@@ -23,6 +23,9 @@
 - Each layer is drawn as a centered square, scaled to its current size.
 - No panning or user interaction; zoom is automatic.
 
+**Minimum Render Size:**
+Layers are only drawn if their computed draw size is at least the value of `INFINITY_ZOOM_MINIMUM_RENDER_SIZE` (e.g., 3px). If a layer would be smaller than this threshold, it is skipped for that frame and will be drawn once it has grown large enough to be visible. This avoids unnecessary rendering of sub-pixel or visually insignificant images and ensures only relevant layers are drawn at any given time. The same constant should be reused in both the canvas and WebGL implementations for consistency.
+
 ## Texture Management (Canvas vs WebGL)
 - Canvas: pre-renders feathered images to offscreen canvases.
 - WebGL: will use fragment shader for feathering; only a few textures need to be resident at a time.
