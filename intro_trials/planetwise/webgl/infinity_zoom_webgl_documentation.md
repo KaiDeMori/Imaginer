@@ -13,7 +13,9 @@ This document prescribes the steps to implement an in-browser “infinity zoom�
 ## Source Data
 * Layers are supplied as a pre-loaded array named `LAYERS_DATA`.
 * Every entry contains a `zoom` property and an `image` filename.
-* `zoom` expresses the start size of the layer *relative to the layer directly following it*. A value of `25` means *this image starts at twenty-five percent of the previous layer’s size*.
+* All images are currently 2048×2048 pixels and always perfectly square. (The code supports arbitrary resolutions, but all images must be square for correct results.)
+* `zoom` expresses the start size of the defining layer *relative to the previous layer*. A value of `25` means *this image starts at twenty-five percent of the previous layer’s size*.
+* The `zoom` value of the first layer is unused.
 * Images are preloaded in JavaScript and uploaded to the GPU as textures only when needed.
 
 Example:

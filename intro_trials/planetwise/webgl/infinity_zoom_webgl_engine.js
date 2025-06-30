@@ -121,30 +121,37 @@ window.infinity_zoom_webgl_engine = {
       // Enable alpha blending for feathered border
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      // Create texture for the first image only
-      let tex = null;
+      // Create textures for the first two images (if available)
+      let tex0 = null, tex1 = null;
       if (images.length > 0) {
-         tex = create_texture_from_image(gl, images[0]);
+         tex0 = create_texture_from_image(gl, images[0]);
+      }
+      if (images.length > 1) {
+         tex1 = create_texture_from_image(gl, images[1]);
       }
       // Set feather width (8% typical)
       const u_feather = gl.getUniformLocation(prog, 'u_feather');
       gl.uniform1f(u_feather, 0.08);
 
-      // Compute scale so the entire image (including feather) fits fully inside the viewport
-      if (images.length > 0 && tex) {
-         const min_dim = Math.min(canvas.width, canvas.height);
-         const feather_px = Math.max(2, Math.max(canvas.width, canvas.height) * 0.08);
-         // The image (including feather) should fit inside the viewport:
-         // draw_size = scale * min_dim = viewport_size
-         // So scale = viewport_size / min_dim
-         // But since the image is always square and aspect-corrected, use the smaller viewport dimension
-         const scale = 1.0; // No extra scaling: image (with feather) fits inside viewport
-         const mat = make_matrix(images[0], canvas).slice();
-         mat[0] *= scale;
-         mat[4] *= scale;
-         gl.clearColor(0, 0, 0, 1);
-         gl.clear(gl.COLOR_BUFFER_BIT);
-         draw_textured_quad(gl, prog, tex, mat);
+      // Draw both layers, back-to-front (static, no debug)
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      // First layer: scale = 1.0 (fits inside viewport)
+      if (images.length > 0 && tex0) {
+         const scale0 = 1.0;
+         const mat0 = make_matrix(images[0], canvas).slice();
+         mat0[0] *= scale0;
+         mat0[4] *= scale0;
+         draw_textured_quad(gl, prog, tex0, mat0);
+      }
+      // Second layer: scale = first_layer_scale * (zoom / 100)
+      if (images.length > 1 && tex1) {
+         const zoom = layers[1].zoom;
+         const scale1 = 1.0 * (zoom / 100);
+         const mat1 = make_matrix(images[1], canvas).slice();
+         mat1[0] *= scale1;
+         mat1[4] *= scale1;
+         draw_textured_quad(gl, prog, tex1, mat1);
       }
    }
 };
