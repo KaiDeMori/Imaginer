@@ -25,8 +25,10 @@ function compile_shader(gl, type, src) {
 
 
 function create_textured_quad_program(gl) {
-   const vert_src = `#version 300 es\nprecision mediump float;\nin vec2 a_position;\nin vec2 a_texcoord;\nout vec2 v_texcoord;\nvoid main() {\n  v_texcoord = a_texcoord;\n  gl_Position = vec4(a_position, 0, 1);\n}`;
-   const frag_src = `#version 300 es\nprecision mediump float;\nin vec2 v_texcoord;\nuniform sampler2D u_image;\nout vec4 outColor;\nvoid main() {\n  outColor = texture(u_image, v_texcoord);\n}`;
+   // Vertex shader with u_matrix for aspect-correct rendering
+   const vert_src = `#version 300 es\nprecision mediump float;\nin vec2 a_position;\nin vec2 a_texcoord;\nuniform mat3 u_matrix;\nout vec2 v_texcoord;\nvoid main() {\n  vec3 pos = u_matrix * vec3(a_position, 1.0);\n  v_texcoord = a_texcoord;\n  gl_Position = vec4(pos.xy, 0, 1);\n}`;
+   // Feathering fragment shader: alpha ramps at edges (8% default, can be uniform)
+   const frag_src = `#version 300 es\nprecision mediump float;\nin vec2 v_texcoord;\nuniform sampler2D u_image;\nuniform float u_feather;\nout vec4 outColor;\nvoid main() {\n  float min_edge = min(min(v_texcoord.x, 1.0 - v_texcoord.x), min(v_texcoord.y, 1.0 - v_texcoord.y));\n  float feather = u_feather;\n  float edge_alpha = 1.0;\n  if (min_edge < feather) {\n    edge_alpha = min_edge / feather;\n  }\n  vec4 color = texture(u_image, v_texcoord);\n  outColor = vec4(color.rgb, color.a * edge_alpha);\n}`;
    const vs = compile_shader(gl, gl.VERTEX_SHADER, vert_src);
    const fs = compile_shader(gl, gl.FRAGMENT_SHADER, frag_src);
    const prog = gl.createProgram();
@@ -70,7 +72,7 @@ function create_texture_from_image(gl, image) {
    return tex;
 }
 
-function draw_textured_quad(gl, prog, tex) {
+function draw_textured_quad(gl, prog, tex, mat) {
    gl.clearColor(0, 0, 0, 1);
    gl.clear(gl.COLOR_BUFFER_BIT);
    gl.useProgram(prog);
@@ -78,9 +80,25 @@ function draw_textured_quad(gl, prog, tex) {
    gl.bindTexture(gl.TEXTURE_2D, tex);
    const u_image = gl.getUniformLocation(prog, 'u_image');
    gl.uniform1i(u_image, 0);
+   // Set aspect-correct matrix
+   const u_matrix = gl.getUniformLocation(prog, 'u_matrix');
+   gl.uniformMatrix3fv(u_matrix, false, mat);
    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
+
+function make_matrix(img, canvas) {
+   // Compute aspect-correct scale: ensures image is always square and centered
+   const img_aspect = img.width / img.height;
+   const canvas_aspect = canvas.width / canvas.height;
+   let sx = 1, sy = 1;
+   if (img_aspect > canvas_aspect) {
+      sy = canvas_aspect / img_aspect;
+   } else {
+      sx = img_aspect / canvas_aspect;
+   }
+   return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
+}
 
 // Export a single entry point for the engine
 window.infinity_zoom_webgl_engine = {
@@ -88,11 +106,16 @@ window.infinity_zoom_webgl_engine = {
       const gl = canvas.getContext('webgl2');
       resize_canvas_to_display_size(canvas, gl);
       window.addEventListener('resize', () => resize_canvas_to_display_size(canvas, gl));
-      // For now, just show the first image as a texture
+      // Show the first image as a texture with feathering and aspect-correct matrix
       const prog = create_textured_quad_program(gl);
       gl.useProgram(prog);
       setup_textured_quad_buffer(gl, prog);
       const tex = create_texture_from_image(gl, images[0]);
-      draw_textured_quad(gl, prog, tex);
+      // Set feather width (8% of image size is typical)
+      const u_feather = gl.getUniformLocation(prog, 'u_feather');
+      gl.uniform1f(u_feather, 0.08);
+      // Compute aspect-correct matrix
+      const mat = make_matrix(images[0], canvas);
+      draw_textured_quad(gl, prog, tex, mat);
    }
 };
