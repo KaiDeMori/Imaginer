@@ -15,9 +15,7 @@ window.addEventListener('DOMContentLoaded', () => {
    window.infinity_zoom_preloader.preload_images(LAYERS_DATA, '../zoom_images');
    window.infinity_zoom_preloader.on_images_loaded((images) => {
       // At this point, images[] is ready and matches LAYERS_DATA order
-      // Here we will initialize the WebGL engine (to be implemented next)
-      // For now, just log success:
-      console.log('[WebGL] All images loaded:', images);
-      // TODO: Initialize WebGL engine here
+      log('[WebGL] All images loaded, starting engine...');
+      window.infinity_zoom_webgl_engine.start_infinity_zoom_webgl(canvas, LAYERS_DATA, images);
    });
 });
