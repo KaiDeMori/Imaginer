@@ -17,6 +17,7 @@ This document prescribes the steps to implement an in-browser “infinity zoom�
 * Images are preloaded in JavaScript and uploaded to the GPU as textures only when needed.
 
 Example:
+
 ```js
 const LAYERS_DATA = [
    { zoom: 25, image: '60_alien_island.png' },
@@ -24,6 +25,7 @@ const LAYERS_DATA = [
    { zoom: 25, image: '80_alien_village.png' },
    { zoom: 25, image: '90_alien_hut.png' }
 ];
+// Example removal: '60_alien_island.png' is removed from rendering when '70_alien_forest.png' has scaled up so that its visible area covers the entire viewport in both width and height (i.e., its size reaches at least the larger of the viewport's width or height).
 ```
 
 ## Visual Rules
@@ -48,7 +50,7 @@ const LAYERS_DATA = [
   $$
   where `s₀` is the initial scale and `k` is the growth constant in \(\text{s}^{-1}\).
 * Layers are drawn back-to-front so that the deepest currently active layer is rendered first and the topmost last.
-* When the current top layer reaches one-hundred percent of the viewport’s inner dimension, the underneath layer is discarded and the process continues with the new pair.
+* When the current top layer (the one above) has scaled up so that its visible area covers the entire viewport in both width and height (i.e., its size reaches at least the larger of the viewport’s width or height), the underneath layer is discarded and the process continues with the new pair. This ensures the entire viewport is covered, with no gaps or letterboxing, before removing the previous layer.
 * The animation ends when the final layer has filled the viewport.
 
 ## Feathering Implementation
