@@ -51,16 +51,18 @@ function update_zoom_layers(dt) {
    // Exponential scaling for all active layers
    for (let i = 0; i < zoom_active_layers.length; i++) {
       zoom_active_layers[i].scale *= Math.exp(INFINITY_ZOOM_GROWTH_CONSTANT * dt);
-      // Check if the layer covers the viewport
-      if (layer_covers_viewport(zoom_active_layers[i])) {
-         log(`[infinity_zoom_engine] Layer ${i} now covers the viewport.`);
+      // Only act if this is not the bottom-most layer and more than one layer remains
+      if (zoom_active_layers.length > 1 && i > 0 && layer_covers_viewport(zoom_active_layers[i])) {
+         log(`[infinity_zoom_engine] Layer ${i} now covers the viewport. Parent layer ${i - 1} removed.`);
+         zoom_active_layers.splice(i - 1, 1);
+         i--; // Adjust index after removal
+         continue; // Skip re-evaluating the current layer
       }
    }
    // Remove the topmost (currently visible, smallest) layer if it fills the viewport
    while (zoom_active_layers.length > 1) {
       const top = zoom_active_layers[zoom_active_layers.length - 1];
-      const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
-      if (top.scale * min_dim >= min_dim) {
+      if (layer_covers_viewport(top)) {
          zoom_active_layers.pop();
          log('[infinity_zoom_engine] Top layer removed. Layers left: ' + zoom_active_layers.length);
       } else {
