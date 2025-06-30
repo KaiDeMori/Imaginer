@@ -10,9 +10,17 @@ const INFINITY_ZOOM_GROWTH_CONSTANT = Math.log(INFINITY_ZOOM_GROWTH_RATIO);
 // Minimum size for a layer to be rendered in pixels
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
 
+
 // Feathering parameters
 const FEATHER_PERCENT = 0.08; // 8% of the image size
 const FEATHER_MIN_PX = 2;     // At least 2px feather
+
+
+// Debug: Stop animation after first frame
+const DEBUG_STOP_ON_FIRST_FRAME = true;
+
+// Debug: Show first feathered image in the DOM
+const DEBUG_SHOW_FIRST_FEATHERED_IMAGE = true;
 
 
 let zoom_layers = [];
@@ -29,6 +37,20 @@ function init_zoom_layers(layers_data, images, max_size) {
       // Pre-render feathered image for this layer
       const feather_px = Math.max(FEATHER_MIN_PX, max_size * FEATHER_PERCENT);
       const feathered_image = create_feathered_image_fixed(image_obj, max_size, feather_px);
+
+      // DEBUG: Show the first feathered image in the DOM for inspection
+      if (DEBUG_SHOW_FIRST_FEATHERED_IMAGE && i === 0 && typeof document !== 'undefined') {
+         const img = document.createElement('img');
+         img.src = feathered_image.toDataURL();
+         img.style.position = 'fixed';
+         img.style.left = '10px';
+         img.style.top = '10px';
+         img.style.zIndex = 9999;
+         img.style.border = '2px solid magenta';
+         img.title = 'First feathered image (debug)';
+         document.body.appendChild(img);
+      }
+
       return {
          ...layer,
          image_obj,
@@ -88,10 +110,39 @@ function create_feathered_image_fixed(image, size, feather_px) {
    grad.addColorStop(1, 'rgba(0,0,0,0)');
    mask_ctx.fillStyle = grad;
    mask_ctx.fillRect(feather_px, size - feather_px, size - 2 * feather_px, feather_px);
+
+   // Feathered corners (radial gradients, reversed: opaque at corner, transparent at feather edge)
+   let rgrad;
+   // Top-left
+   rgrad = mask_ctx.createRadialGradient(feather_px, feather_px, 0, feather_px, feather_px, feather_px);
+   rgrad.addColorStop(0, 'rgba(0,0,0,1)');
+   rgrad.addColorStop(1, 'rgba(0,0,0,0)');
+   mask_ctx.fillStyle = rgrad;
+   mask_ctx.fillRect(0, 0, feather_px, feather_px);
+   // Top-right
+   rgrad = mask_ctx.createRadialGradient(size - feather_px, feather_px, 0, size - feather_px, feather_px, feather_px);
+   rgrad.addColorStop(0, 'rgba(0,0,0,1)');
+   rgrad.addColorStop(1, 'rgba(0,0,0,0)');
+   mask_ctx.fillStyle = rgrad;
+   mask_ctx.fillRect(size - feather_px, 0, feather_px, feather_px);
+   // Bottom-left
+   rgrad = mask_ctx.createRadialGradient(feather_px, size - feather_px, 0, feather_px, size - feather_px, feather_px);
+   rgrad.addColorStop(0, 'rgba(0,0,0,1)');
+   rgrad.addColorStop(1, 'rgba(0,0,0,0)');
+   mask_ctx.fillStyle = rgrad;
+   mask_ctx.fillRect(0, size - feather_px, feather_px, feather_px);
+   // Bottom-right
+   rgrad = mask_ctx.createRadialGradient(size - feather_px, size - feather_px, 0, size - feather_px, size - feather_px, feather_px);
+   rgrad.addColorStop(0, 'rgba(0,0,0,1)');
+   rgrad.addColorStop(1, 'rgba(0,0,0,0)');
+   mask_ctx.fillStyle = rgrad;
+   mask_ctx.fillRect(size - feather_px, size - feather_px, feather_px, feather_px);
+
    // Apply mask to offscreen image
    off_ctx.globalCompositeOperation = 'destination-in';
    off_ctx.drawImage(mask_canvas, 0, 0, size, size);
    off_ctx.globalCompositeOperation = 'source-over';
+
    return off_canvas;
 }
 
@@ -162,6 +213,14 @@ function zoom_animation_frame(ts) {
    zoom_last_timestamp = ts;
    update_zoom_layers(dt);
    draw_zoom_layers();
+
+   // Debug: Stop after first frame
+   if (DEBUG_STOP_ON_FIRST_FRAME) {
+      log('Debug: Stopping after first frame.');
+      zoom_animation_running = false;
+      return;
+   }
+
    // End if only one layer left and it fills the viewport (including feathered border)
    if (zoom_active_layers.length === 1) {
       const top = zoom_active_layers[0];
