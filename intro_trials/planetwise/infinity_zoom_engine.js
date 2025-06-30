@@ -53,7 +53,9 @@ function update_zoom_layers(dt) {
       zoom_active_layers[i].scale *= Math.exp(INFINITY_ZOOM_GROWTH_CONSTANT * dt);
       // Only act if this is not the bottom-most layer and more than one layer remains
       if (zoom_active_layers.length > 1 && i > 0 && layer_covers_viewport(zoom_active_layers[i])) {
-         log(`[infinity_zoom_engine] Layer ${i} now covers the viewport. Parent layer ${i - 1} removed.`);
+         const child_name = zoom_active_layers[i].image || `Layer ${i}`;
+         const parent_name = zoom_active_layers[i - 1].image || `Layer ${i - 1}`;
+         log(`'${child_name}' now covers the viewport. Parent '${parent_name}' removed.`);
          zoom_active_layers.splice(i - 1, 1);
          i--; // Adjust index after removal
          continue; // Skip re-evaluating the current layer
@@ -64,7 +66,7 @@ function update_zoom_layers(dt) {
       const top = zoom_active_layers[zoom_active_layers.length - 1];
       if (layer_covers_viewport(top)) {
          zoom_active_layers.pop();
-         log('[infinity_zoom_engine] Top layer removed. Layers left: ' + zoom_active_layers.length);
+         log('Top layer removed. Layers left: ' + zoom_active_layers.length);
       } else {
          break;
       }
@@ -83,7 +85,7 @@ function zoom_animation_frame(ts) {
       const top = zoom_active_layers[0];
       const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
       if (top.scale * min_dim >= min_dim) {
-         log('[infinity_zoom_engine] Animation complete.');
+         log('Animation complete.');
          zoom_animation_running = false;
          return;
       }
@@ -97,7 +99,7 @@ function start_infinity_zoom(canvas, ctx, layers_data, images) {
    init_zoom_layers(layers_data, images);
    zoom_animation_running = true;
    zoom_last_timestamp = null;
-   log('[infinity_zoom_engine] Animation started.');
+   log('Animation started.');
    requestAnimationFrame(zoom_animation_frame);
 }
 
