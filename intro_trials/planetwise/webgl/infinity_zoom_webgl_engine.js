@@ -1,3 +1,14 @@
+// Check if a layer (image) completely covers the viewport, including its feathered border
+// img: HTMLImageElement, canvas: HTMLCanvasElement, scale: number, feather_percent: number, feather_min_px: number
+function layer_covers_viewport_with_feather(img, canvas, scale, feather_percent = 0.08, feather_min_px = 2) {
+   // Compute the draw size (image is always square and aspect-corrected)
+   const min_dim = Math.min(canvas.width, canvas.height);
+   const draw_size = scale * min_dim;
+   // Feather in pixels (same as in 2D engine)
+   const feather_px = Math.max(feather_min_px, Math.max(canvas.width, canvas.height) * feather_percent);
+   // The solid (non-feathered) part must cover the viewport
+   return (draw_size - 2 * feather_px) >= canvas.width && (draw_size - 2 * feather_px) >= canvas.height;
+}
 // Minimal WebGL2 colored quad rendering for incremental test-driven development
 // Step 2: Vertex and fragment shader for a solid color quad
 
@@ -118,11 +129,21 @@ window.infinity_zoom_webgl_engine = {
       // Set feather width (8% typical)
       const u_feather = gl.getUniformLocation(prog, 'u_feather');
       gl.uniform1f(u_feather, 0.08);
-      // Draw only the first image, centered, with feathered border
-      gl.clearColor(0, 0, 0, 1);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      // Compute scale so the entire image (including feather) fits fully inside the viewport
       if (images.length > 0 && tex) {
-         const mat = make_matrix(images[0], canvas);
+         const min_dim = Math.min(canvas.width, canvas.height);
+         const feather_px = Math.max(2, Math.max(canvas.width, canvas.height) * 0.08);
+         // The image (including feather) should fit inside the viewport:
+         // draw_size = scale * min_dim = viewport_size
+         // So scale = viewport_size / min_dim
+         // But since the image is always square and aspect-corrected, use the smaller viewport dimension
+         const scale = 1.0; // No extra scaling: image (with feather) fits inside viewport
+         const mat = make_matrix(images[0], canvas).slice();
+         mat[0] *= scale;
+         mat[4] *= scale;
+         gl.clearColor(0, 0, 0, 1);
+         gl.clear(gl.COLOR_BUFFER_BIT);
          draw_textured_quad(gl, prog, tex, mat);
       }
    }

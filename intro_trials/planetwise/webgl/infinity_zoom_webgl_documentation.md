@@ -33,7 +33,7 @@ const LAYERS_DATA = [
 * All layers share an identical center; there is no lateral panning.
 * Each layer is rendered as a textured quad covering the viewport, scaled according to the zoom animation.
 * Feathered borders are computed in the fragment shader for smooth, artifact-free blending.
-* Layers are drawn back-to-front (deepest first, topmost last) with alpha blending enabled.
+* Layers are drawn back-to-front (first layer first, last layer last) with alpha blending enabled.
 * Only the currently visible layers (typically 2–5) are uploaded as textures and rendered; others are not present in GPU memory.
 
 ## Drawing Surface
@@ -49,8 +49,9 @@ const LAYERS_DATA = [
   s(t) = s_0 \; e^{k t}
   $$
   where `s₀` is the initial scale and `k` is the growth constant in \(\text{s}^{-1}\).
-* Layers are drawn back-to-front so that the deepest currently active layer is rendered first and the topmost last.
-* When the current top layer (the one above) has scaled up so that its visible area covers the entire viewport in both width and height (i.e., its size reaches at least the larger of the viewport’s width or height), the underneath layer is discarded and the process continues with the new pair. This ensures the entire viewport is covered, with no gaps or letterboxing, before removing the previous layer.
+* Layers are drawn back-to-front so that the first currently active layer is rendered first and the last layer last.
+* The first layer is drawn so that the entire image—including its feathered border—is fully visible inside the viewport, maximized as much as possible but not cropped. This may result in black bars on the left and right (letterboxing) or top and bottom, depending on the viewport aspect ratio. No part of the image is outside the viewport at the start.
+* For all subsequent layers, when the next layer in order has scaled up so that its visible area covers the entire viewport in both width and height (i.e., its size reaches at least the larger of the viewport’s width or height), the previous layer is discarded and the process continues with the new pair. This ensures the entire viewport is covered, with no gaps or letterboxing, before removing the previous layer.
 * The animation ends when the final layer has filled the viewport.
 
 ## Feathering Implementation

@@ -2,8 +2,8 @@
 
 ## Core Animation Logic
 - Uses an exponential scale for each layer: `scale *= exp(k * dt)` where `k = ln(growth_ratio)`.
-- Layers are drawn back-to-front (deepest first, topmost last) for correct alpha blending.
-- When the top layer above has scaled up so that its visible area covers the entire viewport in both width and height (i.e., its size reaches at least the larger of the viewport's width or height), the previous background layer is removed; animation continues with the new pair.
+- Layers are drawn back-to-front (first layer first, last layer last) for correct alpha blending.
+- When the next layer in order has scaled up so that its visible area covers the entire viewport in both width and height (i.e., its size reaches at least the larger of the viewport's width or height), the previous layer is removed; animation continues with the new pair.
 - Animation is frame-rate independent (uses real elapsed time).
 
 ## Layer Data & Preloading
@@ -19,7 +19,7 @@
 - Each frame:
   1. Update all active layer scales.
   2. When the current top layer above has scaled up so that its visible area covers the entire viewport in both width and height (i.e., its size reaches at least the larger of the viewport's width or height), the layer directly beneath it (the previous background) is removed from the stack, leaving the top layer as the new background.
-  3. Draw all active layers, largest (deepest) first.
+  3. Draw all active layers, first layer first.
 - Each layer is drawn as a centered square, scaled to its current size.
 - No panning or user interaction; zoom is automatic.
 
