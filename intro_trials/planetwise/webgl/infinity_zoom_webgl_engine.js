@@ -73,8 +73,6 @@ function create_texture_from_image(gl, image) {
 }
 
 function draw_textured_quad(gl, prog, tex, mat) {
-   gl.clearColor(0, 0, 0, 1);
-   gl.clear(gl.COLOR_BUFFER_BIT);
    gl.useProgram(prog);
    gl.activeTexture(gl.TEXTURE0);
    gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -106,16 +104,26 @@ window.infinity_zoom_webgl_engine = {
       const gl = canvas.getContext('webgl2');
       resize_canvas_to_display_size(canvas, gl);
       window.addEventListener('resize', () => resize_canvas_to_display_size(canvas, gl));
-      // Show the first image as a texture with feathering and aspect-correct matrix
       const prog = create_textured_quad_program(gl);
       gl.useProgram(prog);
       setup_textured_quad_buffer(gl, prog);
-      const tex = create_texture_from_image(gl, images[0]);
-      // Set feather width (8% of image size is typical)
+      // Enable alpha blending for feathered border
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      // Create texture for the first image only
+      let tex = null;
+      if (images.length > 0) {
+         tex = create_texture_from_image(gl, images[0]);
+      }
+      // Set feather width (8% typical)
       const u_feather = gl.getUniformLocation(prog, 'u_feather');
       gl.uniform1f(u_feather, 0.08);
-      // Compute aspect-correct matrix
-      const mat = make_matrix(images[0], canvas);
-      draw_textured_quad(gl, prog, tex, mat);
+      // Draw only the first image, centered, with feathered border
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      if (images.length > 0 && tex) {
+         const mat = make_matrix(images[0], canvas);
+         draw_textured_quad(gl, prog, tex, mat);
+      }
    }
 };
