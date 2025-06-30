@@ -51,6 +51,10 @@ function update_zoom_layers(dt) {
    // Exponential scaling for all active layers
    for (let i = 0; i < zoom_active_layers.length; i++) {
       zoom_active_layers[i].scale *= Math.exp(INFINITY_ZOOM_GROWTH_CONSTANT * dt);
+      // Check if the layer covers the viewport
+      if (layer_covers_viewport(zoom_active_layers[i])) {
+         log(`[infinity_zoom_engine] Layer ${i} now covers the viewport.`);
+      }
    }
    // Remove the topmost (currently visible, smallest) layer if it fills the viewport
    while (zoom_active_layers.length > 1) {
@@ -97,10 +101,8 @@ function start_infinity_zoom(canvas, ctx, layers_data, images) {
 
 // Check if a layer completely covers the viewport
 function layer_covers_viewport(layer) {
-   const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
-   const max_dim = Math.max(zoom_canvas.width, zoom_canvas.height);
-   const draw_size = layer.scale * min_dim;
-   return draw_size >= max_dim;
+   const draw_size = layer.scale * Math.min(zoom_canvas.width, zoom_canvas.height);
+   return draw_size >= zoom_canvas.width && draw_size >= zoom_canvas.height;
 }
 
 // Export for use in other scripts
