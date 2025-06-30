@@ -1,5 +1,6 @@
 // Infinity Zoom Animation Engine
 
+
 // Growth ratio per second
 const INFINITY_ZOOM_GROWTH_RATIO = 1.2;
 
@@ -8,6 +9,10 @@ const INFINITY_ZOOM_GROWTH_CONSTANT = Math.log(INFINITY_ZOOM_GROWTH_RATIO);
 
 // Minimum size for a layer to be rendered in pixels
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
+
+// Feathering parameters
+const FEATHER_PERCENT = 0.08; // 8% of the image size
+const FEATHER_MIN_PX = 2;     // At least 2px feather
 
 
 let zoom_layers = [];
@@ -22,7 +27,7 @@ function init_zoom_layers(layers_data, images, max_size) {
    zoom_layers = layers_data.map((layer, i) => {
       const image_obj = images[i];
       // Pre-render feathered image for this layer
-      const feather_px = Math.max(2, max_size * 0.08); // 8% or at least 2px
+      const feather_px = Math.max(FEATHER_MIN_PX, max_size * FEATHER_PERCENT);
       const feathered_image = create_feathered_image_fixed(image_obj, max_size, feather_px);
       return {
          ...layer,
@@ -140,14 +145,13 @@ function update_zoom_layers(dt) {
 }
 
 // Check if a layer completely covers the viewport, including its feathered border
-function layer_covers_viewport_with_feather(layer) {
-   const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
-   const draw_size = layer.scale * min_dim;
-   // Use the same feather_px logic as in pre-rendering
-   const feather_px = Math.max(2, Math.max(zoom_canvas.width, zoom_canvas.height) * 0.08);
-   // The image covers the viewport if the solid part (excluding feather) covers the viewport
-   // But for removal, we want the feathered edge to be outside the viewport, so:
-   return (draw_size - 2 * feather_px) >= zoom_canvas.width && (draw_size - 2 * feather_px) >= zoom_canvas.height;
+const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
+const draw_size = layer.scale * min_dim;
+// Use the same feather_px logic as in pre-rendering
+const feather_px = Math.max(FEATHER_MIN_PX, Math.max(zoom_canvas.width, zoom_canvas.height) * FEATHER_PERCENT);
+// The image covers the viewport if the solid part (excluding feather) covers the viewport
+// But for removal, we want the feathered edge to be outside the viewport, so:
+return (draw_size - 2 * feather_px) >= zoom_canvas.width && (draw_size - 2 * feather_px) >= zoom_canvas.height;
 }
 
 function zoom_animation_frame(ts) {
