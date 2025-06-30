@@ -25,8 +25,34 @@ window.addEventListener('DOMContentLoaded', () => {
       alert('WebGL2 not supported.');
       return;
    }
-   // TODO: Implement resize, image preloading, texture upload, shader setup, animation loop, etc.
-   // This is just a skeleton for now.
+   // ---
+   // KEY IMPLEMENTATION HINTS:
+   // - Layer order: Draw layers back-to-front (deepest first, topmost last) for correct alpha blending.
+   // - Aspect ratio: Use makeMatrix() to keep images square and centered, never squeezed.
+   // - Feathered edges: See fragment shader (fragSrc) for smooth alpha at borders.
+   // - Canvas size: The CSS/HTML ensure #zoom-canvas always fills the viewport.
+   //   Relevant CSS (see infinity_zoom_webgl.css):
+   //   html,
+   //   body {
+   //      margin: 0;
+   //      padding: 0;
+   //      width: 100vw;
+   //      height: 100vh;
+   //      overflow: hidden;
+   //      background: #111;
+   //   }
+   //   #zoom-canvas {
+   //      display: block;
+   //      position: fixed;
+   //      top: 0;
+   //      left: 0;
+   //      width: 100vw;
+   //      height: 100vh;
+   //      background: #111;
+   //   }
+   //   The resizeCanvasToDisplaySize() helper keeps the drawing buffer in sync with the display size and device pixel ratio.
+   // ---
+   // (Keep this file open as a reference while implementing the production version.)
    resizeCanvasToDisplaySize(canvas);
    window.addEventListener('resize', () => resizeCanvasToDisplaySize(canvas));
 
@@ -46,7 +72,8 @@ window.addEventListener('DOMContentLoaded', () => {
    }
 
    function startAnim() {
-      // Setup shaders
+      // --- Shader setup ---
+      // Vertex and fragment shaders implement quad rendering and feathered alpha blending.
       const vertSrc = `#version 300 es\nprecision mediump float;\nin vec2 a_position;\nin vec2 a_texcoord;\nuniform mat3 u_matrix;\nout vec2 v_texcoord;\nvoid main() {\n  vec3 pos = u_matrix * vec3(a_position, 1.0);\n  v_texcoord = a_texcoord;\n  gl_Position = vec4(pos.xy, 0, 1);\n}`;
       const fragSrc = `#version 300 es\nprecision mediump float;\nuniform sampler2D u_image;\nuniform float u_alpha;\nuniform float u_feather;\nin vec2 v_texcoord;\nout vec4 outColor;\nvoid main() {\n  float min_edge = min(min(v_texcoord.x, 1.0 - v_texcoord.x), min(v_texcoord.y, 1.0 - v_texcoord.y));\n  float feather = u_feather;\n  float edge_alpha = 1.0;\n  if (min_edge < feather) {\n    edge_alpha = min_edge / feather;\n  }\n  vec4 color = texture(u_image, v_texcoord);\n  outColor = vec4(color.rgb, color.a * edge_alpha * u_alpha);\n}`;
       function compileShader(type, src) {
@@ -110,6 +137,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       function makeMatrix(img, canvas) {
          // Compute aspect-correct scale
+         // Ensures each image remains square and fills the viewport as much as possible without distortion.
          const imgAspect = img.width / img.height;
          const canvasAspect = canvas.width / canvas.height;
          let sx = 1, sy = 1;
@@ -143,22 +171,24 @@ window.addEventListener('DOMContentLoaded', () => {
          gl.viewport(0, 0, canvas.width, canvas.height);
          gl.clearColor(0, 0, 0, 1);
          gl.clear(gl.COLOR_BUFFER_BIT);
-         // Always draw in original order
+         // --- Layer drawing order ---
+         // Draw all layers back-to-front (deepest first, topmost last) for correct blending.
          for (let idx = 0; idx < images.length; ++idx) {
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, textures[idx]);
             gl.uniform1i(u_image, 0);
-            // Even more radical zoom and rotation
+            // --- Per-layer transform and feathering ---
+            // (Replace the demo zoom/rotation with production zoom logic.)
             const t = time * 0.001 + idx * 1.3;
-            const scale = 0.5 + 2.0 * Math.abs(Math.sin(t * 0.7 + idx)); // extreme zoom
+            const scale = 0.5 + 2.0 * Math.abs(Math.sin(t * 0.7 + idx)); // extreme zoom (replace with real zoom)
             const angle = t * (0.5 + 0.2 * idx);
-            const aspectMat = makeMatrix(images[idx], canvas);
+            const aspectMat = makeMatrix(images[idx], canvas); // aspect-correct
             const transMat = makeTransform(scale, angle);
             const mat = mul3(transMat, aspectMat);
             gl.uniformMatrix3fv(u_matrix, false, mat);
-            // Set feather width (e.g. 8% of image size)
+            // Feather width: 0.08 = 8% of image size
             gl.uniform1f(u_feather, 0.08);
-            // Set alpha to 1.0 (fully opaque, feathering only)
+            // Alpha: 1.0 (fully opaque, feathering only)
             gl.uniform1f(u_alpha, 1.0);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
          }
@@ -169,6 +199,8 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function resizeCanvasToDisplaySize(canvas) {
+   // --- Canvas resize helper ---
+   // Ensures the canvas always matches the display size and device pixel ratio.
    const dpr = window.devicePixelRatio || 1;
    const width = Math.round(window.innerWidth * dpr);
    const height = Math.round(window.innerHeight * dpr);
