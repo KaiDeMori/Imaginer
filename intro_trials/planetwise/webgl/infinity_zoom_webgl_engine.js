@@ -80,7 +80,6 @@ function create_texture_from_image(gl, image) {
    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-   Set_Anisotropic_Filtering(gl, tex);
    return tex;
 }
 
@@ -108,36 +107,6 @@ function make_matrix(img, canvas) {
    }
    return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
 }
-
-/**
- * Sets the maximum supported anisotropic filtering on a given texture.
- * @param {WebGLRenderingContext} gl - The WebGL context.
- * @param {WebGLTexture} texture - The texture to apply anisotropic filtering to.
- */
-function Set_Anisotropic_Filtering(gl, texture) {
-   // Try to get the anisotropic filtering extension
-   const ext = gl.getExtension('EXT_texture_filter_anisotropic') ||
-      gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic') ||
-      gl.getExtension('MOZ_EXT_texture_filter_anisotropic');
-   if (!ext) {
-      log('Anisotropic filtering extension not supported.');
-      return;
-   } else {
-      const maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-      log(`Maximum supported anisotropy: ${maxAnisotropy}`);
-   }
-
-   // Bind the texture so we can set its parameters
-   gl.bindTexture(gl.TEXTURE_2D, texture);
-
-   // Get the maximum supported anisotropy level
-   const maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT) || 1;
-
-   // Set the anisotropy level for this texture
-   gl.texParameteri(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
-}
-
-
 
 // Minimum size for a layer to be rendered in pixels
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
