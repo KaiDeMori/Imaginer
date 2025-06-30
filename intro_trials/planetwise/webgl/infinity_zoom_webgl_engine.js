@@ -133,25 +133,34 @@ window.infinity_zoom_webgl_engine = {
       const u_feather = gl.getUniformLocation(prog, 'u_feather');
       gl.uniform1f(u_feather, 0.08);
 
-      // Draw both layers, back-to-front (static, no debug)
-      gl.clearColor(0, 0, 0, 1);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      // First layer: scale = 1.0 (fits inside viewport)
+      // Animate just the first layer using exponential time-based scaling
       if (images.length > 0 && tex0) {
-         const scale0 = 1.0;
-         const mat0 = make_matrix(images[0], canvas).slice();
-         mat0[0] *= scale0;
-         mat0[4] *= scale0;
-         draw_textured_quad(gl, prog, tex0, mat0);
-      }
-      // Second layer: scale = first_layer_scale * (zoom / 100)
-      if (images.length > 1 && tex1) {
-         const zoom = layers[1].zoom;
-         const scale1 = 1.0 * (zoom / 100);
-         const mat1 = make_matrix(images[1], canvas).slice();
-         mat1[0] *= scale1;
-         mat1[4] *= scale1;
-         draw_textured_quad(gl, prog, tex1, mat1);
+         let scale0 = 1.0;
+         const GROWTH_RATIO = 1.2;
+         const GROWTH_CONSTANT = Math.log(GROWTH_RATIO);
+         let last_time = null;
+         function animate_first_layer(ts) {
+            if (!last_time) last_time = ts;
+            const dt = (ts - last_time) / 1000;
+            last_time = ts;
+            scale0 *= Math.exp(GROWTH_CONSTANT * dt);
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            const mat0 = make_matrix(images[0], canvas).slice();
+            mat0[0] *= scale0;
+            mat0[4] *= scale0;
+            draw_textured_quad(gl, prog, tex0, mat0);
+            // Optionally, stop when the layer covers the viewport (including feather)
+            const min_dim = Math.min(canvas.width, canvas.height);
+            const feather_px = Math.max(2, Math.max(canvas.width, canvas.height) * 0.08);
+            const draw_size = scale0 * min_dim;
+            if ((draw_size - 2 * feather_px) >= canvas.width && (draw_size - 2 * feather_px) >= canvas.height) {
+               // Animation complete
+               return;
+            }
+            requestAnimationFrame(animate_first_layer);
+         }
+         requestAnimationFrame(animate_first_layer);
       }
    }
 };
