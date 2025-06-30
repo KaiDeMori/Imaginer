@@ -1,7 +1,14 @@
 // Infinity Zoom Animation Engine
+
 // Growth ratio per second
-const INFINITY_ZOOM_GROWTH_RATIO = 1.4;
+const INFINITY_ZOOM_GROWTH_RATIO = 2;
+
+// Growth constant for exponential scaling
 const INFINITY_ZOOM_GROWTH_CONSTANT = Math.log(INFINITY_ZOOM_GROWTH_RATIO);
+
+// Minimum size for a layer to be rendered in pixels
+const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
+
 
 let zoom_layers = [];
 let zoom_active_layers = [];
@@ -35,12 +42,16 @@ function draw_zoom_layers() {
    // Clear canvas
    zoom_ctx.clearRect(0, 0, zoom_canvas.width, zoom_canvas.height);
    // Draw from back (island, largest) to front (hut, smallest)
+   const drawn_images = [];
    for (let i = 0; i < zoom_active_layers.length; i++) {
       const layer = zoom_active_layers[i];
       if (!layer.image_obj) continue;
       // Calculate size to draw
       const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
       const draw_size = min_dim * layer.scale;
+      // Skip if the layer is too small to render
+      if (draw_size < INFINITY_ZOOM_MINIMUM_RENDER_SIZE) continue;
+      drawn_images.push(layer.image);
       const x = (zoom_canvas.width - draw_size) / 2;
       const y = (zoom_canvas.height - draw_size) / 2;
       zoom_ctx.drawImage(layer.image_obj, x, y, draw_size, draw_size);
