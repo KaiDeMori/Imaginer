@@ -91,3 +91,32 @@ gl_FragColor = vec4(color.rgb, color.a * alpha);
 
 ## Out-of-Scope Items
 * Error handling, edge conditions, degraded rendering paths, and fallback imagery are deliberately left unaddressed.
+
+---
+
+## Implementation Checklist (WebGL Engine)
+
+- [ ] 1. WebGL Setup
+    - Initialize WebGL2 context
+    - Set up viewport and handle resizing
+- [ ] 2. Shaders & Geometry
+    - Vertex shader for full-viewport quad
+    - Fragment shader for feathered alpha
+    - Quad geometry buffer
+- [ ] 3. Texture Management
+    - Create textures for each image
+    - Upload images as textures
+- [ ] 4. Animation State
+    - Track active layers, scale, and state
+    - Track zoom level and elapsed time
+- [ ] 5. Animation Loop
+    - Use requestAnimationFrame
+    - Update scales, handle layer transitions
+    - Draw all active layers, back-to-front
+- [ ] 6. Drawing Logic
+    - Set up transforms, bind textures, set uniforms
+    - Draw quad for each layer
+- [ ] 7. End Condition
+    - Stop animation when only one layer remains and fills viewport
+- [ ] 8. (Optional) Texture Cleanup
+    - Delete textures for inactive layers (for large stacks)

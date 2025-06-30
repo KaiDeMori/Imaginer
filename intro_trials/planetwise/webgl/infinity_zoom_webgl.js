@@ -16,6 +16,6 @@ window.addEventListener('DOMContentLoaded', () => {
    window.infinity_zoom_preloader.on_images_loaded((images) => {
       // At this point, images[] is ready and matches LAYERS_DATA order
       log('[WebGL] All images loaded, starting engine...');
-      window.infinity_zoom_webgl_engine.start_infinity_zoom_webgl(canvas, LAYERS_DATA, images);
+      //TBD
    });
 });
