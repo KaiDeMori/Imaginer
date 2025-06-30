@@ -117,17 +117,18 @@ function update_zoom_layers(dt) {
    for (let i = 0; i < zoom_active_layers.length; i++) {
       zoom_active_layers[i].scale *= Math.exp(INFINITY_ZOOM_GROWTH_CONSTANT * dt);
       // Only act if this is not the bottom-most layer and more than one layer remains
-      if (zoom_active_layers.length > 1 && i > 0 && layer_covers_viewport(zoom_active_layers[i])) {
+      if (zoom_active_layers.length > 1 && i > 0 && layer_covers_viewport_with_feather(zoom_active_layers[i])) {
          const child_name = zoom_active_layers[i].image || `Layer ${i}`;
          const parent_name = zoom_active_layers[i - 1].image || `Layer ${i - 1}`;
-         log(`'${child_name}' now covers the viewport. Parent '${parent_name}' removed.`);
+         log(`'${child_name}' now covers the viewport (including feather). Parent '${parent_name}' removed.`);
          zoom_active_layers.splice(i - 1, 1);
          i--; // Adjust index after removal
          continue; // Skip re-evaluating the current layer
       }
    }
-   // Remove the topmost (currently visible, smallest) layer if it fills the viewport
-   while (zoom_active_layers.length > 1) {
+   // Remove the topmost (currently visible, smallest) layer if it fills the viewport,
+   // but never remove the last remaining layer
+   while (zoom_active_layers.length > 2) {
       const top = zoom_active_layers[zoom_active_layers.length - 1];
       if (layer_covers_viewport(top)) {
          zoom_active_layers.pop();
@@ -138,6 +139,17 @@ function update_zoom_layers(dt) {
    }
 }
 
+// Check if a layer completely covers the viewport, including its feathered border
+function layer_covers_viewport_with_feather(layer) {
+   const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
+   const draw_size = layer.scale * min_dim;
+   // Use the same feather_px logic as in pre-rendering
+   const feather_px = Math.max(2, Math.max(zoom_canvas.width, zoom_canvas.height) * 0.08);
+   // The image covers the viewport if the solid part (excluding feather) covers the viewport
+   // But for removal, we want the feathered edge to be outside the viewport, so:
+   return (draw_size - 2 * feather_px) >= zoom_canvas.width && (draw_size - 2 * feather_px) >= zoom_canvas.height;
+}
+
 function zoom_animation_frame(ts) {
    if (!zoom_animation_running) return;
    if (zoom_last_timestamp === null) zoom_last_timestamp = ts;
@@ -145,11 +157,10 @@ function zoom_animation_frame(ts) {
    zoom_last_timestamp = ts;
    update_zoom_layers(dt);
    draw_zoom_layers();
-   // End if only one layer left and it fills the viewport
+   // End if only one layer left and it fills the viewport (including feathered border)
    if (zoom_active_layers.length === 1) {
       const top = zoom_active_layers[0];
-      const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
-      if (top.scale * min_dim >= min_dim) {
+      if (layer_covers_viewport_with_feather(top)) {
          log('Animation complete.');
          zoom_animation_running = false;
          return;
