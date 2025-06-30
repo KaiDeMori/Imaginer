@@ -145,13 +145,14 @@ function update_zoom_layers(dt) {
 }
 
 // Check if a layer completely covers the viewport, including its feathered border
-const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
-const draw_size = layer.scale * min_dim;
-// Use the same feather_px logic as in pre-rendering
-const feather_px = Math.max(FEATHER_MIN_PX, Math.max(zoom_canvas.width, zoom_canvas.height) * FEATHER_PERCENT);
-// The image covers the viewport if the solid part (excluding feather) covers the viewport
-// But for removal, we want the feathered edge to be outside the viewport, so:
-return (draw_size - 2 * feather_px) >= zoom_canvas.width && (draw_size - 2 * feather_px) >= zoom_canvas.height;
+function layer_covers_viewport_with_feather(layer) {
+   const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
+   const draw_size = layer.scale * min_dim;
+   // Use the same feather_px logic as in pre-rendering
+   const feather_px = Math.max(FEATHER_MIN_PX, Math.max(zoom_canvas.width, zoom_canvas.height) * FEATHER_PERCENT);
+   // The image covers the viewport if the solid part (excluding feather) covers the viewport
+   // But for removal, we want the feathered edge to be outside the viewport, so:
+   return (draw_size - 2 * feather_px) >= zoom_canvas.width && (draw_size - 2 * feather_px) >= zoom_canvas.height;
 }
 
 function zoom_animation_frame(ts) {
