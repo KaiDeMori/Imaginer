@@ -48,7 +48,7 @@ function create_feathered_image_fixed(image, size, feather_px) {
    const off_canvas = document.createElement('canvas');
    off_canvas.width = off_canvas.height = size;
    const off_ctx = off_canvas.getContext('2d');
-   // Draw image at integer position (no 0.5px shift)
+   // Draw image
    off_ctx.drawImage(image, 0, 0, size, size);
    // Create mask
    const mask_canvas = document.createElement('canvas');
