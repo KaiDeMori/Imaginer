@@ -1,4 +1,3 @@
-
 // Infinity Zoom Animation Engine
 // Growth ratio per second
 const INFINITY_ZOOM_GROWTH_RATIO = 1.4;
@@ -94,6 +93,14 @@ function start_infinity_zoom(canvas, ctx, layers_data, images) {
    zoom_last_timestamp = null;
    log('[infinity_zoom_engine] Animation started.');
    requestAnimationFrame(zoom_animation_frame);
+}
+
+// Check if a layer completely covers the viewport
+function layer_covers_viewport(layer) {
+   const min_dim = Math.min(zoom_canvas.width, zoom_canvas.height);
+   const max_dim = Math.max(zoom_canvas.width, zoom_canvas.height);
+   const draw_size = layer.scale * min_dim;
+   return draw_size >= max_dim;
 }
 
 // Export for use in other scripts
