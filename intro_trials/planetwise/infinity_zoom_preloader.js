@@ -24,7 +24,9 @@ function preload_images(layer_data, image_folder = 'zoom_images') {
       img.onload = () => {
          images[i] = img;
          loaded++;
-         log(`[preload_images] [${loaded}/${total}] loaded: ${img.src} (${img.width}x${img.height})`);
+         // Only log the file name, not the full path
+         const file_name = get_file_name(layer.image);
+         log(`[preload_images] [${loaded}/${total}] loaded: ${file_name} (${img.width}x${img.height})`);
          if (loaded === total) {
             images_loaded = true;
             log(`[preload_images] All ${images.length} images loaded!`);
@@ -33,10 +35,13 @@ function preload_images(layer_data, image_folder = 'zoom_images') {
          }
       };
       img.onerror = (e) => {
-         log(`[preload_images] ERROR loading image: ${img.src}`);
+         const file_name = get_file_name(layer.image);
+         log(`[preload_images] ERROR loading image: ${file_name}`);
       };
       img.src = `${image_folder}/${layer.image}`;
-      log(`[preload_images] Started loading: ${img.src}`);
+      // Only log the file name, not the full path
+      const file_name = get_file_name(layer.image);
+      log(`[preload_images] Started loading: ${file_name}`);
    });
 }
 
@@ -55,3 +60,8 @@ window.infinity_zoom_preloader = {
    preload_images,
    on_images_loaded
 };
+
+// Utility: Get only the filename from a path string
+function get_file_name(path) {
+   return path.split('/').pop();
+}
