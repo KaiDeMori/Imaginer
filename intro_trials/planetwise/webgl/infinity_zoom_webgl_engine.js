@@ -355,13 +355,39 @@ window.infinity_zoom_webgl_engine.start_debug = function (canvas, layers, images
    if (!img) return;
    const tex = create_texture_from_image(gl, img);
 
-   function draw() {
+   let start_time = null;
+   let zooming = false;
+   let zoom_scale = 1.0;
+   const ZOOM_SPEED = 1.2; // scale multiplier per second (adjust as needed)
+   const DELAY_MS = 1000;
+
+   function draw(ts) {
+      if (!start_time) start_time = ts;
+      const elapsed = ts - start_time;
       resize_canvas_to_display_size(canvas, gl);
-      const mat = make_matrix(img, canvas);
+      let mat;
+      if (elapsed < DELAY_MS) {
+         // Show static image for 1s
+         mat = make_matrix(img, canvas);
+         zoom_scale = 1.0;
+      } else {
+         // Start zooming after 1s
+         if (!zooming) {
+            zooming = true;
+            // reset zoom_scale to 1.0 at the start of zoom
+            zoom_scale = 1.0;
+         }
+         // Calculate zoom scale based on time since zoom started
+         const zoom_elapsed = (elapsed - DELAY_MS) / 1000;
+         zoom_scale = Math.exp(Math.log(ZOOM_SPEED) * zoom_elapsed);
+         mat = make_matrix(img, canvas);
+         mat[0] *= zoom_scale;
+         mat[4] *= zoom_scale;
+      }
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       draw_textured_quad(gl, prog, tex, mat);
       requestAnimationFrame(draw);
    }
-   draw();
+   requestAnimationFrame(draw);
 };
