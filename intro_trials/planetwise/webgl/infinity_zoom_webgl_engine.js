@@ -1,3 +1,11 @@
+// Minimum size for a layer to be rendered in pixels
+const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
+
+// Global rotation speed (radians per second, clockwise)
+const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // ~1 rotation per 2 minutes
+
+// -------------------
+
 // Check if a layer (image) completely covers the viewport, including its feathered border
 // img: HTMLImageElement, canvas: HTMLCanvasElement, scale: number, feather_percent: number, feather_min_px: number
 function layer_covers_viewport_with_feather(img, canvas, scale, feather_percent = 0.08, feather_min_px = 2) {
@@ -9,10 +17,9 @@ function layer_covers_viewport_with_feather(img, canvas, scale, feather_percent 
    // The solid (non-feathered) part must cover the viewport
    return (draw_size - 2 * feather_px) >= canvas.width && (draw_size - 2 * feather_px) >= canvas.height;
 }
-// Minimal WebGL2 colored quad rendering for incremental test-driven development
-// Step 2: Vertex and fragment shader for a solid color quad
 
-
+// Resize the canvas to match the display size, accounting for device pixel ratio
+// canvas: HTMLCanvasElement, gl: WebGLRenderingContext
 function resize_canvas_to_display_size(canvas, gl) {
    const dpr = window.devicePixelRatio || 1;
    const width = Math.round(window.innerWidth * dpr);
@@ -24,6 +31,8 @@ function resize_canvas_to_display_size(canvas, gl) {
    gl.viewport(0, 0, canvas.width, canvas.height);
 }
 
+// Compile a shader from source code
+// gl: WebGLRenderingContext, type: GLenum (gl.VERTEX_SHADER or gl
 function compile_shader(gl, type, src) {
    const sh = gl.createShader(type);
    gl.shaderSource(sh, src);
@@ -34,7 +43,8 @@ function compile_shader(gl, type, src) {
    return sh;
 }
 
-
+// Create a program for rendering textured quads with feathering
+// gl: WebGLRenderingContext
 function create_textured_quad_program(gl) {
    // Vertex shader with u_matrix for aspect-correct rendering
    const vert_src = `#version 300 es\nprecision mediump float;\nin vec2 a_position;\nin vec2 a_texcoord;\nuniform mat3 u_matrix;\nout vec2 v_texcoord;\nvoid main() {\n  vec3 pos = u_matrix * vec3(a_position, 1.0);\n  v_texcoord = a_texcoord;\n  gl_Position = vec4(pos.xy, 0, 1);\n}`;
@@ -52,6 +62,8 @@ function create_textured_quad_program(gl) {
    return prog;
 }
 
+// Setup the vertex buffer for a textured quad with interleaved position and texcoord attributes
+// gl: WebGLRenderingContext, prog: WebGLProgram
 function setup_textured_quad_buffer(gl, prog) {
    // Interleaved position (x, y) and texcoord (u, v)
    const quad = new Float32Array([
@@ -71,6 +83,8 @@ function setup_textured_quad_buffer(gl, prog) {
    gl.vertexAttribPointer(a_texcoord, 2, gl.FLOAT, false, 16, 8);
 }
 
+// Create a texture from an image, setting parameters for mipmapping and filtering
+// gl: WebGLRenderingContext, image: HTMLImageElement
 function create_texture_from_image(gl, image) {
    const tex = gl.createTexture();
    gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -84,6 +98,9 @@ function create_texture_from_image(gl, image) {
    return tex;
 }
 
+// Draw a textured quad with aspect-correct matrix and feathering
+// gl: WebGLRenderingContext, prog: WebGLProgram, tex: WebGLTexture, mat: Float32Array (3x3 matrix)
+// mat should be in column-major order for WebGL
 function draw_textured_quad(gl, prog, tex, mat) {
    gl.useProgram(prog);
    gl.activeTexture(gl.TEXTURE0);
@@ -96,6 +113,8 @@ function draw_textured_quad(gl, prog, tex, mat) {
    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
+// Create a 3x3 aspect-correct matrix for rendering an image on a canvas
+// img: HTMLImageElement, canvas: HTMLCanvasElement
 function make_matrix(img, canvas) {
    // Compute aspect-correct scale: ensures image is always square and centered
    const img_aspect = img.width / img.height;
@@ -110,19 +129,17 @@ function make_matrix(img, canvas) {
 }
 
 // Compose a 3x3 rotation matrix (clockwise, angle in radians)
+// angle: number (radians)
+// Returns a 3x3 matrix in column-major order
 function make_rotation_matrix(angle) {
    const c = Math.cos(angle);
    const s = Math.sin(angle);
    return [c, s, 0, -s, c, 0, 0, 0, 1];
 }
 
-// Minimum size for a layer to be rendered in pixels
-const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
-
-// Global rotation speed (radians per second, clockwise)
-const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // ~1 rotation per 2 minutes
-
 // Export a single entry point for the engine
+// canvas: HTMLCanvasElement, layers: Array of layer objects, images: Array of HTMLImageElements
+// layers: [{ zoom: number, ... }], images: [HTMLImageElement, ...
 window.infinity_zoom_webgl_engine = {
    start_infinity_zoom_webgl: function (canvas, layers, images) {
       const gl = canvas.getContext('webgl2');
