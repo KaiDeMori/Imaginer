@@ -340,3 +340,27 @@ window.infinity_zoom_webgl_engine = {
       requestAnimationFrame(animate);
    }
 };
+
+
+// Debug method: draw only the first image, scaled so the whole image (including feather) fits the viewport
+// Call as: window.infinity_zoom_webgl_engine.start_debug(canvas, layers, images)
+window.infinity_zoom_webgl_engine.start_debug = function (canvas, layers, images) {
+   const gl = canvas.getContext('webgl2');
+   resize_canvas_to_display_size(canvas, gl);
+   const prog = create_textured_quad_program(gl);
+   gl.useProgram(prog);
+   setup_textured_quad_buffer(gl, prog);
+   gl.disable(gl.BLEND); // No alpha, just solid image
+
+   // Only draw the first image
+   const img = images[0];
+   if (!img) return;
+   const tex = create_texture_from_image(gl, img);
+   // Use only aspect correction, no extra scaling
+   const mat = make_matrix(img, canvas);
+
+   // Draw once
+   gl.clearColor(0, 0, 0, 1);
+   gl.clear(gl.COLOR_BUFFER_BIT);
+   draw_textured_quad(gl, prog, tex, mat);
+};
