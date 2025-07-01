@@ -52,21 +52,23 @@ const LAYERS_DATA = [
   $$
   where `s₀` is the initial scale and `k` is the growth constant in \(\text{s}^{-1}\).
 * Layers are drawn back-to-front so that the first currently active layer is rendered first and the last layer last.
-* The first layer is drawn so that the entire image—including its feathered border—is fully visible inside the viewport, maximized as much as possible but not cropped. This may result in black bars on the left and right (letterboxing) or top and bottom, depending on the viewport aspect ratio. No part of the image is outside the viewport at the start.
+* The first layer is drawn so that the entire image is fully visible inside the viewport, maximized as much as possible but not cropped. This may result in black bars on the left and right (letterboxing) or top and bottom, depending on the viewport aspect ratio. No part of the image is outside the viewport at the start. The first layer is held static in this position for one second before the zoom animation begins. During this initial display, the first layer does not have feathered edges; feathering is only applied to subsequent layers.
 * For all subsequent layers, when the next layer in order has scaled up so that its visible area covers the entire viewport in both width and height (i.e., its size reaches at least the larger of the viewport’s width or height), the previous layer is discarded and the process continues with the new pair. This ensures the entire viewport is covered, with no gaps or letterboxing, before removing the previous layer.
 * The animation ends when the final layer has filled the viewport.
 
 ## Feathering Implementation
-* Feathered borders are implemented in the fragment shader.
-* The shader computes the minimum distance from the current pixel to the edge of the quad and applies a smooth alpha ramp (feather) over a configurable percentage of the image size.
-* This approach ensures seamless, artifact-free feathering, including at the corners.
+* Feathered borders are implemented in the fragment shader, but only for layers after the first. The first layer is always rendered with hard edges (no feathering).
+* The shader computes the minimum distance from the current pixel to the edge of the quad and applies a smooth alpha ramp (feather) over a configurable percentage of the image size for all layers except the first.
+* This approach ensures seamless, artifact-free feathering, including at the corners, for all layers after the first.
 
-Example fragment shader pseudocode:
+Example fragment shader pseudocode (for layers after the first):
 ```glsl
 float feather = 0.08; // 8% feather
 float min_edge = min(min(v_texcoord.x, 1.0 - v_texcoord.x), min(v_texcoord.y, 1.0 - v_texcoord.y));
 float alpha = 1.0;
-if (min_edge < feather) {
+if (is_first_layer) {
+    alpha = 1.0; // No feathering for the first layer
+} else if (min_edge < feather) {
     alpha = min_edge / feather;
 }
 vec4 color = texture(u_image, v_texcoord);
