@@ -2,7 +2,7 @@
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
 
 // Global zoom speed (scaling factor per second)
-const INFINITY_ZOOM_SPEED = 1.2;
+const INFINITY_ZOOM_SPEED = 2;
 
 // Global rotation speed (radians per second, clockwise)
 const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // ~1 rotation per 2 minutes
