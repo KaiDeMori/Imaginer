@@ -199,12 +199,33 @@ window.infinity_zoom_webgl_engine = {
       // Animation loop
       let last_time = null;
       let running = true;
+      let paused = false;
       let rotation = 0;
       log('main loop started');
+      // Space key toggles pause/resume
+      window.addEventListener('keydown', function (e) {
+         if (e.code === 'Space' || e.key === ' ') {
+            if (paused) {
+               // Unpausing: reset last_time to avoid animation jump
+               paused = false;
+               last_time = null;
+               log('animation resumed');
+            } else {
+               paused = true;
+               log('animation paused');
+            }
+            // Prevent scrolling
+            e.preventDefault();
+         }
+      });
       // Track last rendered count for logging changes only
       animate.last_rendered_count = null;
       function animate(ts) {
          if (!running) return;
+         if (paused) {
+            requestAnimationFrame(animate);
+            return;
+         }
          if (!last_time) last_time = ts;
          const dt = (ts - last_time) / 1000;
          last_time = ts;
