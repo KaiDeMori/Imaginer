@@ -1,11 +1,8 @@
 // Minimum size for a layer to be rendered in pixels
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
 
-// Global zoom speed (scaling factor per second)
-const INFINITY_ZOOM_SPEED = 2;
-
-// Global rotation speed (radians per second, clockwise)
-const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // ~1 rotation per 2 minutes
+// Global zoom speed and rotation speed will be exposed on the engine object
+// Defaults are set below
 
 // -------------------
 
@@ -144,6 +141,19 @@ function make_rotation_matrix(angle) {
 // canvas: HTMLCanvasElement, layers: Array of layer objects, images: Array of HTMLImageElements
 // layers: [{ zoom: number, ... }], images: [HTMLImageElement, ...
 window.infinity_zoom_webgl_engine = {
+   /**
+    * Global zoom speed (scaling factor per second)
+    * @type {number}
+    */
+   INFINITY_ZOOM_SPEED: 2,
+
+   /**
+    * Global rotation speed (radians per second, clockwise)
+    * @type {number}
+    * Default: Math.PI / 60 ( = 1 rotation per 2 minutes)
+    */
+   INFINITY_ZOOM_ROTATION_SPEED: Math.PI / 60,
+
    start_infinity_zoom_webgl: function (canvas, layers, images) {
       const gl = canvas.getContext('webgl2');
       resize_canvas_to_display_size(canvas, gl);
@@ -190,6 +200,9 @@ window.infinity_zoom_webgl_engine = {
       let last_time = null;
       let running = true;
       let rotation = 0;
+      log('main loop started');
+      // Track last rendered count for logging changes only
+      animate.last_rendered_count = null;
       function animate(ts) {
          if (!running) return;
          if (!last_time) last_time = ts;
@@ -198,11 +211,11 @@ window.infinity_zoom_webgl_engine = {
 
          // Exponential scale update for all active layers
          for (let i = 0; i < active_layers.length; i++) {
-            active_layers[i].scale *= Math.exp(Math.log(INFINITY_ZOOM_SPEED) * dt);
+            active_layers[i].scale *= Math.exp(Math.log(window.infinity_zoom_webgl_engine.INFINITY_ZOOM_SPEED) * dt);
          }
 
          // Update global rotation (clockwise)
-         rotation -= INFINITY_ZOOM_ROTATION_SPEED * dt;
+         rotation -= window.infinity_zoom_webgl_engine.INFINITY_ZOOM_ROTATION_SPEED * dt;
 
          // Remove previous layer if next covers viewport (including feather)
          while (active_layers.length > 1) {
@@ -253,6 +266,11 @@ window.infinity_zoom_webgl_engine = {
             ];
             draw_textured_quad(gl, prog, layer.texture, mat);
          }
+         // Log the number of rendered images only when it changes
+         if (active_layers.length !== animate.last_rendered_count) {
+            log('number of rendered images: ' + active_layers.length);
+            animate.last_rendered_count = active_layers.length;
+         }
 
          // End if only one layer left and it fills the viewport (including feather)
          if (active_layers.length === 1) {
@@ -262,6 +280,37 @@ window.infinity_zoom_webgl_engine = {
             const draw_size = layer.scale * min_dim;
             if ((draw_size - 2 * feather_px) >= canvas.width && (draw_size - 2 * feather_px) >= canvas.height) {
                running = false;
+               log('main loop finished, starting persistent redraw of final image');
+               // Start persistent redraw loop for the final image
+               function redraw_final_image() {
+                  // Always resize canvas to display size
+                  resize_canvas_to_display_size(canvas, gl);
+                  gl.clearColor(0, 0, 0, 1);
+                  gl.clear(gl.COLOR_BUFFER_BIT);
+                  ensure_texture(0);
+                  const img = images[layer.idx];
+                  if (img && layer.texture) {
+                     const base_mat = make_matrix(img, canvas);
+                     base_mat[0] *= layer.scale;
+                     base_mat[4] *= layer.scale;
+                     // Restore rotation for final image
+                     const rot_mat = make_rotation_matrix(rotation);
+                     const mat = [
+                        rot_mat[0] * base_mat[0] + rot_mat[1] * base_mat[3],
+                        rot_mat[0] * base_mat[1] + rot_mat[1] * base_mat[4],
+                        rot_mat[0] * base_mat[2] + rot_mat[1] * base_mat[5],
+                        rot_mat[3] * base_mat[0] + rot_mat[4] * base_mat[3],
+                        rot_mat[3] * base_mat[1] + rot_mat[4] * base_mat[4],
+                        rot_mat[3] * base_mat[2] + rot_mat[4] * base_mat[5],
+                        rot_mat[6] * base_mat[0] + rot_mat[7] * base_mat[3] + base_mat[6],
+                        rot_mat[6] * base_mat[1] + rot_mat[7] * base_mat[4] + base_mat[7],
+                        rot_mat[6] * base_mat[2] + rot_mat[7] * base_mat[5] + base_mat[8]
+                     ];
+                     draw_textured_quad(gl, prog, layer.texture, mat);
+                  }
+                  requestAnimationFrame(redraw_final_image);
+               }
+               requestAnimationFrame(redraw_final_image);
                return;
             }
          }
