@@ -1,6 +1,9 @@
 // Minimum size for a layer to be rendered in pixels
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
 
+// Global zoom speed (scaling factor per second)
+const INFINITY_ZOOM_SPEED = 1.2;
+
 // Global rotation speed (radians per second, clockwise)
 const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // ~1 rotation per 2 minutes
 
@@ -195,7 +198,7 @@ window.infinity_zoom_webgl_engine = {
 
          // Exponential scale update for all active layers
          for (let i = 0; i < active_layers.length; i++) {
-            active_layers[i].scale *= Math.exp(Math.log(1.2) * dt);
+            active_layers[i].scale *= Math.exp(Math.log(INFINITY_ZOOM_SPEED) * dt);
          }
 
          // Update global rotation (clockwise)
