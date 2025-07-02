@@ -194,8 +194,45 @@ const infinity_zoom_engine = {
          if (elapsed_hold < hold_duration) {
             requestAnimationFrame(this.animate.bind(this));
          } else {
-            // Proceed to next phase in later steps
+            // Transition to main zoom phase
+            this.animation_phase = 'main_zoom';
+            this.main_zoom_start_time = now;
+            this.first_layer_scale_at_main_zoom = 1;
+            requestAnimationFrame(this.animate.bind(this));
          }
+      } else if (this.animation_phase === 'main_zoom') {
+         // Main zoom phase: exponential zoom and rotation until last layer covers viewport
+         const elapsed_main_zoom = (now - this.main_zoom_start_time) / 1000;
+         // Advance rotation
+         this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
+         // Exponential zoom: s(t) = s0 * exp(k * t)
+         const min_dim = Math.min(this.canvas.width, this.canvas.height);
+         const k = this.zoom_speed;
+         const s0 = this.first_layer_scale_at_main_zoom;
+         const first_layer_scale = s0 * Math.exp(k * elapsed_main_zoom);
+         this.layers[0].scale = first_layer_scale;
+         for (let i = 1; i < this.layers.length; ++i) {
+            const layer = this.layers[i];
+            layer.scale = this.get_layer_scale(i, first_layer_scale);
+            layer.alpha = 1;
+         }
+         // Dynamic resource management
+         const viewport = { width: this.canvas.width, height: this.canvas.height };
+         this.update_layer_resource_states(first_layer_scale, viewport);
+         // Check if last layer covers the viewport (no bars, covers both width and height)
+         const last_layer = this.layers[this.layers.length - 1];
+         const last_layer_draw_size = last_layer.scale * min_dim;
+         if (last_layer_draw_size >= Math.max(this.canvas.width, this.canvas.height)) {
+            // Stop rotation and zoom, enter perpetual redraw
+            this.rotation_speed = 0;
+            this.animation_phase = 'done';
+            if (typeof this.log === 'function') this.log('Main zoom complete. Rotation stopped.');
+         } else {
+            requestAnimationFrame(this.animate.bind(this));
+         }
+      } else if (this.animation_phase === 'done') {
+         // Perpetual redraw, no zoom or rotation
+         // No further animation, but could add overlays or debug here
       }
       this.render();
    },
