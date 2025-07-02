@@ -1,4 +1,3 @@
-
 // Infinity Zoom II Engine – main structure and method stubs
 
 // NOTE: Use global log(msg) utility. Single parameter: the message to log.
@@ -144,6 +143,9 @@ const infinity_zoom_engine = {
                layer.scale = this.get_layer_scale(i, first_layer_scale);
                layer.alpha = 0;
             }
+            // Dynamic resource management (intro phase: current_zoom=1)
+            const viewport = { width: this.canvas.width, height: this.canvas.height };
+            this.update_layer_resource_states(1, viewport);
             requestAnimationFrame(this.animate.bind(this));
          } else if (elapsed < zoom_duration + fade_duration) {
             // Fade-in additional layers: keep correct relative scale (relative to first layer)
@@ -153,12 +155,12 @@ const infinity_zoom_engine = {
                layer.scale = this.get_layer_scale(i, 1);
             }
             const fade_t = (elapsed - zoom_duration) / fade_duration;
-            const min_dim = Math.min(this.canvas.width, this.canvas.height);
-            const visible_layers = this.get_visible_layers(min_dim);
+            const viewport = { width: this.canvas.width, height: this.canvas.height };
+            this.update_layer_resource_states(1, viewport);
+            const visible_layers = this.determine_visible_layers(1, viewport);
             for (let i = 1; i < this.layers.length; ++i) {
                const layer = this.layers[i];
                if (visible_layers.includes(layer)) {
-                  if (!layer.texture) window.infinity_zoom_II_utils_render.upload_texture(this.gl, layer);
                   layer.alpha = Math.min(1, fade_t);
                } else {
                   layer.alpha = 0;
@@ -269,7 +271,53 @@ const infinity_zoom_engine = {
       }
    },
 
+   // Generalized: Determine which layers are visible given current zoom and viewport
+   // For now, wraps get_visible_layers logic for backward compatibility
+   // current_zoom: scale of the first layer (usually 1 during intro)
+   // viewport: { width, height } (canvas size)
+   determine_visible_layers(current_zoom, viewport) {
+      const min_dim = Math.min(viewport.width, viewport.height);
+      // For now, use the same logic as get_visible_layers
+      return this.get_visible_layers(min_dim);
+   },
 
+   // Upload the specified layer's texture to the GPU if not already uploaded
+   upload_layer_to_gpu(layer_index) {
+      const layer = this.layers[layer_index];
+      if (layer && !layer.texture) {
+         window.infinity_zoom_II_utils_render.upload_texture(this.gl, layer);
+      }
+   },
+
+   // Remove the specified layer's texture from the GPU if currently uploaded
+   remove_layer_from_gpu(layer_index) {
+      const layer = this.layers[layer_index];
+      if (layer && layer.texture) {
+         window.infinity_zoom_II_utils_render.delete_texture(this.gl, layer);
+      }
+   },
+
+   // Orchestrate dynamic upload/removal of layers based on visibility
+   // current_zoom: scale of the first layer
+   // viewport: { width, height }
+   update_layer_resource_states(current_zoom, viewport) {
+      // Get the set of layers that should be visible (and thus uploaded)
+      const visible_layers = this.determine_visible_layers(current_zoom, viewport);
+      // Build a Set for fast lookup
+      const visible_set = new Set(visible_layers);
+      for (let i = 0; i < this.layers.length; ++i) {
+         const layer = this.layers[i];
+         const should_be_uploaded = visible_set.has(layer);
+         const is_uploaded = window.infinity_zoom_II_utils_render.is_layer_uploaded(layer);
+         if (should_be_uploaded && !is_uploaded) {
+            this.upload_layer_to_gpu(i);
+            if (typeof this.log === 'function') this.log('Uploaded layer ' + i);
+         } else if (!should_be_uploaded && is_uploaded) {
+            this.remove_layer_from_gpu(i);
+            if (typeof this.log === 'function') this.log('Removed layer ' + i);
+         }
+      }
+   },
 };
 
 // Export for HTML usage

@@ -1,4 +1,3 @@
-
 // Upload a layer's image to GPU as a texture
 function upload_texture(gl, layer) {
    const tex = gl.createTexture();
@@ -33,9 +32,15 @@ function resize_canvas_to_display_size(canvas, gl) {
    gl.viewport(0, 0, canvas.width, canvas.height);
 }
 
+// Returns true if the layer's texture is currently uploaded to the GPU
+function is_layer_uploaded(layer) {
+   return !!(layer && layer.texture);
+}
+
 // Export as global for engine usage
 window.infinity_zoom_II_utils_render = {
    upload_texture,
    delete_texture,
-   resize_canvas_to_display_size
+   resize_canvas_to_display_size,
+   is_layer_uploaded
 };
