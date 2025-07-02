@@ -11,6 +11,9 @@
    <script src="infinity_zoom_II_utils_math.js"></script>
    <script src="infinity_zoom_II_utils_render.js"></script>
    <script src="infinity_zoom_II_engine.js"></script>
+   <script src="gpu_feather_test.js"></script>
+   <script src="feather_benchmark.js"></script>
+
    <style>
       html,
       body {
@@ -47,12 +50,20 @@
          { zoom: 25, image: '100_alien_closeup.png' },
       ];
 
+      window.infinity_zoom_feather_preloader.preload_and_feather_images(LAYERS_DATA, '../../zoom_images_planete', 48);
+      window.infinity_zoom_feather_preloader.on_feathered_images_ready(function (feathered_images) {
+         // Now you can initialize your engine with the feathered images:
+         window.infinity_zoom_II_engine.init(LAYERS_DATA, feathered_images, document.getElementById('zoom_canvas'));
+      });
+
+      /* // FEATHER TEST IN PROGRESS
       // Preload images before initializing engine
       window.infinity_zoom_preloader.preload_images(LAYERS_DATA, '../../zoom_images_planete');
       window.infinity_zoom_preloader.on_images_loaded(function (images) {
          log('All images loaded. Initializing engine...');
          window.infinity_zoom_II_engine.init(LAYERS_DATA, images, document.getElementById('zoom_canvas'));
       });
+      */
    </script>
 </body>
 
