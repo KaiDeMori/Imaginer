@@ -36,12 +36,12 @@ Note: The `log(msg)` debug utility is already imported from V1 (`infinity_zoom_d
 - [x] **Implement exponential zoom-in to scale 1 (0.5s)**
   - Reference: V2 documentation (`infinity_zoom_II_documentation.md`) §3.1b
 - [x] **Test: Planet reaches scale 1 in 0.5s**
-- [ ] **Fade-in additional layers (0.5s, fixed scale)**
+- [x] **Fade-in additional layers (0.5s, fixed scale)**
   - Reference: V2 documentation (`infinity_zoom_II_documentation.md`) §3.1c
-- [ ] **Test: All visible layers fade in smoothly**
-- [ ] **Hold state (0.5s, only rotation)**
+- [x] **Test: All visible layers fade in smoothly**
+- [x] **Hold state (0.5s, only rotation)**
   - Reference: V2 documentation (`infinity_zoom_II_documentation.md`) §3.1d
-- [ ] **Test: Layers static, rotation continues**
+- [x] **Test: Layers static, rotation continues**
 
 -----
 
@@ -54,10 +54,10 @@ Note: The `log(msg)` debug utility is already imported from V1 (`infinity_zoom_d
 -----
 
 ## 5. Visibility & Resource Management
-- [ ] **Pre-calculate intro-visible layers**
+- [x] **Pre-calculate intro-visible layers**
   - Reference: `infinity_zoom_II_documentation.md` (section 6.1)
-- [ ] **Pre-load required textures to GPU**
-- [ ] **Test: All intro layers are loaded before animation**
+- [x] **Pre-load required textures to GPU**
+- [x] **Test: All intro layers are loaded before animation**
 - [ ] **Implement dynamic upload/removal of layers**
   - Reference: `infinity_zoom_II_documentation.md` (section 6.4)
 - [ ] **Test: Layers are uploaded/removed as needed**
@@ -65,9 +65,9 @@ Note: The `log(msg)` debug utility is already imported from V1 (`infinity_zoom_d
 -----
 
 ## 6. Shader & Rendering Enhancements
-- [ ] **Implement fade-in alpha in shader**
+- [x] **Implement fade-in alpha in shader**
   - Reference: `infinity_zoom_II_documentation.md` (section 7)
-- [ ] **Test: Layer-specific alpha works as expected**
+- [x] **Test: Layer-specific alpha works as expected**
 - [ ] **Implement feathering (u_feather = 0.08) for all but first layer**
   - Reference: `infinity_zoom_webgl_engine.js` (search for feathering logic)
 - [ ] **Test: Feathering is correct for all layers**
