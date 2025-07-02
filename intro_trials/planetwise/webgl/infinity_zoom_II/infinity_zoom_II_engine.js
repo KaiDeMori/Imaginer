@@ -100,7 +100,8 @@ const infinity_zoom_engine = {
          throw new Error(gl.getProgramInfoLog(program));
       }
       this.program = program;
-
+      // Preload all intro-visible layers (at scale 1)
+      this.preload_intro_visible_layers(this.canvas, 1);
       // V1 quad buffer: single quad, 4 vertices, for TRIANGLE_STRIP
       const quadVerts = new Float32Array([
          -1, -1, 0, 0,
@@ -240,8 +241,6 @@ const infinity_zoom_engine = {
       return this.layers.filter(layer => (layer.scale * min_dim) >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE);
    },
 
-
-
    // Compute the scale for a given layer index and first layer scale (V1 logic, always refer to 'first layer' not 'planet')
    get_layer_scale(layer_index, first_layer_scale) {
       let scale = first_layer_scale;
@@ -250,6 +249,26 @@ const infinity_zoom_engine = {
       }
       return scale;
    },
+
+   // Pre-calculate and upload all layers that will be visible at the given first_layer_scale before the intro begins
+   // canvas: the canvas element to determine min_dim
+   // first_layer_scale: scale of the first layer (default 1)
+   preload_intro_visible_layers(canvas, first_layer_scale = 1) {
+      // Calculate min_dim (minimum of canvas width/height)
+      const min_dim = Math.min(canvas.width, canvas.height);
+      // For each layer, compute its scale at the given first_layer_scale
+      for (let i = 0; i < this.layers.length; ++i) {
+         const scale = this.get_layer_scale(i, first_layer_scale);
+         const draw_size = scale * min_dim;
+         if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
+            // Upload texture if not already uploaded
+            if (!this.layers[i].texture) {
+               window.infinity_zoom_II_utils_render.upload_texture(this.gl, this.layers[i]);
+            }
+         }
+      }
+   },
+
 
 };
 
