@@ -99,8 +99,8 @@ const infinity_zoom_engine = {
          throw new Error(gl.getProgramInfoLog(program));
       }
       this.program = program;
-      // Preload all intro-visible layers (at scale 1)
-      this.preload_intro_visible_layers(this.canvas, 1);
+      // Preload all layers to GPU (warm-up phase)
+      this.preload_all_layers_to_gpu();
       // V1 quad buffer: single quad, 4 vertices, for TRIANGLE_STRIP
       const quadVerts = new Float32Array([
          -1, -1, 0, 0,
@@ -118,8 +118,6 @@ const infinity_zoom_engine = {
       this.u_image = gl.getUniformLocation(program, 'u_image');
       this.u_alpha = gl.getUniformLocation(program, 'u_alpha');
 
-      // Only upload first layer for now
-      window.infinity_zoom_II_utils_render.upload_texture(this.gl, this.layers[0]);
       requestAnimationFrame(this.animate.bind(this));
    },
 
@@ -145,7 +143,7 @@ const infinity_zoom_engine = {
             }
             // Dynamic resource management (intro phase: current_zoom=1)
             const viewport = { width: this.canvas.width, height: this.canvas.height };
-            this.update_layer_resource_states(viewport);
+            //this.update_layer_resource_states(viewport);
             requestAnimationFrame(this.animate.bind(this));
          } else if (elapsed < zoom_duration + fade_duration) {
             // Fade-in additional layers: keep correct relative scale (relative to first layer)
@@ -156,7 +154,7 @@ const infinity_zoom_engine = {
             }
             const fade_t = (elapsed - zoom_duration) / fade_duration;
             const viewport = { width: this.canvas.width, height: this.canvas.height };
-            this.update_layer_resource_states(viewport);
+            //this.update_layer_resource_states(viewport);
             const visible_layers = this.determine_visible_layers(viewport);
             for (let i = 1; i < this.layers.length; ++i) {
                const layer = this.layers[i];
@@ -218,7 +216,7 @@ const infinity_zoom_engine = {
          }
          // Dynamic resource management
          const viewport = { width: this.canvas.width, height: this.canvas.height };
-         this.update_layer_resource_states(viewport);
+         //this.update_layer_resource_states(viewport);
          // Check if last layer covers the viewport (no bars, covers both width and height)
          const last_layer = this.layers[this.layers.length - 1];
          const last_layer_draw_size = last_layer.scale * min_dim;
@@ -354,6 +352,17 @@ const infinity_zoom_engine = {
             log('Removed layer ' + i);
          }
       }
+   },
+
+   // Preload all layer images to the GPU (warm-up phase)
+   preload_all_layers_to_gpu() {
+      for (let i = 0; i < this.layers.length; ++i) {
+         const layer = this.layers[i];
+         if (!layer.texture) {
+            window.infinity_zoom_II_utils_render.upload_texture(this.gl, layer);
+         }
+      }
+      log('Preloaded all layers to GPU');
    },
 };
 
