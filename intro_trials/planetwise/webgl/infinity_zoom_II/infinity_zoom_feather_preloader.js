@@ -1,3 +1,5 @@
+// infinity_zoom_feather_preloader.js
+
 // Feathered image preloader logic (mirrors network preloader pattern)
 let feathered_images = [];
 let feathered_loaded = false;
@@ -37,12 +39,8 @@ window.infinity_zoom_feather_preloader = {
    preload_and_feather_images,
    on_feathered_images_ready
 };
-// gpu_feather_test.js
-// Test utility for GPU-side (WebGL) feathered edge pre-processing
-// Usage: include in a test HTML file or run in browser console
 
 // Creates a WebGL context, loads an image, applies feathering in a fragment shader, and draws the result to a canvas
-
 function create_feathered_image_webgl(image, feather_size = 32) {
    // Create canvas and WebGL context
    const canvas = document.createElement('canvas');
