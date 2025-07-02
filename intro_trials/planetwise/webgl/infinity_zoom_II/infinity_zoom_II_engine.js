@@ -35,7 +35,7 @@ const infinity_zoom_engine = {
       this.canvas = canvas;
       this.gl = canvas.getContext('webgl', { alpha: false });
       if (!this.gl) {
-         this.log('WebGL not supported');
+         log('WebGL not supported');
          return;
       }
       // Enable alpha blending for fade-in/fade-out
@@ -226,7 +226,7 @@ const infinity_zoom_engine = {
             // Stop rotation and zoom, enter perpetual redraw
             this.rotation_speed = 0;
             this.animation_phase = 'done';
-            if (typeof this.log === 'function') this.log('Main zoom complete. Rotation stopped.');
+            log('Main zoom complete. Rotation stopped.');
          } else {
             requestAnimationFrame(this.animate.bind(this));
          }
@@ -348,10 +348,10 @@ const infinity_zoom_engine = {
          const is_uploaded = window.infinity_zoom_II_utils_render.is_layer_uploaded(layer);
          if (should_be_uploaded && !is_uploaded) {
             this.upload_layer_to_gpu(i);
-            if (typeof this.log === 'function') this.log('Uploaded layer ' + i);
+            log('Uploaded layer ' + i);
          } else if (!should_be_uploaded && is_uploaded) {
             this.remove_layer_from_gpu(i);
-            if (typeof this.log === 'function') this.log('Removed layer ' + i);
+            log('Removed layer ' + i);
          }
       }
    },
