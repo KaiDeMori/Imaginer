@@ -39,6 +39,9 @@ const infinity_zoom_engine = {
          this.log('WebGL not supported');
          return;
       }
+      // Enable alpha blending for fade-in/fade-out
+      this.gl.enable(this.gl.BLEND);
+      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
       // Store layers with correct image and zoom
       this.layers = layer_data.map((layer, i) => ({
          image: images[i],
@@ -127,30 +130,54 @@ const infinity_zoom_engine = {
       if (this.animation_phase === 'intro') {
          // Advance rotation in all phases
          this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
-         const zoom_duration = 0.5;
-         const fade_duration = 0.5;
+         const zoom_duration = 1.0;
+         const fade_duration = 2.0;
          if (elapsed < zoom_duration) {
             // Exponential from 1px to scale 1
             const min_dim = Math.min(this.canvas.width, this.canvas.height);
             const t = elapsed / zoom_duration;
             const scale = Math.exp(Math.log(min_dim) * t) / min_dim;
             this.layers[0].scale = scale;
+            // Hide all other layers during zoom-in
+            for (let i = 1; i < this.layers.length; ++i) {
+               this.layers[i].alpha = 0;
+            }
             requestAnimationFrame(this.animate.bind(this));
          } else if (elapsed < zoom_duration + fade_duration) {
-            // Fade-in additional layers
+            // Fade-in additional layers (0.5s, fixed scale)
             this.layers[0].scale = 1;
             const fade_t = (elapsed - zoom_duration) / fade_duration;
-            // Preload and fade in all visible layers (except planet)
+            const min_dim = Math.min(this.canvas.width, this.canvas.height);
+            const planet_zoom = this.layers[0].zoom;
             for (let i = 1; i < this.layers.length; ++i) {
-               if (!this.layers[i].texture) this.upload_texture(this.layers[i]);
-               this.layers[i].scale = 1; // fixed scale during fade
-               this.layers[i].alpha = Math.min(1, fade_t);
+               // Set correct scale for each layer
+               const layer = this.layers[i];
+               layer.scale = layer.zoom / planet_zoom;
+               // Compute draw size for visibility
+               const draw_size = layer.scale * min_dim;
+               if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
+                  if (!layer.texture) this.upload_texture(layer);
+                  // Fade in alpha from 0 to 1
+                  layer.alpha = Math.min(1, fade_t);
+               } else {
+                  // Not visible yet
+                  layer.alpha = 0;
+               }
             }
             requestAnimationFrame(this.animate.bind(this));
          } else {
             // Hold state for next step
+            const min_dim = Math.min(this.canvas.width, this.canvas.height);
+            const planet_zoom = this.layers[0].zoom;
             for (let i = 1; i < this.layers.length; ++i) {
-               this.layers[i].alpha = 1;
+               const layer = this.layers[i];
+               layer.scale = layer.zoom / planet_zoom;
+               const draw_size = layer.scale * min_dim;
+               if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
+                  layer.alpha = 1;
+               } else {
+                  layer.alpha = 0;
+               }
             }
             this.animation_phase = 'hold';
             this.hold_start_time = now;
