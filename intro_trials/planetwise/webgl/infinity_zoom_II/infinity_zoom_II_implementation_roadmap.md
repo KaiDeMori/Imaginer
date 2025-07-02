@@ -30,12 +30,12 @@ Note: The `log(msg)` debug utility is already imported from V1 (`infinity_zoom_d
 
 
 ## 3. Cinematic Intro Sequence
-- [ ] **Render black screen and single-pixel planet**
+- [x] **Render black screen and single-pixel planet**
   - Reference: V2 documentation (`infinity_zoom_II_documentation.md`) §3.1a
-- [ ] **Test: Planet is invisible at 1px**
-- [ ] **Implement exponential zoom-in to scale 1 (0.5s)**
+- [x] **Test: Planet is invisible at 1px**
+- [x] **Implement exponential zoom-in to scale 1 (0.5s)**
   - Reference: V2 documentation (`infinity_zoom_II_documentation.md`) §3.1b
-- [ ] **Test: Planet reaches scale 1 in 0.5s**
+- [x] **Test: Planet reaches scale 1 in 0.5s**
 - [ ] **Fade-in additional layers (0.5s, fixed scale)**
   - Reference: V2 documentation (`infinity_zoom_II_documentation.md`) §3.1c
 - [ ] **Test: All visible layers fade in smoothly**
@@ -46,9 +46,9 @@ Note: The `log(msg)` debug utility is already imported from V1 (`infinity_zoom_d
 -----
 
 ## 4. Rotation Lifecycle
-- [ ] **Implement global rotation (ω = π/60 rad/s)**
+- [x] **Implement global rotation (ω = π/60 rad/s)**
   - Reference: V2 documentation (`infinity_zoom_II_documentation.md`) §4
-- [ ] **Test: Rotation starts before planet appears**
+- [x] **Test: Rotation starts before planet appears**
 - [ ] **Test: Rotation stops when last layer covers viewport**
 
 -----
