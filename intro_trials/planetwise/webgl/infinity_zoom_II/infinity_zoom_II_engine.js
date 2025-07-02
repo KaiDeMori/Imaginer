@@ -372,7 +372,9 @@ window.infinity_zoom_II_engine = infinity_zoom_engine;
 // Add a window resize event listener to dynamically adjust canvas size
 window.addEventListener('resize', () => {
    if (window.infinity_zoom_II_engine && window.infinity_zoom_II_engine.canvas && window.infinity_zoom_II_engine.gl) {
-      window.infinity_zoom_II_engine.resize_canvas_to_display_size(window.infinity_zoom_II_engine.canvas, window.infinity_zoom_II_engine.gl);
-      // Debug log removed
+      window.infinity_zoom_II_utils_render.resize_canvas_to_display_size(
+         window.infinity_zoom_II_engine.canvas,
+         window.infinity_zoom_II_engine.gl
+      );
    }
 });
