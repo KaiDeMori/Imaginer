@@ -145,7 +145,7 @@ const infinity_zoom_engine = {
             }
             // Dynamic resource management (intro phase: current_zoom=1)
             const viewport = { width: this.canvas.width, height: this.canvas.height };
-            this.update_layer_resource_states(1, viewport);
+            this.update_layer_resource_states(viewport);
             requestAnimationFrame(this.animate.bind(this));
          } else if (elapsed < zoom_duration + fade_duration) {
             // Fade-in additional layers: keep correct relative scale (relative to first layer)
@@ -156,8 +156,8 @@ const infinity_zoom_engine = {
             }
             const fade_t = (elapsed - zoom_duration) / fade_duration;
             const viewport = { width: this.canvas.width, height: this.canvas.height };
-            this.update_layer_resource_states(1, viewport);
-            const visible_layers = this.determine_visible_layers(1, viewport);
+            this.update_layer_resource_states(viewport);
+            const visible_layers = this.determine_visible_layers(viewport);
             for (let i = 1; i < this.layers.length; ++i) {
                const layer = this.layers[i];
                if (visible_layers.includes(layer)) {
@@ -218,7 +218,7 @@ const infinity_zoom_engine = {
          }
          // Dynamic resource management
          const viewport = { width: this.canvas.width, height: this.canvas.height };
-         this.update_layer_resource_states(first_layer_scale, viewport);
+         this.update_layer_resource_states(viewport);
          // Check if last layer covers the viewport (no bars, covers both width and height)
          const last_layer = this.layers[this.layers.length - 1];
          const last_layer_draw_size = last_layer.scale * min_dim;
@@ -312,7 +312,7 @@ const infinity_zoom_engine = {
    // For now, wraps get_visible_layers logic for backward compatibility
    // current_zoom: scale of the first layer (usually 1 during intro)
    // viewport: { width, height } (canvas size)
-   determine_visible_layers(current_zoom, viewport) {
+   determine_visible_layers(viewport) {
       const min_dim = Math.min(viewport.width, viewport.height);
       // For now, use the same logic as get_visible_layers
       return this.get_visible_layers(min_dim);
@@ -337,9 +337,9 @@ const infinity_zoom_engine = {
    // Orchestrate dynamic upload/removal of layers based on visibility
    // current_zoom: scale of the first layer
    // viewport: { width, height }
-   update_layer_resource_states(current_zoom, viewport) {
+   update_layer_resource_states(viewport) {
       // Get the set of layers that should be visible (and thus uploaded)
-      const visible_layers = this.determine_visible_layers(current_zoom, viewport);
+      const visible_layers = this.determine_visible_layers(viewport);
       // Build a Set for fast lookup
       const visible_set = new Set(visible_layers);
       for (let i = 0; i < this.layers.length; ++i) {
