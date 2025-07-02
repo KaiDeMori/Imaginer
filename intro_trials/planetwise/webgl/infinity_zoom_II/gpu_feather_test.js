@@ -1,3 +1,42 @@
+// Feathered image preloader logic (mirrors network preloader pattern)
+let feathered_images = [];
+let feathered_loaded = false;
+let feathered_callbacks = [];
+
+function preload_and_feather_images(layer_data, image_folder = 'zoom_images', feather_size = 32) {
+   if (feathered_loaded) {
+      // Already feathered, do nothing
+      return;
+   }
+   // Use the network preloader to fetch images first
+   if (!window.infinity_zoom_preloader) {
+      throw new Error('infinity_zoom_preloader not loaded');
+   }
+   window.infinity_zoom_preloader.preload_images(layer_data, image_folder);
+   window.infinity_zoom_preloader.on_images_loaded(function (images) {
+      feathered_images = new Array(images.length);
+      for (let i = 0; i < images.length; ++i) {
+         feathered_images[i] = create_feathered_image_webgl(images[i], feather_size);
+      }
+      feathered_loaded = true;
+      feathered_callbacks.forEach(cb => cb(feathered_images));
+      feathered_callbacks = [];
+   });
+}
+
+function on_feathered_images_ready(callback) {
+   if (feathered_loaded) {
+      callback(feathered_images);
+   } else {
+      feathered_callbacks.push(callback);
+   }
+}
+
+// Export for use in other scripts
+window.infinity_zoom_feather_preloader = {
+   preload_and_feather_images,
+   on_feathered_images_ready
+};
 // gpu_feather_test.js
 // Test utility for GPU-side (WebGL) feathered edge pre-processing
 // Usage: include in a test HTML file or run in browser console
