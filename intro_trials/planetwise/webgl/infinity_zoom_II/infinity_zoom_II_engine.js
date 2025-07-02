@@ -54,7 +54,7 @@ const infinity_zoom_engine = {
       this.start_time = performance.now();
       this.animation_phase = 'intro';
       this.rotation = 0;
-      this.resize_canvas();
+      window.infinity_zoom_II_utils_render.resize_canvas_to_display_size(this.canvas, this.gl);
 
       // --- WebGL setup ---
       const gl = this.gl;
@@ -119,13 +119,13 @@ const infinity_zoom_engine = {
       this.u_alpha = gl.getUniformLocation(program, 'u_alpha');
 
       // Only upload first layer for now
-      this.upload_texture(this.layers[0]);
+      window.infinity_zoom_II_utils_render.upload_texture(this.gl, this.layers[0]);
       requestAnimationFrame(this.animate.bind(this));
    },
 
    // Main animation loop
    animate(now) {
-      // Step 3.1b/3.1c: Animate planet zoom-in, then fade-in additional layers
+      // Step 3.1b/3.1c: Animate first layer zoom-in, then fade-in additional layers
       const elapsed = (now - this.start_time) / 1000;
       if (this.animation_phase === 'intro') {
          // Advance rotation in all phases
@@ -133,45 +133,44 @@ const infinity_zoom_engine = {
          const zoom_duration = 1.0;
          const fade_duration = 2.0;
          if (elapsed < zoom_duration) {
-            // Exponential from 1px to scale 1
+            // Exponential from 1px to scale 1 (first layer)
             const min_dim = Math.min(this.canvas.width, this.canvas.height);
             const t = elapsed / zoom_duration;
-            const scale = Math.exp(Math.log(min_dim) * t) / min_dim;
-            this.layers[0].scale = scale;
-            // Hide all other layers during zoom-in
+            const first_layer_scale = Math.exp(Math.log(min_dim) * t) / min_dim;
+            this.layers[0].scale = first_layer_scale;
             for (let i = 1; i < this.layers.length; ++i) {
-               this.layers[i].alpha = 0;
+               const layer = this.layers[i];
+               layer.scale = this.get_layer_scale(i, first_layer_scale);
+               layer.alpha = 0;
             }
             requestAnimationFrame(this.animate.bind(this));
          } else if (elapsed < zoom_duration + fade_duration) {
-            // Fade-in additional layers (0.5s, fixed scale)
+            // Fade-in additional layers: keep correct relative scale (relative to first layer)
             this.layers[0].scale = 1;
+            for (let i = 1; i < this.layers.length; ++i) {
+               const layer = this.layers[i];
+               layer.scale = this.get_layer_scale(i, 1);
+            }
             const fade_t = (elapsed - zoom_duration) / fade_duration;
             const min_dim = Math.min(this.canvas.width, this.canvas.height);
-            const planet_zoom = this.layers[0].zoom;
+            const visible_layers = this.get_visible_layers(min_dim);
             for (let i = 1; i < this.layers.length; ++i) {
-               // Set correct scale for each layer
                const layer = this.layers[i];
-               layer.scale = layer.zoom / planet_zoom;
-               // Compute draw size for visibility
-               const draw_size = layer.scale * min_dim;
-               if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
-                  if (!layer.texture) this.upload_texture(layer);
-                  // Fade in alpha from 0 to 1
+               if (visible_layers.includes(layer)) {
+                  if (!layer.texture) window.infinity_zoom_II_utils_render.upload_texture(this.gl, layer);
                   layer.alpha = Math.min(1, fade_t);
                } else {
-                  // Not visible yet
                   layer.alpha = 0;
                }
             }
             requestAnimationFrame(this.animate.bind(this));
          } else {
-            // Hold state for next step
+            // Hold state for next step (first layer at scale 1)
             const min_dim = Math.min(this.canvas.width, this.canvas.height);
-            const planet_zoom = this.layers[0].zoom;
+            this.layers[0].scale = 1;
             for (let i = 1; i < this.layers.length; ++i) {
                const layer = this.layers[i];
-               layer.scale = layer.zoom / planet_zoom;
+               layer.scale = this.get_layer_scale(i, 1);
                const draw_size = layer.scale * min_dim;
                if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
                   layer.alpha = 1;
@@ -215,58 +214,43 @@ const infinity_zoom_engine = {
       for (let i = 0; i < this.layers.length; ++i) {
          const layer = this.layers[i];
          if (layer && layer.texture) {
-            // Compose aspect, scale, then rotation (V1 order: aspect first, then scale, then rotation)
-            const aspect = make_matrix(layer.image, this.canvas);
+            // Use utils for aspect, rotation, and matrix math
+            const aspect = window.infinity_zoom_II_utils_math.make_matrix(layer.image, this.canvas);
             const s = layer.scale;
             const scale_mat = [s, 0, 0, 0, s, 0, 0, 0, 1];
-            const rot = make_rotation_matrix(this.rotation);
+            const rot = window.infinity_zoom_II_utils_math.make_rotation_matrix(this.rotation);
             // Compose: rot * scale * aspect
-            let mat = mat3_mul(rot, mat3_mul(scale_mat, aspect));
+            let mat = window.infinity_zoom_II_utils_math.mat3_mul(
+               rot,
+               window.infinity_zoom_II_utils_math.mat3_mul(scale_mat, aspect)
+            );
             gl.uniformMatrix3fv(this.u_matrix, false, mat);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, layer.texture);
             gl.uniform1i(this.u_image, 0);
             gl.uniform1f(this.u_alpha, (typeof layer.alpha === 'number') ? layer.alpha : 1.0);
-            // V1: use TRIANGLE_STRIP, 4 vertices
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
          }
       }
    },
 
    // Calculate which layers are visible at current scale
-   get_visible_layers() {
-      // ...return array of visible layers
+   get_visible_layers(min_dim) {
+      // Returns array of visible layers whose scaled size is above the minimum render size
+      return this.layers.filter(layer => (layer.scale * min_dim) >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE);
    },
 
-   // Upload a layer's image to GPU as a texture
-   upload_texture(layer) {
-      window.infinity_zoom_II_utils_render.upload_texture(this.gl, layer);
+
+
+   // Compute the scale for a given layer index and first layer scale (V1 logic, always refer to 'first layer' not 'planet')
+   get_layer_scale(layer_index, first_layer_scale) {
+      let scale = first_layer_scale;
+      for (let i = 1; i <= layer_index; ++i) {
+         scale *= this.layers[i].zoom / 100;
+      }
+      return scale;
    },
 
-   // Delete a layer's texture from GPU
-   delete_texture(layer) {
-      window.infinity_zoom_II_utils_render.delete_texture(this.gl, layer);
-   },
-
-   // Resize canvas and update viewport
-   resize_canvas() {
-      window.infinity_zoom_II_utils_render.resize_canvas_to_display_size(this.canvas, this.gl);
-   },
-
-   // Ensure canvas dimensions are correctly set
-   resize_canvas_to_display_size(canvas, gl) {
-      window.infinity_zoom_II_utils_render.resize_canvas_to_display_size(canvas, gl);
-   },
-
-   // Utility: check if a layer covers the viewport (with feather)
-   layer_covers_viewport_with_feather(layer, scale) {
-      // ...return true/false
-   },
-
-   // Utility: build rotation matrix for current angle
-   make_rotation_matrix(angle) {
-      // ...return 3x3 matrix as flat array
-   }
 };
 
 // Export for HTML usage
