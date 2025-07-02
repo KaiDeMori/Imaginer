@@ -141,6 +141,9 @@ The old project includes the following files:
  * infinity_zoom_webgl_engine.js
  * infinity_zoom_webgl.html
 
+The layer images are in:
+`intro_trials\planetwise\zoom_images_planete`
+
 -----
 
 Happy zooming!  When in doubt, consult the original *Infinity Zoom* codebase – everything not explicitly changed above remains valid.
