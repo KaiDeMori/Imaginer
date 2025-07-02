@@ -35,7 +35,7 @@ const infinity_zoom_engine = {
       this.canvas = canvas;
       this.gl = canvas.getContext('webgl', { alpha: false });
       if (!this.gl) {
-         this.log('WebGL not supported');
+         log('WebGL not supported');
          return;
       }
       // Enable alpha blending for fade-in/fade-out
@@ -226,7 +226,7 @@ const infinity_zoom_engine = {
             // Stop rotation and zoom, enter perpetual redraw
             this.rotation_speed = 0;
             this.animation_phase = 'done';
-            if (typeof this.log === 'function') this.log('Main zoom complete. Rotation stopped.');
+            log('Main zoom complete. Rotation stopped.');
          } else {
             requestAnimationFrame(this.animate.bind(this));
          }
@@ -253,7 +253,7 @@ const infinity_zoom_engine = {
 
       for (let i = 0; i < this.layers.length; ++i) {
          const layer = this.layers[i];
-         if (layer && layer.texture) {
+         if (layer.texture) {
             // Use utils for aspect, rotation, and matrix math
             const aspect = window.infinity_zoom_II_utils_math.make_matrix(layer.image, this.canvas);
             const s = layer.scale;
@@ -300,7 +300,9 @@ const infinity_zoom_engine = {
          const scale = this.get_layer_scale(i, first_layer_scale);
          const draw_size = scale * min_dim;
          if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
-            // Upload texture if not already uploaded
+            // Only upload the texture if it is not already present on the GPU.
+            // This avoids redundant uploads and ensures each layer is uploaded exactly once per intro.
+            // (This is not a defensive check, but a core part of resource management logic.)
             if (!this.layers[i].texture) {
                window.infinity_zoom_II_utils_render.upload_texture(this.gl, this.layers[i]);
             }
@@ -310,9 +312,8 @@ const infinity_zoom_engine = {
 
    // Generalized: Determine which layers are visible given current zoom and viewport
    // For now, wraps get_visible_layers logic for backward compatibility
-   // current_zoom: scale of the first layer (usually 1 during intro)
    // viewport: { width, height } (canvas size)
-   determine_visible_layers(current_zoom, viewport) {
+   determine_visible_layers(viewport) {
       const min_dim = Math.min(viewport.width, viewport.height);
       // For now, use the same logic as get_visible_layers
       return this.get_visible_layers(min_dim);
@@ -321,7 +322,8 @@ const infinity_zoom_engine = {
    // Upload the specified layer's texture to the GPU if not already uploaded
    upload_layer_to_gpu(layer_index) {
       const layer = this.layers[layer_index];
-      if (layer && !layer.texture) {
+      if (!layer.texture) {
+         log(`Uploading layer ${layer_index} to GPU`);
          window.infinity_zoom_II_utils_render.upload_texture(this.gl, layer);
       }
    },
@@ -329,7 +331,7 @@ const infinity_zoom_engine = {
    // Remove the specified layer's texture from the GPU if currently uploaded
    remove_layer_from_gpu(layer_index) {
       const layer = this.layers[layer_index];
-      if (layer && layer.texture) {
+      if (layer.texture) {
          window.infinity_zoom_II_utils_render.delete_texture(this.gl, layer);
       }
    },
@@ -348,10 +350,10 @@ const infinity_zoom_engine = {
          const is_uploaded = window.infinity_zoom_II_utils_render.is_layer_uploaded(layer);
          if (should_be_uploaded && !is_uploaded) {
             this.upload_layer_to_gpu(i);
-            if (typeof this.log === 'function') this.log('Uploaded layer ' + i);
+            log('Uploaded layer ' + i);
          } else if (!should_be_uploaded && is_uploaded) {
             this.remove_layer_from_gpu(i);
-            if (typeof this.log === 'function') this.log('Removed layer ' + i);
+            log('Removed layer ' + i);
          }
       }
    },
@@ -362,8 +364,5 @@ window.infinity_zoom_II_engine = infinity_zoom_engine;
 
 // Add a window resize event listener to dynamically adjust canvas size
 window.addEventListener('resize', () => {
-   if (window.infinity_zoom_II_engine && window.infinity_zoom_II_engine.canvas && window.infinity_zoom_II_engine.gl) {
-      window.infinity_zoom_II_engine.resize_canvas_to_display_size(window.infinity_zoom_II_engine.canvas, window.infinity_zoom_II_engine.gl);
-      // Debug log removed
-   }
+   window.infinity_zoom_II_engine.resize_canvas_to_display_size(window.infinity_zoom_II_engine.canvas, window.infinity_zoom_II_engine.gl);
 });
