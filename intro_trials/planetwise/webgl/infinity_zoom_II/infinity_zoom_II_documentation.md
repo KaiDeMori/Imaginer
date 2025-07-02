@@ -1,3 +1,4 @@
+
 # Infinity Zoom II – Project Documentation
 
 Version 2 ("Infinity Zoom II") refines the original Web-GL based *Infinity Zoom* demo.  The core zoom pipeline from V1 is retained; all changes are additive and focus on a cinematic **intro sequence**, better **rotation handling**, and stricter **visibility / resource** rules.  This document only describes the deltas and new constraints – whenever behaviour is *not* covered here, the original *Infinity Zoom* documentation continues to apply.
@@ -103,6 +104,7 @@ if (min_edge < u_feather) {
 
 ## 8  Logging
 A global helper `log(msg)` remains available.  Use it sparingly for **human-readable**, fully formatted messages only.
+A global helper `log(msg)` remains available, defined in `infinity_zoom_debug.js`. Use it sparingly for **human-readable**, fully formatted messages only. To enable debug overlays or logging, ensure this file is referenced early in the HTML.
 
 -----
 
@@ -115,6 +117,7 @@ A global helper `log(msg)` remains available.  Use it sparingly for **human-read
   - Start immediately.
   - Stop precisely when final layer covers viewport.
 - [ ] **Pre-loading logic** for intro-visible layers.
+  - Image preloading is handled by re-using the V1 logic in `infinity_zoom_preloader.js`. This script should be referenced early in the HTML, before the canvas is initialized.
 - [ ] **Fade-in shader support** (layer-specific alpha).
 - [ ] **Unit tests / debug overlays** for minimum-size visibility decisions.
 
@@ -125,13 +128,17 @@ Exactly the same exclusions as V1 (no interaction, no error handling, no fallbac
 
 -----
 
-# 11 Paths
+## 11 Paths & Files
 
 This file resides in
 `intro_trials\planetwise\webgl\infinity_zoom_II\infinity_zoom_II_documentation.md`
 
 All Infinity Zoom II files reside in:
 `intro_trials\planetwise\webgl\infinity_zoom_II\`
+
+Key files for initialization and debugging (copied from V1):
+ * `infinity_zoom_preloader.js` – handles early image preloading (must be referenced before canvas initialization)
+ * `infinity_zoom_debug.js` – provides the global `log(msg)` helper and debug overlays
 
 The old project is in:
 `intro_trials\planetwise\webgl\`

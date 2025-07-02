@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <title>Infinity Zoom II</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <!-- Preloader and debug utilities (must be loaded before engine) -->
+   <script src="../infinity_zoom_preloader.js"></script>
+   <script src="../infinity_zoom_debug.js"></script>
+   <style>
+      html,
+      body {
+         margin: 0;
+         padding: 0;
+         background: #000;
+         width: 100vw;
+         height: 100vh;
+         overflow: hidden;
+      }
+
+      #zoom_canvas {
+         display: block;
+         width: 100vw;
+         height: 100vh;
+         background: #000;
+      }
+   </style>
+</head>
+
+<body>
+   <canvas id="zoom_canvas"></canvas>
+   <script>
+      // Layer data (update as needed)
+      const LAYERS_DATA = [
+         { zoom: 25, image: '../../zoom_images_planete/10_planet.png' },
+         // ... add all other layers here ...
+         { zoom: 25, image: '../../zoom_images_planete/90_alien.png' }
+      ];
+
+      // Preload images before initializing engine
+      window.infinity_zoom_preloader.preload_images(LAYERS_DATA, '../../zoom_images_planete');
+      window.infinity_zoom_preloader.on_images_loaded(function (images) {
+         log('All images loaded. Initializing engine...');
+         // TODO: Initialize Infinity Zoom II engine here
+         // Example: window.infinity_zoom_II_engine.init(images, document.getElementById('zoom_canvas'));
+      });
+   </script>
+</body>
+
+</html>
