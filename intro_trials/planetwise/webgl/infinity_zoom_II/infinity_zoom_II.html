@@ -50,7 +50,7 @@
          { zoom: 25, image: '100_alien_closeup.png' },
       ];
 
-      window.infinity_zoom_feather_preloader.preload_and_feather_images(LAYERS_DATA, '../../zoom_images_planete', 48);
+      window.infinity_zoom_feather_preloader.preload_and_feather_images(LAYERS_DATA, '../../zoom_images_planete', 300);
       window.infinity_zoom_feather_preloader.on_feathered_images_ready(function (feathered_images) {
          // Now you can initialize your engine with the feathered images:
          window.infinity_zoom_II_engine.init(LAYERS_DATA, feathered_images, document.getElementById('zoom_canvas'));

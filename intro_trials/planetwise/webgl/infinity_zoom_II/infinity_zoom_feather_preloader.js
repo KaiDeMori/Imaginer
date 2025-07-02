@@ -16,6 +16,8 @@ function preload_and_feather_images(layer_data, image_folder = 'zoom_images', fe
    }
    window.infinity_zoom_preloader.preload_images(layer_data, image_folder);
    window.infinity_zoom_preloader.on_images_loaded(function (images) {
+      log(`[feather_preloader] Starting feathering of ${images.length} images...`);
+      const start_time = performance.now();
       feathered_images = new Array(images.length);
       // Use a single shared canvas and WebGL context for all feathering
       const shared_canvas = document.createElement('canvas');
@@ -147,6 +149,15 @@ function preload_and_feather_images(layer_data, image_folder = 'zoom_images', fe
          // Clean up texture
          shared_gl.deleteTexture(tex);
       }
+      const end_time = performance.now();
+      log(`[feather_preloader] Finished feathering ${images.length} images in ${(end_time - start_time).toFixed(1)} ms.`);
+
+      /*
+      // Even dirtier hack: open the second feathered image (index 1) in a new tab for manual inspection, no checks
+      const url = feathered_images[1].toDataURL('image/png');
+      window.open(url, '_blank');
+      */
+
       feathered_loaded = true;
       feathered_callbacks.forEach(cb => cb(feathered_images));
       feathered_callbacks = [];
