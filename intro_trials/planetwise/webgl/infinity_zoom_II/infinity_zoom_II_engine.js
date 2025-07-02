@@ -15,7 +15,7 @@ const INFINITY_ZOOM_FEATHER_MIN_PX = 2;
 const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // radians per second
 
 // Exponential zoom rate (default from V1, see V1 documentation and engine)
-const INFINITY_ZOOM_SPEED = 2;
+const INFINITY_ZOOM_SPEED = 1.2;
 
 // Main engine object
 const infinity_zoom_engine = {
@@ -130,7 +130,7 @@ const infinity_zoom_engine = {
       if (this.animation_phase === 'intro') {
          // Advance rotation in all phases
          this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
-         const zoom_duration = 2.0;
+         const zoom_duration = 5.0;
          const fade_duration = 3.0;
          if (elapsed < zoom_duration) {
             // Exponential from 1px to scale 1 (first layer)
@@ -187,7 +187,7 @@ const infinity_zoom_engine = {
          }
       } else if (this.animation_phase === 'hold') {
          // Step 3.1d: Hold for 0.5s, only rotation
-         const hold_duration = 0.5;
+         const hold_duration = 1.5;
          const elapsed_hold = (now - this.hold_start_time) / 1000;
          // Advance rotation
          this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
