@@ -171,12 +171,14 @@ window.infinity_zoom_webgl_engine = {
       let active_layers = [];
       // Precompute initial scales for all layers
       let scale = 1.0;
+      let initial_scales = [];
       for (let i = 0; i < layers.length; i++) {
          active_layers.push({
             idx: i,
             scale: scale,
             texture: null
          });
+         initial_scales.push(scale);
          if (i < layers.length - 1) {
             scale *= layers[i + 1].zoom / 100;
          }
@@ -201,6 +203,10 @@ window.infinity_zoom_webgl_engine = {
       let running = true;
       let paused = false;
       let rotation = 0;
+      // Step 1: Add static phase timer
+      let static_phase_elapsed = 0;
+      const STATIC_PHASE_DURATION = 1.0; // seconds
+      let in_static_phase = true;
       log('main loop started');
       // Space key toggles pause/resume
       window.addEventListener('keydown', function (e) {
@@ -228,15 +234,38 @@ window.infinity_zoom_webgl_engine = {
          }
          if (!last_time) last_time = ts;
          const dt = (ts - last_time) / 1000;
+         // Debug: log dt for first frame after static phase
+         if (!in_static_phase && static_phase_elapsed > 0 && Math.abs(static_phase_elapsed - STATIC_PHASE_DURATION) < 0.1) {
+            log('[DEBUG] First zoom frame dt: ' + dt);
+         }
          last_time = ts;
 
-         // Exponential scale update for all active layers
-         for (let i = 0; i < active_layers.length; i++) {
-            active_layers[i].scale *= Math.exp(Math.log(window.infinity_zoom_webgl_engine.INFINITY_ZOOM_SPEED) * dt);
+         // Step 2: For the first 1s, skip scale updates, keep all scales at 1.0
+         if (in_static_phase) {
+            static_phase_elapsed += dt;
+            // During static phase, keep all scales at their initial values (no zooming)
+            for (let i = 0; i < active_layers.length; i++) {
+               active_layers[i].scale = initial_scales[i];
+            }
+            if (static_phase_elapsed >= STATIC_PHASE_DURATION) {
+               // End static phase, allow scale updates to begin
+               in_static_phase = false;
+               last_time = ts; // reset time reference to avoid jump in dt
+               log('[DEBUG] End of static phase. Layer scales: ' + JSON.stringify(active_layers.map(l => l.scale)));
+               log('[DEBUG] last_time reset to ' + ts + ' static_phase_elapsed: ' + static_phase_elapsed);
+               // Do not return or call requestAnimationFrame here; let the loop continue naturally
+            }
+         } else {
+            // Exponential scale update for all active layers
+            for (let i = 0; i < active_layers.length; i++) {
+               active_layers[i].scale *= Math.exp(Math.log(window.infinity_zoom_webgl_engine.INFINITY_ZOOM_SPEED) * dt);
+            }
          }
 
-         // Update global rotation (clockwise)
-         rotation -= window.infinity_zoom_webgl_engine.INFINITY_ZOOM_ROTATION_SPEED * dt;
+         // Update global rotation (clockwise) only after static phase
+         if (!in_static_phase) {
+            rotation -= window.infinity_zoom_webgl_engine.INFINITY_ZOOM_ROTATION_SPEED * dt;
+         }
 
          // Remove previous layer if next covers viewport (including feather)
          while (active_layers.length > 1) {
@@ -258,6 +287,7 @@ window.infinity_zoom_webgl_engine = {
          gl.clear(gl.COLOR_BUFFER_BIT);
 
          // Draw all active layers, back-to-front
+         let drawn_layers = [];
          for (let i = 0; i < active_layers.length; i++) {
             const layer = active_layers[i];
             ensure_texture(i);
@@ -266,6 +296,12 @@ window.infinity_zoom_webgl_engine = {
             const min_dim = Math.min(canvas.width, canvas.height);
             const draw_size = layer.scale * min_dim;
             if (draw_size < INFINITY_ZOOM_MINIMUM_RENDER_SIZE) continue;
+            // During static phase, only draw layers that are large enough (with initial scale)
+            if (in_static_phase) {
+               // Only draw if the layer would be visible at its initial scale
+               // (draw_size already checked above)
+            }
+            drawn_layers.push(i);
             // Compose rotation * scale * aspect matrix
             const base_mat = make_matrix(img, canvas);
             // Apply scale
@@ -287,6 +323,11 @@ window.infinity_zoom_webgl_engine = {
             ];
             draw_textured_quad(gl, prog, layer.texture, mat);
          }
+         // Debug: log which layers are drawn in the first few frames after static phase
+         if (!in_static_phase && static_phase_elapsed > 0 && Math.abs(static_phase_elapsed - STATIC_PHASE_DURATION) < 0.1) {
+            log('[DEBUG] Drawn layers after static phase: ' + JSON.stringify(drawn_layers));
+         }
+
          // Log the number of rendered images only when it changes
          if (active_layers.length !== animate.last_rendered_count) {
             log('number of rendered images: ' + active_layers.length);

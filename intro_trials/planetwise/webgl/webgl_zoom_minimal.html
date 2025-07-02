@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <title>WebGL Zoom Minimal Experiment</title>
+   <style>
+      html,
+      body {
+         margin: 0;
+         padding: 0;
+         width: 100vw;
+         height: 100vh;
+         background: #111;
+         overflow: hidden;
+      }
+
+      #zoom-canvas {
+         display: block;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100vw;
+         height: 100vh;
+         background: #111;
+      }
+   </style>
+</head>
+
+<body>
+   <canvas id="zoom-canvas"></canvas>
+   <script>
+      // --- Minimal WebGL Zoom Experiment ---
+
+      const enable_second_image = true; // Toggle this to enable/disable second image
+      const IMAGE_SRC = '../zoom_images_planete/10_new_planete.png'; // Main planet
+      const SECOND_IMAGE_SRC = '../zoom_images_planete/20_alien_island_II_tricky_transition_continental_B.png'; // Second layer
+      const THIRD_IMAGE_SRC = '../zoom_images_planete/30_alien_island_II_tricky_transition.png'; // Third layer
+      const FOURTH_IMAGE_SRC = '../zoom_images_planete/40_alien_island_II_atoll_tiny_land.png'; // Fourth layer
+      const MAX_ZOOM = 3;
+      const ZOOM_SPEED = 3; // scale multiplier per second
+      const DELAY_MS = 1000;
+
+      function resize_canvas_to_display_size(canvas, gl) {
+         const dpr = window.devicePixelRatio || 1;
+         const width = Math.round(window.innerWidth * dpr);
+         const height = Math.round(window.innerHeight * dpr);
+         if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
+         }
+         gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+
+      function compile_shader(gl, type, src) {
+         const sh = gl.createShader(type);
+         gl.shaderSource(sh, src);
+         gl.compileShader(sh);
+         if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+            throw new Error(gl.getShaderInfoLog(sh));
+         }
+         return sh;
+      }
+
+      function create_textured_quad_program(gl) {
+         // Feathering: vertex and fragment shaders with feather alpha ramp
+         const vert_src = `#version 300 es\nprecision mediump float;\nin vec2 a_position;\nin vec2 a_texcoord;\nuniform mat3 u_matrix;\nout vec2 v_texcoord;\nvoid main() {\n  vec3 pos = u_matrix * vec3(a_position, 1.0);\n  v_texcoord = a_texcoord;\n  gl_Position = vec4(pos.xy, 0, 1);\n}`;
+         const frag_src = `#version 300 es\nprecision mediump float;\nin vec2 v_texcoord;\nuniform sampler2D u_image;\nuniform float u_feather;\nout vec4 outColor;\nvoid main() {\n  float min_edge = min(min(v_texcoord.x, 1.0 - v_texcoord.x), min(v_texcoord.y, 1.0 - v_texcoord.y));\n  float feather = u_feather;\n  float edge_alpha = 1.0;\n  if (min_edge < feather) {\n    edge_alpha = min_edge / feather;\n  }\n  vec4 color = texture(u_image, v_texcoord);\n  outColor = vec4(color.rgb, color.a * edge_alpha);\n}`;
+         const vs = compile_shader(gl, gl.VERTEX_SHADER, vert_src);
+         const fs = compile_shader(gl, gl.FRAGMENT_SHADER, frag_src);
+         const prog = gl.createProgram();
+         gl.attachShader(prog, vs);
+         gl.attachShader(prog, fs);
+         gl.linkProgram(prog);
+         if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+            throw new Error(gl.getProgramInfoLog(prog));
+         }
+         return prog;
+      }
+
+      function setup_textured_quad_buffer(gl, prog) {
+         const quad = new Float32Array([
+            -1, -1, 0, 0,
+            1, -1, 1, 0,
+            -1, 1, 0, 1,
+            1, 1, 1, 1
+         ]);
+         const buf = gl.createBuffer();
+         gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+         gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
+         const a_position = gl.getAttribLocation(prog, 'a_position');
+         const a_texcoord = gl.getAttribLocation(prog, 'a_texcoord');
+         gl.enableVertexAttribArray(a_position);
+         gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 16, 0);
+         gl.enableVertexAttribArray(a_texcoord);
+         gl.vertexAttribPointer(a_texcoord, 2, gl.FLOAT, false, 16, 8);
+      }
+
+      function create_texture_from_image(gl, image) {
+         const tex = gl.createTexture();
+         gl.bindTexture(gl.TEXTURE_2D, tex);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+         return tex;
+      }
+
+      function make_matrix(img, canvas, scale, angle) {
+         // angle in radians
+         const img_aspect = img.width / img.height;
+         const canvas_aspect = canvas.width / canvas.height;
+         let sx = 1, sy = 1;
+         if (img_aspect > canvas_aspect) {
+            sy = canvas_aspect / img_aspect;
+         } else {
+            sx = img_aspect / canvas_aspect;
+         }
+         sx *= scale;
+         sy *= scale;
+         // 2D rotation matrix (in 3x3 form for WebGL)
+         const c = Math.cos(angle);
+         const s = Math.sin(angle);
+         // Centered rotation: scale, then rotate
+         return [
+            sx * c, -sy * s, 0,
+            sx * s, sy * c, 0,
+            0, 0, 1
+         ];
+      }
+
+      function draw_textured_quad(gl, prog, tex, mat, feather) {
+         gl.useProgram(prog);
+         gl.activeTexture(gl.TEXTURE0);
+         gl.bindTexture(gl.TEXTURE_2D, tex);
+         const u_image = gl.getUniformLocation(prog, 'u_image');
+         gl.uniform1i(u_image, 0);
+         const u_matrix = gl.getUniformLocation(prog, 'u_matrix');
+         gl.uniformMatrix3fv(u_matrix, false, mat);
+         const u_feather = gl.getUniformLocation(prog, 'u_feather');
+         gl.uniform1f(u_feather, feather);
+         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+         const canvas = document.getElementById('zoom-canvas');
+         const gl = canvas.getContext('webgl2');
+         const prog = create_textured_quad_program(gl);
+         setup_textured_quad_buffer(gl, prog);
+         let img1 = new window.Image();
+         let img2 = new window.Image();
+         let img3 = new window.Image();
+         let img4 = new window.Image();
+         let tex1 = null, tex2 = null, tex3 = null, tex4 = null;
+         let loaded_count = 0;
+         function check_and_start() {
+            // Wait for all images to load
+            if (enable_second_image) {
+               if (loaded_count < 4) return;
+            } else {
+               if (loaded_count < 1) return;
+            }
+            tex1 = create_texture_from_image(gl, img1);
+            if (enable_second_image) {
+               tex2 = create_texture_from_image(gl, img2);
+               tex3 = create_texture_from_image(gl, img3);
+               tex4 = create_texture_from_image(gl, img4);
+            }
+            let start_time = null;
+            let zooming = false;
+            // Engine-like: each image has its own scale
+            let scale1 = 1.0;
+            let scale2 = 1.0;
+            function covers_viewport(img, canvas, scale) {
+               // Like engine: image is always square and aspect-corrected
+               const min_dim = Math.min(canvas.width, canvas.height);
+               const draw_size = scale * min_dim;
+               return draw_size >= Math.max(canvas.width, canvas.height);
+            }
+            function draw(ts) {
+               if (!start_time) start_time = ts;
+               const elapsed = ts - start_time;
+               resize_canvas_to_display_size(canvas, gl);
+               gl.clearColor(0, 0, 0, 1);
+               gl.clear(gl.COLOR_BUFFER_BIT);
+               // Rotation speed in radians per second
+               const ROT_SPEED = 0.5; // adjust as desired
+               let angle = ROT_SPEED * ((ts - start_time) / 1000);
+               const FEATHER = 0.08; // 8% feather, matches engine default
+               if (elapsed < DELAY_MS) {
+                  // Static phase: only show first image
+                  scale1 = 1.0;
+                  draw_textured_quad(gl, prog, tex1, make_matrix(img1, canvas, scale1, angle), FEATHER);
+                  requestAnimationFrame(draw);
+                  return;
+               }
+               // After static phase, start zoom progression
+               const dt = (ts - start_time - DELAY_MS) / 1000;
+               scale1 = Math.exp(Math.log(ZOOM_SPEED) * dt);
+               scale2 = scale1 * 0.25;
+               // Show both images until second covers viewport, then only second
+               const second_covers = enable_second_image && covers_viewport(img2, canvas, scale2);
+               if (!second_covers) {
+                  draw_textured_quad(gl, prog, tex1, make_matrix(img1, canvas, scale1, angle), FEATHER);
+                  if (enable_second_image) {
+                     draw_textured_quad(gl, prog, tex2, make_matrix(img2, canvas, scale2, angle), FEATHER);
+                     draw_textured_quad(gl, prog, tex3, make_matrix(img3, canvas, scale2 * 0.25, angle), FEATHER);
+                     draw_textured_quad(gl, prog, tex4, make_matrix(img4, canvas, scale2 * 0.25 * 0.25, angle), FEATHER);
+                  }
+               } else {
+                  draw_textured_quad(gl, prog, tex2, make_matrix(img2, canvas, scale2, angle), FEATHER);
+                  draw_textured_quad(gl, prog, tex3, make_matrix(img3, canvas, scale2 * 0.25, angle), FEATHER);
+                  draw_textured_quad(gl, prog, tex4, make_matrix(img4, canvas, scale2 * 0.25 * 0.25, angle), FEATHER);
+               }
+               // End when second image covers viewport (like engine), or max zoom
+               if (!second_covers || scale2 < MAX_ZOOM) {
+                  requestAnimationFrame(draw);
+               }
+            }
+            requestAnimationFrame(draw);
+         }
+         img1.onload = function () { loaded_count++; check_and_start(); };
+         img1.src = IMAGE_SRC;
+         if (enable_second_image) {
+            img2.onload = function () { loaded_count++; check_and_start(); };
+            img2.src = SECOND_IMAGE_SRC;
+            img3.onload = function () { loaded_count++; check_and_start(); };
+            img3.src = THIRD_IMAGE_SRC;
+            img4.onload = function () { loaded_count++; check_and_start(); };
+            img4.src = FOURTH_IMAGE_SRC;
+         }
+      });
+   </script>
+</body>
+
+</html>
