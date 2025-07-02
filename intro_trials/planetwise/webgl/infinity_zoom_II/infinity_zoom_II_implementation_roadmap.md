@@ -21,18 +21,6 @@ Note: The `log(msg)` debug utility is already imported from V1 (`infinity_zoom_d
 
 
 ## 2. Engine Architecture Planning
-
-### Engine Modules and Responsibilities (Draft)
-
-- **InfinityZoomEngine**: Main orchestrator. Handles initialization, main loop, state management, and coordinates all subsystems.
-- **LayerManager**: Loads, manages, and provides access to all image layers. Handles layer visibility, ordering, and resource management.
-- **AnimationController**: Manages timing, animation states, and transitions (zoom, fade, rotation, etc.).
-- **Renderer**: Handles all WebGL drawing, including shaders, canvas setup, and per-frame rendering.
-- **ResourceLoader**: Preloads images and uploads textures to GPU as needed.
-- **DebugOverlay**: (optional) Renders overlays for debugging and test visibility.
-
-Each module will be implemented as a class or object, with clear responsibilities and minimal coupling. The main engine will instantiate and connect these modules.
-
 - [ ] **Outline main modules and responsibilities**
   - Define the core engine structure (e.g., main engine object/class, layer manager, animation controller)
 - [ ] **Draft method stubs and signatures**
