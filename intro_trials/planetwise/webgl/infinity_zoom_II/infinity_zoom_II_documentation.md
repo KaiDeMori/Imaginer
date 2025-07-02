@@ -133,12 +133,20 @@ Exactly the same exclusions as V1 (no interaction, no error handling, no fallbac
 This file resides in
 `intro_trials\planetwise\webgl\infinity_zoom_II\infinity_zoom_II_documentation.md`
 
+### Infinity Zoom II files
+
 All Infinity Zoom II files reside in:
 `intro_trials\planetwise\webgl\infinity_zoom_II\`
 
-Key files for initialization and debugging (copied from V1):
+Key files for Infinity Zoom II:
+ * infinity_zoom_II.html
+ * infinity_zoom_II_engine.js
+
+Key files for initialization and debugging (copied from V1 and available in the `infinity_zoom_II` folder):
  * `infinity_zoom_preloader.js` – handles early image preloading (must be referenced before canvas initialization)
  * `infinity_zoom_debug.js` – provides the global `log(msg)` helper and debug overlays
+
+ ### Old Infinity Zoom (V1) files
 
 The old project is in:
 `intro_trials\planetwise\webgl\`
