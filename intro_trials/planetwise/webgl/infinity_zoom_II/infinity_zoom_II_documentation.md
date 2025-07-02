@@ -2,7 +2,7 @@
 
 Version 2 ("Infinity Zoom II") refines the original Web-GL based *Infinity Zoom* demo.  The core zoom pipeline from V1 is retained; all changes are additive and focus on a cinematic **intro sequence**, better **rotation handling**, and stricter **visibility / resource** rules.  This document only describes the deltas and new constraints – whenever behaviour is *not* covered here, the original *Infinity Zoom* documentation continues to apply.
 
----
+-----
 
 ## 1  Goals
 1. A short, cinematic **intro** that starts from a single–pixel planet and settles on the familiar V1 "planet @ scale 1" state.
@@ -10,7 +10,7 @@ Version 2 ("Infinity Zoom II") refines the original Web-GL based *Infinity Zoom*
 3. **Deterministic visibility & pre-loading** so that every layer needed during the intro is already resident in GPU memory before its first frame.
 4. Small cleanup items that address issues discovered during the first project (naming, logging, minimum-size handling).
 
----
+-----
 
 ## 2  Glossary (agreed vocabulary)
 * **Layer** – an image (square bitmap) in the zoom stack.  Refer to them as *first, second, …* or by a conceptual name such as *planet*, *ocean*, *atoll*; never "top/bottom".
@@ -18,7 +18,7 @@ Version 2 ("Infinity Zoom II") refines the original Web-GL based *Infinity Zoom*
 * **Covering** – the layer is large enough that it extends beyond the viewport in **both** directions (thus no bars are possible).
 * **LAYERED_ZOOM_MINIMUM_RENDER_SIZE** – absolute pixel threshold below which a layer is not rendered.  Same constant that already exists in the engine.
 
----
+-----
 
 ## 3  High-Level Timeline
 The animation is divided into two macro phases.
@@ -55,14 +55,14 @@ From here the original algorithm kicks in:
 
 • The process ends once the final layer (*alien lying in the grass*) covers the viewport.  At that exact frame rotation velocity becomes 0 and the perpetual redraw loop begins (same as V1).
 
----
+-----
 
 ## 4  Rotation Rules
 1. A single global **rotation value** (clock-wise, radians) is applied to every layer every frame; layers are never rotated independently.
 2. Rotation speed is constant:  $$\omega = \pi/60\;\text{rad·s}^{-1}$$  (one full 360° turn every two minutes).
 3. Rotation **starts before** the planet appears and **stops** only when the last layer covers the viewport.
 
----
+-----
 
 ## 5  Source Data & Constants (unchanged)
 ```
@@ -77,7 +77,7 @@ const LAYERS_DATA = [
   * The planet is always `LAYERS_DATA[0]`.
   * The alien is always `LAYERS_DATA[LAYERS_DATA.length-1]`.
 
----
+-----
 
 ## 6  Visibility & Resource Management
 1. **Pre-calculation before first visible frame**
@@ -86,7 +86,7 @@ const LAYERS_DATA = [
 3. Mip-mapping: `LINEAR_MIPMAP_LINEAR` for `TEXTURE_MIN_FILTER`, `LINEAR` for `TEXTURE_MAG_FILTER`.
 4. When a layer becomes invisible (see rule 2) it can be deleted immediately.  Conversely, if a layer will become visible later it is (re-)uploaded shortly before that happens.
 
----
+-----
 
 ## 7  Feathering
 Exactly the same GPU-side calculation as in V1:
@@ -99,12 +99,12 @@ if (min_edge < u_feather) {
 * Feather amount `u_feather = 0.08` (8 %) for **every layer except the first**.
 * The first layer is rendered with hard edges throughout the whole animation.
 
----
+-----
 
 ## 8  Logging
 A global helper `log(msg)` remains available.  Use it sparingly for **human-readable**, fully formatted messages only.
 
----
+-----
 
 ## 9  Implementation Checklist (additive to V1)
 - [ ] **Intro sequencing**
@@ -118,11 +118,29 @@ A global helper `log(msg)` remains available.  Use it sparingly for **human-read
 - [ ] **Fade-in shader support** (layer-specific alpha).
 - [ ] **Unit tests / debug overlays** for minimum-size visibility decisions.
 
----
+-----
 
 ## 10  Out of Scope
 Exactly the same exclusions as V1 (no interaction, no error handling, no fallback rendering).  The only new rule is that the intro timing is *best-effort*; The total duration of the intro sequence is not important.
 
----
+-----
+
+# 11 Paths
+
+This file resides in
+`intro_trials\planetwise\webgl\infinity_zoom_II\infinity_zoom_II_documentation.md`
+
+All Infinity Zoom II files reside in:
+`intro_trials\planetwise\webgl\infinity_zoom_II\`
+
+The old project is in:
+`intro_trials\planetwise\webgl\`
+
+The old project includes the following files:
+ * infinity_zoom_webgl_documentation.md
+ * infinity_zoom_webgl_engine.js
+ * infinity_zoom_webgl.html
+
+-----
 
 Happy zooming!  When in doubt, consult the original *Infinity Zoom* codebase – everything not explicitly changed above remains valid.
