@@ -1,3 +1,4 @@
+
 # Infinity Zoom V1 – Key Code Snippets for Porting
 
 This file collects minimal, well-commented code fragments from the original Infinity Zoom V1 project. Each snippet is labeled by concept and references the original file and line numbers for traceability. Use these as a reference for re-architecting Infinity Zoom II.
@@ -135,6 +136,46 @@ const LAYERS_DATA = [
    // ...
 ];
 ```
+
+---
+
+## Aspect-Correct Square Rendering
+
+**Purpose:** Always render images as perfect squares, centered, regardless of canvas aspect ratio.
+
+```js
+// infinity_zoom_webgl_engine.js, lines 80–89
+function make_matrix(img, canvas) {
+   // Compute aspect-correct scale: ensures image is always square and centered
+   const img_aspect = img.width / img.height;
+   const canvas_aspect = canvas.width / canvas.height;
+   let sx = 1, sy = 1;
+   if (img_aspect > canvas_aspect) {
+      sy = canvas_aspect / img_aspect;
+   } else {
+      sx = img_aspect / canvas_aspect;
+   }
+   return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
+}
+```
+
+**Vertex Shader (WebGL2, for aspect-correct rendering):**
+```glsl
+#version 300 es
+precision mediump float;
+in vec2 a_position;
+in vec2 a_texcoord;
+uniform mat3 u_matrix;
+out vec2 v_texcoord;
+void main() {
+  vec3 pos = u_matrix * vec3(a_position, 1.0);
+  v_texcoord = a_texcoord;
+  gl_Position = vec4(pos.xy, 0, 1);
+}
+```
+
+**Usage:**
+Pass the matrix from `make_matrix(img, canvas)` as the `u_matrix` uniform to the vertex shader for each draw call. This ensures the image is always square and centered.
 
 ---
 

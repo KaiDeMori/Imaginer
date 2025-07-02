@@ -8,6 +8,9 @@
    <!-- Preloader and debug utilities (must be loaded before engine) -->
    <script src="infinity_zoom_preloader.js"></script>
    <script src="infinity_zoom_debug.js"></script>
+   <script src="infinity_zoom_II_utils_math.js"></script>
+   <script src="infinity_zoom_II_utils_render.js"></script>
+   <script src="infinity_zoom_II_engine.js"></script>
    <style>
       html,
       body {
@@ -48,8 +51,7 @@
       window.infinity_zoom_preloader.preload_images(LAYERS_DATA, '../../zoom_images_planete');
       window.infinity_zoom_preloader.on_images_loaded(function (images) {
          log('All images loaded. Initializing engine...');
-         // TODO: Initialize Infinity Zoom II engine here
-         // Example: window.infinity_zoom_II_engine.init(images, document.getElementById('zoom_canvas'));
+         window.infinity_zoom_II_engine.init(LAYERS_DATA, images, document.getElementById('zoom_canvas'));
       });
    </script>
 </body>
