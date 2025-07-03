@@ -10,8 +10,10 @@ This document details the technical implementation plan for the seamless transit
   - Final zoom targets an alien holding a display device, which fills the viewport.
   - At this stage, the scene pauses on the alien and device, with only a single image slowly rotating (minimal WebGL load).
   - **During this pause, the main app and all critical assets are loaded in the background.**
+
   - Once loading is complete (or after a minimum display time), the final zoom into the display device begins, showing the transition image.
   - Note: The transition image is envisioned as a recursive scene—a girl on her laptop generating a picture of the alien, who is generating a picture, and so on—creating an "infinity-mirror" effect for the handoff.
+  - **Aspect Ratio Cropping:** The alien's display is not square (e.g., 142x103), but the recursive transition image is (e.g., 1024x1024). At the start of the overlay, the alien image fills the entire canvas, showing the full scene. The recursive image is mapped and cropped to fit the alien’s device screen—appearing small, rotated, and embedded within the device. During the transition, the recursive image animates in sync with the device screen, scaling, translating, and rotating so that it always remains perfectly aligned with the device. Only in the final frame does the recursive image fully cover the user's viewport, with cropping as needed to avoid any empty space or bars, regardless of the user's screen aspect ratio. Once this condition is reached and the app is ready, the canvas is simply faded out, completing the seamless handoff to the main application.
 
 2. **Transition Image Handoff**
   - The transition image is a real asset (not a screenshot or canvas capture).

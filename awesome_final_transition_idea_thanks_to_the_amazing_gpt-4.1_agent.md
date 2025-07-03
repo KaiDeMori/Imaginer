@@ -27,7 +27,7 @@ Create a seamless, playful transition from a WebGL-powered intro to the main AI 
 
 ## Special Transition: Overlaying the Recursive Image
 
-During the final zoom phase, the animation overlays a custom “recursive” image (the transition image) on top of the alien’s display device in the last layer. This overlay is not simply centered; it is transformed (position, scale, rotation) to match the device’s screen within the final layer image.
+During the final zoom phase, the animation overlays a custom “recursive” image (the transition image) on top of the alien’s display device in the last layer. This overlay is not simply centered; it is transformed (position, scale, rotation) to match the device’s screen within the final layer image. The overlay image starts perfectly mapped and cropped to the device screen (small and rotated), and only expands to fill the viewport in the final frame of the transition.
 
 **Key steps:**
 - Track the device’s screen position, size, and orientation within the final layer asset.

@@ -29,6 +29,19 @@
    <div id="controls">
       <button onclick="startOverlayTransition()">Start Overlay Transition</button>
       <button onclick="resetState()">Reset</button>
+      <hr>
+      <b>Manual Overlay Alignment:</b><br>
+      <label>X: <input type="range" id="align_x" min="-400" max="400" value="0" step="1" style="width:120px"></label>
+      <span id="align_x_val">0</span>
+      <label>Y: <input type="range" id="align_y" min="-300" max="300" value="0" step="1" style="width:120px"></label>
+      <span id="align_y_val">0</span><br>
+      <label>Scale: <input type="range" id="align_scale" min="0.2" max="3" value="1" step="0.01"
+            style="width:120px"></label>
+      <span id="align_scale_val">1</span>
+      <label>Rotation: <input type="range" id="align_rot" min="-3.14" max="3.14" value="0" step="0.01"
+            style="width:120px"></label>
+      <span id="align_rot_val">0</span>
+      <button onclick="toggleManualOverlay()" id="manual_overlay_btn">Show Manual Overlay</button>
    </div>
    <canvas id="zoom_canvas" width="800" height="600"></canvas>
    <script src="intro_trials/planetwise/webgl/infinity_zoom_II/infinity_zoom_II_engine.js"></script>
@@ -36,11 +49,12 @@
       // --- Minimal setup for isolated overlay transition testing ---
       // You may need to expose or adapt some engine internals for this to work.
 
-      // Example: mock layer data and images
+      // Use the correct final layer image from the main HTML's LAYERS_DATA
       const finalLayerImage = new Image();
-      finalLayerImage.src = 'assets/ai_universe/your_final_layer_image.png'; // <-- set your path
+      finalLayerImage.src = 'intro_trials/planetwise/zoom_images_planete/100_alien_closeup.png';
+      // Set the overlay image path to your recursive overlay (update as needed)
       const overlayImage = new Image();
-      overlayImage.src = 'assets/ai_universe/your_recursive_overlay.png'; // <-- set your path
+      overlayImage.src = 'intro_trials/planetwise/zoom_images_planete/alien_display_device_screen_1024x743_.png'; // <-- set your overlay path
 
       // Device screen metadata (example values)
       const deviceScreen = {
@@ -82,77 +96,206 @@
          };
       });
 
+      // Manual overlay alignment state
+      let manualOverlay = false;
+      let alignX = 0, alignY = 0, alignScale = 1, alignRot = 0;
+
       function render(now) {
          const canvas = document.getElementById('zoom_canvas');
          const ctx = canvas.getContext('2d');
          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-         // Draw final layer image (background)
-         drawFinalLayer(ctx, canvas);
+         // Always draw the alien image to fill the canvas
+         drawAlienImage(ctx, canvas);
+
+         if (manualOverlay) {
+            drawManualOverlay(ctx, canvas);
+         }
 
          // Animate overlay if active
          if (overlayActive) {
             if (!now) now = performance.now();
             overlayT = Math.min(1, (now - overlayStartTime) / (overlayDuration * 1000));
             const t = easeInOutCubic(overlayT);
-            drawOverlay(ctx, canvas, t);
+            drawRecursiveOverlay(ctx, canvas, t);
             if (overlayT < 1) {
                requestAnimationFrame(render);
             }
          }
       }
 
-      function drawFinalLayer(ctx, canvas) {
-         // Center and fit image to canvas
-         const iw = finalLayerImage.width;
-         const ih = finalLayerImage.height;
-         const cw = canvas.width;
-         const ch = canvas.height;
-         const scale = Math.min(cw / iw, ch / ih);
-         const dx = (cw - iw * scale) / 2;
-         const dy = (ch - ih * scale) / 2;
+      function drawManualOverlay(ctx, canvas) {
+         // Draw the overlay image with manual transform
+         const cx = canvas.width / 2 + alignX;
+         const cy = canvas.height / 2 + alignY;
+         const baseW = canvas.width;
+         const baseH = canvas.height;
+         // Crop overlay to cover canvas (cover strategy)
+         const overlayAR = overlayImage.width / overlayImage.height;
+         const targetAR = baseW / baseH;
+         let cropW, cropH;
+         if (overlayAR > targetAR) {
+            cropH = overlayImage.height;
+            cropW = overlayImage.height * targetAR;
+         } else {
+            cropW = overlayImage.width;
+            cropH = overlayImage.width / targetAR;
+         }
+         const cropX = (overlayImage.width - cropW) / 2;
+         const cropY = (overlayImage.height - cropH) / 2;
+
          ctx.save();
-         ctx.globalAlpha = overlayActive ? 1 - overlayT : 1;
-         ctx.drawImage(finalLayerImage, dx, dy, iw * scale, ih * scale);
+         ctx.translate(cx, cy);
+         ctx.rotate(alignRot);
+         ctx.scale(alignScale, alignScale);
+         ctx.drawImage(
+            overlayImage,
+            cropX, cropY, cropW, cropH,
+            -baseW / 2, -baseH / 2, baseW, baseH
+         );
          ctx.restore();
       }
+      // Manual overlay controls
+      function updateAlignVals() {
+         document.getElementById('align_x_val').textContent = alignX;
+         document.getElementById('align_y_val').textContent = alignY;
+         document.getElementById('align_scale_val').textContent = alignScale;
+         document.getElementById('align_rot_val').textContent = alignRot;
+         // Log values for easy copy-paste, each on its own line
+         console.log(
+            'Manual Overlay Alignment:' +
+            '\nX: ' + alignX +
+            '\nY: ' + alignY +
+            '\nScale: ' + alignScale +
+            '\nRotation: ' + alignRot
+         );
+      }
+      function setupManualOverlayControls() {
+         const x = document.getElementById('align_x');
+         const y = document.getElementById('align_y');
+         const s = document.getElementById('align_scale');
+         const r = document.getElementById('align_rot');
+         x.addEventListener('input', e => { alignX = parseInt(e.target.value); updateAlignVals(); render(); });
+         y.addEventListener('input', e => { alignY = parseInt(e.target.value); updateAlignVals(); render(); });
+         s.addEventListener('input', e => { alignScale = parseFloat(e.target.value); updateAlignVals(); render(); });
+         r.addEventListener('input', e => { alignRot = parseFloat(e.target.value); updateAlignVals(); render(); });
+         updateAlignVals();
+      }
+      function toggleManualOverlay() {
+         manualOverlay = !manualOverlay;
+         document.getElementById('manual_overlay_btn').textContent = manualOverlay ? 'Hide Manual Overlay' : 'Show Manual Overlay';
+         render();
+      }
 
-      function drawOverlay(ctx, canvas, t) {
-         // Animate from device screen to full canvas
-         const cw = canvas.width;
-         const ch = canvas.height;
-         // Start: device screen in image coords
+      // Setup controls after DOM is ready
+      window.addEventListener('DOMContentLoaded', setupManualOverlayControls);
+
+      function drawAlienImage(ctx, canvas) {
+         // Animate the alien image so the device screen moves to fill the viewport
          const iw = finalLayerImage.width;
          const ih = finalLayerImage.height;
-         const scale = Math.min(cw / iw, ch / ih);
-         const imgDx = (cw - iw * scale) / 2;
-         const imgDy = (ch - ih * scale) / 2;
-         // Device screen center in canvas coords
-         const deviceCx = imgDx + deviceScreen.x * iw * scale;
-         const deviceCy = imgDy + deviceScreen.y * ih * scale;
-         const deviceW = deviceScreen.width * iw * scale;
-         const deviceH = deviceScreen.height * ih * scale;
-         const deviceRot = deviceScreen.rotation;
+         const cw = canvas.width;
+         const ch = canvas.height;
+         const scale0 = Math.min(cw / iw, ch / ih);
+         const imgDx0 = (cw - iw * scale0) / 2;
+         const imgDy0 = (ch - ih * scale0) / 2;
 
-         // Target: full canvas, centered
+         // Device screen in canvas coords (start)
+         const deviceCx0 = imgDx0 + deviceScreen.x * iw * scale0;
+         const deviceCy0 = imgDy0 + deviceScreen.y * ih * scale0;
+         const deviceW0 = deviceScreen.width * iw * scale0;
+         const deviceH0 = deviceScreen.height * ih * scale0;
+         const deviceRot0 = deviceScreen.rotation;
+
+         // Target: device screen fills the canvas (centered, no rotation)
          const targetCx = cw / 2;
          const targetCy = ch / 2;
          const targetW = cw;
          const targetH = ch;
          const targetRot = 0;
 
-         // Interpolate
-         const cx = lerp(deviceCx, targetCx, t);
-         const cy = lerp(deviceCy, targetCy, t);
-         const w = lerp(deviceW, targetW, t);
-         const h = lerp(deviceH, targetH, t);
-         const rot = lerp(deviceRot, targetRot, t);
+         // Interpolate t (if animating), else t=0
+         let t = 0;
+         if (overlayActive) {
+            t = overlayT;
+         }
+
+         // Interpolate device screen transform
+         const cx = lerp(deviceCx0, targetCx, t);
+         const cy = lerp(deviceCy0, targetCy, t);
+         const w = lerp(deviceW0, targetW, t);
+         const h = lerp(deviceH0, targetH, t);
+         const rot = lerp(deviceRot0, targetRot, t);
+
+         // Compute the transform needed to map the original device screen to the current (cx, cy, w, h, rot)
+         // This is a bit tricky: we want to draw the whole alien image so that the device screen appears at (cx, cy, w, h, rot)
+         // We'll use the device screen's center/size/rotation in image space and in canvas space to build the transform
+
+         // Device screen center/size in image space
+         const deviceImgCx = deviceScreen.x * iw;
+         const deviceImgCy = deviceScreen.y * ih;
+         const deviceImgW = deviceScreen.width * iw;
+         const deviceImgH = deviceScreen.height * ih;
+         const deviceImgRot = deviceScreen.rotation;
+
+         ctx.save();
+         // Move to target center
+         ctx.translate(cx, cy);
+         ctx.rotate(rot);
+         // Scale so device screen matches w/h
+         ctx.scale(w / deviceImgW, h / deviceImgH);
+         // Move so device screen center in image is at origin
+         ctx.rotate(-deviceImgRot);
+         ctx.translate(-deviceImgCx, -deviceImgCy);
+         // Draw the full image
+         ctx.drawImage(finalLayerImage, 0, 0);
+         ctx.restore();
+      }
+
+      function drawRecursiveOverlay(ctx, canvas, t) {
+         // Animate the recursive image from user-found initial transform to full viewport
+         const cw = canvas.width;
+         const ch = canvas.height;
+         // User-found initial values
+         const startX = 15;
+         const startY = 15;
+         const startScale = 0.05;
+         const startRot = -0.07;
+         // Target values
+         const targetX = 0;
+         const targetY = 0;
+         const targetScale = 1;
+         const targetRot = 0;
+
+         // Interpolate transform
+         const cx = lerp(cw / 2 + startX, cw / 2 + targetX, t);
+         const cy = lerp(ch / 2 + startY, ch / 2 + targetY, t);
+         const scale = lerp(startScale, targetScale, t);
+         const rot = lerp(startRot, targetRot, t);
+
+         // Crop overlay to cover canvas (cover strategy)
+         const overlayAR = overlayImage.width / overlayImage.height;
+         const targetAR = cw / ch;
+         let cropW, cropH;
+         if (overlayAR > targetAR) {
+            cropH = overlayImage.height;
+            cropW = overlayImage.height * targetAR;
+         } else {
+            cropW = overlayImage.width;
+            cropH = overlayImage.width / targetAR;
+         }
+         const cropX = (overlayImage.width - cropW) / 2;
+         const cropY = (overlayImage.height - cropH) / 2;
 
          ctx.save();
          ctx.translate(cx, cy);
          ctx.rotate(rot);
-         ctx.globalAlpha = t;
-         ctx.drawImage(overlayImage, -w / 2, -h / 2, w, h);
+         ctx.scale(scale, scale);
+         ctx.drawImage(
+            overlayImage,
+            cropX, cropY, cropW, cropH,
+            -cw / 2, -ch / 2, cw, ch
+         );
          ctx.restore();
       }
    </script>
