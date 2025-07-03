@@ -6,13 +6,19 @@
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
 
 // Feathering amount for all but first layer (fraction of edge, V2 documentation §7)
-const INFINITY_ZOOM_FEATHER_VALUE = 0.08;
+const INFINITY_ZOOM_FEATHER_VALUE = 0.1;
 
 // Minimum feather in pixels for edge alpha ramp (V1 code snippet, see V1 engine)
 const INFINITY_ZOOM_FEATHER_MIN_PX = 2;
 
+// Starting angle for rotation (in radians)
+const INFINITY_ZOOM_START_ROTATION_ANGLE = Math.PI * (1 / 2);
+
 // Global rotation speed: 1 full turn every 2 minutes (V2 documentation §4)
 const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // radians per second
+
+// Target rotation after last layer covers viewport (in radians)
+const INFINITY_ZOOM_FINAL_ROTATION_ANGLE = Math.PI;
 
 // Exponential zoom rate (default from V1, see V1 documentation and engine)
 const INFINITY_ZOOM_SPEED = 1.2;
@@ -52,7 +58,7 @@ const infinity_zoom_engine = {
       }));
       this.start_time = performance.now();
       this.animation_phase = 'intro';
-      this.rotation = 0;
+      this.rotation = INFINITY_ZOOM_START_ROTATION_ANGLE;
       window.infinity_zoom_II_utils_render.resize_canvas_to_display_size(this.canvas, this.gl);
 
       // --- WebGL setup ---
@@ -128,8 +134,8 @@ const infinity_zoom_engine = {
       if (this.animation_phase === 'intro') {
          // Advance rotation in all phases
          this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
-         const zoom_duration = 5.0;
-         const fade_duration = 3.0;
+         const zoom_duration = 3.0;
+         const fade_duration = 1.0;
          if (elapsed < zoom_duration) {
             // Exponential from 1px to scale 1 (first layer)
             const min_dim = Math.min(this.canvas.width, this.canvas.height);
@@ -184,7 +190,7 @@ const infinity_zoom_engine = {
             requestAnimationFrame(this.animate.bind(this));
          }
       } else if (this.animation_phase === 'hold') {
-         // Step 3.1d: Hold for 0.5s, only rotation
+         // Step 3.1d: Hold, only rotation
          const hold_duration = 1.5;
          const elapsed_hold = (now - this.hold_start_time) / 1000;
          // Advance rotation
@@ -221,12 +227,27 @@ const infinity_zoom_engine = {
          const last_layer = this.layers[this.layers.length - 1];
          const last_layer_draw_size = last_layer.scale * min_dim;
          if (last_layer_draw_size >= Math.max(this.canvas.width, this.canvas.height)) {
-            // Stop rotation and zoom, enter perpetual redraw
-            this.rotation_speed = 0;
-            this.animation_phase = 'done';
-            log('Main zoom complete. Rotation stopped.');
+            // Last layer now covers viewport: stop zoom, continue rotation to final angle
+            this.last_layer_cover_time = now;
+            this.rotation_at_cover = this.rotation;
+            this.animation_phase = 'final_rotation';
+            log('Main zoom complete. Continuing rotation to final angle...');
+            requestAnimationFrame(this.animate.bind(this));
          } else {
             requestAnimationFrame(this.animate.bind(this));
+         }
+      } else if (this.animation_phase === 'final_rotation') {
+         // Continue rotation until INFINITY_ZOOM_FINAL_ROTATION_ANGLE is reached
+         if (typeof this.rotation_at_cover !== 'number') this.rotation_at_cover = this.rotation;
+         const target_rotation = this.rotation_at_cover + INFINITY_ZOOM_FINAL_ROTATION_ANGLE;
+         this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
+         if (this.rotation < target_rotation) {
+            requestAnimationFrame(this.animate.bind(this));
+         } else {
+            this.rotation = target_rotation;
+            this.rotation_speed = 0;
+            this.animation_phase = 'done';
+            log('Final rotation complete. Animation done.');
          }
       } else if (this.animation_phase === 'done') {
          // Perpetual redraw, no zoom or rotation
