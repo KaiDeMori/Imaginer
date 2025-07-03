@@ -126,29 +126,22 @@ function preload_and_feather_images(layer_data, image_folder = 'zoom_images', fe
             feathered_images[i] = null;
             continue;
          }
-         if (i === 0) {
-            // Do not feather the first image, just copy as-is to a canvas
-            const out_canvas = document.createElement('canvas');
-            out_canvas.width = img.width;
-            out_canvas.height = img.height;
-            const out_ctx = out_canvas.getContext('2d');
-            out_ctx.drawImage(img, 0, 0);
-            feathered_images[i] = out_canvas;
-            continue;
-         }
+         // All images (including first) go through the same WebGL feathering pipeline
+         // Use feather_size=0 for the first image, normal feather_size for others
+         const this_feather = (i === 0) ? 0 : feather_size;
          init_shared_gl(img.width, img.height);
          // Upload image as texture
          const tex = shared_gl.createTexture();
          shared_gl.bindTexture(shared_gl.TEXTURE_2D, tex);
-         // --- FIX: Ensure correct orientation by flipping Y on upload ---
-         shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, true);
+         // No Y-flip (leave commented or set to false if your pipeline expects it)
+         //shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, true);
          shared_gl.texImage2D(shared_gl.TEXTURE_2D, 0, shared_gl.RGBA, shared_gl.RGBA, shared_gl.UNSIGNED_BYTE, img);
          shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MIN_FILTER, shared_gl.LINEAR);
          shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MAG_FILTER, shared_gl.LINEAR);
          shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_S, shared_gl.CLAMP_TO_EDGE);
          shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_T, shared_gl.CLAMP_TO_EDGE);
          shared_gl.uniform1i(u_image, 0);
-         shared_gl.uniform1f(u_feather, feather_size / Math.max(img.width, img.height));
+         shared_gl.uniform1f(u_feather, this_feather / Math.max(img.width, img.height));
          shared_gl.viewport(0, 0, img.width, img.height);
          shared_gl.clear(shared_gl.COLOR_BUFFER_BIT);
          shared_gl.drawArrays(shared_gl.TRIANGLE_STRIP, 0, 4);
