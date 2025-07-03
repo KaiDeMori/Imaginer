@@ -1,7 +1,11 @@
 // Upload a layer's image to GPU as a texture
 function upload_texture(gl, layer) {
+   // Flip Y only if not using feathering (raw images)
+   // USE_DYNAMIC_FEATHER is defined in the main HTML and should be global
+   const flip_y = !window.USE_DYNAMIC_FEATHER;
    const tex = gl.createTexture();
    gl.bindTexture(gl.TEXTURE_2D, tex);
+   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip_y);
    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, layer.image);
    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);

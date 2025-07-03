@@ -50,11 +50,24 @@
          { zoom: 25, image: '100_alien_closeup.png' },
       ];
 
-      window.infinity_zoom_feather_preloader.preload_and_feather_images(LAYERS_DATA, '../../zoom_images_planete', 300);
-      window.infinity_zoom_feather_preloader.on_feathered_images_ready(function (feathered_images) {
-         // initialize the engine with the feathered images:
-         window.infinity_zoom_II_engine.init(LAYERS_DATA, feathered_images, document.getElementById('zoom_canvas'));
-      });
+      // Controls whether to use dynamic feathering (WebGL feather preprocessor).
+      // true: Use feathering (no flip on upload). false: Use raw images (flip on upload).
+      const USE_DYNAMIC_FEATHER = false;
+
+      // Global flag for WebGL Y-flip, set based on feathering pipeline
+      window.INFINITY_ZOOM_FLIP_Y_ON_UPLOAD = !USE_DYNAMIC_FEATHER;
+
+      if (USE_DYNAMIC_FEATHER) {
+         window.infinity_zoom_feather_preloader.preload_and_feather_images(LAYERS_DATA, '../../zoom_images_planete/debug', 300);
+         window.infinity_zoom_feather_preloader.on_feathered_images_ready(function (feathered_images) {
+            window.infinity_zoom_II_engine.init(LAYERS_DATA, feathered_images, document.getElementById('zoom_canvas'));
+         });
+      } else {
+         window.infinity_zoom_preloader.preload_images(LAYERS_DATA, '../../zoom_images_planete/debug');
+         window.infinity_zoom_preloader.on_images_loaded(function (images) {
+            window.infinity_zoom_II_engine.init(LAYERS_DATA, images, document.getElementById('zoom_canvas'));
+         });
+      }
    </script>
 </body>
 
