@@ -126,6 +126,16 @@ function preload_and_feather_images(layer_data, image_folder = 'zoom_images', fe
             feathered_images[i] = null;
             continue;
          }
+         if (i === 0) {
+            // Do not feather the first image, just copy as-is to a canvas
+            const out_canvas = document.createElement('canvas');
+            out_canvas.width = img.width;
+            out_canvas.height = img.height;
+            const out_ctx = out_canvas.getContext('2d');
+            out_ctx.drawImage(img, 0, 0);
+            feathered_images[i] = out_canvas;
+            continue;
+         }
          init_shared_gl(img.width, img.height);
          // Upload image as texture
          const tex = shared_gl.createTexture();
