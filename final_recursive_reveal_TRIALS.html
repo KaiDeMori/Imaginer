@@ -32,7 +32,55 @@
    </div>
    <canvas id="main_canvas" width="800" height="600"></canvas>
    <script>
-      // animation script will be added in next steps
+      // Show the alien image so its device display fills the canvas (final intro moment)
+      const alien_image = new Image();
+      alien_image.src = 'intro_trials/planetwise/zoom_images_planete/100_alien_closeup.png';
+
+      // Device display metadata (normalized, as in previous code)
+      const device_screen = {
+         x: 0.62, // normalized center x
+         y: 0.48, // normalized center y
+         width: 0.18, // normalized width
+         height: 0.11, // normalized height
+         rotation: -0.12 // radians
+      };
+
+      alien_image.onload = function () {
+         draw_final_alien_device();
+      };
+
+      function draw_final_alien_device() {
+         const canvas = document.getElementById('main_canvas');
+         const ctx = canvas.getContext('2d');
+         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+         const iw = alien_image.width;
+         const ih = alien_image.height;
+         const cw = canvas.width;
+         const ch = canvas.height;
+
+         // Device display in image space
+         const device_cx = device_screen.x * iw;
+         const device_cy = device_screen.y * ih;
+         const device_w = device_screen.width * iw;
+         const device_h = device_screen.height * ih;
+         const device_rot = device_screen.rotation;
+
+         // Target: device display fills the canvas, centered, no rotation
+         ctx.save();
+         ctx.translate(cw / 2, ch / 2);
+         ctx.rotate(0); // no rotation in final state
+         ctx.scale(cw / device_w, ch / device_h);
+         ctx.rotate(-device_rot); // undo device rotation in image
+         ctx.translate(-device_cx, -device_cy);
+         ctx.drawImage(alien_image, 0, 0);
+         ctx.restore();
+      }
+
+      // Redraw on reset
+      document.getElementById('reset_btn').addEventListener('click', draw_final_alien_device);
+      // Also draw if user clicks start (for now, same effect)
+      document.getElementById('start_transition_btn').addEventListener('click', draw_final_alien_device);
    </script>
 </body>
 
