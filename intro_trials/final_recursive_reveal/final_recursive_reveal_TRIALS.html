@@ -5,82 +5,103 @@
    <meta charset="UTF-8">
    <title>final_recursive_reveal_trials</title>
    <style>
+      html,
       body {
-         background: #181a1b;
-         color: #eee;
-         font-family: sans-serif;
          margin: 0;
+         padding: 0;
+         background: #181a1b;
+         width: 100vw;
+         height: 100vh;
+         overflow: hidden;
+      }
+
+      #main_canvas {
+         display: block;
+         width: 100vw;
+         height: 100vh;
+         background: #181a1b;
       }
 
       #controls_panel {
          margin: 1em;
       }
 
-      #main_canvas {
-         display: block;
-         margin: 0 auto;
-         background: #222;
+      #ui_overlay {
+         position: absolute;
+         top: 0;
+         left: 0;
+         width: 100vw;
+         z-index: 10;
+         pointer-events: none;
+      }
+
+      #ui_overlay>* {
+         pointer-events: auto;
       }
    </style>
+
+   <script src="../planetwise/webgl/infinity_zoom_II/infinity_zoom_debug.js" defer></script>
+   <script src="../planetwise/webgl/infinity_zoom_II/infinity_zoom_preloader.js" defer></script>
+   <script src="../planetwise/webgl/infinity_zoom_II/infinity_zoom_II_utils_math.js" defer></script>
+   <script src="../planetwise/webgl/infinity_zoom_II/infinity_zoom_II_utils_render.js" defer></script>
+   <script src="../planetwise/webgl/infinity_zoom_II/infinity_zoom_II_engine.js" defer></script>
 </head>
 
 <body>
-   <h1>final_recursive_reveal_trials</h1>
-   <div id="controls_panel">
-      <button id="start_transition_btn">start_transition</button>
-      <button id="reset_btn">reset</button>
+   <div id="ui_overlay">
+      <h1>final_recursive_reveal_trials</h1>
+      <div id="controls_panel">
+         <button id="start_transition_btn">start_transition</button>
+         <button id="reset_btn">reset</button>
+      </div>
    </div>
-   <canvas id="main_canvas" width="800" height="600"></canvas>
+   <canvas id="main_canvas"></canvas>
    <script>
-      // Show the alien image so its device display fills the canvas (final intro moment)
-      const alien_image = new Image();
-      alien_image.src = '../planetwise/zoom_images_planete/100_alien_closeup.png';
+      // Layer data for the alien closeup (as in the last layer of the real engine)
+      const LAYER_DATA = [
+         { zoom: 25, image: '100_alien_closeup.png' }
+      ];
+      const IMAGE_FOLDER = '../planetwise/zoom_images_planete';
 
-      // Device display metadata (normalized, as in previous code)
-      const device_screen = {
-         x: 0.62, // normalized center x
-         y: 0.48, // normalized center y
-         width: 0.18, // normalized width
-         height: 0.11, // normalized height
-         rotation: -0.12 // radians
-      };
-
-      alien_image.onload = function () {
-         draw_final_alien_device();
-      };
-
-      function draw_final_alien_device() {
-         const canvas = document.getElementById('main_canvas');
-         const ctx = canvas.getContext('2d');
-         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-         const iw = alien_image.width;
-         const ih = alien_image.height;
-         const cw = canvas.width;
-         const ch = canvas.height;
-
-         // Device display in image space
-         const device_cx = device_screen.x * iw;
-         const device_cy = device_screen.y * ih;
-         const device_w = device_screen.width * iw;
-         const device_h = device_screen.height * ih;
-         const device_rot = device_screen.rotation;
-
-         // Target: device display fills the canvas, centered, no rotation
-         ctx.save();
-         ctx.translate(cw / 2, ch / 2);
-         ctx.rotate(0); // no rotation in final state
-         ctx.scale(cw / device_w, ch / device_h);
-         ctx.rotate(-device_rot); // undo device rotation in image
-         ctx.translate(-device_cx, -device_cy);
-         ctx.drawImage(alien_image, 0, 0);
-         ctx.restore();
+      // Utility: load a single image as a Promise
+      function load_image(src) {
+         return new Promise((resolve, reject) => {
+            const img = new window.Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+         });
       }
 
-      // Redraw on reset
-      document.getElementById('reset_btn').addEventListener('click', draw_final_alien_device);
-      // Also draw if user clicks start (for now, same effect)
-      document.getElementById('start_transition_btn').addEventListener('click', draw_final_alien_device);
+      // Main setup
+      const canvas = document.getElementById('main_canvas');
+      let engine = null;
+      let loaded_images = [];
+
+      async function setup_engine() {
+         // Load all images for layers
+         loaded_images = await Promise.all(
+            LAYER_DATA.map(layer => load_image(`${IMAGE_FOLDER}/${layer.image}`))
+         );
+         // Initialize engine
+         engine = window.infinity_zoom_II_engine;
+         engine.init(LAYER_DATA, loaded_images, canvas);
+      }
+
+      // Button handlers
+      document.getElementById('start_transition_btn').addEventListener('click', () => {
+         if (!engine) return;
+         // For now, just restart the engine (simulate transition start)
+         engine.init(LAYER_DATA, loaded_images, canvas);
+      });
+      document.getElementById('reset_btn').addEventListener('click', () => {
+         if (!engine) return;
+         // For now, just restart the engine (simulate reset)
+         engine.init(LAYER_DATA, loaded_images, canvas);
+      });
+
+      // On load, setup engine
+      setup_engine();
    </script>
 </body>
 
