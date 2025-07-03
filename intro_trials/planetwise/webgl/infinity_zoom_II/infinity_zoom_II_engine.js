@@ -2,25 +2,25 @@
 
 // NOTE: Use global log(msg) utility. Single parameter: the message to log.
 
-// Only render layers above this pixel size (V2 documentation §2, §6; see also V1 engine)
+// Minimum rendered layer size in pixels (V2 documentation §2, §6; see also V1 engine).
 const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
 
-// Feathering amount for all but first layer (fraction of edge, V2 documentation §7)
+// Edge feathering for all but first layer (fraction of edge, V2 documentation §7).
 const INFINITY_ZOOM_FEATHER_VALUE = 0.1;
 
-// Minimum feather in pixels for edge alpha ramp (V1 code snippet, see V1 engine)
+// Minimum feather width for edge alpha ramp in pixels (V1 code snippet, see V1 engine).
 const INFINITY_ZOOM_FEATHER_MIN_PX = 2;
 
-// Starting angle for rotation (in radians)
+// Initial rotation angle in radians.
 const INFINITY_ZOOM_START_ROTATION_ANGLE = Math.PI * (1 / 2);
 
-// Global rotation speed: 1 full turn every 2 minutes (V2 documentation §4)
-const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60; // radians per second
+// Global rotation speed in radians per second. Positive values rotate clockwise.
+const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60;
 
-// Target rotation after last layer covers viewport (in radians)
+// Absolute final rotation angle in radians after last layer covers viewport.
 const INFINITY_ZOOM_FINAL_ROTATION_ANGLE = Math.PI;
 
-// Exponential zoom rate (default from V1, see V1 documentation and engine)
+// Exponential zoom rate (growth constant per second, default from V1; see V1 documentation and engine).
 const INFINITY_ZOOM_SPEED = 1.2;
 
 // Main engine object
@@ -237,11 +237,10 @@ const infinity_zoom_engine = {
             requestAnimationFrame(this.animate.bind(this));
          }
       } else if (this.animation_phase === 'final_rotation') {
-         // Continue rotation until INFINITY_ZOOM_FINAL_ROTATION_ANGLE is reached
-         if (typeof this.rotation_at_cover !== 'number') this.rotation_at_cover = this.rotation;
-         const target_rotation = this.rotation_at_cover + INFINITY_ZOOM_FINAL_ROTATION_ANGLE;
+         // Continue rotation until INFINITY_ZOOM_FINAL_ROTATION_ANGLE (absolute) is reached
+         const target_rotation = INFINITY_ZOOM_FINAL_ROTATION_ANGLE;
          this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
-         if (this.rotation < target_rotation) {
+         if ((this.rotation_speed > 0 && this.rotation < target_rotation) || (this.rotation_speed < 0 && this.rotation > target_rotation)) {
             requestAnimationFrame(this.animate.bind(this));
          } else {
             this.rotation = target_rotation;
