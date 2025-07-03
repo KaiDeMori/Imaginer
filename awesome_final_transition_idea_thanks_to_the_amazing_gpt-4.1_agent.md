@@ -24,12 +24,23 @@ Create a seamless, playful transition from a WebGL-powered intro to the main AI 
 - **Technical robustness:** Uses your app’s own components and logic, avoiding edge-case headaches.
 - **Playful reveal:** The user is gently “tricked” into thinking the intro and app are one continuous world.
 
-## Implementation Notes
-- Synchronize the transition image between the intro and the app overlay.
-- Ensure the zoom level and position match for a seamless effect.
-- Preload the app and image to avoid delays.
-- Animate the zoom-out and overlay close for maximum polish.
 
----
+## Special Transition: Overlaying the Recursive Image
+
+During the final zoom phase, the animation overlays a custom “recursive” image (the transition image) on top of the alien’s display device in the last layer. This overlay is not simply centered; it is transformed (position, scale, rotation) to match the device’s screen within the final layer image.
+
+**Key steps:**
+- Track the device’s screen position, size, and orientation within the final layer asset.
+- In the new animation phase (`final_overlay_transition`), render the overlay image with a transformation that matches the device’s screen.
+- Animate the overlay so it expands from the device’s screen to fill the entire viewport, while the rest of the final layer fades out or is masked.
+- This ensures a seamless, magical transition from the intro to the app, with the overlay image perfectly aligned and animated.
+
+
+**Implementation Notes:**
+- The overlay and final layer must remain in sync during the transition.
+- The transformation matrix for the overlay is dynamically calculated each frame, using interpolated (smoothed) values for position, scale, and rotation.
+- The state machine includes a dedicated phase (`final_overlay_transition`) for this overlay effect.
+- Use a cubic ease-in-out or smoothstep curve for a magical, natural-feeling animation.
+
 
 **Idea and summary by: You & GitHub Copilot (GPT-4.1 Agent in VS Code)**

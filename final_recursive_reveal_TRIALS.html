@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <title>Final Recursive Reveal TRIALS</title>
+   <style>
+      body {
+         background: #181a1b;
+         color: #eee;
+         font-family: sans-serif;
+         margin: 0;
+      }
+
+      #controls {
+         margin: 1em;
+      }
+
+      canvas {
+         display: block;
+         margin: 0 auto;
+         background: #222;
+      }
+   </style>
+</head>
+
+<body>
+   <h1>Final Recursive Reveal TRIALS</h1>
+   <div id="controls">
+      <button onclick="startOverlayTransition()">Start Overlay Transition</button>
+      <button onclick="resetState()">Reset</button>
+   </div>
+   <canvas id="zoom_canvas" width="800" height="600"></canvas>
+   <script src="intro_trials/planetwise/webgl/infinity_zoom_II/infinity_zoom_II_engine.js"></script>
+   <script>
+      // --- Minimal setup for isolated overlay transition testing ---
+      // You may need to expose or adapt some engine internals for this to work.
+
+      // Example: mock layer data and images
+      const finalLayerImage = new Image();
+      finalLayerImage.src = 'assets/ai_universe/your_final_layer_image.png'; // <-- set your path
+      const overlayImage = new Image();
+      overlayImage.src = 'assets/ai_universe/your_recursive_overlay.png'; // <-- set your path
+
+      // Device screen metadata (example values)
+      const deviceScreen = {
+         x: 0.62, // normalized center x
+         y: 0.48, // normalized center y
+         width: 0.18, // normalized width
+         height: 0.11, // normalized height
+         rotation: -0.12 // radians
+      };
+
+      let overlayActive = false;
+      let overlayT = 0;
+      let overlayDuration = 1.5; // seconds
+      let overlayStartTime = 0;
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      function easeInOutCubic(t) {
+         return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function startOverlayTransition() {
+         overlayActive = true;
+         overlayT = 0;
+         overlayStartTime = performance.now();
+         requestAnimationFrame(render);
+      }
+      function resetState() {
+         overlayActive = false;
+         overlayT = 0;
+         render();
+      }
+
+      // Wait for images to load
+      let imagesLoaded = 0;
+      [finalLayerImage, overlayImage].forEach(img => {
+         img.onload = () => {
+            imagesLoaded++;
+            if (imagesLoaded === 2) render();
+         };
+      });
+
+      function render(now) {
+         const canvas = document.getElementById('zoom_canvas');
+         const ctx = canvas.getContext('2d');
+         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+         // Draw final layer image (background)
+         drawFinalLayer(ctx, canvas);
+
+         // Animate overlay if active
+         if (overlayActive) {
+            if (!now) now = performance.now();
+            overlayT = Math.min(1, (now - overlayStartTime) / (overlayDuration * 1000));
+            const t = easeInOutCubic(overlayT);
+            drawOverlay(ctx, canvas, t);
+            if (overlayT < 1) {
+               requestAnimationFrame(render);
+            }
+         }
+      }
+
+      function drawFinalLayer(ctx, canvas) {
+         // Center and fit image to canvas
+         const iw = finalLayerImage.width;
+         const ih = finalLayerImage.height;
+         const cw = canvas.width;
+         const ch = canvas.height;
+         const scale = Math.min(cw / iw, ch / ih);
+         const dx = (cw - iw * scale) / 2;
+         const dy = (ch - ih * scale) / 2;
+         ctx.save();
+         ctx.globalAlpha = overlayActive ? 1 - overlayT : 1;
+         ctx.drawImage(finalLayerImage, dx, dy, iw * scale, ih * scale);
+         ctx.restore();
+      }
+
+      function drawOverlay(ctx, canvas, t) {
+         // Animate from device screen to full canvas
+         const cw = canvas.width;
+         const ch = canvas.height;
+         // Start: device screen in image coords
+         const iw = finalLayerImage.width;
+         const ih = finalLayerImage.height;
+         const scale = Math.min(cw / iw, ch / ih);
+         const imgDx = (cw - iw * scale) / 2;
+         const imgDy = (ch - ih * scale) / 2;
+         // Device screen center in canvas coords
+         const deviceCx = imgDx + deviceScreen.x * iw * scale;
+         const deviceCy = imgDy + deviceScreen.y * ih * scale;
+         const deviceW = deviceScreen.width * iw * scale;
+         const deviceH = deviceScreen.height * ih * scale;
+         const deviceRot = deviceScreen.rotation;
+
+         // Target: full canvas, centered
+         const targetCx = cw / 2;
+         const targetCy = ch / 2;
+         const targetW = cw;
+         const targetH = ch;
+         const targetRot = 0;
+
+         // Interpolate
+         const cx = lerp(deviceCx, targetCx, t);
+         const cy = lerp(deviceCy, targetCy, t);
+         const w = lerp(deviceW, targetW, t);
+         const h = lerp(deviceH, targetH, t);
+         const rot = lerp(deviceRot, targetRot, t);
+
+         ctx.save();
+         ctx.translate(cx, cy);
+         ctx.rotate(rot);
+         ctx.globalAlpha = t;
+         ctx.drawImage(overlayImage, -w / 2, -h / 2, w, h);
+         ctx.restore();
+      }
+   </script>
+</body>
+
+</html>
