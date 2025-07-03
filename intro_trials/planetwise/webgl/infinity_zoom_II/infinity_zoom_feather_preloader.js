@@ -76,7 +76,8 @@ function preload_and_feather_images(layer_data, image_folder = 'zoom_images', fe
                     } else {
                         alpha = smoothstep(0.0, feather, edge_dist);
                     }
-                    gl_FragColor = vec4(color.rgb, color.a * alpha);
+                    float out_alpha = color.a * alpha;
+                    gl_FragColor = vec4(color.rgb * out_alpha, out_alpha);
                 }
             `;
             function compile(type, src) {
