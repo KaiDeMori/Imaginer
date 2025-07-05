@@ -16,17 +16,13 @@
          canvas   – <canvas> element that already lives in the DOM.
          gl       – WebGLRenderingContext.
          img      – <img> (fully loaded) that will become the texture.
-         fromRect – { p0:{x,y}, p1:{x,y}, p3:{x,y} }  keyframe at t = 0 (full image/canvas).
-         toRect   – { p0:{x,y}, p1:{x,y}, p3:{x,y} }  keyframe at t = 1 (target rectangle).
+         fromRect – { p0:{x,y}, p1:{x,y}, p3:{x,y} }  keyframe at t = 0 (start rectangle, e.g. full image/canvas).
+         toRect   – { p0:{x,y}, p1:{x,y}, p3:{x,y} }  keyframe at t = 1 (end rectangle, e.g. zoom target).
 
       zoomer.draw(t)  – render with interpolation factor t ∈ [0,1].
 --------------------------------------------------------------------*/
 
-log('show_alien_display_hollywood_edition.js loaded');
-
-function create_alien_display(canvas, gl, img, fromRect, toRect) {
-   log('create_alien_display() called');
-
+function create_image_region_zoom(canvas, gl, img, fromRect, toRect) {
    // ---------------------------------------------------------------
    // 0.  Acquire GL context if caller passed null
    // ---------------------------------------------------------------
@@ -101,8 +97,8 @@ function create_alien_display(canvas, gl, img, fromRect, toRect) {
       };
    }
 
-   const r0 = rect_to_axes(toRect || fromRect); // device rectangle (end)
-   const r1 = rect_to_axes(fromRect);           // full image/canvas (start)
+   const r0 = rect_to_axes(toRect || fromRect); // end rectangle (t=1)
+   const r1 = rect_to_axes(fromRect);           // start rectangle (t=0)
 
    const loc_o = gl.getUniformLocation(prog, 'u_o');
    const loc_u = gl.getUniformLocation(prog, 'u_u');
@@ -119,7 +115,7 @@ function create_alien_display(canvas, gl, img, fromRect, toRect) {
    // 4.  Public API – draw(t)
    // ---------------------------------------------------------------
    function draw(t) {
-      // t=0: full image/canvas, t=1: device rectangle (zoom-in)
+      // t=0: full image/canvas, t=1: target rectangle (zoom-in)
       const o = mix2(r1.o, r0.o, t);
       const u = mix2(r1.u, r0.u, t);
       const v = mix2(r1.v, r0.v, t);
@@ -158,4 +154,4 @@ function create_program(gl, vs_src, fs_src) {
 }
 
 // Expose to global namespace for quick demos
-window.create_alien_display = create_alien_display;
+window.create_image_region_zoom = create_image_region_zoom;

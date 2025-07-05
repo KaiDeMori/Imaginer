@@ -12,16 +12,16 @@ const INFINITY_ZOOM_FEATHER_VALUE = 0.1;
 const INFINITY_ZOOM_FEATHER_MIN_PX = 2;
 
 // Initial rotation angle in radians.
-const INFINITY_ZOOM_START_ROTATION_ANGLE = Math.PI * (1 / 2);
+const INFINITY_ZOOM_START_ROTATION_ANGLE = 0; //Math.PI * (1 / 2);
 
 // Global rotation speed in radians per second. Positive values rotate clockwise.
-const INFINITY_ZOOM_ROTATION_SPEED = Math.PI / 60;
+const INFINITY_ZOOM_ROTATION_SPEED = 0; //Math.PI / 60;
 
 // Absolute final rotation angle in radians after last layer covers viewport.
-const INFINITY_ZOOM_FINAL_ROTATION_ANGLE = Math.PI;
+const INFINITY_ZOOM_FINAL_ROTATION_ANGLE = 0; //Math.PI;
 
 // Exponential zoom rate (growth constant per second, default from V1; see V1 documentation and engine).
-const INFINITY_ZOOM_SPEED = 1.2;
+const INFINITY_ZOOM_SPEED = 3; //TRIALS originally: 1.2;
 
 // Main engine object
 const infinity_zoom_engine = {
@@ -134,8 +134,8 @@ const infinity_zoom_engine = {
       if (this.animation_phase === 'intro') {
          // Advance rotation in all phases
          this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
-         const zoom_duration = 3.0;
-         const fade_duration = 1.0;
+         const zoom_duration = 0.1; //TRIALS orignally: 3.0;
+         const fade_duration = 0; //TRIALS originally: 1.0;
          if (elapsed < zoom_duration) {
             // Exponential from 1px to scale 1 (first layer)
             const min_dim = Math.min(this.canvas.width, this.canvas.height);
@@ -191,7 +191,7 @@ const infinity_zoom_engine = {
          }
       } else if (this.animation_phase === 'hold') {
          // Step 3.1d: Hold, only rotation
-         const hold_duration = 1.5;
+         const hold_duration = 0; //TRIALS originally: 1.5;
          const elapsed_hold = (now - this.hold_start_time) / 1000;
          // Advance rotation
          this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
@@ -220,8 +220,7 @@ const infinity_zoom_engine = {
             layer.scale = this.get_layer_scale(i, first_layer_scale);
             layer.alpha = 1;
          }
-         // Dynamic resource management
-         const viewport = { width: this.canvas.width, height: this.canvas.height };
+
          //this.update_layer_resource_states(viewport);
          // Check if last layer covers the viewport (no bars, covers both width and height)
          const last_layer = this.layers[this.layers.length - 1];
@@ -238,19 +237,51 @@ const infinity_zoom_engine = {
          }
       } else if (this.animation_phase === 'final_rotation') {
          // Continue rotation until INFINITY_ZOOM_FINAL_ROTATION_ANGLE (absolute) is reached
-         const target_rotation = INFINITY_ZOOM_FINAL_ROTATION_ANGLE;
-         this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
-         if ((this.rotation_speed > 0 && this.rotation < target_rotation) || (this.rotation_speed < 0 && this.rotation > target_rotation)) {
-            requestAnimationFrame(this.animate.bind(this));
-         } else {
-            this.rotation = target_rotation;
-            this.rotation_speed = 0;
-            this.animation_phase = 'done';
-            log('Final rotation complete. Animation done.');
-         }
+         // const target_rotation = INFINITY_ZOOM_FINAL_ROTATION_ANGLE;
+         // this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
+         // if ((this.rotation_speed > 0 && this.rotation < target_rotation) || (this.rotation_speed < 0 && this.rotation > target_rotation)) {
+         //    requestAnimationFrame(this.animate.bind(this));
+         // } else {
+         //    this.rotation = target_rotation;
+         //    this.rotation_speed = 0;
+         //    this.animation_phase = 'done';
+         //    log('Final rotation complete. Animation done.');
+         // }
+
+         //for debug
+         this.animation_phase = 'done';
+         requestAnimationFrame(this.animate.bind(this));
+         //--
+
       } else if (this.animation_phase === 'done') {
-         // Perpetual redraw, no zoom or rotation
-         // No further animation, but could add overlays or debug here
+         // Expose final state in region-zoom-language (image coordinates of visible crop)
+         // Compute the visible rectangle of the image as mapped to the canvas (cover, centered)
+         const img = this.layers[0].image;
+         const cw = this.canvas.width, ch = this.canvas.height;
+         const iw = img.width, ih = img.height;
+         const img_aspect = iw / ih;
+         const canvas_aspect = cw / ch;
+         let sx, sy, sw, sh;
+         if (img_aspect > canvas_aspect) {
+            // Image is wider: crop sides
+            sh = ih;
+            sw = ch * img_aspect;
+            sx = (iw - sw) / 2;
+            sy = 0;
+         } else {
+            // Image is taller: crop top/bottom
+            sw = iw;
+            sh = cw / img_aspect;
+            sx = 0;
+            sy = (ih - sh) / 2;
+         }
+         // Rectangle in image coordinates that maps to canvas corners
+         this.final_visible_rect = {
+            p0: { x: sx, y: sy },
+            p1: { x: sx + sw, y: sy },
+            p3: { x: sx, y: sy + sh }
+         };
+         log('Animation done. Final state: final_visible_rect =', this.final_visible_rect);
       }
       this.render();
    },

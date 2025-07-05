@@ -1,0 +1,15 @@
+      const ALIEN_DISPLAY_COORDINATES = {
+         p0: { x: 1004, y: 1036 }, // origin (top-left)
+         p1: { x: 1142, y: 1024 }, // end of top edge (u-axis)
+         p2: { x: 1152, y: 1125 }, // far corner (bottom-right)
+         p3: { x: 1014, y: 1136 }  // end of left edge (v-axis)
+      };
+	  
+	  
+//debug rectangle
+	  const ALIEN_DISPLAY_COORDINATES = {
+         p0: { x: 260, y: 530 }, // origin (top-left)
+         p1: { x: 470, y: 341 }, // end of top edge (u-axis)
+         p2: { x: 564, y: 445 }, // far corner (bottom-right)
+         p3: { x: 353, y: 635 }  // end of left edge (v-axis)
+      };

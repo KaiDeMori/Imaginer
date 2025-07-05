@@ -45,7 +45,7 @@
    <script src="../planetwise/webgl/infinity_zoom_II/infinity_zoom_II_utils_math.js" defer></script>
    <script src="../planetwise/webgl/infinity_zoom_II/infinity_zoom_II_utils_render.js" defer></script>
    <script src="../planetwise/webgl/infinity_zoom_II/infinity_zoom_II_engine.js" defer></script>
-   <script src="show_alien_display.js" defer></script>
+   <script src="image_region_zoom.js" defer></script>
 </head>
 
 <body>
@@ -58,66 +58,95 @@
       </div>
    </div>
    <canvas id="main_canvas"></canvas>
-   <script>
-      // Layer data for the alien closeup (as in the last layer of the real engine)
-      const LAYER_DATA = [
-         { zoom: 25, image: '100_alien_closeup.png' }
-      ];
-      const IMAGE_FOLDER = '../planetwise/zoom_images_planete';
+   <script defer>
+      window.addEventListener('DOMContentLoaded', () => {
+         // Layer data for the alien closeup (as in the last layer of the real engine)
+         const LAYER_DATA = [
+            { zoom: 25, image: '100_alien_closeup_debug_display.png' }
+         ];
+         const IMAGE_FOLDER = '../planetwise/zoom_images_planete/debug';
 
-      // Coordinates for the alien display (as in the real engine)
-      // Use {x, y} objects for each point
-      const ALIEN_DISPLAY_COORDINATES = {
-         p0: { x: 1004, y: 1036 }, // origin (top-left)
-         p1: { x: 1142, y: 1024 }, // end of top edge (u-axis)
-         p2: { x: 1152, y: 1125 }, // far corner (bottom-right)
-         p3: { x: 1014, y: 1136 }  // end of left edge (v-axis)
-      };
+         // Coordinates for the alien display (as in the real engine)
+         // Use {x, y} objects for each point
+         const ALIEN_DISPLAY_COORDINATES = {
+            p0: { x: 260, y: 530 }, // origin (top-left)
+            p1: { x: 470, y: 341 }, // end of top edge (u-axis)
+            p2: { x: 564, y: 445 }, // far corner (bottom-right)
+            p3: { x: 353, y: 635 }  // end of left edge (v-axis)
+         };
 
-      // Utility: load a single image as a Promise
-      function load_image(src) {
-         return new Promise((resolve, reject) => {
-            const img = new window.Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = src;
+         // Utility: load a single image as a Promise
+         function load_image(src) {
+            return new Promise((resolve, reject) => {
+               const img = new window.Image();
+               img.onload = () => resolve(img);
+               img.onerror = reject;
+               img.src = src;
+            });
+         }
+
+         // Main setup
+         const canvas = document.getElementById('main_canvas');
+         let engine = null;
+         let loaded_images = [];
+
+         async function setup_engine() {
+            // Load all images for layers
+            loaded_images = await Promise.all(
+               LAYER_DATA.map(layer => load_image(`${IMAGE_FOLDER}/${layer.image}`))
+            );
+            // Initialize engine
+            engine = window.infinity_zoom_II_engine;
+            engine.init(LAYER_DATA, loaded_images, canvas);
+         }
+
+         // Button handlers
+         document.getElementById('start_transition_btn').addEventListener('click', () => {
+            if (!engine) return;
+            // For now, just restart the engine (simulate transition start)
+            engine.init(LAYER_DATA, loaded_images, canvas);
          });
-      }
+         document.getElementById('reset_btn').addEventListener('click', () => {
+            if (!engine) return;
+            // For now, just restart the engine (simulate reset)
+            engine.init(LAYER_DATA, loaded_images, canvas);
+         });
 
-      // Main setup
-      const canvas = document.getElementById('main_canvas');
-      let engine = null;
-      let loaded_images = [];
+         // On load, setup engine
+         setup_engine();
 
-      async function setup_engine() {
-         // Load all images for layers
-         loaded_images = await Promise.all(
-            LAYER_DATA.map(layer => load_image(`${IMAGE_FOLDER}/${layer.image}`))
-         );
-         // Initialize engine
-         engine = window.infinity_zoom_II_engine;
-         engine.init(LAYER_DATA, loaded_images, canvas);
-      }
+         // Test Alien Display button handler
+         document.getElementById('test_alien_display_btn').addEventListener('click', async () => {
+            // Only allow zoom if engine is in 'done' state and final_visible_rect is available
+            if (!engine || engine.animation_phase !== 'done' || !engine.final_visible_rect) {
+               alert('Please wait for the engine animation to finish!');
+               return;
+            }
+            const img = await load_image(`${IMAGE_FOLDER}/${LAYER_DATA[0].image}`);
 
-      // Button handlers
-      document.getElementById('start_transition_btn').addEventListener('click', () => {
-         if (!engine) return;
-         // For now, just restart the engine (simulate transition start)
-         engine.init(LAYER_DATA, loaded_images, canvas);
-      });
-      document.getElementById('reset_btn').addEventListener('click', () => {
-         if (!engine) return;
-         // For now, just restart the engine (simulate reset)
-         engine.init(LAYER_DATA, loaded_images, canvas);
-      });
+            // Use the engine's final visible rect as the starting rectangle
+            const from_rect = engine.final_visible_rect;
+            // the alien's display device rectangle (target zoom-in area)
+            const to_rect = ALIEN_DISPLAY_COORDINATES;
 
-      // On load, setup engine
-      setup_engine();
+            // Get WebGL context
+            const gl = canvas.getContext('webgl');
 
-      // Test Alien Display button handler
-      document.getElementById('test_alien_display_btn').addEventListener('click', async () => {
-         const img = await load_image(`${IMAGE_FOLDER}/${LAYER_DATA[0].image}`);
-         //TBD
+            // Create the display object
+            const alien = window.create_image_region_zoom(canvas, gl, img, from_rect, to_rect);
+
+            // Animate from t=0 to t=1 over 3 seconds
+            let start_time = null;
+            function animate(now) {
+               if (!start_time) start_time = now;
+               const t = Math.min((now - start_time) / 3000, 1);
+               alien.draw(t);
+               if (t < 1) {
+                  requestAnimationFrame(animate);
+               }
+            }
+            requestAnimationFrame(animate);
+         });
       });
    </script>
 </body>
