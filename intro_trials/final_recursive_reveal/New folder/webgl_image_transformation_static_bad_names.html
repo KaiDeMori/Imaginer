@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8" />
+   <title>WebGL – region-aligned square</title>
+   <style>
+      html,
+      body {
+         margin: 0;
+         height: 100%;
+      }
+
+      canvas {
+         display: block;
+         width: 100%;
+         height: 100%;
+      }
+
+      #ui {
+         position: absolute;
+         top: 1rem;
+         left: 1rem;
+         z-index: 10
+      }
+   </style>
+</head>
+
+<body>
+   <div id="ui"><button id="toggle">show region</button></div>
+   <canvas id="glCanvas"></canvas>
+   <script>
+      const IMAGE_URL = '../planetwise/zoom_images_planete/debug/100_alien_closeup_debug_display_square.png';
+      const REGION = {
+         p0: { x: 170, y: 492 },
+         p1: { x: 354, y: 424 },
+         p2: { x: 421, y: 607 },
+         p3: { x: 237, y: 675 }
+      };
+      const canvas = document.getElementById('glCanvas');
+      const gl = canvas.getContext('webgl');
+      if (!gl) { alert('WebGL unavailable'); }
+
+      // ---------------------------------------------------------------------
+      //   resize helpers
+      // ---------------------------------------------------------------------
+      function resizeCanvas() {
+         const dpr = window.devicePixelRatio || 1;
+         const w = Math.floor(canvas.clientWidth * dpr);
+         const h = Math.floor(canvas.clientHeight * dpr);
+         if (canvas.width !== w || canvas.height !== h) {
+            canvas.width = w; canvas.height = h;
+            gl.viewport(0, 0, w, h);
+         }
+      }
+      window.addEventListener('resize', resizeCanvas);
+
+      // ---------------------------------------------------------------------
+      //   shader sources
+      // ---------------------------------------------------------------------
+      const vs = `
+ precision mediump float;
+ attribute vec2 a_position;
+ uniform mat3 u_matrix; // already includes ortho to clip
+ uniform float u_texSize; // side length of square texture (pixels)
+ varying vec2 v_uv;
+ void main(){
+  vec3 pos=u_matrix*vec3(a_position,1.0);
+  gl_Position=vec4(pos.xy,0.0,1.0);
+  v_uv=a_position/u_texSize;
+ }
+`;
+      const fs = `
+ precision mediump float;
+ varying vec2 v_uv;
+ uniform sampler2D u_tex;
+ void main(){
+  gl_FragColor=texture2D(u_tex,v_uv);
+ }
+`;
+
+      function createShader(type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s); return s; }
+      function createProgram(vsSrc, fsSrc) { const p = gl.createProgram(); gl.attachShader(p, createShader(gl.VERTEX_SHADER, vsSrc)); gl.attachShader(p, createShader(gl.FRAGMENT_SHADER, fsSrc)); gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw gl.getProgramInfoLog(p); return p; }
+      const program = createProgram(vs, fs);
+
+      const a_position = gl.getAttribLocation(program, 'a_position');
+      const u_matrix = gl.getUniformLocation(program, 'u_matrix');
+      const u_texSize = gl.getUniformLocation(program, 'u_texSize');
+      const u_tex = gl.getUniformLocation(program, 'u_tex');
+
+      // buffer for quad covering full texture in pixel coords (TRIANGLE_STRIP)
+      const quadBuf = gl.createBuffer();
+
+      // ---------------------------------------------------------------------
+      //   matrix helpers  (row-major arrays)
+      // ---------------------------------------------------------------------
+      function mul3(a, b) {
+         const c = new Float32Array(9);
+         for (let r = 0; r < 3; ++r) {
+            const r0 = a[r * 3 + 0], r1 = a[r * 3 + 1], r2 = a[r * 3 + 2];
+            for (let k = 0; k < 3; ++k) {
+               c[r * 3 + k] = r0 * b[k] + r1 * b[3 + k] + r2 * b[6 + k];
+            }
+         }
+         return c;
+      }
+      function makeMatrix(canvasW, canvasH, S, region, alignRegion) {
+         // alignRegion: boolean   false -> start state (whole image), true -> end state (region)
+         if (!alignRegion) {
+            // no rotation, whole texture side length S
+            const L = S; const s = Math.max(canvasW / L, canvasH / L);
+            const cx = S * 0.5, cy = S * 0.5; const theta = 0;
+            return buildMatrix(canvasW, canvasH, s, cx, cy, theta);
+         }
+         // geometry of region
+         const vx = region.p1.x - region.p0.x; const vy = region.p1.y - region.p0.y;
+         const L = Math.hypot(vx, vy);
+         const theta = Math.atan2(vy, vx);
+         const cx = 0.5 * (region.p0.x + region.p2.x);
+         const cy = 0.5 * (region.p0.y + region.p2.y);
+         const s = Math.max(canvasW / L, canvasH / L);
+         return buildMatrix(canvasW, canvasH, s, cx, cy, theta);
+      }
+      function buildMatrix(canvasW, canvasH, s, cx, cy, theta) {
+         const cos = Math.cos(-theta), sin = Math.sin(-theta);
+         const T0 = [1, 0, -cx, 0, 1, -cy, 0, 0, 1];
+         const R = [cos, -sin, 0, sin, cos, 0, 0, 0, 1];
+         const S = [s, 0, 0, 0, s, 0, 0, 0, 1];
+         const T1 = [1, 0, canvasW * 0.5, 0, 1, canvasH * 0.5, 0, 0, 1];
+         const A = mul3(mul3(mul3(T1, S), R), T0);
+         const P = [2 / canvasW, 0, -1, 0, -2 / canvasH, 1, 0, 0, 1];
+         return mul3(P, A);
+      }
+
+      // ---------------------------------------------------------------------
+      //   texture load & init
+      // ---------------------------------------------------------------------
+      let texSize = 0; // S
+      let startMatrix, endMatrix;
+      const img = new Image();
+      img.onload = () => {
+         texSize = img.width; // square guaranteed
+         // create texture
+         const tex = gl.createTexture();
+         gl.bindTexture(gl.TEXTURE_2D, tex);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+         // set vertex data once texture is known (pixels)
+         gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+         const verts = new Float32Array([
+            0, 0,
+            texSize, 0,
+            0, texSize,
+            texSize, texSize
+         ]);
+         gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+         startMatrix = makeMatrix(canvas.width, canvas.height, texSize, REGION, false);
+         endMatrix = makeMatrix(canvas.width, canvas.height, texSize, REGION, true);
+         draw();
+      };
+      img.src = IMAGE_URL;
+
+      let showRegion = false;
+      const btn = document.getElementById('toggle');
+      btn.addEventListener('click', () => { showRegion = !showRegion; btn.textContent = showRegion ? 'show image' : 'show region'; draw(); });
+
+      function draw() {
+         if (!startMatrix || !endMatrix) return;
+         resizeCanvas();
+         // recompute matrices on resize
+         startMatrix = makeMatrix(canvas.width, canvas.height, texSize, REGION, false);
+         endMatrix = makeMatrix(canvas.width, canvas.height, texSize, REGION, true);
+         const m = showRegion ? endMatrix : startMatrix;
+         gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+         gl.useProgram(program);
+         gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+         gl.enableVertexAttribArray(a_position);
+         gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
+         gl.uniformMatrix3fv(u_matrix, false, m);
+         gl.uniform1f(u_texSize, texSize);
+         gl.uniform1i(u_tex, 0);
+         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+   </script>
+</body>
+
+</html>
