@@ -54,6 +54,7 @@
       <div id="controls_panel">
          <button id="start_transition_btn">start_transition</button>
          <button id="reset_btn">reset</button>
+         <button id="test_alien_display_btn">Test Alien Display</button>
       </div>
    </div>
    <canvas id="main_canvas"></canvas>
@@ -112,6 +113,12 @@
 
       // On load, setup engine
       setup_engine();
+
+      // Test Alien Display button handler
+      document.getElementById('test_alien_display_btn').addEventListener('click', async () => {
+         const img = await load_image(`${IMAGE_FOLDER}/${LAYER_DATA[0].image}`);
+         //TBD
+      });
    </script>
 </body>
 

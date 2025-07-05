@@ -1,3 +1,5 @@
+
+
 /*------------------------------------------------------------------------
    show_alien_display.js
    ------------------------------------------------------------------------
@@ -17,7 +19,7 @@
       and the vector p3-p0 (v-axis, down the left). p2 is implied by p0 + (p1-p0) + (p3-p0),
       but is accepted for convenience and sanity-checking.
 ------------------------------------------------------------------------*/
-export async function show_alien_display(html_canvas, texture_img,
+function show_alien_display(html_canvas, texture_img,
    p0, p1, p2, p3) {
    // optional sanity check; comment out if you like to live dangerously
    check_parallelogram(p0, p1, p2, p3, texture_img.width, texture_img.height);
@@ -99,7 +101,7 @@ export async function show_alien_display(html_canvas, texture_img,
   Returns true if the four points are (within ε) a parallelogram.
   ε is scaled to 0.01 % of the diagonal—enough to flag typos, not photons.
 ------------------------------------------------------------------------*/
-export function check_parallelogram(p0, p1, p2, p3, w, h, rel_eps = 1e-4) {
+function check_parallelogram(p0, p1, p2, p3, w, h, rel_eps = 1e-4) {
    const vec = (a, b) => ({ x: b.x - a.x, y: b.y - a.y });
    const len = v => Math.hypot(v.x, v.y);
 
@@ -122,6 +124,10 @@ export function check_parallelogram(p0, p1, p2, p3, w, h, rel_eps = 1e-4) {
 
    return ok;
 }
+
+// Attach to window for browser global access
+window.show_alien_display = show_alien_display;
+window.check_parallelogram = check_parallelogram;
 
 /* utility --------------------------------------------------------------*/
 function create_program(gl, vs_src, fs_src) {
