@@ -407,9 +407,26 @@ const infinity_zoom_engine = {
     * @returns {object} Rectangle in image coordinates
     */
    compute_final_visible_rect(image, canvas, scale, rotation) {
-      // TODO: Implement calculation reflecting scale and rotation
-      // Should return { p0: {x, y}, p1: {x, y}, p2: {x, y}, p3: {x, y} }
-      return null;
+      // Compose the forward transform: aspect -> scale -> rotation
+      const aspect = window.infinity_zoom_II_utils_math.make_matrix(image, canvas);
+      const scale_mat = [scale, 0, 0, 0, scale, 0, 0, 0, 1];
+      const rot_mat = window.infinity_zoom_II_utils_math.make_rotation_matrix(rotation);
+      // Forward: rot * scale * aspect
+      let forward = window.infinity_zoom_II_utils_math.mat3_mul(
+         rot_mat,
+         window.infinity_zoom_II_utils_math.mat3_mul(scale_mat, aspect)
+      );
+      // Invert to get canvas->image mapping
+      const inv = window.infinity_zoom_II_utils_math.mat3_invert(forward);
+      if (!inv) return null;
+      // Canvas corners in pixel coordinates
+      const w = canvas.width, h = canvas.height;
+      // Map: p0 = (0,0), p1 = (w,0), p2 = (w,h), p3 = (0,h)
+      const p0 = window.infinity_zoom_II_utils_math.mat3_transform_point(inv, [0, 0]);
+      const p1 = window.infinity_zoom_II_utils_math.mat3_transform_point(inv, [w, 0]);
+      const p2 = window.infinity_zoom_II_utils_math.mat3_transform_point(inv, [w, h]);
+      const p3 = window.infinity_zoom_II_utils_math.mat3_transform_point(inv, [0, h]);
+      return { p0, p1, p2, p3 };
    },
 };
 
