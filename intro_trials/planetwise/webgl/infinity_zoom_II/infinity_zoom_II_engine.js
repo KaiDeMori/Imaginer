@@ -1,3 +1,4 @@
+
 // Infinity Zoom II Engine – main structure and method stubs
 
 // NOTE: Use global log(msg) utility. Single parameter: the message to log.
@@ -256,31 +257,11 @@ const infinity_zoom_engine = {
       } else if (this.animation_phase === 'done') {
          // Expose final state in region-zoom-language (image coordinates of visible crop)
          // Compute the visible rectangle of the image as mapped to the canvas (cover, centered)
+         // Use the helper to compute the visible rectangle in image coordinates
          const img = this.layers[0].image;
-         const cw = this.canvas.width, ch = this.canvas.height;
-         const iw = img.width, ih = img.height;
-         const img_aspect = iw / ih;
-         const canvas_aspect = cw / ch;
-         let sx, sy, sw, sh;
-         if (img_aspect > canvas_aspect) {
-            // Image is wider: crop sides
-            sh = ih;
-            sw = ch * img_aspect;
-            sx = (iw - sw) / 2;
-            sy = 0;
-         } else {
-            // Image is taller: crop top/bottom
-            sw = iw;
-            sh = cw / img_aspect;
-            sx = 0;
-            sy = (ih - sh) / 2;
-         }
-         // Rectangle in image coordinates that maps to canvas corners
-         this.final_visible_rect = {
-            p0: { x: sx, y: sy },
-            p1: { x: sx + sw, y: sy },
-            p3: { x: sx, y: sy + sh }
-         };
+         const scale = this.layers[0].scale;
+         const rect = this.compute_final_visible_rect(img, this.canvas, scale, this.rotation);
+         this.final_visible_rect = rect;
          log('Animation done. Final state: final_visible_rect =', this.final_visible_rect);
       }
       this.render();
@@ -414,6 +395,21 @@ const infinity_zoom_engine = {
          }
       }
       log('Preloaded all layers to GPU');
+   },
+
+   /**
+    * Compute the visible rectangle of the image as mapped to the canvas, given scale and rotation.
+    * Returns an object with p0, p1, p2, p3 in image coordinates that map to the canvas corners.
+    * @param {HTMLImageElement} image - The image object (with .width, .height)
+    * @param {HTMLCanvasElement} canvas - The canvas element (with .width, .height)
+    * @param {number} scale - The current scale applied to the image
+    * @param {number} rotation - The current rotation (in radians)
+    * @returns {object} Rectangle in image coordinates
+    */
+   compute_final_visible_rect(image, canvas, scale, rotation) {
+      // TODO: Implement calculation reflecting scale and rotation
+      // Should return { p0: {x, y}, p1: {x, y}, p2: {x, y}, p3: {x, y} }
+      return null;
    },
 };
 
