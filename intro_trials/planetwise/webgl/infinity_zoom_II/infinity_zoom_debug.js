@@ -1,9 +1,13 @@
 const DEBUG = true;
 const LOG_PREFIX = ' 🌀 — ';
 
-function log(msg) {
+function log(msg, obj) {
    if (!DEBUG) return;
-   console.info(LOG_PREFIX + msg);
+   if (obj !== undefined) {
+      console.info(LOG_PREFIX + msg, obj);
+   } else {
+      console.info(LOG_PREFIX + msg);
+   }
 }
 
 if (DEBUG) {
