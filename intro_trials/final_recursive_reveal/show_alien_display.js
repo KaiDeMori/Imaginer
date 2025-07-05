@@ -7,10 +7,10 @@
    Parameters:
       html_canvas   - The HTML canvas element to draw on.
       texture_img   - The image (HTMLImageElement or similar) to use as a texture.
-      p0            - [x, y] array. The origin (top-left) corner of the display rectangle in image pixel coordinates.
-      p1            - [x, y] array. The end of the top edge (u-axis) of the rectangle in image pixel coordinates.
-      p2            - [x, y] array. The far corner (bottom-right) of the rectangle. Should be p0 + (p1-p0) + (p3-p0).
-      p3            - [x, y] array. The end of the left edge (v-axis) of the rectangle in image pixel coordinates.
+      p0            - {x, y} object. The origin (top-left) corner of the display rectangle in image pixel coordinates.
+      p1            - {x, y} object. The end of the top edge (u-axis) of the rectangle in image pixel coordinates.
+      p2            - {x, y} object. The far corner (bottom-right) of the rectangle. Should be p0 + (p1-p0) + (p3-p0).
+      p3            - {x, y} object. The end of the left edge (v-axis) of the rectangle in image pixel coordinates.
 
    Note:
       The rectangle is fully described by p0 (origin), the vector p1-p0 (u-axis, across the top),
@@ -77,11 +77,11 @@ export async function show_alien_display(html_canvas, texture_img,
 
    // convert pixel coords → uv
    const w = texture_img.width, h = texture_img.height;
-   const to_uv = ([x, y]) => [x / w, y / h];
+   const to_uv = (pt) => [pt.x / w, pt.y / h];
 
    const origin_uv = to_uv(p0);
-   const u_axis_uv = [(p1[0] - p0[0]) / w, (p1[1] - p0[1]) / h];
-   const v_axis_uv = [(p3[0] - p0[0]) / w, (p3[1] - p0[1]) / h];
+   const u_axis_uv = [(p1.x - p0.x) / w, (p1.y - p0.y) / h];
+   const v_axis_uv = [(p3.x - p0.x) / w, (p3.y - p0.y) / h];
 
    gl.uniform2fv(gl.getUniformLocation(prog, 'u_origin'), origin_uv);
    gl.uniform2fv(gl.getUniformLocation(prog, 'u_u_axis'), u_axis_uv);
@@ -100,8 +100,8 @@ export async function show_alien_display(html_canvas, texture_img,
   ε is scaled to 0.01 % of the diagonal—enough to flag typos, not photons.
 ------------------------------------------------------------------------*/
 export function check_parallelogram(p0, p1, p2, p3, w, h, rel_eps = 1e-4) {
-   const vec = (a, b) => [b[0] - a[0], b[1] - a[1]];
-   const len = v => Math.hypot(v[0], v[1]);
+   const vec = (a, b) => ({ x: b.x - a.x, y: b.y - a.y });
+   const len = v => Math.hypot(v.x, v.y);
 
    const d_uv = Math.hypot(w, h);          // image diagonal length (pixels)
    const eps = d_uv * rel_eps;
@@ -111,8 +111,8 @@ export function check_parallelogram(p0, p1, p2, p3, w, h, rel_eps = 1e-4) {
    const u2 = vec(p3, p2);                 // should equal u
    const v2 = vec(p1, p2);                 // should equal v
 
-   const dev_u = len([u[0] - u2[0], u[1] - u2[1]]);
-   const dev_v = len([v[0] - v2[0], v[1] - v2[1]]);
+   const dev_u = len({ x: u.x - u2.x, y: u.y - u2.y });
+   const dev_v = len({ x: v.x - v2.x, y: v.y - v2.y });
 
    const ok = dev_u <= eps && dev_v <= eps;
 

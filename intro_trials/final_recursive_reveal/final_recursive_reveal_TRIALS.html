@@ -64,6 +64,15 @@
       ];
       const IMAGE_FOLDER = '../planetwise/zoom_images_planete';
 
+      // Coordinates for the alien display (as in the real engine)
+      // Use {x, y} objects for each point
+      const ALIEN_DISPLAY_COORDINATES = {
+         p0: { x: 1004, y: 1036 }, // origin (top-left)
+         p1: { x: 1142, y: 1024 }, // end of top edge (u-axis)
+         p2: { x: 1152, y: 1125 }, // far corner (bottom-right)
+         p3: { x: 1014, y: 1136 }  // end of left edge (v-axis)
+      };
+
       // Utility: load a single image as a Promise
       function load_image(src) {
          return new Promise((resolve, reject) => {
