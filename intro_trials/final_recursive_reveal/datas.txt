@@ -5,6 +5,14 @@
          p3: { x: 1014, y: 1136 }  // end of left edge (v-axis)
       };
 	  
+//debug square
+	  const ALIEN_DISPLAY_COORDINATES = {
+         p0: { x:170 , y:492 }, // origin (top-left)
+         p1: { x:354 , y:424  }, // end of top edge (u-axis)
+         p2: { x:421 , y:607  }, // far corner (bottom-right)
+         p3: { x:237 , y:675  }  // end of left edge (v-axis)
+      };
+	  
 	  
 //debug rectangle
 	  const ALIEN_DISPLAY_COORDINATES = {

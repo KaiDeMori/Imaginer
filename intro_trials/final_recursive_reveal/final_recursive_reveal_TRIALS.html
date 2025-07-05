@@ -62,17 +62,17 @@
       window.addEventListener('DOMContentLoaded', () => {
          // Layer data for the alien closeup (as in the last layer of the real engine)
          const LAYER_DATA = [
-            { zoom: 25, image: '100_alien_closeup_debug_display.png' }
+            { zoom: 25, image: '100_alien_closeup_debug_display_square.png' }
          ];
          const IMAGE_FOLDER = '../planetwise/zoom_images_planete/debug';
 
          // Coordinates for the alien display (as in the real engine)
          // Use {x, y} objects for each point
          const ALIEN_DISPLAY_COORDINATES = {
-            p0: { x: 260, y: 530 }, // origin (top-left)
-            p1: { x: 470, y: 341 }, // end of top edge (u-axis)
-            p2: { x: 564, y: 445 }, // far corner (bottom-right)
-            p3: { x: 353, y: 635 }  // end of left edge (v-axis)
+            p0: { x: 170, y: 492 }, // origin (top-left)
+            p1: { x: 354, y: 424 }, // end of top edge (u-axis)
+            p2: { x: 421, y: 607 }, // far corner (bottom-right)
+            p3: { x: 237, y: 675 }  // end of left edge (v-axis)
          };
 
          // Utility: load a single image as a Promise
@@ -129,6 +129,32 @@
             // the alien's display device rectangle (target zoom-in area)
             const to_rect = ALIEN_DISPLAY_COORDINATES;
 
+            // Log canvas and image size, from_rect, and aspect ratios (formatted)
+            function fmt_rect(r) {
+               if (!r) return 'null';
+               function pt(p) { return `(${p.x.toFixed(2)},${p.y.toFixed(2)})`; }
+               return `p0${pt(r.p0)}, p1${pt(r.p1)}, p2${r.p2 ? pt(r.p2) : 'n/a'}, p3${pt(r.p3)}`;
+            }
+            function rect_aspect(r) {
+               // width: distance p0-p1, height: distance p0-p3
+               const w = Math.hypot(r.p1.x - r.p0.x, r.p1.y - r.p0.y);
+               const h = Math.hypot(r.p3.x - r.p0.x, r.p3.y - r.p0.y);
+               return w / h;
+            }
+            let log = '';
+            log += `[RegionZoom] Canvas size: ${canvas.width} x ${canvas.height}\n`;
+            log += `[RegionZoom] Image size: ${img.width} x ${img.height}\n`;
+            log += `[RegionZoom] Canvas aspect: ${(canvas.width / canvas.height).toFixed(4)}\n`;
+            log += `[RegionZoom] from_rect: ${fmt_rect(from_rect)}\n`;
+            if (from_rect && from_rect.p0 && from_rect.p1 && from_rect.p3) {
+               log += `[RegionZoom] from_rect aspect: ${rect_aspect(from_rect).toFixed(4)}\n`;
+            }
+            log += `[RegionZoom] to_rect: ${fmt_rect(to_rect)}\n`;
+            if (to_rect && to_rect.p0 && to_rect.p1 && to_rect.p3) {
+               log += `[RegionZoom] to_rect aspect: ${rect_aspect(to_rect).toFixed(4)}\n`;
+            }
+            console.log(log);
+
             // Get WebGL context
             const gl = canvas.getContext('webgl');
 
@@ -140,7 +166,8 @@
             function animate(now) {
                if (!start_time) start_time = now;
                const t = Math.min((now - start_time) / 3000, 1);
-               alien.draw(t);
+               //alien.draw(t);
+               alien.draw(0);
                if (t < 1) {
                   requestAnimationFrame(animate);
                }

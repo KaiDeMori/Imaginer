@@ -88,13 +88,16 @@ function create_image_region_zoom(canvas, gl, img, fromRect, toRect) {
    // ---------------------------------------------------------------
    function rect_to_axes(rect) {
       const { p0, p1, p3 } = rect; // {x,y}
-      const w = img.width,
-         h = img.height;
-      return {
-         o: [p0.x / w, p0.y / h],
-         u: [(p1.x - p0.x) / w, (p1.y - p0.y) / h],
-         v: [(p3.x - p0.x) / w, (p3.y - p0.y) / h],
-      };
+      const w = img.width, h = img.height;
+      const o = [p0.x / w, p0.y / h];
+      const u = [(p1.x - p0.x) / w, (p1.y - p0.y) / h];
+      const v = [(p3.x - p0.x) / w, (p3.y - p0.y) / h];
+      const u_len = Math.hypot(u[0], u[1]);
+      const v_len = Math.hypot(v[0], v[1]);
+      const fmt = arr => arr.map(x => x.toFixed(4)).join(',');
+      const msg = `[RegionZoom] rect_to_axes: o=(${fmt(o)}), u=(${fmt(u)}), v=(${fmt(v)}), |u|=${u_len.toFixed(4)}, |v|=${v_len.toFixed(4)}, aspect=${(u_len / v_len).toFixed(4)}`;
+      console.log(msg);
+      return { o, u, v };
    }
 
    const r0 = rect_to_axes(toRect || fromRect); // end rectangle (t=1)
