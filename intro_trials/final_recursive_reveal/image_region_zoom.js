@@ -82,6 +82,44 @@ function create_image_region_zoom(canvas, gl, img, fromRect, toRect) {
       gl.UNSIGNED_BYTE,
       img
    );
+   // --- Helper: Make a rectangle square (1:1 aspect) centered on its original center ---
+   function make_rect_square(rect) {
+      // Compute center
+      const cx = (rect.p0.x + rect.p1.x + rect.p3.x + (rect.p2 ? rect.p2.x : 0)) / (rect.p2 ? 4 : 3);
+      const cy = (rect.p0.y + rect.p1.y + rect.p3.y + (rect.p2 ? rect.p2.y : 0)) / (rect.p2 ? 4 : 3);
+      // Compute width and height (p0-p1, p0-p3)
+      const dx1 = rect.p1.x - rect.p0.x, dy1 = rect.p1.y - rect.p0.y;
+      const dx3 = rect.p3.x - rect.p0.x, dy3 = rect.p3.y - rect.p0.y;
+      const w = Math.hypot(dx1, dy1);
+      const h = Math.hypot(dx3, dy3);
+      const size = Math.max(w, h);
+      // Compute unit vectors for u (p0->p1) and v (p0->p3)
+      const u = [dx1 / w, dy1 / w];
+      const v = [dx3 / h, dy3 / h];
+      // New p0: center - 0.5*size*u - 0.5*size*v
+      const half = 0.5 * size;
+      const p0x = cx - half * u[0] - half * v[0];
+      const p0y = cy - half * u[1] - half * v[1];
+      // New p1: p0 + size*u
+      const p1x = p0x + size * u[0];
+      const p1y = p0y + size * u[1];
+      // New p3: p0 + size*v
+      const p3x = p0x + size * v[0];
+      const p3y = p0y + size * v[1];
+      // New p2: p1 + size*v
+      const p2x = p1x + size * v[0];
+      const p2y = p1y + size * v[1];
+      return {
+         p0: { x: p0x, y: p0y },
+         p1: { x: p1x, y: p1y },
+         p2: { x: p2x, y: p2y },
+         p3: { x: p3x, y: p3y }
+      };
+   }
+
+   // --- Enforce 1:1 aspect for both fromRect and toRect ---
+   const square_fromRect = make_rect_square(fromRect);
+   const square_toRect = toRect ? make_rect_square(toRect) : square_fromRect;
 
    // ---------------------------------------------------------------
    // 3.  Pre-compute the two keyframe rectangles (origin + axes)
@@ -100,8 +138,8 @@ function create_image_region_zoom(canvas, gl, img, fromRect, toRect) {
       return { o, u, v };
    }
 
-   const r0 = rect_to_axes(toRect || fromRect); // end rectangle (t=1)
-   const r1 = rect_to_axes(fromRect);           // start rectangle (t=0)
+   const r0 = rect_to_axes(square_toRect); // end rectangle (t=1)
+   const r1 = rect_to_axes(square_fromRect); // start rectangle (t=0)
 
    const loc_o = gl.getUniformLocation(prog, 'u_o');
    const loc_u = gl.getUniformLocation(prog, 'u_u');
