@@ -1,3 +1,39 @@
+// Invert a 3x3 matrix (returns new array)
+function mat3_invert(m) {
+   const a = m[0], b = m[1], c = m[2],
+      d = m[3], e = m[4], f = m[5],
+      g = m[6], h = m[7], i = m[8];
+   const A = e * i - f * h;
+   const B = -(d * i - f * g);
+   const C = d * h - e * g;
+   const D = -(b * i - c * h);
+   const E = a * i - c * g;
+   const F = -(a * h - b * g);
+   const G = b * f - c * e;
+   const H = -(a * f - c * d);
+   const I = a * e - b * d;
+   const det = a * A + b * B + c * C;
+   if (Math.abs(det) < 1e-12) return null;
+   const invDet = 1 / det;
+   return [
+      A * invDet, D * invDet, G * invDet,
+      B * invDet, E * invDet, H * invDet,
+      C * invDet, F * invDet, I * invDet
+   ];
+}
+
+// Transform a 2D point [x, y] using a 3x3 matrix (returns {x, y})
+function mat3_transform_point(m, pt) {
+   const x = pt[0], y = pt[1];
+   const tx = m[0] * x + m[3] * y + m[6];
+   const ty = m[1] * x + m[4] * y + m[7];
+   const tw = m[2] * x + m[5] * y + m[8];
+   if (tw !== 0 && tw !== 1) {
+      return { x: tx / tw, y: ty / tw };
+   } else {
+      return { x: tx, y: ty };
+   }
+}
 // Math and matrix utility stubs for Infinity Zoom II
 
 // Returns an aspect-correct 3x3 matrix for an image and canvas
@@ -33,5 +69,7 @@ function mat3_mul(a, b) {
 window.infinity_zoom_II_utils_math = {
    make_matrix,
    make_rotation_matrix,
-   mat3_mul
+   mat3_mul,
+   mat3_invert,
+   mat3_transform_point
 };
