@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="utf-8">
+   <title>WebGL – region-to-canvas transform (static)</title>
+   <style>
+      html,
+      body {
+         margin: 0;
+         height: 100%;
+      }
+
+      #gl {
+         display: block;
+         width: 100%;
+         height: 100%;
+      }
+
+      #ui {
+         position: fixed;
+         top: 10px;
+         left: 10px;
+         z-index: 10
+      }
+   </style>
+</head>
+
+<body>
+   <div id="ui"><button id="btn">Show region</button></div>
+   <canvas id="gl"></canvas>
+   <script>
+      const IMAGE_URL = '../planetwise/zoom_images_planete/debug/100_alien_closeup_debug_display_square.png';
+      const REGION = { p0: { x: 170, y: 492 }, p1: { x: 354, y: 424 }, p2: { x: 421, y: 607 }, p3: { x: 237, y: 675 } };
+      let gl, program, tex, uniformM;
+      let side = 0;                 // texture side length (px)
+      let startMatrix, endMatrix;   // mat3, column-major
+      let showingRegion = false;
+
+      // ────────────────────────────── matrix helpers (column-major 3×3)
+      function mMul(a, b) {          // c = a * b
+         const c = new Float32Array(9);
+         for (let i = 0; i < 3; ++i)        // row
+            for (let j = 0; j < 3; ++j) {      // col
+               let s = 0;
+               for (let k = 0; k < 3; ++k) s += a[i + k * 3] * b[k + j * 3];
+               c[i + j * 3] = s;
+            }
+         return c;
+      }
+      function mTranslate(tx, ty) { return new Float32Array([1, 0, 0, 0, 1, 0, tx, ty, 1]); }
+      function mScale(s) { return new Float32Array([s, 0, 0, 0, s, 0, 0, 0, 1]); }
+      function mRotate(a) { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, s, 0, -s, c, 0, 0, 0, 1]); }
+      function mOrtho(w, h) { return new Float32Array([2 / w, 0, 0, 0, -2 / h, 0, -1, 1, 1]); }
+      // ────────────────────────────── build matrices for current canvas size
+      function buildMatrices(w, h) {
+         const P = mOrtho(w, h);
+         // ===== START (whole image covers canvas) =====
+         const cStart = { x: side * 0.5, y: side * 0.5 };
+         const sStart = Math.max(w / side, h / side);
+         const Astart = mMul(mMul(mMul(mTranslate(w * 0.5, h * 0.5), mScale(sStart)), mRotate(0)), mTranslate(-cStart.x, -cStart.y));
+         startMatrix = mMul(P, Astart);
+         // ===== END (selected square covers canvas) =====
+         const vx = REGION.p1.x - REGION.p0.x,
+            vy = REGION.p1.y - REGION.p0.y;
+         const L = Math.hypot(vx, vy);
+         const theta = Math.atan2(vy, vx);
+         const cEnd = { x: (REGION.p0.x + REGION.p2.x) * 0.5, y: (REGION.p0.y + REGION.p2.y) * 0.5 };
+         const sEnd = Math.max(w / L, h / L);
+         const Aend = mMul(mMul(mMul(mTranslate(w * 0.5, h * 0.5), mScale(sEnd)), mRotate(-theta)), mTranslate(-cEnd.x, -cEnd.y));
+         endMatrix = mMul(P, Aend);
+      }
+      // ────────────────────────────── draw
+      function draw() {
+         gl.clearColor(0, 0, 0, 1);
+         gl.clear(gl.COLOR_BUFFER_BIT);
+         gl.uniformMatrix3fv(uniformM, false, showingRegion ? endMatrix : startMatrix);
+         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+      // ────────────────────────────── init
+      function init() {
+         const canvas = document.getElementById('gl');
+         gl = canvas.getContext('webgl');
+         if (!gl) { alert('WebGL not available'); return; }
+         const vsSrc = `precision mediump float;attribute vec2 aPosition;attribute vec2 aTex;uniform mat3 uM;varying vec2 vTex;void main(){vec3 p=uM*vec3(aPosition,1.0);gl_Position=vec4(p.xy,0.0,1.0);vTex=aTex;}`;
+         const fsSrc = `precision mediump float;varying vec2 vTex;uniform sampler2D uTex;void main(){gl_FragColor=texture2D(uTex,vTex);}`;
+         const vs = gl.createShader(gl.VERTEX_SHADER); gl.shaderSource(vs, vsSrc); gl.compileShader(vs);
+         const fs = gl.createShader(gl.FRAGMENT_SHADER); gl.shaderSource(fs, fsSrc); gl.compileShader(fs);
+         program = gl.createProgram(); gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program); gl.useProgram(program);
+         uniformM = gl.getUniformLocation(program, 'uM');
+         const img = new Image();
+         img.onload = () => {
+            side = img.width; // square, so height == width
+            // create buffers now that we know "side"
+            const pos = new Float32Array([0, 0, side, 0, 0, side, side, side]);
+            const uv = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
+            const posBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, posBuf); gl.bufferData(gl.ARRAY_BUFFER, pos, gl.STATIC_DRAW);
+            const locPos = gl.getAttribLocation(program, 'aPosition'); gl.enableVertexAttribArray(locPos); gl.vertexAttribPointer(locPos, 2, gl.FLOAT, false, 0, 0);
+            const uvBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf); gl.bufferData(gl.ARRAY_BUFFER, uv, gl.STATIC_DRAW);
+            const locUV = gl.getAttribLocation(program, 'aTex'); gl.enableVertexAttribArray(locUV); gl.vertexAttribPointer(locUV, 2, gl.FLOAT, false, 0, 0);
+            // texture
+            tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+            resize();
+            draw();
+         };
+         img.src = IMAGE_URL;
+         window.addEventListener('resize', () => { resize(); draw(); });
+         document.getElementById('btn').addEventListener('click', () => { showingRegion = !showingRegion; document.getElementById('btn').textContent = showingRegion ? 'Show full image' : 'Show region'; draw(); });
+      }
+      function resize() {
+         const canvas = document.getElementById('gl');
+         canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+         gl.viewport(0, 0, canvas.width, canvas.height);
+         buildMatrices(canvas.width, canvas.height);
+      }
+      init();
+   </script>
+</body>
+
+</html>
