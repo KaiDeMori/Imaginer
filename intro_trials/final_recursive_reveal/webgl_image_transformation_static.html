@@ -45,11 +45,15 @@
         p3: { x: 353, y: 635 }, // end of left edge (v-axis)
       };
 
+      const INITIAL_ROTATION = Math.PI * 1.7; // in radians
+
       const IMAGE_URL =
         "../planetwise/zoom_images_planete/debug/100_alien_closeup_debug_display_extreme_AR.png";
       let gl, program, tex, uniformM;
       let side = 0; // texture side length (px)
       let startMatrix, endMatrix; // mat3, column-major
+      let trsStart, trsEnd; // {cx, cy, scale, theta}
+
       let showingRegion = false;
 
       // ────────────────────────────── matrix helpers (column-major 3×3)
@@ -83,6 +87,76 @@
       function mOrtho(w, h) {
         return new Float32Array([2 / w, 0, 0, 0, -2 / h, 0, -1, 1, 1]);
       }
+
+      // ────────────────────────────── interpolation helpers
+
+      function lerp(a, b, t) {
+        return a * (1 - t) + b * t;
+      }
+      function lerpAngle(a, b, t) {
+        // Interpolate angle a to b, taking shortest path
+        let d = b - a;
+        while (d > Math.PI) d -= 2 * Math.PI;
+        while (d < -Math.PI) d += 2 * Math.PI;
+        return a + d * t;
+      }
+
+      function buildTRSMatrix(trs, w, h) {
+        // Compose ortho * T1 * S * R * T0
+        const P = mOrtho(w, h);
+        return mMul(
+          P,
+          mMul(
+            mMul(
+              mMul(mTranslate(w * 0.5, h * 0.5), mScale(trs.scale)),
+              mRotate(trs.theta)
+            ),
+            mTranslate(-trs.cx, -trs.cy)
+          )
+        );
+      }
+
+      // ────────────────────────────── animation
+
+      let animating = false;
+      let animT = 0; // 0=start, 1=end
+      let animDir = 1; // 1: to region, -1: to full image
+      let animStartTime = 0;
+      const ANIM_DURATION = 800; // ms
+
+      function animateStep(ts) {
+        if (!animating) return;
+        if (!animStartTime) animStartTime = ts;
+        let t = (ts - animStartTime) / ANIM_DURATION;
+        t = Math.min(Math.max(t, 0), 1);
+        animT = animDir === 1 ? t : 1 - t;
+
+        // Interpolate TRS
+        const trs = {
+          cx: lerp(trsStart.cx, trsEnd.cx, animT),
+          cy: lerp(trsStart.cy, trsEnd.cy, animT),
+          scale: lerp(trsStart.scale, trsEnd.scale, animT),
+          theta: lerpAngle(trsStart.theta, trsEnd.theta, animT),
+        };
+        // Build and set matrix
+        const canvas = document.getElementById("gl");
+        const mat = buildTRSMatrix(trs, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniformMatrix3fv(uniformM, false, mat);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        if (t < 1) {
+          requestAnimationFrame(animateStep);
+        } else {
+          animating = false;
+          showingRegion = animDir === 1;
+          document.getElementById("btn").textContent = showingRegion
+            ? "Show full image"
+            : "Show region";
+        }
+      }
+
       // ────────────────────────────── build matrices for current canvas size
       function buildMatrices(w, h) {
         const P = mOrtho(w, h);
@@ -90,9 +164,13 @@
         const cStart = { x: side * 0.5, y: side * 0.5 };
         const sStart = Math.max(w / side, h / side);
         const Astart = mMul(
-          mMul(mMul(mTranslate(w * 0.5, h * 0.5), mScale(sStart)), mRotate(0)),
+          mMul(
+            mMul(mTranslate(w * 0.5, h * 0.5), mScale(sStart)),
+            mRotate(INITIAL_ROTATION)
+          ),
           mTranslate(-cStart.x, -cStart.y)
         );
+
         startMatrix = mMul(P, Astart);
         // ===== END (selected square covers canvas) =====
         // Compute region axes
@@ -118,6 +196,19 @@
         };
 
         const sEnd = Math.max(w / W, h / H);
+
+        trsStart = {
+          cx: cStart.x,
+          cy: cStart.y,
+          scale: sStart,
+          theta: INITIAL_ROTATION,
+        };
+        trsEnd = {
+          cx: cEnd.x,
+          cy: cEnd.y,
+          scale: sEnd,
+          theta: -theta,
+        };
 
         const Aend = mMul(
           mMul(
@@ -203,11 +294,11 @@
           draw();
         });
         document.getElementById("btn").addEventListener("click", () => {
-          showingRegion = !showingRegion;
-          document.getElementById("btn").textContent = showingRegion
-            ? "Show full image"
-            : "Show region";
-          draw();
+          if (animating) return;
+          animating = true;
+          animDir = showingRegion ? -1 : 1;
+          animStartTime = 0;
+          requestAnimationFrame(animateStep);
         });
       }
       function resize() {
