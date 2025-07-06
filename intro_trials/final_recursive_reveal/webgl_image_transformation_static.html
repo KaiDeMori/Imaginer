@@ -29,14 +29,24 @@
     <div id="ui"><button id="btn">Show region</button></div>
     <canvas id="gl"></canvas>
     <script>
+      //debug square
+      // const REGION = {
+      //   p0: { x: 170, y: 492 },
+      //   p1: { x: 354, y: 424 },
+      //   p2: { x: 421, y: 607 },
+      //   p3: { x: 237, y: 675 },
+      // };
+
+      //debug rectangle
       const REGION = {
-        p0: { x: 170, y: 492 },
-        p1: { x: 354, y: 424 },
-        p2: { x: 421, y: 607 },
-        p3: { x: 237, y: 675 },
+        p0: { x: 260, y: 530 }, // origin (top-left)
+        p1: { x: 470, y: 341 }, // end of top edge (u-axis)
+        p2: { x: 564, y: 445 }, // far corner (bottom-right)
+        p3: { x: 353, y: 635 }, // end of left edge (v-axis)
       };
+
       const IMAGE_URL =
-        "../planetwise/zoom_images_planete/debug/100_alien_closeup_debug_display_square.png";
+        "../planetwise/zoom_images_planete/debug/100_alien_closeup_debug_display_extreme_AR.png";
       let gl, program, tex, uniformM;
       let side = 0; // texture side length (px)
       let startMatrix, endMatrix; // mat3, column-major
@@ -85,15 +95,30 @@
         );
         startMatrix = mMul(P, Astart);
         // ===== END (selected square covers canvas) =====
-        const vx = REGION.p1.x - REGION.p0.x,
-          vy = REGION.p1.y - REGION.p0.y;
-        const L = Math.hypot(vx, vy);
+        // Compute region axes
+
+        // top edge
+        const vx = REGION.p1.x - REGION.p0.x;
+        const vy = REGION.p1.y - REGION.p0.y;
+        // left edge
+        const ux = REGION.p3.x - REGION.p0.x;
+        const uy = REGION.p3.y - REGION.p0.y;
+
+        // width (top edge length)
+        const W = Math.hypot(vx, vy);
+        // height (left edge length)
+        const H = Math.hypot(ux, uy);
+
+        // orientation
         const theta = Math.atan2(vy, vx);
+
         const cEnd = {
           x: (REGION.p0.x + REGION.p2.x) * 0.5,
           y: (REGION.p0.y + REGION.p2.y) * 0.5,
         };
-        const sEnd = Math.max(w / L, h / L);
+
+        const sEnd = Math.max(w / W, h / H);
+
         const Aend = mMul(
           mMul(
             mMul(mTranslate(w * 0.5, h * 0.5), mScale(sEnd)),
