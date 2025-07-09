@@ -17,14 +17,15 @@ const INFINITY_ZOOM_START_ROTATION_ANGLE = 0; //Math.PI * (1 / 2);
 // Global rotation speed in radians per second. Positive values rotate clockwise.
 const INFINITY_ZOOM_ROTATION_SPEED = 0.3; //Math.PI / 60;
 
-// Absolute final rotation angle in radians after last layer covers viewport.
-const INFINITY_ZOOM_FINAL_ROTATION_ANGLE = 0; //Math.PI;
-
 // Exponential zoom rate (growth constant per second, default from V1; see V1 documentation and engine).
 const INFINITY_ZOOM_SPEED = 3; //TRIALS originally: 1.2;
 
+// Exposed flag for triggering final reveal from console
+window.FLAG_initiate_final_reveal = false;
+
 // Main engine object
-const infinity_zoom_engine = {
+// Main engine object (will be attached to window.infinity_zoom_II)
+const engine = {
   // State
   gl: null,
   canvas: null,
@@ -59,7 +60,9 @@ const infinity_zoom_engine = {
     this.start_time = performance.now();
     this.animation_phase = "intro";
     this.rotation = INFINITY_ZOOM_START_ROTATION_ANGLE;
-    window.infinity_zoom_II_utils_render.resize_canvas_to_display_size(this.canvas, this.gl);
+    // Initialize last animate time for frame delta
+    this._last_animate_time = this.start_time;
+    window.infinity_zoom_II.utils.render.resize_canvas_to_display_size(this.canvas, this.gl);
 
     // --- WebGL setup ---
     const gl = this.gl;
@@ -125,10 +128,13 @@ const infinity_zoom_engine = {
   // Main animation loop
   animate(now) {
     // Step 3.1b/3.1c: Animate first layer zoom-in, then fade-in additional layers
+    // Frame-rate-independent delta time
+    const delta = (now - this._last_animate_time) / 1000;
+    this._last_animate_time = now;
     const elapsed = (now - this.start_time) / 1000;
     if (this.animation_phase === "intro") {
       // Advance rotation in all phases
-      this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
+      this.rotation += this.rotation_speed * delta;
       const zoom_duration = 0.1; //TRIALS orignally: 3.0;
       const fade_duration = 0; //TRIALS originally: 1.0;
       if (elapsed < zoom_duration) {
@@ -189,7 +195,7 @@ const infinity_zoom_engine = {
       const hold_duration = 0; //TRIALS originally: 1.5;
       const elapsed_hold = (now - this.hold_start_time) / 1000;
       // Advance rotation
-      this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
+      this.rotation += this.rotation_speed * delta;
       if (elapsed_hold < hold_duration) {
         requestAnimationFrame(this.animate.bind(this));
       } else {
@@ -203,7 +209,7 @@ const infinity_zoom_engine = {
       // Main zoom phase: exponential zoom and rotation until last layer covers viewport
       const elapsed_main_zoom = (now - this.main_zoom_start_time) / 1000;
       // Advance rotation
-      this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
+      this.rotation += this.rotation_speed * delta;
       // Exponential zoom: s(t) = s0 * exp(k * t)
       const min_dim = Math.min(this.canvas.width, this.canvas.height);
       const k = this.zoom_speed;
@@ -221,32 +227,25 @@ const infinity_zoom_engine = {
       const last_layer = this.layers[this.layers.length - 1];
       const last_layer_draw_size = last_layer.scale * min_dim;
       if (last_layer_draw_size >= Math.max(this.canvas.width, this.canvas.height)) {
-        // Last layer now covers viewport: stop zoom, continue rotation to final angle
+        // Last layer now covers viewport: stop zoom, continue rotation
         this.last_layer_cover_time = now;
         this.rotation_at_cover = this.rotation;
         this.animation_phase = "final_rotation";
-        log("Main zoom complete. Continuing rotation to final angle...");
+        log("Main zoom complete. Continuing rotation.");
         requestAnimationFrame(this.animate.bind(this));
       } else {
         requestAnimationFrame(this.animate.bind(this));
       }
     } else if (this.animation_phase === "final_rotation") {
-      // Continue rotation until INFINITY_ZOOM_FINAL_ROTATION_ANGLE (absolute) is reached
-      // const target_rotation = INFINITY_ZOOM_FINAL_ROTATION_ANGLE;
-      // this.rotation += this.rotation_speed * (1 / 60); // Approximate 60fps step
-      // if ((this.rotation_speed > 0 && this.rotation < target_rotation) || (this.rotation_speed < 0 && this.rotation > target_rotation)) {
-      //    requestAnimationFrame(this.animate.bind(this));
-      // } else {
-      //    this.rotation = target_rotation;
-      //    this.rotation_speed = 0;
-      //    this.animation_phase = 'done';
-      //    log('Final rotation complete. Animation done.');
-      // }
-
-      //for debug
-      this.animation_phase = "done";
-      requestAnimationFrame(this.animate.bind(this));
-      //--
+      // Keep rotating until FLAG_initiate_final_reveal is set from outside (e.g., browser console)
+      this.rotation += this.rotation_speed * delta;
+      if (!window.FLAG_initiate_final_reveal) {
+        requestAnimationFrame(this.animate.bind(this));
+      } else {
+        this.animation_phase = "done";
+        log("Final reveal triggered. Animation done.");
+        requestAnimationFrame(this.animate.bind(this));
+      }
     } else if (this.animation_phase === "done") {
       // Expose final state in region-zoom-language (image coordinates of visible crop)
       // Compute the visible rectangle of the image as mapped to the canvas (cover, centered)

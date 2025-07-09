@@ -64,8 +64,9 @@ function get_file_name(path) {
   return path.split("/").pop();
 }
 
-// Export for use in other scripts
-window.infinity_zoom_preloader = {
+// Attach to unified namespace
+if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
+window.infinity_zoom_II.preloader = {
   preload_images,
   on_images_loaded,
 };
