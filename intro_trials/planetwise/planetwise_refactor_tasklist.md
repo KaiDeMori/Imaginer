@@ -10,13 +10,11 @@
 - [ ] Replace with calls to `webgl_program_utils.js` utility functions
 - [ ] Remove any duplicate or local helper functions for WebGL setup
 
-## Integration & Testing
+
+## Integration
 
 - [ ] Import/reference `webgl_program_utils.js` in all modules and HTML files that use WebGL setup
 - [ ] Update all WebGL setup code to use the shared utility
-- [ ] Test region zoom animator for correct rendering and animation
-- [ ] Test infinity zoom engine for correct rendering and animation
-- [ ] Test all demo HTMLs for correct WebGL initialization and rendering
 
 ## Codebase Consistency
 
@@ -25,5 +23,3 @@
 - [ ] Update documentation/comments to reflect new utility usage
 
 ---
-
-*Edit this list as needed during the refactor process.*
