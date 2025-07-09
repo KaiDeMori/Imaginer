@@ -417,12 +417,15 @@ const engine = {
   },
 };
 
-// Export for HTML usage
-window.infinity_zoom_II_engine = infinity_zoom_engine;
+// Attach everything to a single root namespace
+if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
+window.infinity_zoom_II.engine = engine;
+// Attach utils if not already present (assumes utils are loaded elsewhere)
+if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
 
 // Add a window resize event listener to dynamically adjust canvas size
 window.addEventListener("resize", () => {
-  if (window.infinity_zoom_II_engine && window.infinity_zoom_II_engine.canvas && window.infinity_zoom_II_engine.gl) {
-    window.infinity_zoom_II_utils_render.resize_canvas_to_display_size(window.infinity_zoom_II_engine.canvas, window.infinity_zoom_II_engine.gl);
+  if (window.infinity_zoom_II.engine && window.infinity_zoom_II.engine.canvas && window.infinity_zoom_II.engine.gl) {
+    window.infinity_zoom_II.utils.render.resize_canvas_to_display_size(window.infinity_zoom_II.engine.canvas, window.infinity_zoom_II.engine.gl);
   }
 });

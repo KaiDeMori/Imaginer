@@ -146,7 +146,7 @@ function init() {
   const img = new Image();
   img.onload = () => {
     texture_side = img.width;
-    // create buffers now that we know "side"
+    // If using any infinity_zoom_II utilities, update references to window.infinity_zoom_II.utils.*
     const pos = new Float32Array([0, 0, texture_side, 0, 0, texture_side, texture_side, texture_side]);
     const uv = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
     const pos_buf = gl_ctx.createBuffer();

@@ -9,7 +9,7 @@
     <script src="infinity_zoom_debug.js"></script>
     <script src="infinity_zoom_II_utils_math.js"></script>
     <script src="infinity_zoom_II_utils_render.js"></script>
-    <script src="infinity_zoom_II_engine.js"></script>
+    <script src="window.infinity_zoom_II.engine.js"></script>
     <script src="infinity_zoom_feather_preloader.js"></script>
     <script src="feather_benchmark.js"></script>
 
@@ -61,12 +61,12 @@
       if (USE_DYNAMIC_FEATHER) {
         window.infinity_zoom_feather_preloader.preload_and_feather_images(LAYERS_DATA, RELATIVE_IMAGE_PATH, 300);
         window.infinity_zoom_feather_preloader.on_feathered_images_ready(function (feathered_images) {
-          window.infinity_zoom_II_engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));
+          window.infinity_zoom_II.engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));
         });
       } else {
         window.infinity_zoom_preloader.preload_images(LAYERS_DATA, RELATIVE_IMAGE_PATH);
         window.infinity_zoom_preloader.on_images_loaded(function (images) {
-          window.infinity_zoom_II_engine.init(LAYERS_DATA, images, document.getElementById("zoom_canvas"));
+          window.infinity_zoom_II.engine.init(LAYERS_DATA, images, document.getElementById("zoom_canvas"));
         });
       }
     </script>

@@ -1,5 +1,20 @@
 // image_region_zoom_utils.js
 // Utility functions for matrix math, interpolation, and helpers for region zoom
+// Attach to infinity_zoom_II namespace if needed
+if (window.infinity_zoom_II && window.infinity_zoom_II.utils) {
+  window.infinity_zoom_II.utils.region_zoom = {
+    mat_mul,
+    mat_translate,
+    mat_scale,
+    mat_rotate,
+    mat_ortho,
+    lerp,
+    ease_linear,
+    ease_in_out_cubic,
+    ease_in_out_exponential,
+    build_trs_matrix,
+  };
+}
 
 // Matrix math (column-major 3x3)
 export function mat_mul(a, b) {
