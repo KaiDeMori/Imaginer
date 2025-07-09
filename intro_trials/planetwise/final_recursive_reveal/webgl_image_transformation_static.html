@@ -256,10 +256,7 @@
       function init() {
         const canvas = document.getElementById("gl_canvas");
         gl_ctx = canvas.getContext("webgl");
-        if (!gl_ctx) {
-          alert("WebGL not available");
-          return;
-        }
+
         const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
         const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,v_tex);}`;
         const vs = gl_ctx.createShader(gl_ctx.VERTEX_SHADER);
