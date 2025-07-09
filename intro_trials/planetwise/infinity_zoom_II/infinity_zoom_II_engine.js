@@ -277,12 +277,12 @@ const engine = {
       const layer = this.layers[i];
       if (layer && layer.texture) {
         // Use utils for aspect, rotation, and matrix math
-        const aspect = window.infinity_zoom_II_utils_math.make_matrix(layer.image, this.canvas);
+        const aspect = window.infinity_zoom_II.utils.math.make_matrix(layer.image, this.canvas);
         const s = layer.scale;
         const scale_mat = [s, 0, 0, 0, s, 0, 0, 0, 1];
-        const rot = window.infinity_zoom_II_utils_math.make_rotation_matrix(this.rotation);
+        const rot = window.infinity_zoom_II.utils.math.make_rotation_matrix(this.rotation);
         // Compose: rot * scale * aspect
-        let mat = window.infinity_zoom_II_utils_math.mat3_mul(rot, window.infinity_zoom_II_utils_math.mat3_mul(scale_mat, aspect));
+        let mat = window.infinity_zoom_II.utils.math.mat3_mul(rot, window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect));
         gl.uniformMatrix3fv(this.u_matrix, false, mat);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, layer.texture);
@@ -321,7 +321,7 @@ const engine = {
       if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
         // Upload texture if not already uploaded
         if (!this.layers[i].texture) {
-          window.infinity_zoom_II_utils_render.upload_texture(this.gl, this.layers[i]);
+          window.infinity_zoom_II.utils.render.upload_texture(this.gl, this.layers[i]);
         }
       }
     }
@@ -341,7 +341,7 @@ const engine = {
   upload_layer_to_gpu(layer_index) {
     const layer = this.layers[layer_index];
     if (layer && !layer.texture) {
-      window.infinity_zoom_II_utils_render.upload_texture(this.gl, layer);
+      window.infinity_zoom_II.utils.render.upload_texture(this.gl, layer);
     }
   },
 
@@ -349,7 +349,7 @@ const engine = {
   remove_layer_from_gpu(layer_index) {
     const layer = this.layers[layer_index];
     if (layer && layer.texture) {
-      window.infinity_zoom_II_utils_render.delete_texture(this.gl, layer);
+      window.infinity_zoom_II.utils.render.delete_texture(this.gl, layer);
     }
   },
 
@@ -364,7 +364,7 @@ const engine = {
     for (let i = 0; i < this.layers.length; ++i) {
       const layer = this.layers[i];
       const should_be_uploaded = visible_set.has(layer);
-      const is_uploaded = window.infinity_zoom_II_utils_render.is_layer_uploaded(layer);
+      const is_uploaded = window.infinity_zoom_II.utils.render.is_layer_uploaded(layer);
       if (should_be_uploaded && !is_uploaded) {
         this.upload_layer_to_gpu(i);
         log("Uploaded layer " + i);
@@ -380,7 +380,7 @@ const engine = {
     for (let i = 0; i < this.layers.length; ++i) {
       const layer = this.layers[i];
       if (!layer.texture) {
-        window.infinity_zoom_II_utils_render.upload_texture(this.gl, layer);
+        window.infinity_zoom_II.utils.render.upload_texture(this.gl, layer);
       }
     }
     log("Preloaded all layers to GPU");
@@ -397,22 +397,22 @@ const engine = {
    */
   compute_final_visible_rect(image, canvas, scale, rotation) {
     // Compose the forward transform: aspect -> scale -> rotation
-    const aspect = window.infinity_zoom_II_utils_math.make_matrix(image, canvas);
+    const aspect = window.infinity_zoom_II.utils.math.make_matrix(image, canvas);
     const scale_mat = [scale, 0, 0, 0, scale, 0, 0, 0, 1];
-    const rot_mat = window.infinity_zoom_II_utils_math.make_rotation_matrix(rotation);
+    const rot_mat = window.infinity_zoom_II.utils.math.make_rotation_matrix(rotation);
     // Forward: rot * scale * aspect
-    let forward = window.infinity_zoom_II_utils_math.mat3_mul(rot_mat, window.infinity_zoom_II_utils_math.mat3_mul(scale_mat, aspect));
+    let forward = window.infinity_zoom_II.utils.math.mat3_mul(rot_mat, window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect));
     // Invert to get canvas->image mapping
-    const inv = window.infinity_zoom_II_utils_math.mat3_invert(forward);
+    const inv = window.infinity_zoom_II.utils.math.mat3_invert(forward);
     if (!inv) return null;
     // Canvas corners in pixel coordinates
     const w = canvas.width,
       h = canvas.height;
     // Map: p0 = (0,0), p1 = (w,0), p2 = (w,h), p3 = (0,h)
-    const p0 = window.infinity_zoom_II_utils_math.mat3_transform_point(inv, [0, 0]);
-    const p1 = window.infinity_zoom_II_utils_math.mat3_transform_point(inv, [w, 0]);
-    const p2 = window.infinity_zoom_II_utils_math.mat3_transform_point(inv, [w, h]);
-    const p3 = window.infinity_zoom_II_utils_math.mat3_transform_point(inv, [0, h]);
+    const p0 = window.infinity_zoom_II.utils.math.mat3_transform_point(inv, [0, 0]);
+    const p1 = window.infinity_zoom_II.utils.math.mat3_transform_point(inv, [w, 0]);
+    const p2 = window.infinity_zoom_II.utils.math.mat3_transform_point(inv, [w, h]);
+    const p3 = window.infinity_zoom_II.utils.math.mat3_transform_point(inv, [0, h]);
     return { p0, p1, p2, p3 };
   },
 };
