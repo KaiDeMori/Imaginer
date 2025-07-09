@@ -1,53 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Infinity Zoom II</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Preloader and debug utilities (must be loaded before engine) -->
+    <script src="infinity_zoom_preloader.js"></script>
+    <script src="infinity_zoom_debug.js"></script>
+    <script src="infinity_zoom_II_utils_math.js"></script>
+    <script src="infinity_zoom_II_utils_render.js"></script>
+    <script src="infinity_zoom_II_engine.js"></script>
+    <script src="infinity_zoom_feather_preloader.js"></script>
+    <script src="feather_benchmark.js"></script>
 
-<head>
-   <meta charset="UTF-8">
-   <title>Infinity Zoom II</title>
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <!-- Preloader and debug utilities (must be loaded before engine) -->
-   <script src="infinity_zoom_preloader.js"></script>
-   <script src="infinity_zoom_debug.js"></script>
-   <script src="infinity_zoom_II_utils_math.js"></script>
-   <script src="infinity_zoom_II_utils_render.js"></script>
-   <script src="infinity_zoom_II_engine.js"></script>
-   <script src="infinity_zoom_feather_preloader.js"></script>
-   <script src="feather_benchmark.js"></script>
-
-   <style>
+    <style>
       html,
       body {
-         margin: 0;
-         padding: 0;
-         background: #000;
-         width: 100vw;
-         height: 100vh;
-         overflow: hidden;
+        margin: 0;
+        padding: 0;
+        background: #000;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
       }
 
       #zoom_canvas {
-         display: block;
-         width: 100vw;
-         height: 100vh;
-         background: #000;
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
       }
-   </style>
-</head>
+    </style>
+  </head>
 
-<body>
-   <canvas id="zoom_canvas"></canvas>
-   <script>
+  <body>
+    <canvas id="zoom_canvas"></canvas>
+    <script>
+      const RELATIVE_IMAGE_PATH = "../zoom_images_planete/debug/";
+
       const LAYERS_DATA = [
-         { zoom: 25, image: '10_new_planete_fixed.png' },
-         { zoom: 25, image: '20_alien_island_II_tricky_transition_continental_B.png' },
-         { zoom: 25, image: '30_alien_island_II_tricky_transition.png' },
-         { zoom: 25, image: '40_alien_island_II_atoll_tiny_land.png' },
-         { zoom: 25, image: '50_alien_island_II_atoll.png' },
-         { zoom: 25, image: '60_alien_island_II.png' },
-         { zoom: 25, image: '70_alien_forest.png' },
-         { zoom: 25, image: '80_alien_village.png' },
-         { zoom: 25, image: '90_alien_hut.png' },
-         { zoom: 25, image: '100_alien_closeup.png' },
+        { zoom: 25, image: "10_new_planete_fixed.png" },
+        { zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.png" },
+        { zoom: 25, image: "30_alien_island_II_tricky_transition.png" },
+        { zoom: 25, image: "40_alien_island_II_atoll_tiny_land.png" },
+        { zoom: 25, image: "50_alien_island_II_atoll.png" },
+        { zoom: 25, image: "60_alien_island_II.png" },
+        { zoom: 25, image: "70_alien_forest.png" },
+        { zoom: 25, image: "80_alien_village.png" },
+        { zoom: 25, image: "90_alien_hut.png" },
+        { zoom: 25, image: "100_alien_closeup.png" },
       ];
 
       // Controls whether to use dynamic feathering (WebGL feather preprocessor).
@@ -58,17 +59,16 @@
       window.INFINITY_ZOOM_FLIP_Y_ON_UPLOAD = !USE_DYNAMIC_FEATHER;
 
       if (USE_DYNAMIC_FEATHER) {
-         window.infinity_zoom_feather_preloader.preload_and_feather_images(LAYERS_DATA, '../../zoom_images_planete/debug', 300);
-         window.infinity_zoom_feather_preloader.on_feathered_images_ready(function (feathered_images) {
-            window.infinity_zoom_II_engine.init(LAYERS_DATA, feathered_images, document.getElementById('zoom_canvas'));
-         });
+        window.infinity_zoom_feather_preloader.preload_and_feather_images(LAYERS_DATA, RELATIVE_IMAGE_PATH, 300);
+        window.infinity_zoom_feather_preloader.on_feathered_images_ready(function (feathered_images) {
+          window.infinity_zoom_II_engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));
+        });
       } else {
-         window.infinity_zoom_preloader.preload_images(LAYERS_DATA, '../../zoom_images_planete/debug');
-         window.infinity_zoom_preloader.on_images_loaded(function (images) {
-            window.infinity_zoom_II_engine.init(LAYERS_DATA, images, document.getElementById('zoom_canvas'));
-         });
+        window.infinity_zoom_preloader.preload_images(LAYERS_DATA, RELATIVE_IMAGE_PATH);
+        window.infinity_zoom_preloader.on_images_loaded(function (images) {
+          window.infinity_zoom_II_engine.init(LAYERS_DATA, images, document.getElementById("zoom_canvas"));
+        });
       }
-   </script>
-</body>
-
+    </script>
+  </body>
 </html>
