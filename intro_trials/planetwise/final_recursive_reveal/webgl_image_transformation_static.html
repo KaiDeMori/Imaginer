@@ -44,8 +44,7 @@
 
       const initial_rotation = Math.random() * Math.PI * 2; // radians
 
-      const image_url =
-        "../planetwise/zoom_images_planete/100_alien_closeup.png";
+      const image_url = "../zoom_images_planete/100_alien_closeup.png";
 
       // ───────────── global variables
       let gl_ctx, gl_program, gl_texture, uniform_matrix;
@@ -115,8 +114,7 @@
         t = Math.min(Math.max(t, 0), 1);
         if (t === 0) return a;
         if (t === 1) return b;
-        if (t < 0.5)
-          return lerp(a, b, 0.5 * Math.pow(2, 20 * t - 10), is_angle);
+        if (t < 0.5) return lerp(a, b, 0.5 * Math.pow(2, 20 * t - 10), is_angle);
         return lerp(a, b, 1 - 0.5 * Math.pow(2, -20 * t + 10), is_angle);
       }
 
@@ -128,13 +126,7 @@
         const proj = mat_ortho(w, h);
         return mat_mul(
           proj,
-          mat_mul(
-            mat_mul(
-              mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(trs.scale)),
-              mat_rotate(trs.theta)
-            ),
-            mat_translate(-trs.center_x, -trs.center_y)
-          )
+          mat_mul(mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(trs.scale)), mat_rotate(trs.theta)), mat_translate(-trs.center_x, -trs.center_y))
         );
       }
       // ───────────── animation state
@@ -151,25 +143,10 @@
         anim_t = anim_dir === 1 ? t : 1 - t;
         // Interpolate TRS
         const trs = {
-          center_x: ease_strategy(
-            trs_start.center_x,
-            trs_end.center_x,
-            anim_t,
-            false
-          ),
-          center_y: ease_strategy(
-            trs_start.center_y,
-            trs_end.center_y,
-            anim_t,
-            false
-          ),
+          center_x: ease_strategy(trs_start.center_x, trs_end.center_x, anim_t, false),
+          center_y: ease_strategy(trs_start.center_y, trs_end.center_y, anim_t, false),
           scale: ease_strategy(trs_start.scale, trs_end.scale, anim_t, false),
-          theta: ease_strategy_angle(
-            trs_start.theta,
-            trs_end.theta,
-            anim_t,
-            true
-          ),
+          theta: ease_strategy_angle(trs_start.theta, trs_end.theta, anim_t, true),
         };
         // Build and set matrix
         const canvas = document.getElementById("gl_canvas");
@@ -183,8 +160,7 @@
         } else {
           animating = false;
           showing_region = anim_dir === 1;
-          document.getElementById("toggle_region_btn").textContent =
-            showing_region ? "show_full_image" : "show_region";
+          document.getElementById("toggle_region_btn").textContent = showing_region ? "show_full_image" : "show_region";
         }
       }
       // ───────────── build matrices for current canvas size
@@ -199,10 +175,7 @@
         const scale_start = d_canvas / texture_side;
 
         const a_start = mat_mul(
-          mat_mul(
-            mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_start)),
-            mat_rotate(initial_rotation)
-          ),
+          mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_start)), mat_rotate(initial_rotation)),
           mat_translate(-center_start.x, -center_start.y)
         );
         start_matrix = mat_mul(proj, a_start);
@@ -233,10 +206,7 @@
           theta: -region_theta,
         };
         const a_end = mat_mul(
-          mat_mul(
-            mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_end)),
-            mat_rotate(-region_theta)
-          ),
+          mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_end)), mat_rotate(-region_theta)),
           mat_translate(-center_end.x, -center_end.y)
         );
         end_matrix = mat_mul(proj, a_end);
@@ -245,11 +215,7 @@
       function draw() {
         gl_ctx.clearColor(0, 0, 0, 1);
         gl_ctx.clear(gl_ctx.COLOR_BUFFER_BIT);
-        gl_ctx.uniformMatrix3fv(
-          uniform_matrix,
-          false,
-          showing_region ? end_matrix : start_matrix
-        );
+        gl_ctx.uniformMatrix3fv(uniform_matrix, false, showing_region ? end_matrix : start_matrix);
         gl_ctx.drawArrays(gl_ctx.TRIANGLE_STRIP, 0, 4);
       }
       // ───────────── init
@@ -275,16 +241,7 @@
         img.onload = () => {
           texture_side = img.width;
           // create buffers now that we know "side"
-          const pos = new Float32Array([
-            0,
-            0,
-            texture_side,
-            0,
-            0,
-            texture_side,
-            texture_side,
-            texture_side,
-          ]);
+          const pos = new Float32Array([0, 0, texture_side, 0, 0, texture_side, texture_side, texture_side]);
           const uv = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
           const pos_buf = gl_ctx.createBuffer();
           gl_ctx.bindBuffer(gl_ctx.ARRAY_BUFFER, pos_buf);
@@ -301,34 +258,11 @@
           // texture
           gl_texture = gl_ctx.createTexture();
           gl_ctx.bindTexture(gl_ctx.TEXTURE_2D, gl_texture);
-          gl_ctx.texParameteri(
-            gl_ctx.TEXTURE_2D,
-            gl_ctx.TEXTURE_MIN_FILTER,
-            gl_ctx.LINEAR
-          );
-          gl_ctx.texParameteri(
-            gl_ctx.TEXTURE_2D,
-            gl_ctx.TEXTURE_MAG_FILTER,
-            gl_ctx.LINEAR
-          );
-          gl_ctx.texParameteri(
-            gl_ctx.TEXTURE_2D,
-            gl_ctx.TEXTURE_WRAP_S,
-            gl_ctx.CLAMP_TO_EDGE
-          );
-          gl_ctx.texParameteri(
-            gl_ctx.TEXTURE_2D,
-            gl_ctx.TEXTURE_WRAP_T,
-            gl_ctx.CLAMP_TO_EDGE
-          );
-          gl_ctx.texImage2D(
-            gl_ctx.TEXTURE_2D,
-            0,
-            gl_ctx.RGBA,
-            gl_ctx.RGBA,
-            gl_ctx.UNSIGNED_BYTE,
-            img
-          );
+          gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_MIN_FILTER, gl_ctx.LINEAR);
+          gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_MAG_FILTER, gl_ctx.LINEAR);
+          gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_WRAP_S, gl_ctx.CLAMP_TO_EDGE);
+          gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_WRAP_T, gl_ctx.CLAMP_TO_EDGE);
+          gl_ctx.texImage2D(gl_ctx.TEXTURE_2D, 0, gl_ctx.RGBA, gl_ctx.RGBA, gl_ctx.UNSIGNED_BYTE, img);
           resize_canvas();
           draw();
         };
@@ -337,15 +271,13 @@
           resize_canvas();
           draw();
         });
-        document
-          .getElementById("toggle_region_btn")
-          .addEventListener("click", () => {
-            if (animating) return;
-            animating = true;
-            anim_dir = showing_region ? -1 : 1;
-            anim_start_time = 0;
-            requestAnimationFrame(animate_step);
-          });
+        document.getElementById("toggle_region_btn").addEventListener("click", () => {
+          if (animating) return;
+          animating = true;
+          anim_dir = showing_region ? -1 : 1;
+          anim_start_time = 0;
+          requestAnimationFrame(animate_step);
+        });
       }
       function resize_canvas() {
         const canvas = document.getElementById("gl_canvas");
