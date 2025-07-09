@@ -1,5 +1,5 @@
 // image_region_zoom_animator.js
-// Provides region zoom animation and matrix helpers for WebGL image/canvas transitions.
+// Provides animation and matrix helpers for image region zoom transitions in WebGL.
 // No canvas passing; always use an existing WebGL context.
 
 // Matrix helpers (column-major 3x3)
@@ -52,8 +52,8 @@ function ease_in_out_cubic(a, b, t, is_angle) {
   }
 }
 
-// Main animator factory
-function create_region_zoom_animator(params) {
+// Main animator factory for image region zoom animation
+function create_image_region_zoom_animator(params) {
   // params: {
   //   gl: WebGLRenderingContext,
   //   uniform_matrix: WebGLUniformLocation,
@@ -171,4 +171,4 @@ function create_region_zoom_animator(params) {
 }
 
 // Export
-window.create_region_zoom_animator = create_region_zoom_animator;
+window.create_image_region_zoom_animator = create_image_region_zoom_animator;
