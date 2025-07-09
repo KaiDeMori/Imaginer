@@ -1,4 +1,4 @@
-// region_zoom_animator.js
+// image_region_zoom_animator.js
 // Provides region zoom animation and matrix helpers for WebGL image/canvas transitions.
 // No canvas passing; always use an existing WebGL context.
 
@@ -85,13 +85,7 @@ function create_region_zoom_animator(params) {
     const proj = mat_ortho(w, h);
     return mat_mul(
       proj,
-      mat_mul(
-        mat_mul(
-          mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(trs.scale)),
-          mat_rotate(trs.theta)
-        ),
-        mat_translate(-trs.center_x, -trs.center_y)
-      )
+      mat_mul(mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(trs.scale)), mat_rotate(trs.theta)), mat_translate(-trs.center_x, -trs.center_y))
     );
   }
 
@@ -133,18 +127,8 @@ function create_region_zoom_animator(params) {
     t = Math.min(Math.max(t, 0), 1);
     anim_t = anim_dir === 1 ? t : 1 - t;
     const trs = {
-      center_x: ease_strategy(
-        trs_start.center_x,
-        trs_end.center_x,
-        anim_t,
-        false
-      ),
-      center_y: ease_strategy(
-        trs_start.center_y,
-        trs_end.center_y,
-        anim_t,
-        false
-      ),
+      center_x: ease_strategy(trs_start.center_x, trs_end.center_x, anim_t, false),
+      center_y: ease_strategy(trs_start.center_y, trs_end.center_y, anim_t, false),
       scale: ease_strategy(trs_start.scale, trs_end.scale, anim_t, false),
       theta: ease_strategy_angle(trs_start.theta, trs_end.theta, anim_t, true),
     };
@@ -173,11 +157,7 @@ function create_region_zoom_animator(params) {
   function draw(canvas) {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    const mat = build_trs_matrix(
-      showing_region ? trs_end : trs_start,
-      canvas.width,
-      canvas.height
-    );
+    const mat = build_trs_matrix(showing_region ? trs_end : trs_start, canvas.width, canvas.height);
     gl.uniformMatrix3fv(uniform_matrix, false, mat);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
