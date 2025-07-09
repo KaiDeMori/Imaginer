@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Image Region Zoom TRIAL</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      #gl_canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #ui_panel {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui_panel"><button id="toggle_region_btn">show_region</button></div>
+    <canvas id="gl_canvas"></canvas>
+    <script type="module">
+      import "./image_region_zoom_utils.js";
+      import "./image_region_zoom.js";
+      window.image_region_zoom_init();
+    </script>
+  </body>
+</html>
