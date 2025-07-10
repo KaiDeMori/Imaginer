@@ -112,18 +112,17 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     }
   }
 
-  function start_texture_region_zoom(gl, canvas, texture, texture_side_arg, start_transform, on_complete) {
+  /**
+   * Starts the region zoom animation for one or more layers.
+   * Requires: layers (array of {image, texture}), initial_rotation (radians), and a completion callback.
+   * The first layer in the array is used for geometry setup; all layers can be rendered if needed.
+   */
+  function start_texture_region_zoom(gl, canvas, layers, initial_rotation, on_complete) {
     gl_ctx = gl;
     config = window.infinity_zoom_II.config.region_zoom;
-    on_complete_callbacks = on_complete || null;
-    if (start_transform) {
-      log("[TEXTURE REGION ZOOM] Received start_transform:", {
-        theta: start_transform.theta,
-      });
-    }
-    log("start_transform", start_transform);
-    log("start_transform.theta", start_transform && start_transform.theta);
-    initial_rotation = (start_transform && start_transform.theta) || 0;
+    on_complete_callbacks = on_complete;
+    log("initial_rotation", initial_rotation);
+    // initial_rotation must be provided explicitly
     // Setup program if not already
     if (!gl_program) {
       const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
@@ -143,8 +142,9 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
       uniform_matrix = gl_ctx.getUniformLocation(gl_program, "u_matrix");
     }
 
-    gl_texture = texture;
-    texture_side = texture_side_arg;
+    // Use the first layer for geometry setup (assume all layers are same size)
+    const main_layer = layers[0];
+    texture_side = main_layer.image.width;
     // Setup geometry
     const pos = new Float32Array([0, 0, texture_side, 0, 0, texture_side, texture_side, texture_side]);
     // Flip V coordinate in UVs to compensate for Y-flip during texture upload

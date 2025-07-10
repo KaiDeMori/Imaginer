@@ -389,3 +389,32 @@ const engine = {
 };
 
 window.infinity_zoom_II.engine = engine;
+
+/**
+ * LAYER OBJECT STRUCTURE (Infinity Zoom II Engine)
+ *
+ * Each element in the 'layers' array represents a single image layer in the zoom stack.
+ *
+ * Properties:
+ *   image   – The image data for the layer (e.g., HTMLImageElement or similar).
+ *   zoom    – The zoom factor for this layer (number, typically percentage or scale multiplier).
+ *   texture – The WebGL texture object associated with the image (used for GPU rendering).
+ *   alpha   – The opacity value for rendering this layer (number, 0.0–1.0).
+ *   scale   – The current scale factor applied to this layer for rendering (number).
+ *   loaded  – Boolean indicating if the image/texture is loaded and ready for rendering.
+ *
+ * This structure allows the engine and region zoom modules to:
+ *   - Access both the image and its GPU texture for rendering.
+ *   - Track per-layer rendering state (opacity, scale, loaded status).
+ *   - Pass multiple layers (e.g., last and penultimate) to region zoom for seamless feathered transitions.
+ *
+ * Example:
+ *   {
+ *     image:   <HTMLImageElement>,
+ *     zoom:    95,
+ *     texture: <WebGLTexture>,
+ *     alpha:   1.0,
+ *     scale:   0.5,
+ *     loaded:  true
+ *   }
+ */
