@@ -3,6 +3,7 @@
 // NOTE: Use global log(msg) utility. Single parameter: the message to log.
 
 // Config module for Infinity Zoom II
+// Y-flip/orientation is handled per-layer using FLAG_Y_flipped, not globally.
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
 Object.assign(window.infinity_zoom_II.config, {
@@ -17,7 +18,7 @@ Object.assign(window.infinity_zoom_II.config, {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second, default from V1).
-  zoom_speed: 3, //TRIALS originally: 1.2;
+  zoom_speed: 0.3, //TRIALS originally: 1.2;
   // Controls whether dynamic feathering is active (set externally before engine loads)
   FLAG_Use_dynamic_feather: true,
 });
@@ -32,6 +33,7 @@ window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 // Main engine object (will be attached to window.infinity_zoom_II)
 const engine = {
   // State
+  // Each layer has a FLAG_Y_flipped property indicating if its image data is already Y-flipped.
   gl: null,
   canvas: null,
   layers: [], // { image, zoom, texture, alpha, scale, ... }
@@ -61,8 +63,7 @@ const engine = {
       alpha: 1.0,
       scale: 1.0,
       loaded: false,
-      // Set per-layer Y-flip flag: for feathered mode, only images after the first are Y-flipped
-      FLAG_Y_flipped: DYNAMIC_FEATHER_ACTIVE ? (i === 0 ? false : true) : false,
+      // Y-flip is now always handled in the texture upload; no per-layer flag needed.
     }));
     this.start_time = performance.now();
     this.animation_phase = "intro";

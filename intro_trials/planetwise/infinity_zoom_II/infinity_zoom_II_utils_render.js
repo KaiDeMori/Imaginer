@@ -33,10 +33,10 @@ function create_quad_buffer(gl) {
 }
 // Upload a layer's image to GPU as a texture
 function upload_texture(gl, layer) {
-  // Upload image as texture, flipping Y only if not already flipped
+  // Upload image as texture, always flipping Y to match WebGL's coordinate system.
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, !layer.FLAG_Y_flipped);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, layer.image);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);

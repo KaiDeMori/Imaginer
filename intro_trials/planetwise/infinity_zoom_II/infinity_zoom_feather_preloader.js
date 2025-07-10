@@ -1,14 +1,14 @@
 // infinity_zoom_feather_preloader.js
 
 // Feathered image preloader logic (mirrors network preloader pattern)
-// Uses the engine-level constant FLAG_Y_FLIP for Y-flip logic to ensure consistent, natural image orientation across all modules.
+// Y-flip is handled per-layer in the engine, not here. This module only produces feathered canvases.
 let feathered_images = [];
 let feathered_loaded = false;
 let feathered_callbacks = [];
 
 /**
  * Preloads images and applies feathering using WebGL.
- * Y-flip is always controlled by the engine-level constant FLAG_Y_FLIP (true = natural orientation, false = flipped).
+ * Y-flip is not handled here. The engine determines orientation per layer.
  * @param {Array} layer_data - Data describing the image layers to load.
  * @param {string} image_folder - Folder containing the images.
  * @param {number} feather_size - Size of the feathering effect.
@@ -138,8 +138,8 @@ function preload_and_feather_images(layer_data, image_folder = "zoom_images", fe
       // Upload image as texture
       const tex = shared_gl.createTexture();
       shared_gl.bindTexture(shared_gl.TEXTURE_2D, tex);
-      // Y-flip is always controlled by window.infinity_zoom_II.FLAG_Y_FLIP (single source of truth)
-      shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, window.infinity_zoom_II.FLAG_Y_FLIP);
+      // Y-flip is not handled here; engine will upload with correct orientation
+      shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, false);
       shared_gl.texImage2D(shared_gl.TEXTURE_2D, 0, shared_gl.RGBA, shared_gl.RGBA, shared_gl.UNSIGNED_BYTE, img);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MIN_FILTER, shared_gl.LINEAR);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MAG_FILTER, shared_gl.LINEAR);
