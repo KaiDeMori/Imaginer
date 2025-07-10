@@ -2,7 +2,7 @@
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
 if (!window.infinity_zoom_II.utils.region_zoom) {
-  // Assume image_region_zoom_utils.js is loaded first and attaches helpers
+  // Assume texture_region_zoom_utils.js is loaded first and attaches helpers
   // If not, fallback to local (should not happen in correct order)
   window.infinity_zoom_II.utils.region_zoom = {};
 }
