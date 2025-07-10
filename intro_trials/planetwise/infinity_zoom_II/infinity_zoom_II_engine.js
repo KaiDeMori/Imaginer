@@ -14,8 +14,10 @@
 //
 // Infinity Zoom II Engine – main structure and method stubs
 
-// Config module for Infinity Zoom II
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
+if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
+
+// Config module for Infinity Zoom II
 window.infinity_zoom_II.config = {
   // Minimum rendered layer size in pixels
   minimum_render_size: 3,
@@ -72,6 +74,10 @@ const engine = {
   init(layer_data, images, canvas) {
     this.canvas = canvas;
     this.gl = canvas.getContext("webgl", { alpha: false });
+    // Attach resize event handler after engine is initialized
+    window.addEventListener("resize", () => {
+      window.infinity_zoom_II.utils.render.resize_canvas_to_display_size(this.canvas, this.gl);
+    });
     // Enable alpha blending for fade-in/fade-out
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -334,25 +340,6 @@ const engine = {
     return scale;
   },
 
-  // Pre-calculate and upload all layers that will be visible at the given first_layer_scale before the intro begins
-  // canvas: the canvas element to determine min_dim
-  // first_layer_scale: scale of the first layer (default 1)
-  preload_intro_visible_layers(canvas, first_layer_scale = 1) {
-    // Calculate min_dim (minimum of canvas width/height)
-    const min_dim = Math.min(canvas.width, canvas.height);
-    // For each layer, compute its scale at the given first_layer_scale
-    for (let i = 0; i < this.layers.length; ++i) {
-      const scale = this.get_layer_scale(i, first_layer_scale);
-      const draw_size = scale * min_dim;
-      if (draw_size >= window.infinity_zoom_II.config.minimum_render_size) {
-        // Upload texture if not already uploaded
-        if (!this.layers[i].texture) {
-          window.infinity_zoom_II.utils.render.upload_texture(this.gl, this.layers[i]);
-        }
-      }
-    }
-  },
-
   // Generalized: Determine which layers are visible given current zoom and viewport
   // For now, wraps get_visible_layers logic for backward compatibility
   // current_zoom: scale of the first layer (usually 1 during intro)
@@ -379,15 +366,4 @@ const engine = {
   },
 };
 
-// Attach everything to a single root namespace
-if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 window.infinity_zoom_II.engine = engine;
-// Attach utils if not already present (assumes utils are loaded elsewhere)
-if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
-
-// Add a window resize event listener to dynamically adjust canvas size
-window.addEventListener("resize", () => {
-  if (window.infinity_zoom_II.engine && window.infinity_zoom_II.engine.canvas && window.infinity_zoom_II.engine.gl) {
-    window.infinity_zoom_II.utils.render.resize_canvas_to_display_size(window.infinity_zoom_II.engine.canvas, window.infinity_zoom_II.engine.gl);
-  }
-});
