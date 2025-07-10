@@ -2,40 +2,25 @@
 
 // NOTE: Use global log(msg) utility. Single parameter: the message to log.
 
-// Minimum rendered layer size in pixels (V2 documentation §2, §6; see also V1 engine).
 // Config module for Infinity Zoom II
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 window.infinity_zoom_II.config = {
+  // Minimum rendered layer size in pixels
   minimum_render_size: 3,
-  // Edge feathering for all but first layer (fraction of edge, V2 documentation §7).
+  // Edge feathering for all but first layer (fraction of edge).
   feather_value: 0.1,
-  // Minimum feather width for edge alpha ramp in pixels (V1 code snippet, see V1 engine).
+  // Minimum feather width for edge alpha ramp in pixels.
   feather_min_px: 2,
   // Initial rotation angle in radians.
   start_rotation_angle: 0,
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0.3,
-  // Exponential zoom rate (growth constant per second, default from V1; see V1 documentation and engine).
+  // Exponential zoom rate (growth constant per second, default from V1).
   zoom_speed: 3, //TRIALS originally: 1.2;
 };
 
-// Edge feathering for all but first layer (fraction of edge, V2 documentation §7).
-const INFINITY_ZOOM_FEATHER_VALUE = 0.1;
-
-// Minimum feather width for edge alpha ramp in pixels (V1 code snippet, see V1 engine).
-const INFINITY_ZOOM_FEATHER_MIN_PX = 2;
-
-// Initial rotation angle in radians.
-const INFINITY_ZOOM_START_ROTATION_ANGLE = 0; //Math.PI * (1 / 2);
-
-// Global rotation speed in radians per second. Positive values rotate clockwise.
-const INFINITY_ZOOM_ROTATION_SPEED = 0.3; //Math.PI / 60;
-
-// Exponential zoom rate (growth constant per second, default from V1; see V1 documentation and engine).
-const INFINITY_ZOOM_SPEED = 3; //TRIALS originally: 1.2;
-
 // Exposed flag for triggering final reveal from console
-window.FLAG_initiate_final_reveal = false;
+window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 
 // Main engine object
 // Main engine object (will be attached to window.infinity_zoom_II)
@@ -231,7 +216,7 @@ const engine = {
     } else if (this.animation_phase === "final_rotation") {
       // Keep rotating until FLAG_initiate_final_reveal is set from outside (e.g., browser console)
       this.rotation += this.rotation_speed * delta;
-      if (!window.FLAG_initiate_final_reveal) {
+      if (!window.infinity_zoom_II.FLAG_initiate_final_reveal) {
         requestAnimationFrame(this.animate.bind(this));
       } else {
         this.animation_phase = "done";
