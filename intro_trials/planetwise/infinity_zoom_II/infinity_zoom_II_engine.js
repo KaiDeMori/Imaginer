@@ -15,7 +15,7 @@ Object.assign(window.infinity_zoom_II.config, {
   // Initial rotation angle in radians.
   start_rotation_angle: 0,
   // Global rotation speed in radians per second. Positive values rotate clockwise.
-  rotation_speed: 0.3,
+  rotation_speed: 0,
   // Exponential zoom rate (growth constant per second, default from V1).
   zoom_speed: 3, //TRIALS originally: 1.2;
 });
@@ -229,6 +229,11 @@ const engine = {
         const last_layer = this.layers[this.layers.length - 1];
         // Defensive: fallback to first layer if last is missing
         const region_image = last_layer && last_layer.image ? last_layer.image : this.layers[0].image;
+        // Log transition values for debugging
+        console.log("[ENGINE → REGION ZOOM] Transitioning to region zoom with:", {
+          theta: this.rotation,
+          // Add more if you later pass center/scale
+        });
         // Start the region zoom animation
         region_zoom.start_region_zoom({
           gl: this.gl,
@@ -236,6 +241,7 @@ const engine = {
           image: region_image,
           config: region_config,
           direction: "in",
+          start_transform: { theta: this.rotation }, // carry over rotation
           on_complete: () => {
             this.animation_phase = "really_done";
             log("Region zoom animation complete.");

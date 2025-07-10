@@ -17,7 +17,7 @@ window.infinity_zoom_II.config.region_zoom = {
     p2: { x: 1004, y: 1036 },
     p3: { x: 1142, y: 1024 },
   },
-  image_url: "../zoom_images_planete/100_alien_closeup.png",
+  image_url: "../zoom_images_planete/debug/100_alien_closeup.jpg",
 };
 
 // Engine-driven region zoom API
@@ -38,7 +38,7 @@ window.infinity_zoom_II.image_region_zoom = (function () {
   let anim_start_time = 0;
   let ease_strategy = ease_in_out_cubic;
   let ease_strategy_angle = ease_in_out_cubic;
-  let initial_rotation = Math.random() * Math.PI * 2;
+  let initial_rotation = 1; // Math.random() * Math.PI * 2;
   let on_complete_cb = null;
   let config = null;
 
@@ -123,7 +123,14 @@ window.infinity_zoom_II.image_region_zoom = (function () {
     gl_ctx = params.gl;
     config = params.config;
     on_complete_cb = params.on_complete || null;
-    initial_rotation = (params.start_transform && params.start_transform.theta) || Math.random() * Math.PI * 2;
+    if (params.start_transform) {
+      log("[REGION ZOOM] Received start_transform:", {
+        theta: params.start_transform.theta,
+      });
+    }
+    log("start_transform", params.start_transform);
+    log("start_transform.theta", params.start_transform.theta);
+    initial_rotation = params.start_transform.theta;
     // Setup program and texture if not already
     if (!gl_program) {
       const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;

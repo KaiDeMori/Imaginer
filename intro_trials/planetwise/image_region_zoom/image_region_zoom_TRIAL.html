@@ -26,6 +26,7 @@
   <body>
     <div id="ui_panel"><button id="toggle_region_btn">show_region</button></div>
     <canvas id="gl_canvas"></canvas>
+    <script src="../infinity_zoom_II/infinity_zoom_debug.js"></script>
     <script src="./image_region_zoom_utils.js"></script>
     <script src="./image_region_zoom.js"></script>
     <script>
@@ -33,14 +34,14 @@
       window.infinity_zoom_II = window.infinity_zoom_II || {};
       window.infinity_zoom_II.config = window.infinity_zoom_II.config || {};
       window.infinity_zoom_II.config.region_zoom = {
-        anim_duration: 1600,
+        anim_duration: 4000,
         region_rect: {
           p0: { x: 1152, y: 1125 },
           p1: { x: 1014, y: 1136 },
           p2: { x: 1004, y: 1036 },
           p3: { x: 1142, y: 1024 },
         },
-        image_url: "../zoom_images_planete/100_alien_closeup.png",
+        image_url: "../zoom_images_planete/debug/100_alien_closeup.jpg",
       };
       // Patch: forcibly re-attach config to region_zoom module if needed
       if (window.infinity_zoom_II.image_region_zoom) {
