@@ -16,6 +16,9 @@
     <script src="infinity_zoom_feather_preloader.js" defer></script>
 
     <script defer>
+      // Global flag to control whether dynamic feathering is used
+      window.FLAG_Use_dynamic_feather = true;
+
       function start_infinity_zoom_II() {
         const RELATIVE_IMAGE_PATH = "../zoom_images_planete/debug/";
         const LAYERS_DATA = [
@@ -31,12 +34,7 @@
           { zoom: 25, image: "100_alien_closeup.jpg" },
         ];
 
-        // Set Y-flip flag for all modules (true = natural/unflipped orientation, false = flipped)
-        // This is the single source of truth for Y-flip logic across the engine and all helpers.
-        if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-        window.infinity_zoom_II.FLAG_Y_FLIP = true;
-
-        if (window.infinity_zoom_II.FLAG_Y_FLIP) {
+        if (window.FLAG_Use_dynamic_feather) {
           window.infinity_zoom_II.feather_preloader.preload_and_feather_images(LAYERS_DATA, RELATIVE_IMAGE_PATH, 300);
           window.infinity_zoom_II.feather_preloader.on_feathered_images_ready(function (feathered_images) {
             window.infinity_zoom_II.engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));

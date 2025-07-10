@@ -18,7 +18,12 @@ Object.assign(window.infinity_zoom_II.config, {
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second, default from V1).
   zoom_speed: 3, //TRIALS originally: 1.2;
+  // Controls whether dynamic feathering is active (set externally before engine loads)
+  FLAG_Use_dynamic_feather: true,
 });
+
+// Internal engine constant for feathering logic
+const DYNAMIC_FEATHER_ACTIVE = window.infinity_zoom_II.config.FLAG_Use_dynamic_feather;
 
 // Exposed flag for triggering final reveal from console
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
