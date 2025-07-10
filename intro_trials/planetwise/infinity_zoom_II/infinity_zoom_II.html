@@ -16,6 +16,8 @@
 
     <script defer>
       function start_infinity_zoom_II() {
+        // Set to true if you want to use dynamic feathering (slower, but smoother transitions)
+        const use_dynamic_feather = false;
         const RELATIVE_IMAGE_PATH = "../zoom_images_planete/debug/";
         const LAYERS_DATA = [
           //  { zoom: 25, image: "10_new_planete_fixed.jpg" },
@@ -29,7 +31,6 @@
           { zoom: 25, image: "90_alien_hut.jpg" },
           { zoom: 25, image: "100_alien_closeup.jpg" },
         ];
-        const use_dynamic_feather = false;
         window.infinity_zoom_II.engine.create(LAYERS_DATA, RELATIVE_IMAGE_PATH, document.getElementById("zoom_canvas"), use_dynamic_feather, 300);
       }
     </script>
