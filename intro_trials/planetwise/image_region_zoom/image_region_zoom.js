@@ -23,7 +23,7 @@ window.infinity_zoom_II.config.region_zoom = {
 window.infinity_zoom_II.texture_region_zoom = (function () {
   // Use helpers from namespace
   const { mat_mul, mat_translate, mat_scale, mat_rotate, mat_ortho, lerp, ease_linear, ease_in_out_cubic, ease_in_out_exponential, build_trs_matrix } =
-    window.infinity_zoom_II.utils.region_zoom;
+    window.infinity_zoom_II.utils.texture_region_zoom;
 
   // Internal state
   let gl_ctx, gl_program, gl_texture, uniform_matrix;

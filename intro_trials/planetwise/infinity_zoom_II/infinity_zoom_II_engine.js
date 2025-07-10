@@ -223,7 +223,7 @@ const engine = {
         this.animation_phase = "region_zoom";
         log("Final reveal triggered. Starting region zoom animation.");
         // Prepare region zoom parameters
-        const region_zoom = window.infinity_zoom_II.image_region_zoom;
+        const region_zoom = window.infinity_zoom_II.texture_region_zoom;
         const region_config = window.infinity_zoom_II.config.region_zoom;
         // Use the last layer's image for the region zoom
         const last_layer = this.layers[this.layers.length - 1];
@@ -235,15 +235,14 @@ const engine = {
           // Add more if you later pass center/scale
         });
         // Start the region zoom animation, passing the existing texture and its size
-        region_zoom.start_region_zoom({
+        region_zoom.start_texture_region_zoom({
           gl: this.gl,
           canvas: this.canvas,
-          image: region_image, // still pass for width/height fallback
           texture: last_layer.texture,
-          texture_side: region_image.width, // or last_layer.image.width
+          texture_side: last_layer.image.width,
           config: region_config,
           direction: "in",
-          start_transform: { theta: this.rotation }, // carry over rotation
+          start_transform: { theta: this.rotation },
           on_complete: () => {
             this.animation_phase = "really_done";
             log("Region zoom animation complete.");

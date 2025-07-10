@@ -1,5 +1,5 @@
-// image_region_zoom_utils.js
-// Utility functions for matrix math, interpolation, and helpers for region zoom
+// texture_region_zoom_utils.js
+// Utility functions for matrix math, interpolation, and helpers for texture region zoom
 
 // Matrix math (column-major 3x3)
 function mat_mul(a, b) {
@@ -74,10 +74,10 @@ function build_trs_matrix(trs, w, h) {
   );
 }
 
-// Attach all helpers to window.infinity_zoom_II.utils.region_zoom
+// Attach all helpers to window.infinity_zoom_II.utils.texture_region_zoom
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
-window.infinity_zoom_II.utils.region_zoom = {
+window.infinity_zoom_II.utils.texture_region_zoom = {
   mat_mul,
   mat_translate,
   mat_scale,
