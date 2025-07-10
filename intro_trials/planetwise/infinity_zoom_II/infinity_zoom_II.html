@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <title>Infinity Zoom II</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Preloader and debug utilities (must be loaded before engine) -->
 
     <script src="infinity_zoom_preloader.js" defer></script>
     <script src="infinity_zoom_debug.js" defer></script>
@@ -16,11 +15,6 @@
     <script src="infinity_zoom_feather_preloader.js" defer></script>
 
     <script defer>
-      // Set feathering config before engine/preloader use
-      if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-      if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
-      window.infinity_zoom_II.config.FLAG_Use_dynamic_feather = false;
-
       function start_infinity_zoom_II() {
         const RELATIVE_IMAGE_PATH = "../zoom_images_planete/debug/";
         const LAYERS_DATA = [
@@ -35,7 +29,7 @@
           { zoom: 25, image: "90_alien_hut.jpg" },
           { zoom: 25, image: "100_alien_closeup.jpg" },
         ];
-        const use_dynamic_feather = window.infinity_zoom_II.config.FLAG_Use_dynamic_feather;
+        const use_dynamic_feather = false;
         window.infinity_zoom_II.engine.create(LAYERS_DATA, RELATIVE_IMAGE_PATH, document.getElementById("zoom_canvas"), use_dynamic_feather, 300);
       }
     </script>
