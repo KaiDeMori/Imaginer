@@ -138,8 +138,8 @@ function preload_and_feather_images(layer_data, image_folder = "zoom_images", fe
       // Upload image as texture
       const tex = shared_gl.createTexture();
       shared_gl.bindTexture(shared_gl.TEXTURE_2D, tex);
-      // Y-flip is not handled here; engine will upload with correct orientation
-      shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, false);
+      // Y-flip is handled here: output canvas will be upright (top-left origin)
+      shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, true);
       shared_gl.texImage2D(shared_gl.TEXTURE_2D, 0, shared_gl.RGBA, shared_gl.RGBA, shared_gl.UNSIGNED_BYTE, img);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MIN_FILTER, shared_gl.LINEAR);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MAG_FILTER, shared_gl.LINEAR);

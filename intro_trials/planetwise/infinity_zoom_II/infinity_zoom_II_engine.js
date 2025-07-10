@@ -100,14 +100,14 @@ const engine = {
         v_texcoord = a_texcoord;
       }
     `;
-    // Sample with flipped Y to match UNPACK_FLIP_Y_WEBGL=true
+    // No Y-flip: input is always upright
     const fs_source = `
       precision mediump float;
       varying vec2 v_texcoord;
       uniform sampler2D u_image;
       uniform float u_alpha;
       void main() {
-        vec4 color = texture2D(u_image, vec2(v_texcoord.x, 1.0 - v_texcoord.y));
+        vec4 color = texture2D(u_image, v_texcoord);
         gl_FragColor = vec4(color.rgb, color.a * u_alpha);
       }
     `;
@@ -121,6 +121,7 @@ const engine = {
     this.u_matrix = gl.getUniformLocation(program, "u_matrix");
     this.u_image = gl.getUniformLocation(program, "u_image");
     this.u_alpha = gl.getUniformLocation(program, "u_alpha");
+    // All texture uploads must use gl.UNPACK_FLIP_Y_WEBGL = false (input is upright)
 
     requestAnimationFrame(this.animate.bind(this));
   },
