@@ -17,9 +17,9 @@
 // NOTE: Use global log(msg) utility. Single parameter: the message to log.
 
 // Config module for Infinity Zoom II
-// Y-flip/orientation is handled per-layer using FLAG_Y_flipped, not globally.
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
+
 Object.assign(window.infinity_zoom_II.config, {
   // Minimum rendered layer size in pixels
   minimum_render_size: 3,
@@ -40,20 +40,18 @@ Object.assign(window.infinity_zoom_II.config, {
 // Exposed flag for triggering final reveal from console. ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 
-// Main engine object
 // Main engine object (will be attached to window.infinity_zoom_II)
 const engine = {
   /**
    * Create and initialize the engine, handling feathered or non-feathered image loading.
-   * This is now the only entry point for starting the engine; feathering is controlled by the argument, not global config.
+   * If feather_size is provided (not undefined), feathering is used; otherwise, standard images are loaded.
    * @param {Array} layer_data - Array of layer objects.
    * @param {string} image_path - Path to image folder.
    * @param {HTMLCanvasElement} canvas - The canvas element.
-   * @param {boolean} use_dynamic_feather - Whether to use feathered images.
-   * @param {number} feather_size - Feather size (optional, default 300).
+   * @param {number} [feather_size] - Feather size (optional). If provided, feathering is used.
    */
-  create(layer_data, image_path, canvas, use_dynamic_feather, feather_size = 300) {
-    if (use_dynamic_feather) {
+  create(layer_data, image_path, canvas, feather_size) {
+    if (typeof feather_size !== "undefined") {
       window.infinity_zoom_II.feather_preloader.preload_and_feather_images(layer_data, image_path, feather_size);
       window.infinity_zoom_II.feather_preloader.on_feathered_images_ready((feathered_images) => {
         this.init(layer_data, feathered_images, canvas);
