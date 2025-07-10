@@ -276,8 +276,8 @@ const engine = {
           this.canvas,
           last_layer.texture,
           last_layer.image.width,
-          "in",
           { theta: this.rotation },
+          // Callback when region zoom is complete
           () => {
             this.animation_phase = "really_done";
             log("Region zoom animation complete.");
