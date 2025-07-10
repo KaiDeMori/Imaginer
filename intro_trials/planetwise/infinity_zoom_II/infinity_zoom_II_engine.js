@@ -14,13 +14,9 @@
 //
 // Infinity Zoom II Engine – main structure and method stubs
 
-// NOTE: Use global log(msg) utility. Single parameter: the message to log.
-
 // Config module for Infinity Zoom II
-if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
-
-Object.assign(window.infinity_zoom_II.config, {
+window.infinity_zoom_II = {};
+window.infinity_zoom_II.config = {
   // Minimum rendered layer size in pixels
   minimum_render_size: 3,
   // Edge feathering for all but first layer (fraction of edge).
@@ -34,8 +30,7 @@ Object.assign(window.infinity_zoom_II.config, {
   // Exponential zoom rate (growth constant per second, default from V1).
   zoom_speed: 1, //TRIALS originally: 1.2;
   // Controls whether dynamic feathering is active (set externally before engine loads)
-  // FLAG_Use_dynamic_feather is set externally and not overwritten here.
-});
+};
 
 // Exposed flag for triggering final reveal from console. ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
@@ -44,7 +39,7 @@ window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 const engine = {
   /**
    * Create and initialize the engine, handling feathered or non-feathered image loading.
-   * If feather_size is provided (not undefined), feathering is used; otherwise, standard images are loaded.
+   * If feather_size is provided (not undefined), feathering is used; otherwise, the image loading is non-feathered.
    * @param {Array} layer_data - Array of layer objects.
    * @param {string} image_path - Path to image folder.
    * @param {HTMLCanvasElement} canvas - The canvas element.
@@ -64,25 +59,19 @@ const engine = {
     }
   },
   // State
-  // Each layer has a FLAG_Y_flipped property indicating if its image data is already Y-flipped.
   gl: null,
   canvas: null,
-  layers: [], // { image, zoom, texture, alpha, scale, ... }
+  layers: [],
   start_time: 0,
-  animation_phase: "intro", // 'intro', 'main_zoom', 'done'
+  animation_phase: "intro",
   rotation: 0,
   rotation_speed: window.infinity_zoom_II.config.rotation_speed,
   zoom_speed: window.infinity_zoom_II.config.zoom_speed,
-  // ...other state as needed
 
   // Internal: Initialize engine with preloaded images and canvas. Do not call directly; use create().
   init(layer_data, images, canvas) {
     this.canvas = canvas;
     this.gl = canvas.getContext("webgl", { alpha: false });
-    if (!this.gl) {
-      log("WebGL not supported");
-      return;
-    }
     // Enable alpha blending for fade-in/fade-out
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
