@@ -154,9 +154,6 @@ const engine = {
           layer.scale = this.get_layer_scale(i, first_layer_scale);
           layer.alpha = 0;
         }
-        // Dynamic resource management (intro phase: current_zoom=1)
-        const viewport = { width: this.canvas.width, height: this.canvas.height };
-        //this.update_layer_resource_states(viewport);
         requestAnimationFrame(this.animate.bind(this));
       } else if (elapsed < zoom_duration + fade_duration) {
         // Fade-in additional layers: keep correct relative scale (relative to first layer)
@@ -167,7 +164,6 @@ const engine = {
         }
         const fade_t = (elapsed - zoom_duration) / fade_duration;
         const viewport = { width: this.canvas.width, height: this.canvas.height };
-        //this.update_layer_resource_states(viewport);
         const visible_layers = this.determine_visible_layers(viewport);
         for (let i = 1; i < this.layers.length; ++i) {
           const layer = this.layers[i];
@@ -228,7 +224,6 @@ const engine = {
         layer.alpha = 1;
       }
 
-      //this.update_layer_resource_states(viewport);
       // Check if last layer covers the viewport (no bars, covers both width and height)
       const last_layer = this.layers[this.layers.length - 1];
       const last_layer_draw_size = last_layer.scale * min_dim;
@@ -381,28 +376,6 @@ const engine = {
     const layer = this.layers[layer_index];
     if (layer && layer.texture) {
       window.infinity_zoom_II.utils.render.delete_texture(this.gl, layer);
-    }
-  },
-
-  // Orchestrate dynamic upload/removal of layers based on visibility
-  // current_zoom: scale of the first layer
-  // viewport: { width, height }
-  update_layer_resource_states(viewport) {
-    // Get the set of layers that should be visible (and thus uploaded)
-    const visible_layers = this.determine_visible_layers(viewport);
-    // Build a Set for fast lookup
-    const visible_set = new Set(visible_layers);
-    for (let i = 0; i < this.layers.length; ++i) {
-      const layer = this.layers[i];
-      const should_be_uploaded = visible_set.has(layer);
-      const is_uploaded = window.infinity_zoom_II.utils.render.is_layer_uploaded(layer);
-      if (should_be_uploaded && !is_uploaded) {
-        this.upload_layer_to_gpu(i);
-        log("Uploaded layer " + i);
-      } else if (!should_be_uploaded && is_uploaded) {
-        this.remove_layer_from_gpu(i);
-        log("Removed layer " + i);
-      }
     }
   },
 

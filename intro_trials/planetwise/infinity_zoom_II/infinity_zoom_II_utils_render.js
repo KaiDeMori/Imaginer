@@ -66,11 +66,6 @@ function resize_canvas_to_display_size(canvas, gl) {
   gl.viewport(0, 0, canvas.width, canvas.height);
 }
 
-// Returns true if the layer's texture is currently uploaded to the GPU
-function is_layer_uploaded(layer) {
-  return !!(layer && layer.texture);
-}
-
 // Attach to unified namespace
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
@@ -78,7 +73,6 @@ window.infinity_zoom_II.utils.render = {
   upload_texture,
   delete_texture,
   resize_canvas_to_display_size,
-  is_layer_uploaded,
   compile_shader,
   create_program,
   create_quad_buffer,
