@@ -5,12 +5,46 @@
     <title>Infinity Zoom II</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Preloader and debug utilities (must be loaded before engine) -->
-    <script src="infinity_zoom_preloader.js"></script>
-    <script src="infinity_zoom_debug.js"></script>
-    <script src="infinity_zoom_II_utils_math.js"></script>
-    <script src="infinity_zoom_II_utils_render.js"></script>
-    <script src="infinity_zoom_II_engine.js"></script>
-    <script src="infinity_zoom_feather_preloader.js"></script>
+
+    <script src="infinity_zoom_preloader.js" defer></script>
+    <script src="infinity_zoom_debug.js" defer></script>
+    <script src="infinity_zoom_II_utils_math.js" defer></script>
+    <script src="infinity_zoom_II_utils_render.js" defer></script>
+    <script src="../image_region_zoom/image_region_zoom_utils.js" defer></script>
+    <script src="../image_region_zoom/image_region_zoom.js" defer></script>
+    <script src="infinity_zoom_II_engine.js" defer></script>
+    <script src="infinity_zoom_feather_preloader.js" defer></script>
+
+    <script defer>
+      function start_infinity_zoom_II() {
+        const RELATIVE_IMAGE_PATH = "../zoom_images_planete/jpg/";
+        const LAYERS_DATA = [
+          { zoom: 25, image: "10_new_planete_fixed.jpg" },
+          { zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.jpg" },
+          { zoom: 25, image: "30_alien_island_II_tricky_transition.jpg" },
+          { zoom: 25, image: "40_alien_island_II_atoll_tiny_land.jpg" },
+          { zoom: 25, image: "50_alien_island_II_atoll.jpg" },
+          { zoom: 25, image: "60_alien_island_II.jpg" },
+          { zoom: 25, image: "70_alien_forest.jpg" },
+          { zoom: 25, image: "80_alien_village.jpg" },
+          { zoom: 25, image: "90_alien_hut.jpg" },
+          { zoom: 25, image: "100_alien_closeup.jpg" },
+        ];
+        const USE_DYNAMIC_FEATHER = true;
+        window.INFINITY_ZOOM_FLIP_Y_ON_UPLOAD = !USE_DYNAMIC_FEATHER;
+        if (USE_DYNAMIC_FEATHER) {
+          window.infinity_zoom_II.feather_preloader.preload_and_feather_images(LAYERS_DATA, RELATIVE_IMAGE_PATH, 300);
+          window.infinity_zoom_II.feather_preloader.on_feathered_images_ready(function (feathered_images) {
+            window.infinity_zoom_II.engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));
+          });
+        } else {
+          window.infinity_zoom_II.preloader.preload_images(LAYERS_DATA, RELATIVE_IMAGE_PATH);
+          window.infinity_zoom_II.preloader.on_images_loaded(function (images) {
+            window.infinity_zoom_II.engine.init(LAYERS_DATA, images, document.getElementById("zoom_canvas"));
+          });
+        }
+      }
+    </script>
 
     <style>
       html,
@@ -32,42 +66,7 @@
     </style>
   </head>
 
-  <body>
+  <body onload="start_infinity_zoom_II()">
     <canvas id="zoom_canvas"></canvas>
-    <script>
-      const RELATIVE_IMAGE_PATH = "../zoom_images_planete/jpg/";
-
-      const LAYERS_DATA = [
-        { zoom: 25, image: "10_new_planete_fixed.jpg" },
-        { zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.jpg" },
-        { zoom: 25, image: "30_alien_island_II_tricky_transition.jpg" },
-        { zoom: 25, image: "40_alien_island_II_atoll_tiny_land.jpg" },
-        { zoom: 25, image: "50_alien_island_II_atoll.jpg" },
-        { zoom: 25, image: "60_alien_island_II.jpg" },
-        { zoom: 25, image: "70_alien_forest.jpg" },
-        { zoom: 25, image: "80_alien_village.jpg" },
-        { zoom: 25, image: "90_alien_hut.jpg" },
-        { zoom: 25, image: "100_alien_closeup.jpg" },
-      ];
-
-      // Controls whether to use dynamic feathering (WebGL feather preprocessor).
-      // true: Use feathering (no flip on upload). false: Use raw images (flip on upload).
-      const USE_DYNAMIC_FEATHER = true;
-
-      // Global flag for WebGL Y-flip, set based on feathering pipeline
-      window.INFINITY_ZOOM_FLIP_Y_ON_UPLOAD = !USE_DYNAMIC_FEATHER;
-
-      if (USE_DYNAMIC_FEATHER) {
-        window.infinity_zoom_II.feather_preloader.preload_and_feather_images(LAYERS_DATA, RELATIVE_IMAGE_PATH, 300);
-        window.infinity_zoom_II.feather_preloader.on_feathered_images_ready(function (feathered_images) {
-          window.infinity_zoom_II.engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));
-        });
-      } else {
-        window.infinity_zoom_II.preloader.preload_images(LAYERS_DATA, RELATIVE_IMAGE_PATH);
-        window.infinity_zoom_II.preloader.on_images_loaded(function (images) {
-          window.infinity_zoom_II.engine.init(LAYERS_DATA, images, document.getElementById("zoom_canvas"));
-        });
-      }
-    </script>
   </body>
 </html>

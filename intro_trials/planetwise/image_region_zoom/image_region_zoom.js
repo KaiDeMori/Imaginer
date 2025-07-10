@@ -20,13 +20,13 @@ window.infinity_zoom_II.config.region_zoom = {
   image_url: "../zoom_images_planete/100_alien_closeup.png",
 };
 
+// Engine-driven region zoom API
 window.infinity_zoom_II.image_region_zoom = (function () {
   // Use helpers from namespace
   const { mat_mul, mat_translate, mat_scale, mat_rotate, mat_ortho, lerp, ease_linear, ease_in_out_cubic, ease_in_out_exponential, build_trs_matrix } =
     window.infinity_zoom_II.utils.region_zoom;
 
-  // Config
-  const config = window.infinity_zoom_II.config.region_zoom;
+  // Internal state
   let gl_ctx, gl_program, gl_texture, uniform_matrix;
   let texture_side = 0;
   let start_matrix, end_matrix;
@@ -38,9 +38,10 @@ window.infinity_zoom_II.image_region_zoom = (function () {
   let anim_start_time = 0;
   let ease_strategy = ease_in_out_cubic;
   let ease_strategy_angle = ease_in_out_cubic;
-
-  // Store a consistent initial rotation for the session
   let initial_rotation = Math.random() * Math.PI * 2;
+  let on_complete_cb = null;
+  let config = null;
+
   function build_matrices(w, h) {
     const proj = mat_ortho(w, h);
     const center_start = { x: texture_side * 0.5, y: texture_side * 0.5 };
@@ -84,10 +85,10 @@ window.infinity_zoom_II.image_region_zoom = (function () {
     end_matrix = mat_mul(proj, a_end);
   }
 
-  function draw() {
+  function draw_region_zoom(matrix) {
     gl_ctx.clearColor(0, 0, 0, 1);
     gl_ctx.clear(gl_ctx.COLOR_BUFFER_BIT);
-    gl_ctx.uniformMatrix3fv(uniform_matrix, false, showing_region ? end_matrix : start_matrix);
+    gl_ctx.uniformMatrix3fv(uniform_matrix, false, matrix);
     gl_ctx.drawArrays(gl_ctx.TRIANGLE_STRIP, 0, 4);
   }
 
@@ -105,89 +106,91 @@ window.infinity_zoom_II.image_region_zoom = (function () {
       theta: ease_strategy_angle(trs_start.theta, trs_end.theta, anim_t, true),
     };
     // Build and set matrix
-    const canvas = document.getElementById("gl_canvas");
-    const mat = build_trs_matrix(trs, canvas.width, canvas.height);
-    gl_ctx.clearColor(0, 0, 0, 1);
-    gl_ctx.clear(gl_ctx.COLOR_BUFFER_BIT);
-    gl_ctx.uniformMatrix3fv(uniform_matrix, false, mat);
-    gl_ctx.drawArrays(gl_ctx.TRIANGLE_STRIP, 0, 4);
+    const mat = build_trs_matrix(trs, gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight);
+    draw_region_zoom(mat);
     if (t < 1) {
       requestAnimationFrame(animate_step);
     } else {
       animating = false;
       showing_region = anim_dir === 1;
-      document.getElementById("toggle_region_btn").textContent = showing_region ? "show_full_image" : "show_region";
+      if (on_complete_cb) on_complete_cb(showing_region);
     }
   }
 
-  function resize_canvas() {
-    const canvas = document.getElementById("gl_canvas");
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-    gl_ctx.viewport(0, 0, canvas.width, canvas.height);
-    build_matrices(canvas.width, canvas.height);
-  }
-
-  function init() {
-    const canvas = document.getElementById("gl_canvas");
-    gl_ctx = canvas.getContext("webgl");
-    const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
-    const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,v_tex);}`;
-    const vs = gl_ctx.createShader(gl_ctx.VERTEX_SHADER);
-    gl_ctx.shaderSource(vs, vs_src);
-    gl_ctx.compileShader(vs);
-    const fs = gl_ctx.createShader(gl_ctx.FRAGMENT_SHADER);
-    gl_ctx.shaderSource(fs, fs_src);
-    gl_ctx.compileShader(fs);
-    gl_program = gl_ctx.createProgram();
-    gl_ctx.attachShader(gl_program, vs);
-    gl_ctx.attachShader(gl_program, fs);
-    gl_ctx.linkProgram(gl_program);
-    gl_ctx.useProgram(gl_program);
-    uniform_matrix = gl_ctx.getUniformLocation(gl_program, "u_matrix");
-    const img = new Image();
-    img.onload = () => {
-      texture_side = img.width;
-      const pos = new Float32Array([0, 0, texture_side, 0, 0, texture_side, texture_side, texture_side]);
-      const uv = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
-      const pos_buf = gl_ctx.createBuffer();
-      gl_ctx.bindBuffer(gl_ctx.ARRAY_BUFFER, pos_buf);
-      gl_ctx.bufferData(gl_ctx.ARRAY_BUFFER, pos, gl_ctx.STATIC_DRAW);
-      const loc_pos = gl_ctx.getAttribLocation(gl_program, "a_position");
-      gl_ctx.enableVertexAttribArray(loc_pos);
-      gl_ctx.vertexAttribPointer(loc_pos, 2, gl_ctx.FLOAT, false, 0, 0);
-      const uv_buf = gl_ctx.createBuffer();
-      gl_ctx.bindBuffer(gl_ctx.ARRAY_BUFFER, uv_buf);
-      gl_ctx.bufferData(gl_ctx.ARRAY_BUFFER, uv, gl_ctx.STATIC_DRAW);
-      const loc_uv = gl_ctx.getAttribLocation(gl_program, "a_tex");
-      gl_ctx.enableVertexAttribArray(loc_uv);
-      gl_ctx.vertexAttribPointer(loc_uv, 2, gl_ctx.FLOAT, false, 0, 0);
-      // texture
+  // API: start_region_zoom({ gl, canvas, image, config, start_transform, end_transform, on_complete })
+  function start_region_zoom(params) {
+    // Required: gl, canvas, image, config
+    gl_ctx = params.gl;
+    config = params.config;
+    on_complete_cb = params.on_complete || null;
+    initial_rotation = (params.start_transform && params.start_transform.theta) || Math.random() * Math.PI * 2;
+    // Setup program and texture if not already
+    if (!gl_program) {
+      const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
+      const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,v_tex);}`;
+      const vs = gl_ctx.createShader(gl_ctx.VERTEX_SHADER);
+      gl_ctx.shaderSource(vs, vs_src);
+      gl_ctx.compileShader(vs);
+      const fs = gl_ctx.createShader(gl_ctx.FRAGMENT_SHADER);
+      gl_ctx.shaderSource(fs, fs_src);
+      gl_ctx.compileShader(fs);
+      gl_program = gl_ctx.createProgram();
+      gl_ctx.attachShader(gl_program, vs);
+      gl_ctx.attachShader(gl_program, fs);
+      gl_ctx.linkProgram(gl_program);
+      gl_ctx.useProgram(gl_program);
+      uniform_matrix = gl_ctx.getUniformLocation(gl_program, "u_matrix");
+    }
+    // Setup texture if not already
+    if (!gl_texture) {
       gl_texture = gl_ctx.createTexture();
       gl_ctx.bindTexture(gl_ctx.TEXTURE_2D, gl_texture);
       gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_MIN_FILTER, gl_ctx.LINEAR);
       gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_MAG_FILTER, gl_ctx.LINEAR);
       gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_WRAP_S, gl_ctx.CLAMP_TO_EDGE);
       gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_WRAP_T, gl_ctx.CLAMP_TO_EDGE);
-      gl_ctx.texImage2D(gl_ctx.TEXTURE_2D, 0, gl_ctx.RGBA, gl_ctx.RGBA, gl_ctx.UNSIGNED_BYTE, img);
-      resize_canvas();
-      draw();
-    };
-    img.src = config.image_url;
-    window.addEventListener("resize", () => {
-      resize_canvas();
-      draw();
-    });
-    document.getElementById("toggle_region_btn").addEventListener("click", () => {
-      if (animating) return;
-      animating = true;
-      anim_dir = showing_region ? -1 : 1;
-      anim_start_time = 0;
-      requestAnimationFrame(animate_step);
-    });
+      gl_ctx.texImage2D(gl_ctx.TEXTURE_2D, 0, gl_ctx.RGBA, gl_ctx.RGBA, gl_ctx.UNSIGNED_BYTE, params.image);
+    }
+    texture_side = params.image.width;
+    // Setup geometry
+    const pos = new Float32Array([0, 0, texture_side, 0, 0, texture_side, texture_side, texture_side]);
+    const uv = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
+    const pos_buf = gl_ctx.createBuffer();
+    gl_ctx.bindBuffer(gl_ctx.ARRAY_BUFFER, pos_buf);
+    gl_ctx.bufferData(gl_ctx.ARRAY_BUFFER, pos, gl_ctx.STATIC_DRAW);
+    const loc_pos = gl_ctx.getAttribLocation(gl_program, "a_position");
+    gl_ctx.enableVertexAttribArray(loc_pos);
+    gl_ctx.vertexAttribPointer(loc_pos, 2, gl_ctx.FLOAT, false, 0, 0);
+    const uv_buf = gl_ctx.createBuffer();
+    gl_ctx.bindBuffer(gl_ctx.ARRAY_BUFFER, uv_buf);
+    gl_ctx.bufferData(gl_ctx.ARRAY_BUFFER, uv, gl_ctx.STATIC_DRAW);
+    const loc_uv = gl_ctx.getAttribLocation(gl_program, "a_tex");
+    gl_ctx.enableVertexAttribArray(loc_uv);
+    gl_ctx.vertexAttribPointer(loc_uv, 2, gl_ctx.FLOAT, false, 0, 0);
+    // Build matrices
+    build_matrices(params.canvas.width, params.canvas.height);
+    // Animation direction
+    anim_dir = params.direction === "in" ? 1 : -1;
+    animating = true;
+    anim_start_time = 0;
+    requestAnimationFrame(animate_step);
+  }
+
+  // API: draw static region zoom (for engine-driven redraws)
+  function draw_static_region_zoom(show_region) {
+    draw_region_zoom(show_region ? end_matrix : start_matrix);
+  }
+
+  // API: resize handler
+  function resize_region_zoom(w, h) {
+    if (!gl_ctx) return;
+    gl_ctx.viewport(0, 0, w, h);
+    build_matrices(w, h);
   }
 
   return {
-    init,
+    start_region_zoom,
+    draw_static_region_zoom,
+    resize_region_zoom,
   };
 })();

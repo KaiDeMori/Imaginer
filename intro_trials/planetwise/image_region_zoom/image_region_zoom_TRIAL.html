@@ -11,8 +11,9 @@
       }
       #gl_canvas {
         display: block;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
       }
       #ui_panel {
         position: fixed;
@@ -28,12 +29,90 @@
     <script src="./image_region_zoom_utils.js"></script>
     <script src="./image_region_zoom.js"></script>
     <script>
-      window.addEventListener("DOMContentLoaded", function () {
-        if (window.infinity_zoom_II && window.infinity_zoom_II.image_region_zoom && window.infinity_zoom_II.image_region_zoom.init) {
-          window.infinity_zoom_II.image_region_zoom.init();
+      // Patch: force config for TRIAL
+      window.infinity_zoom_II = window.infinity_zoom_II || {};
+      window.infinity_zoom_II.config = window.infinity_zoom_II.config || {};
+      window.infinity_zoom_II.config.region_zoom = {
+        anim_duration: 1600,
+        region_rect: {
+          p0: { x: 1152, y: 1125 },
+          p1: { x: 1014, y: 1136 },
+          p2: { x: 1004, y: 1036 },
+          p3: { x: 1142, y: 1024 },
+        },
+        image_url: "../zoom_images_planete/100_alien_closeup.png",
+      };
+      // Patch: forcibly re-attach config to region_zoom module if needed
+      if (window.infinity_zoom_II.image_region_zoom) {
+        if (window.infinity_zoom_II.image_region_zoom.set_config) {
+          window.infinity_zoom_II.image_region_zoom.set_config(window.infinity_zoom_II.config.region_zoom);
+        } else if (window.infinity_zoom_II.image_region_zoom.start_region_zoom) {
+          // monkey-patch config for start_region_zoom
+          const orig_start = window.infinity_zoom_II.image_region_zoom.start_region_zoom;
+          window.infinity_zoom_II.image_region_zoom.start_region_zoom = function (params) {
+            params = params || {};
+            params.config = window.infinity_zoom_II.config.region_zoom;
+            return orig_start.call(this, params);
+          };
         }
+      }
+      // Standalone TRIAL: load image, set up region zoom, wire up button
+      window.addEventListener("DOMContentLoaded", function () {
+        const config = window.infinity_zoom_II.config.region_zoom;
+        const canvas = document.getElementById("gl_canvas");
+        const gl = canvas.getContext("webgl");
+        const btn = document.getElementById("toggle_region_btn");
+        let showing_region = false;
+        let initial_rotation = Math.random() * Math.PI * 2;
+        // Always fill viewport, handle devicePixelRatio
+        function resize_canvas() {
+          const dpr = window.devicePixelRatio || 1;
+          const w = Math.round(window.innerWidth * dpr);
+          const h = Math.round(window.innerHeight * dpr);
+          canvas.width = w;
+          canvas.height = h;
+          // All style is in CSS only
+          gl.viewport(0, 0, w, h);
+          if (window.infinity_zoom_II.image_region_zoom && window.infinity_zoom_II.image_region_zoom.resize_region_zoom) {
+            window.infinity_zoom_II.image_region_zoom.resize_region_zoom(w, h);
+          }
+        }
+        window.addEventListener("resize", resize_canvas);
+        resize_canvas();
+        // Load image and immediately animate zoom in
+        const img = new window.Image();
+        img.onload = function () {
+          window.infinity_zoom_II.image_region_zoom.start_region_zoom({
+            gl,
+            canvas,
+            image: img,
+            config,
+            direction: "in",
+            start_transform: { theta: initial_rotation },
+            on_complete: function () {
+              showing_region = true;
+              btn.textContent = "show_full_image";
+            },
+          });
+        };
+        img.src = config.image_url;
+        // Button toggles between region and full image
+        btn.addEventListener("click", function () {
+          if (!img.width) return; // not loaded yet
+          window.infinity_zoom_II.image_region_zoom.start_region_zoom({
+            gl,
+            canvas,
+            image: img,
+            config,
+            direction: showing_region ? "out" : "in",
+            start_transform: { theta: initial_rotation },
+            on_complete: function () {
+              showing_region = !showing_region;
+              btn.textContent = showing_region ? "show_full_image" : "show_region";
+            },
+          });
+        });
       });
     </script>
   </body>
 </html>
-import "./image_region_zoom_utils.js"; import "./image_region_zoom.js"; window.infinity_zoom_II.image_region_zoom_init();

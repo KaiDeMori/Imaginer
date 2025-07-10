@@ -4,7 +4,8 @@
 
 // Config module for Infinity Zoom II
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-window.infinity_zoom_II.config = {
+if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
+Object.assign(window.infinity_zoom_II.config, {
   // Minimum rendered layer size in pixels
   minimum_render_size: 3,
   // Edge feathering for all but first layer (fraction of edge).
@@ -17,7 +18,7 @@ window.infinity_zoom_II.config = {
   rotation_speed: 0.3,
   // Exponential zoom rate (growth constant per second, default from V1).
   zoom_speed: 3, //TRIALS originally: 1.2;
-};
+});
 
 // Exposed flag for triggering final reveal from console
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
@@ -218,11 +219,36 @@ const engine = {
       if (!window.infinity_zoom_II.FLAG_initiate_final_reveal) {
         requestAnimationFrame(this.animate.bind(this));
       } else {
-        this.animation_phase = "done";
-        log("Final reveal triggered. Animation done.");
-        requestAnimationFrame(this.animate.bind(this));
+        // Start region zoom animation as the final phase
+        this.animation_phase = "region_zoom";
+        log("Final reveal triggered. Starting region zoom animation.");
+        // Prepare region zoom parameters
+        const region_zoom = window.infinity_zoom_II.image_region_zoom;
+        const region_config = window.infinity_zoom_II.config.region_zoom;
+        // Use the last layer's image for the region zoom
+        const last_layer = this.layers[this.layers.length - 1];
+        // Defensive: fallback to first layer if last is missing
+        const region_image = last_layer && last_layer.image ? last_layer.image : this.layers[0].image;
+        // Start the region zoom animation
+        region_zoom.start_region_zoom({
+          gl: this.gl,
+          canvas: this.canvas,
+          image: region_image,
+          config: region_config,
+          direction: "in",
+          on_complete: () => {
+            this.animation_phase = "really_done";
+            log("Region zoom animation complete.");
+            requestAnimationFrame(this.animate.bind(this));
+          },
+        });
+        // Do not call render here; region_zoom handles its own animation
       }
-    } else if (this.animation_phase === "done") {
+    } else if (this.animation_phase === "region_zoom") {
+      // Region zoom animation is handled by the region_zoom module
+      // Optionally, could call a static draw if needed
+      // No-op: region_zoom handles animation and drawing
+    } else if (this.animation_phase === "really_done") {
       // Expose final state in region-zoom-language (image coordinates of visible crop)
       // Compute the visible rectangle of the image as mapped to the canvas (cover, centered)
       // Use the helper to compute the visible rectangle in image coordinates
@@ -232,7 +258,10 @@ const engine = {
       this.final_visible_rect = rect;
       log("Animation done. Final state: final_visible_rect =", this.final_visible_rect);
     }
-    this.render();
+    // Only call render if not in region_zoom phase (region_zoom handles its own drawing)
+    if (this.animation_phase !== "region_zoom") {
+      this.render();
+    }
   },
 
   // Render all visible layers
