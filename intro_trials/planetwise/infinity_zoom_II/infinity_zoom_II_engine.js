@@ -247,9 +247,7 @@ const engine = {
       log("Covering layer index:", this.covering_layer_index);
 
       // Check if last layer covers the viewport (no bars, covers both width and height)
-      const last_layer = this.layers[this.layers.length - 1];
-      const last_layer_draw_size = last_layer.scale * min_dim;
-      if (last_layer_draw_size >= Math.max(this.canvas.width, this.canvas.height)) {
+      if (this.covering_layer_index === this.layers.length - 1) {
         // Last layer now covers viewport: stop zoom, continue rotation
         this.last_layer_cover_time = now;
         this.rotation_at_cover = this.rotation;
