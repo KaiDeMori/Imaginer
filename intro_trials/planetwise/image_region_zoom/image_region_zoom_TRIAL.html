@@ -25,10 +25,14 @@
   <body>
     <div id="ui_panel"><button id="toggle_region_btn">show_region</button></div>
     <canvas id="gl_canvas"></canvas>
-    <script type="module">
-      import "./image_region_zoom_utils.js";
-      import "./image_region_zoom.js";
-      window.image_region_zoom_init();
+    <script src="./image_region_zoom_utils.js"></script>
+    <script src="./image_region_zoom.js"></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        if (window.infinity_zoom_II && window.infinity_zoom_II.image_region_zoom && window.infinity_zoom_II.image_region_zoom.init) {
+          window.infinity_zoom_II.image_region_zoom.init();
+        }
+      });
     </script>
   </body>
 </html>

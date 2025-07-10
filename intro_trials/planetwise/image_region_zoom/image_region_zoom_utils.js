@@ -1,23 +1,8 @@
 // image_region_zoom_utils.js
 // Utility functions for matrix math, interpolation, and helpers for region zoom
-// Attach to infinity_zoom_II namespace if needed
-if (window.infinity_zoom_II && window.infinity_zoom_II.utils) {
-  window.infinity_zoom_II.utils.region_zoom = {
-    mat_mul,
-    mat_translate,
-    mat_scale,
-    mat_rotate,
-    mat_ortho,
-    lerp,
-    ease_linear,
-    ease_in_out_cubic,
-    ease_in_out_exponential,
-    build_trs_matrix,
-  };
-}
 
 // Matrix math (column-major 3x3)
-export function mat_mul(a, b) {
+function mat_mul(a, b) {
   const c = new Float32Array(9);
   for (let i = 0; i < 3; ++i)
     for (let j = 0; j < 3; ++j) {
@@ -28,26 +13,26 @@ export function mat_mul(a, b) {
   return c;
 }
 
-export function mat_translate(tx, ty) {
+function mat_translate(tx, ty) {
   return new Float32Array([1, 0, 0, 0, 1, 0, tx, ty, 1]);
 }
 
-export function mat_scale(s) {
+function mat_scale(s) {
   return new Float32Array([s, 0, 0, 0, s, 0, 0, 0, 1]);
 }
 
-export function mat_rotate(a) {
+function mat_rotate(a) {
   const c = Math.cos(a),
     s = Math.sin(a);
   return new Float32Array([c, s, 0, -s, c, 0, 0, 0, 1]);
 }
 
-export function mat_ortho(w, h) {
+function mat_ortho(w, h) {
   return new Float32Array([2 / w, 0, 0, 0, -2 / h, 0, -1, 1, 1]);
 }
 
 // Interpolation helpers
-export function lerp(a, b, t, is_angle) {
+function lerp(a, b, t, is_angle) {
   if (is_angle) {
     let d = b - a;
     while (d > Math.PI) d -= 2 * Math.PI;
@@ -58,12 +43,12 @@ export function lerp(a, b, t, is_angle) {
   }
 }
 
-export function ease_linear(a, b, t, is_angle) {
+function ease_linear(a, b, t, is_angle) {
   t = Math.min(Math.max(t, 0), 1);
   return lerp(a, b, t, is_angle);
 }
 
-export function ease_in_out_cubic(a, b, t, is_angle) {
+function ease_in_out_cubic(a, b, t, is_angle) {
   t = Math.min(Math.max(t, 0), 1);
   if (t < 0.5) {
     return lerp(a, b, 4 * t * t * t, is_angle);
@@ -72,7 +57,7 @@ export function ease_in_out_cubic(a, b, t, is_angle) {
   }
 }
 
-export function ease_in_out_exponential(a, b, t, is_angle) {
+function ease_in_out_exponential(a, b, t, is_angle) {
   t = Math.min(Math.max(t, 0), 1);
   if (t === 0) return a;
   if (t === 1) return b;
@@ -81,10 +66,26 @@ export function ease_in_out_exponential(a, b, t, is_angle) {
 }
 
 // Animation matrix builder
-export function build_trs_matrix(trs, w, h) {
+function build_trs_matrix(trs, w, h) {
   const proj = mat_ortho(w, h);
   return mat_mul(
     proj,
     mat_mul(mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(trs.scale)), mat_rotate(trs.theta)), mat_translate(-trs.center_x, -trs.center_y))
   );
 }
+
+// Attach all helpers to window.infinity_zoom_II.utils.region_zoom
+if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
+if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
+window.infinity_zoom_II.utils.region_zoom = {
+  mat_mul,
+  mat_translate,
+  mat_scale,
+  mat_rotate,
+  mat_ortho,
+  lerp,
+  ease_linear,
+  ease_in_out_cubic,
+  ease_in_out_exponential,
+  build_trs_matrix,
+};
