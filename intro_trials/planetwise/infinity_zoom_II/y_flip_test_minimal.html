@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Y-Flip Test Minimal</title>
+    <style>
+      body {
+        background: #222;
+        color: #fff;
+        font-family: sans-serif;
+      }
+      canvas {
+        background: #000;
+        display: block;
+        margin: 1em auto;
+        border: 1px solid #444;
+      }
+      .label {
+        text-align: center;
+        margin-top: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="label">Plain Image (should be upright)</div>
+    <canvas id="plain_canvas" width="512" height="512"></canvas>
+    <div class="label">Feathered Canvas (should be upright)</div>
+    <canvas id="feathered_canvas" width="512" height="512"></canvas>
+    <script>
+      // Change this to your actual image path if needed
+      const IMAGE_SRC = "../zoom_images_planete/debug/100_alien_closeup.jpg";
+      const plain_canvas = document.getElementById("plain_canvas");
+      const feathered_canvas = document.getElementById("feathered_canvas");
+      const ctx_plain = plain_canvas.getContext("2d");
+      const ctx_feathered = feathered_canvas.getContext("2d");
+
+      const img = new Image();
+      img.onload = function () {
+        // Draw plain image
+        ctx_plain.clearRect(0, 0, plain_canvas.width, plain_canvas.height);
+        ctx_plain.drawImage(img, 0, 0, plain_canvas.width, plain_canvas.height);
+
+        // Feathered pipeline: draw to offscreen WebGL, then copy to 2D canvas
+        const off_canvas = document.createElement("canvas");
+        off_canvas.width = img.width;
+        off_canvas.height = img.height;
+        const gl = off_canvas.getContext("webgl");
+        if (!gl) {
+          ctx_feathered.fillStyle = "#f00";
+          ctx_feathered.fillText("WebGL not supported", 10, 30);
+          return;
+        }
+        // Vertex shader
+        const vs = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(
+          vs,
+          `
+        attribute vec2 a_position;
+        attribute vec2 a_texcoord;
+        varying vec2 v_texcoord;
+        void main() {
+          gl_Position = vec4(a_position, 0, 1);
+          v_texcoord = a_texcoord;
+        }
+      `
+        );
+        gl.compileShader(vs);
+        // Fragment shader (no feathering, just copy)
+        const fs = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(
+          fs,
+          `
+        precision mediump float;
+        varying vec2 v_texcoord;
+        uniform sampler2D u_image;
+        void main() {
+          gl_FragColor = texture2D(u_image, v_texcoord);
+        }
+      `
+        );
+        gl.compileShader(fs);
+        const prog = gl.createProgram();
+        gl.attachShader(prog, vs);
+        gl.attachShader(prog, fs);
+        gl.linkProgram(prog);
+        gl.useProgram(prog);
+        // Quad
+        const pos = new Float32Array([-1, -1, 0, 0, 1, -1, 1, 0, -1, 1, 0, 1, 1, 1, 1, 1]);
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, pos, gl.STATIC_DRAW);
+        const a_position = gl.getAttribLocation(prog, "a_position");
+        const a_texcoord = gl.getAttribLocation(prog, "a_texcoord");
+        gl.enableVertexAttribArray(a_position);
+        gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 16, 0);
+        gl.enableVertexAttribArray(a_texcoord);
+        gl.vertexAttribPointer(a_texcoord, 2, gl.FLOAT, false, 16, 8);
+        // Texture
+        const tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); // No Y-flip
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.viewport(0, 0, off_canvas.width, off_canvas.height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        // Copy to feathered_canvas
+        ctx_feathered.clearRect(0, 0, feathered_canvas.width, feathered_canvas.height);
+        ctx_feathered.drawImage(off_canvas, 0, 0, feathered_canvas.width, feathered_canvas.height);
+      };
+      img.src = IMAGE_SRC;
+    </script>
+  </body>
+</html>

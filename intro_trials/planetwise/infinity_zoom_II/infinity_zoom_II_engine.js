@@ -1,3 +1,17 @@
+// Y-FLIP PIPELINE FACT:
+//
+// When uploading images to WebGL and copying results to a 2D canvas, there is a difference in coordinate systems:
+// - The browser and 2D canvas use a top-left origin (0,0 is top-left).
+// - WebGL's default rendering uses a bottom-left origin (0,0 is bottom-left).
+//
+// If you upload an image to WebGL with gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false) and sample with v_texcoord,
+// the image appears upright in WebGL's coordinate system. However, when you copy the WebGL canvas to a 2D canvas
+// (e.g., ctx2d.drawImage(webgl_canvas, ...)), the result appears vertically flipped compared to the original image.
+//
+// This is because the WebGL output is bottom-left origin, but 2D canvas expects top-left origin.
+//
+// This was confirmed with a minimal test: the feathered canvas is flipped unless a Y-flip is applied in the WebGL pipeline.
+//
 // Infinity Zoom II Engine – main structure and method stubs
 
 // NOTE: Use global log(msg) utility. Single parameter: the message to log.
