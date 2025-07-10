@@ -45,11 +45,6 @@
         off_canvas.width = img.width;
         off_canvas.height = img.height;
         const gl = off_canvas.getContext("webgl");
-        if (!gl) {
-          ctx_feathered.fillStyle = "#f00";
-          ctx_feathered.fillText("WebGL not supported", 10, 30);
-          return;
-        }
         // Vertex shader
         const vs = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(
