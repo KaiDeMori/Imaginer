@@ -274,20 +274,20 @@ const engine = {
           theta: this.rotation,
         });
         // Start the region zoom animation, passing the existing texture and its size
-        region_zoom.start_texture_region_zoom({
-          gl: this.gl,
-          canvas: this.canvas,
-          texture: last_layer.texture,
-          texture_side: last_layer.image.width,
-          config: region_config,
-          direction: "in",
-          start_transform: { theta: this.rotation },
-          on_complete: () => {
+        region_zoom.start_texture_region_zoom(
+          this.gl,
+          this.canvas,
+          last_layer.texture,
+          last_layer.image.width,
+          region_config,
+          "in",
+          { theta: this.rotation },
+          () => {
             this.animation_phase = "really_done";
             log("Region zoom animation complete.");
             requestAnimationFrame(this.animate.bind(this));
-          },
-        });
+          }
+        );
         // Do not call render here; region_zoom handles its own animation
       }
     } else if (this.animation_phase === "region_zoom") {
