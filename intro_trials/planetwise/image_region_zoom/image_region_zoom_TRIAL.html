@@ -28,9 +28,7 @@
     <canvas id="gl_canvas"></canvas>
     <script src="../infinity_zoom_II/infinity_zoom_debug.js"></script>
     <script src="./image_region_zoom_utils.js"></script>
-    <!-- If you rename the file, update here too -->
     <script src="./image_region_zoom.js"></script>
-    <!-- If you rename the file, update here too -->
     <script>
       // Patch: force config for TRIAL
       window.infinity_zoom_II = window.infinity_zoom_II || {};
@@ -97,7 +95,8 @@
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); // match region_zoom default
+          // Use engine-level Y-flip flag for consistency with main engine
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, window.infinity_zoom_II.FLAG_Y_FLIP);
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
         };
         img.src = config.image_url;
