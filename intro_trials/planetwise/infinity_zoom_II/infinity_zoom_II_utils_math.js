@@ -69,6 +69,36 @@ function mat3_mul(a, b) {
   return r;
 }
 
+/**
+ * Compute the visible rectangle of the image as mapped to the canvas, given scale and rotation.
+ * Returns an object with p0, p1, p2, p3 in image coordinates that map to the canvas corners.
+ * @param {HTMLImageElement} image - The image object (with .width, .height)
+ * @param {HTMLCanvasElement} canvas - The canvas element (with .width, .height)
+ * @param {number} scale - The current scale applied to the image
+ * @param {number} rotation - The current rotation (in radians)
+ * @returns {object} Rectangle in image coordinates
+ */
+function compute_final_visible_rect(image, canvas, scale, rotation) {
+  // Compose the forward transform: aspect -> scale -> rotation
+  const aspect = window.infinity_zoom_II.utils.math.make_matrix(image, canvas);
+  const scale_mat = [scale, 0, 0, 0, scale, 0, 0, 0, 1];
+  const rot_mat = window.infinity_zoom_II.utils.math.make_rotation_matrix(rotation);
+  // Forward: rot * scale * aspect
+  let forward = window.infinity_zoom_II.utils.math.mat3_mul(rot_mat, window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect));
+  // Invert to get canvas->image mapping
+  const inv = window.infinity_zoom_II.utils.math.mat3_invert(forward);
+  if (!inv) return null;
+  // Canvas corners in pixel coordinates
+  const w = canvas.width,
+    h = canvas.height;
+  // Map: p0 = (0,0), p1 = (w,0), p2 = (w,h), p3 = (0,h)
+  const p0 = window.infinity_zoom_II.utils.math.mat3_transform_point(inv, [0, 0]);
+  const p1 = window.infinity_zoom_II.utils.math.mat3_transform_point(inv, [w, 0]);
+  const p2 = window.infinity_zoom_II.utils.math.mat3_transform_point(inv, [w, h]);
+  const p3 = window.infinity_zoom_II.utils.math.mat3_transform_point(inv, [0, h]);
+  return { p0, p1, p2, p3 };
+}
+
 // Attach to unified namespace
 if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
@@ -78,4 +108,5 @@ window.infinity_zoom_II.utils.math = {
   mat3_mul,
   mat3_invert,
   mat3_transform_point,
+  compute_final_visible_rect,
 };
