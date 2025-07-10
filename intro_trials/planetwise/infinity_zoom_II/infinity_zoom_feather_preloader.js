@@ -1,10 +1,17 @@
 // infinity_zoom_feather_preloader.js
 
 // Feathered image preloader logic (mirrors network preloader pattern)
+// Uses a unified config flag for Y-flip logic to ensure consistent orientation across all modules.
 let feathered_images = [];
 let feathered_loaded = false;
 let feathered_callbacks = [];
 
+/**
+ * Preloads images and applies feathering using WebGL, with Y-flip controlled by the unified config flag.
+ * @param {Array} layer_data - Data describing the image layers to load.
+ * @param {string} image_folder - Folder containing the images.
+ * @param {number} feather_size - Size of the feathering effect.
+ */
 function preload_and_feather_images(layer_data, image_folder = "zoom_images", feather_size = 32) {
   if (feathered_loaded) {
     // Already feathered, do nothing
@@ -130,8 +137,8 @@ function preload_and_feather_images(layer_data, image_folder = "zoom_images", fe
       // Upload image as texture
       const tex = shared_gl.createTexture();
       shared_gl.bindTexture(shared_gl.TEXTURE_2D, tex);
-      // Y-flip.
-      shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, true);
+      // Y-flip is controlled by window.infinity_zoom_II.config.FLAG_use_dynamic_feather for consistent orientation
+      shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, window.infinity_zoom_II.config.FLAG_use_dynamic_feather);
       shared_gl.texImage2D(shared_gl.TEXTURE_2D, 0, shared_gl.RGBA, shared_gl.RGBA, shared_gl.UNSIGNED_BYTE, img);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MIN_FILTER, shared_gl.LINEAR);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MAG_FILTER, shared_gl.LINEAR);
