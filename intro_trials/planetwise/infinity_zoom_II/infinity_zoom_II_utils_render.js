@@ -34,8 +34,8 @@ function create_quad_buffer(gl) {
 // Upload a layer's image to GPU as a texture
 function upload_texture(gl, layer) {
   // Flip Y only if not using feathering (raw images)
-  // USE_DYNAMIC_FEATHER is defined in the main HTML and should be global
-  const flip_y = !window.USE_DYNAMIC_FEATHER;
+  // Use config.FLAG_use_dynamic_feather for global feathering logic
+  const flip_y = !window.infinity_zoom_II.config.FLAG_use_dynamic_feather;
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip_y);
