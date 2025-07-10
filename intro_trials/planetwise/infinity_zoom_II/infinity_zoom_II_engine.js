@@ -76,6 +76,9 @@ const engine = {
   rotation_speed: window.infinity_zoom_II.config.rotation_speed,
   zoom_speed: window.infinity_zoom_II.config.zoom_speed,
 
+  // Tracks the highest index of a layer that has covered the viewport so far
+  covering_layer_index: -1,
+
   // Internal: Initialize engine with preloaded images and canvas. Do not call directly; use create().
   init(layer_data, images, canvas) {
     this.canvas = canvas;
@@ -239,9 +242,9 @@ const engine = {
         layer.alpha = 1;
       }
 
-      // Log the covering layer index for debugging
-      const covering_index = this.find_covering_layer_index();
-      log("Covering layer index:", covering_index);
+      // Efficiently update and log the covering layer index
+      this.update_covering_layer_index();
+      log("Covering layer index:", this.covering_layer_index);
 
       // Check if last layer covers the viewport (no bars, covers both width and height)
       const last_layer = this.layers[this.layers.length - 1];
@@ -374,6 +377,20 @@ const engine = {
       }
     }
     log("Preloaded all layers to GPU");
+  },
+
+  // Updates the covering_layer_index, only increasing as we zoom in
+  update_covering_layer_index() {
+    const min_dim = Math.min(this.canvas.width, this.canvas.height);
+    const max_dim = Math.max(this.canvas.width, this.canvas.height);
+    // Start from the last known covering index + 1
+    for (let i = this.covering_layer_index + 1; i < this.layers.length; ++i) {
+      const layer = this.layers[i];
+      const draw_size = layer.scale * min_dim;
+      if (draw_size >= max_dim) {
+        this.covering_layer_index = i;
+      }
+    }
   },
 };
 
