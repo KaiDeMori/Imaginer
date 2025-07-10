@@ -36,7 +36,7 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second, default from V1).
-  zoom_speed: 1, //TRIALS originally: 1.2;
+  zoom_speed: 3, //TRIALS originally: 1.2;
   // Controls whether dynamic feathering is active (set externally before engine loads)
 };
 
