@@ -1,6 +1,8 @@
 // infinity_zoom_feather_preloader.js
 
-// Feathered image preloader logic (mirrors network preloader pattern)
+// Feathered image preloader logic for Infinity Zoom II
+// This module is only called by the engine. Do not call directly from user code.
+// Feathering is always controlled by the engine's create() method, not by global config or user code.
 // Y-flip is handled per-layer in the engine, not here. This module only produces feathered canvases.
 let feathered_images = [];
 let feathered_loaded = false;
@@ -8,6 +10,7 @@ let feathered_callbacks = [];
 
 /**
  * Preloads images and applies feathering using WebGL.
+ * This function is only called by the engine. Do not call directly.
  * Y-flip is not handled here. The engine determines orientation per layer.
  * @param {Array} layer_data - Data describing the image layers to load.
  * @param {string} image_folder - Folder containing the images.
@@ -176,6 +179,7 @@ function preload_and_feather_images(layer_data, image_folder = "zoom_images", fe
 }
 
 function on_feathered_images_ready(callback) {
+  // Only used by the engine to receive feathered images after processing.
   if (feathered_loaded) {
     callback(feathered_images);
   } else {

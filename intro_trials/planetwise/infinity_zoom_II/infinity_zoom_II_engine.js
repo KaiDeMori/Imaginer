@@ -37,15 +37,34 @@ Object.assign(window.infinity_zoom_II.config, {
   // FLAG_Use_dynamic_feather is set externally and not overwritten here.
 });
 
-// Internal engine constant for feathering logic
-const DYNAMIC_FEATHER_ACTIVE = window.infinity_zoom_II.config.FLAG_Use_dynamic_feather;
-
 // Exposed flag for triggering final reveal from console. ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 
 // Main engine object
 // Main engine object (will be attached to window.infinity_zoom_II)
 const engine = {
+  /**
+   * Create and initialize the engine, handling feathered or non-feathered image loading.
+   * This is now the only entry point for starting the engine; feathering is controlled by the argument, not global config.
+   * @param {Array} layer_data - Array of layer objects.
+   * @param {string} image_path - Path to image folder.
+   * @param {HTMLCanvasElement} canvas - The canvas element.
+   * @param {boolean} use_dynamic_feather - Whether to use feathered images.
+   * @param {number} feather_size - Feather size (optional, default 300).
+   */
+  create(layer_data, image_path, canvas, use_dynamic_feather, feather_size = 300) {
+    if (use_dynamic_feather) {
+      window.infinity_zoom_II.feather_preloader.preload_and_feather_images(layer_data, image_path, feather_size);
+      window.infinity_zoom_II.feather_preloader.on_feathered_images_ready((feathered_images) => {
+        this.init(layer_data, feathered_images, canvas);
+      });
+    } else {
+      window.infinity_zoom_II.preloader.preload_images(layer_data, image_path);
+      window.infinity_zoom_II.preloader.on_images_loaded((images) => {
+        this.init(layer_data, images, canvas);
+      });
+    }
+  },
   // State
   // Each layer has a FLAG_Y_flipped property indicating if its image data is already Y-flipped.
   gl: null,
@@ -58,7 +77,7 @@ const engine = {
   zoom_speed: window.infinity_zoom_II.config.zoom_speed,
   // ...other state as needed
 
-  // Initialize engine with preloaded images and canvas
+  // Internal: Initialize engine with preloaded images and canvas. Do not call directly; use create().
   init(layer_data, images, canvas) {
     this.canvas = canvas;
     this.gl = canvas.getContext("webgl", { alpha: false });

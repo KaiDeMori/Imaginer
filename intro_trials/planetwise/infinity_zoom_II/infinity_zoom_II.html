@@ -35,18 +35,8 @@
           { zoom: 25, image: "90_alien_hut.jpg" },
           { zoom: 25, image: "100_alien_closeup.jpg" },
         ];
-
-        if (window.infinity_zoom_II.config.FLAG_Use_dynamic_feather) {
-          window.infinity_zoom_II.feather_preloader.preload_and_feather_images(LAYERS_DATA, RELATIVE_IMAGE_PATH, 300);
-          window.infinity_zoom_II.feather_preloader.on_feathered_images_ready(function (feathered_images) {
-            window.infinity_zoom_II.engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));
-          });
-        } else {
-          window.infinity_zoom_II.preloader.preload_images(LAYERS_DATA, RELATIVE_IMAGE_PATH);
-          window.infinity_zoom_II.preloader.on_images_loaded(function (images) {
-            window.infinity_zoom_II.engine.init(LAYERS_DATA, images, document.getElementById("zoom_canvas"));
-          });
-        }
+        const use_dynamic_feather = window.infinity_zoom_II.config.FLAG_Use_dynamic_feather;
+        window.infinity_zoom_II.engine.create(LAYERS_DATA, RELATIVE_IMAGE_PATH, document.getElementById("zoom_canvas"), use_dynamic_feather, 300);
       }
     </script>
 
