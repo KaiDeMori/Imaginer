@@ -75,8 +75,6 @@ function build_trs_matrix(trs, w, h) {
 }
 
 // Attach all helpers to window.infinity_zoom_II.utils.texture_region_zoom
-if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
 window.infinity_zoom_II.utils.texture_region_zoom = {
   mat_mul,
   mat_translate,

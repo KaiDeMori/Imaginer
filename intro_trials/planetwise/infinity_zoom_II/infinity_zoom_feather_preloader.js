@@ -166,7 +166,6 @@ function on_feathered_images_ready(callback) {
 }
 
 // Attach to unified namespace
-if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 window.infinity_zoom_II.feather_preloader = {
   preload_and_feather_images,
   on_feathered_images_ready,

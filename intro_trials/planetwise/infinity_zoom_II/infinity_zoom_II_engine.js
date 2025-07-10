@@ -14,15 +14,14 @@
 //
 // Infinity Zoom II Engine – main structure and method stubs
 
-window.infinity_zoom_II = {
+(window.infinity_zoom_II = {
   assert_all_namespaces: function () {
     if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
     if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
     if (!window.infinity_zoom_II.utils.region_zoom) window.infinity_zoom_II.utils.region_zoom = {};
     if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
   },
-};
-window.infinity_zoom_II.assert_all_namespaces();
+}).assert_all_namespaces();
 
 // Config module for Infinity Zoom II
 window.infinity_zoom_II.config = {

@@ -99,9 +99,6 @@ function compute_final_visible_rect(image, canvas, scale, rotation) {
   return { p0, p1, p2, p3 };
 }
 
-// Attach to unified namespace
-if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
 window.infinity_zoom_II.utils.math = {
   make_matrix,
   make_rotation_matrix,

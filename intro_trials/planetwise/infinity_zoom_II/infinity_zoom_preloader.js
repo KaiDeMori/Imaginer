@@ -26,9 +26,7 @@ function preload_images(layer_data, image_folder = "zoom_images") {
       loaded++;
       // Only log the file name, not the full path
       const file_name = get_file_name(layer.image);
-      log(
-        `[preload_images] [${loaded}/${total}] loaded: ${file_name} (${img.width}x${img.height})`
-      );
+      log(`[preload_images] [${loaded}/${total}] loaded: ${file_name} (${img.width}x${img.height})`);
       if (loaded === total) {
         images_loaded = true;
         log(`[preload_images] All ${images.length} images loaded!`);
@@ -49,9 +47,7 @@ function preload_images(layer_data, image_folder = "zoom_images") {
 
 function on_images_loaded(callback) {
   if (images_loaded) {
-    log(
-      "[on_images_loaded] Images already loaded, invoking callback immediately."
-    );
+    log("[on_images_loaded] Images already loaded, invoking callback immediately.");
     callback(images);
   } else {
     log("[on_images_loaded] Images not yet loaded, queuing callback.");
@@ -65,7 +61,6 @@ function get_file_name(path) {
 }
 
 // Attach to unified namespace
-if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 window.infinity_zoom_II.preloader = {
   preload_images,
   on_images_loaded,
