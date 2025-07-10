@@ -35,6 +35,8 @@ function create_quad_buffer(gl) {
 function upload_texture(gl, layer) {
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
+  // Flip Y so browser images (top-left origin) appear correct in WebGL (bottom-left origin)
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, layer.image);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
