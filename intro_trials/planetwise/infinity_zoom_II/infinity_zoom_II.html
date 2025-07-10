@@ -19,7 +19,7 @@
       // Set feathering config before engine/preloader use
       if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
       if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
-      window.infinity_zoom_II.config.FLAG_Use_dynamic_feather = true;
+      window.infinity_zoom_II.config.FLAG_Use_dynamic_feather = false;
 
       function start_infinity_zoom_II() {
         const RELATIVE_IMAGE_PATH = "../zoom_images_planete/debug/";
@@ -36,7 +36,7 @@
           { zoom: 25, image: "100_alien_closeup.jpg" },
         ];
 
-        if (window.FLAG_Use_dynamic_feather) {
+        if (window.infinity_zoom_II.config.FLAG_Use_dynamic_feather) {
           window.infinity_zoom_II.feather_preloader.preload_and_feather_images(LAYERS_DATA, RELATIVE_IMAGE_PATH, 300);
           window.infinity_zoom_II.feather_preloader.on_feathered_images_ready(function (feathered_images) {
             window.infinity_zoom_II.engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));

@@ -134,7 +134,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     // Setup program if not already
     if (!gl_program) {
       const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
-      const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,v_tex);}`;
+      // Sample with flipped Y to match UNPACK_FLIP_Y_WEBGL=true
+      const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,vec2(v_tex.x,1.0-v_tex.y));}`;
       const vs = gl_ctx.createShader(gl_ctx.VERTEX_SHADER);
       gl_ctx.shaderSource(vs, vs_src);
       gl_ctx.compileShader(vs);

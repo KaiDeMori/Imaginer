@@ -18,9 +18,9 @@ Object.assign(window.infinity_zoom_II.config, {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second, default from V1).
-  zoom_speed: 0.3, //TRIALS originally: 1.2;
+  zoom_speed: 1, //TRIALS originally: 1.2;
   // Controls whether dynamic feathering is active (set externally before engine loads)
-  FLAG_Use_dynamic_feather: true,
+  // FLAG_Use_dynamic_feather is set externally and not overwritten here.
 });
 
 // Internal engine constant for feathering logic
@@ -86,13 +86,14 @@ const engine = {
         v_texcoord = a_texcoord;
       }
     `;
+    // Sample with flipped Y to match UNPACK_FLIP_Y_WEBGL=true
     const fs_source = `
       precision mediump float;
       varying vec2 v_texcoord;
       uniform sampler2D u_image;
       uniform float u_alpha;
       void main() {
-        vec4 color = texture2D(u_image, v_texcoord);
+        vec4 color = texture2D(u_image, vec2(v_texcoord.x, 1.0 - v_texcoord.y));
         gl_FragColor = vec4(color.rgb, color.a * u_alpha);
       }
     `;
