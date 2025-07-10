@@ -144,7 +144,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     texture_side = params.texture_side;
     // Setup geometry
     const pos = new Float32Array([0, 0, texture_side, 0, 0, texture_side, texture_side, texture_side]);
-    const uv = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
+    // Flip V coordinate in UVs to compensate for Y-flip during texture upload
+    const uv = new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]);
     const pos_buf = gl_ctx.createBuffer();
     gl_ctx.bindBuffer(gl_ctx.ARRAY_BUFFER, pos_buf);
     gl_ctx.bufferData(gl_ctx.ARRAY_BUFFER, pos, gl_ctx.STATIC_DRAW);
