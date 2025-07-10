@@ -3,7 +3,21 @@
 // NOTE: Use global log(msg) utility. Single parameter: the message to log.
 
 // Minimum rendered layer size in pixels (V2 documentation §2, §6; see also V1 engine).
-const INFINITY_ZOOM_MINIMUM_RENDER_SIZE = 3;
+// Config module for Infinity Zoom II
+if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
+window.infinity_zoom_II.config = {
+  minimum_render_size: 3,
+  // Edge feathering for all but first layer (fraction of edge, V2 documentation §7).
+  feather_value: 0.1,
+  // Minimum feather width for edge alpha ramp in pixels (V1 code snippet, see V1 engine).
+  feather_min_px: 2,
+  // Initial rotation angle in radians.
+  start_rotation_angle: 0,
+  // Global rotation speed in radians per second. Positive values rotate clockwise.
+  rotation_speed: 0.3,
+  // Exponential zoom rate (growth constant per second, default from V1; see V1 documentation and engine).
+  zoom_speed: 3, //TRIALS originally: 1.2;
+};
 
 // Edge feathering for all but first layer (fraction of edge, V2 documentation §7).
 const INFINITY_ZOOM_FEATHER_VALUE = 0.1;
@@ -33,8 +47,8 @@ const engine = {
   start_time: 0,
   animation_phase: "intro", // 'intro', 'main_zoom', 'done'
   rotation: 0,
-  rotation_speed: INFINITY_ZOOM_ROTATION_SPEED,
-  zoom_speed: INFINITY_ZOOM_SPEED,
+  rotation_speed: window.infinity_zoom_II.config.rotation_speed,
+  zoom_speed: window.infinity_zoom_II.config.zoom_speed,
   // ...other state as needed
 
   // Initialize engine with preloaded images and canvas
@@ -60,6 +74,7 @@ const engine = {
     this.start_time = performance.now();
     this.animation_phase = "intro";
     this.rotation = INFINITY_ZOOM_START_ROTATION_ANGLE;
+    this.rotation = window.infinity_zoom_II.config.start_rotation_angle;
     // Initialize last animate time for frame delta
     this._last_animate_time = this.start_time;
     window.infinity_zoom_II.utils.render.resize_canvas_to_display_size(this.canvas, this.gl);
@@ -157,7 +172,7 @@ const engine = {
           const layer = this.layers[i];
           layer.scale = this.get_layer_scale(i, 1);
           const draw_size = layer.scale * min_dim;
-          if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
+          if (draw_size >= window.infinity_zoom_II.config.minimum_render_size) {
             layer.alpha = 1;
           } else {
             layer.alpha = 0;
@@ -273,7 +288,7 @@ const engine = {
   // Calculate which layers are visible at current scale
   get_visible_layers(min_dim) {
     // Returns array of visible layers whose scaled size is above the minimum render size
-    return this.layers.filter((layer) => layer.scale * min_dim >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE);
+    return this.layers.filter((layer) => layer.scale * min_dim >= window.infinity_zoom_II.config.minimum_render_size);
   },
 
   // Compute the scale for a given layer index and first layer scale (V1 logic, always refer to 'first layer' not 'planet')
@@ -295,7 +310,7 @@ const engine = {
     for (let i = 0; i < this.layers.length; ++i) {
       const scale = this.get_layer_scale(i, first_layer_scale);
       const draw_size = scale * min_dim;
-      if (draw_size >= INFINITY_ZOOM_MINIMUM_RENDER_SIZE) {
+      if (draw_size >= window.infinity_zoom_II.config.minimum_render_size) {
         // Upload texture if not already uploaded
         if (!this.layers[i].texture) {
           window.infinity_zoom_II.utils.render.upload_texture(this.gl, this.layers[i]);
