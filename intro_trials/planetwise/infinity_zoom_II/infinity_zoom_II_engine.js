@@ -61,6 +61,8 @@ const engine = {
       alpha: 1.0,
       scale: 1.0,
       loaded: false,
+      // Set per-layer Y-flip flag: for feathered mode, only images after the first are Y-flipped
+      FLAG_Y_flipped: DYNAMIC_FEATHER_ACTIVE ? (i === 0 ? false : true) : false,
     }));
     this.start_time = performance.now();
     this.animation_phase = "intro";
