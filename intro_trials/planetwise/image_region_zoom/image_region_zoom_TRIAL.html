@@ -80,9 +80,11 @@
         }
         window.addEventListener("resize", resize_canvas);
         resize_canvas();
-        // Load image and immediately animate zoom in
+        // Load image and demonstrate both image and texture usage
         const img = new window.Image();
+        let pre_uploaded_texture = null;
         img.onload = function () {
+          // Option 1: Use image upload (legacy)
           window.infinity_zoom_II.image_region_zoom.start_region_zoom({
             gl,
             canvas,
@@ -92,24 +94,35 @@
             start_transform: { theta: initial_rotation },
             on_complete: function () {
               showing_region = true;
-              btn.textContent = "show_full_image";
+              btn.textContent = "show_full_image (texture)";
             },
           });
+          // Option 2: Pre-upload texture and use it (demonstrate new API)
+          pre_uploaded_texture = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, pre_uploaded_texture);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); // match region_zoom default
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
         };
         img.src = config.image_url;
-        // Button toggles between region and full image
+        // Button toggles between region and full image, using the pre-uploaded texture
         btn.addEventListener("click", function () {
           if (!img.width) return; // not loaded yet
           window.infinity_zoom_II.image_region_zoom.start_region_zoom({
             gl,
             canvas,
             image: img,
+            texture: pre_uploaded_texture,
+            texture_side: img.width,
             config,
             direction: showing_region ? "out" : "in",
             start_transform: { theta: initial_rotation },
             on_complete: function () {
               showing_region = !showing_region;
-              btn.textContent = showing_region ? "show_full_image" : "show_region";
+              btn.textContent = showing_region ? "show_full_image (texture)" : "show_region (texture)";
             },
           });
         });

@@ -10,7 +10,7 @@ if (!window.infinity_zoom_II.utils.region_zoom) {
 // Config for region zoom
 if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
 window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 1600,
+  anim_duration: 4000,
   region_rect: {
     p0: { x: 1152, y: 1125 },
     p1: { x: 1014, y: 1136 },
@@ -119,7 +119,7 @@ window.infinity_zoom_II.image_region_zoom = (function () {
 
   // API: start_region_zoom({ gl, canvas, image, config, start_transform, end_transform, on_complete })
   function start_region_zoom(params) {
-    // Required: gl, canvas, image, config
+    // Required: gl, canvas, image or texture, config
     gl_ctx = params.gl;
     config = params.config;
     on_complete_cb = params.on_complete || null;
@@ -131,7 +131,7 @@ window.infinity_zoom_II.image_region_zoom = (function () {
     log("start_transform", params.start_transform);
     log("start_transform.theta", params.start_transform.theta);
     initial_rotation = params.start_transform.theta;
-    // Setup program and texture if not already
+    // Setup program if not already
     if (!gl_program) {
       const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
       const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,v_tex);}`;
@@ -148,8 +148,20 @@ window.infinity_zoom_II.image_region_zoom = (function () {
       gl_ctx.useProgram(gl_program);
       uniform_matrix = gl_ctx.getUniformLocation(gl_program, "u_matrix");
     }
-    // Setup texture if not already
-    if (!gl_texture) {
+    // Setup texture: use provided texture if available, else upload from image
+    if (params.texture) {
+      gl_texture = params.texture;
+      // Use provided width/height if available, else fallback to params.image
+      if (params.texture_side) {
+        texture_side = params.texture_side;
+      } else if (params.image && params.image.width) {
+        texture_side = params.image.width;
+      } else {
+        // Fallback: try to get from params
+        texture_side = 0;
+      }
+    } else {
+      // Upload from image as before
       gl_texture = gl_ctx.createTexture();
       gl_ctx.bindTexture(gl_ctx.TEXTURE_2D, gl_texture);
       gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_MIN_FILTER, gl_ctx.LINEAR);
@@ -157,8 +169,8 @@ window.infinity_zoom_II.image_region_zoom = (function () {
       gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_WRAP_S, gl_ctx.CLAMP_TO_EDGE);
       gl_ctx.texParameteri(gl_ctx.TEXTURE_2D, gl_ctx.TEXTURE_WRAP_T, gl_ctx.CLAMP_TO_EDGE);
       gl_ctx.texImage2D(gl_ctx.TEXTURE_2D, 0, gl_ctx.RGBA, gl_ctx.RGBA, gl_ctx.UNSIGNED_BYTE, params.image);
+      texture_side = params.image.width;
     }
-    texture_side = params.image.width;
     // Setup geometry
     const pos = new Float32Array([0, 0, texture_side, 0, 0, texture_side, texture_side, texture_side]);
     const uv = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);

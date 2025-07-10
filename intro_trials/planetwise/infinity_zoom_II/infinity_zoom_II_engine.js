@@ -234,11 +234,13 @@ const engine = {
           theta: this.rotation,
           // Add more if you later pass center/scale
         });
-        // Start the region zoom animation
+        // Start the region zoom animation, passing the existing texture and its size
         region_zoom.start_region_zoom({
           gl: this.gl,
           canvas: this.canvas,
-          image: region_image,
+          image: region_image, // still pass for width/height fallback
+          texture: last_layer.texture,
+          texture_side: region_image.width, // or last_layer.image.width
           config: region_config,
           direction: "in",
           start_transform: { theta: this.rotation }, // carry over rotation
