@@ -41,7 +41,7 @@ Object.assign(window.infinity_zoom_II.config, {
 const DYNAMIC_FEATHER_ACTIVE = window.infinity_zoom_II.config.FLAG_Use_dynamic_feather;
 
 // Exposed flag for triggering final reveal from console
-window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
+window.infinity_zoom_II.FLAG_initiate_final_reveal = true;
 
 // Main engine object
 // Main engine object (will be attached to window.infinity_zoom_II)
