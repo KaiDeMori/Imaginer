@@ -30,11 +30,14 @@
           { zoom: 25, image: "90_alien_hut.jpg" },
           { zoom: 25, image: "100_alien_closeup.jpg" },
         ];
+        /*
         // Example: with feathering
         const feather_size = 300;
         // Example: without feathering
-        //   const feather_size = undefined;
+        const feather_size = undefined;
+        */
 
+        const feather_size = undefined;
         window.infinity_zoom_II.engine.create(LAYERS_DATA, RELATIVE_IMAGE_PATH, document.getElementById("zoom_canvas"), feather_size);
       }
     </script>
