@@ -34,11 +34,11 @@ function create_quad_buffer(gl) {
 // Upload a layer's image to GPU as a texture
 function upload_texture(gl, layer) {
   // Flip Y only if not using feathering (raw images)
-  // Use config.FLAG_use_dynamic_feather for global feathering logic
-  const flip_y = !window.infinity_zoom_II.config.FLAG_use_dynamic_feather;
+  // Use engine-level FLAG_Y_FLIP for global Y-flip logic
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip_y);
+  // Y-flip is controlled by window.infinity_zoom_II.FLAG_Y_FLIP for consistent orientation
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, window.infinity_zoom_II.FLAG_Y_FLIP);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, layer.image);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);

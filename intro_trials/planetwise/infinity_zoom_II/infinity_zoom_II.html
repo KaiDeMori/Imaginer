@@ -11,9 +11,7 @@
     <script src="infinity_zoom_II_utils_math.js" defer></script>
     <script src="infinity_zoom_II_utils_render.js" defer></script>
     <script src="../image_region_zoom/image_region_zoom_utils.js" defer></script>
-    <!-- If you rename the file, update here too -->
     <script src="../image_region_zoom/image_region_zoom.js" defer></script>
-    <!-- If you rename the file, update here too -->
     <script src="infinity_zoom_II_engine.js" defer></script>
     <script src="infinity_zoom_feather_preloader.js" defer></script>
 
@@ -32,10 +30,12 @@
           { zoom: 25, image: "90_alien_hut.jpg" },
           { zoom: 25, image: "100_alien_closeup.jpg" },
         ];
+
+        // Set Y-flip flag for all modules (true = unflipped/natural orientation, false = flipped)
         if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-        if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
-        window.infinity_zoom_II.config.FLAG_use_dynamic_feather = true;
-        if (window.infinity_zoom_II.config.FLAG_use_dynamic_feather) {
+        window.infinity_zoom_II.FLAG_Y_FLIP = true;
+
+        if (window.infinity_zoom_II.FLAG_Y_FLIP) {
           window.infinity_zoom_II.feather_preloader.preload_and_feather_images(LAYERS_DATA, RELATIVE_IMAGE_PATH, 300);
           window.infinity_zoom_II.feather_preloader.on_feathered_images_ready(function (feathered_images) {
             window.infinity_zoom_II.engine.init(LAYERS_DATA, feathered_images, document.getElementById("zoom_canvas"));
