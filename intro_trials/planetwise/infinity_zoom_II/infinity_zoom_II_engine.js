@@ -15,7 +15,7 @@
 // Infinity Zoom II Engine – main structure and method stubs
 
 // Config module for Infinity Zoom II
-window.infinity_zoom_II = {};
+if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
 window.infinity_zoom_II.config = {
   // Minimum rendered layer size in pixels
   minimum_render_size: 3,
@@ -83,7 +83,6 @@ const engine = {
       alpha: 1.0,
       scale: 1.0,
       loaded: false,
-      // Y-flip is now always handled in the texture upload; no per-layer flag needed.
     }));
     this.start_time = performance.now();
     this.animation_phase = "intro";
@@ -106,7 +105,8 @@ const engine = {
         v_texcoord = a_texcoord;
       }
     `;
-    // No Y-flip: input is always upright
+
+    // Fragment shader source
     const fs_source = `
       precision mediump float;
       varying vec2 v_texcoord;
@@ -127,7 +127,6 @@ const engine = {
     this.u_matrix = gl.getUniformLocation(program, "u_matrix");
     this.u_image = gl.getUniformLocation(program, "u_image");
     this.u_alpha = gl.getUniformLocation(program, "u_alpha");
-    // All texture uploads must use gl.UNPACK_FLIP_Y_WEBGL = false (input is upright)
 
     requestAnimationFrame(this.animate.bind(this));
   },
@@ -257,12 +256,9 @@ const engine = {
         const region_config = window.infinity_zoom_II.config.region_zoom;
         // Use the last layer's image for the region zoom
         const last_layer = this.layers[this.layers.length - 1];
-        // Defensive: fallback to first layer if last is missing
-        const region_image = last_layer && last_layer.image ? last_layer.image : this.layers[0].image;
         // Log transition values for debugging
         console.log("[ENGINE → REGION ZOOM] Transitioning to region zoom with:", {
           theta: this.rotation,
-          // Add more if you later pass center/scale
         });
         // Start the region zoom animation, passing the existing texture and its size
         region_zoom.start_texture_region_zoom({
@@ -286,14 +282,7 @@ const engine = {
       // Optionally, could call a static draw if needed
       // No-op: region_zoom handles animation and drawing
     } else if (this.animation_phase === "really_done") {
-      // Expose final state in region-zoom-language (image coordinates of visible crop)
-      // Compute the visible rectangle of the image as mapped to the canvas (cover, centered)
-      // Use the helper to compute the visible rectangle in image coordinates
-      const img = this.layers[0].image;
-      const scale = this.layers[0].scale;
-      const rect = this.compute_final_visible_rect(img, this.canvas, scale, this.rotation);
-      this.final_visible_rect = rect;
-      log("Animation done. Final state: final_visible_rect =", this.final_visible_rect);
+      log("Final state reached.");
     }
     // Only call render if not in region_zoom phase (region_zoom handles its own drawing)
     if (this.animation_phase !== "region_zoom") {
@@ -341,7 +330,7 @@ const engine = {
     return this.layers.filter((layer) => layer.scale * min_dim >= window.infinity_zoom_II.config.minimum_render_size);
   },
 
-  // Compute the scale for a given layer index and first layer scale (V1 logic, always refer to 'first layer' not 'planet')
+  // Compute the scale for a given layer index and first layer scale
   get_layer_scale(layer_index, first_layer_scale) {
     let scale = first_layer_scale;
     for (let i = 1; i <= layer_index; ++i) {
