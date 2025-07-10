@@ -17,20 +17,22 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   const { mat_mul, mat_translate, mat_scale, mat_rotate, mat_ortho, lerp, ease_linear, ease_in_out_cubic, ease_in_out_exponential, build_trs_matrix } =
     window.infinity_zoom_II.utils.texture_region_zoom;
 
+  //We are only ever zooming IN (-1 would be zooming out)
+  const anim_dir = 1;
+
   // Internal state
-  let gl_ctx, gl_program, gl_texture, uniform_matrix;
+  let gl_ctx, gl_program, uniform_matrix;
   let texture_side = 0;
   let start_matrix, end_matrix;
   let trs_start, trs_end;
   let showing_region = false;
   let animating = false;
   let anim_t = 0;
-  let anim_dir = 1;
   let anim_start_time = 0;
   let ease_strategy = ease_in_out_cubic;
   let ease_strategy_angle = ease_in_out_cubic;
   let initial_rotation = 1; // Math.random() * Math.PI * 2;
-  let on_complete_cb = null;
+  let on_complete_callbacks = null;
   let config = null;
 
   function build_matrices(w, h) {
@@ -89,13 +91,14 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     if (!anim_start_time) anim_start_time = ts;
     let t = (ts - anim_start_time) / config.anim_duration;
     t = Math.min(Math.max(t, 0), 1);
-    anim_t = anim_dir === 1 ? t : 1 - t;
+    // For zooming in, we want to interpolate from 0 to 1 ('1 - t' would be zooming out)
+    const animation_time_factor = t;
     // Interpolate TRS
     const trs = {
-      center_x: ease_strategy(trs_start.center_x, trs_end.center_x, anim_t, false),
-      center_y: ease_strategy(trs_start.center_y, trs_end.center_y, anim_t, false),
-      scale: ease_strategy(trs_start.scale, trs_end.scale, anim_t, false),
-      theta: ease_strategy_angle(trs_start.theta, trs_end.theta, anim_t, true),
+      center_x: ease_strategy(trs_start.center_x, trs_end.center_x, animation_time_factor, false),
+      center_y: ease_strategy(trs_start.center_y, trs_end.center_y, animation_time_factor, false),
+      scale: ease_strategy(trs_start.scale, trs_end.scale, animation_time_factor, false),
+      theta: ease_strategy_angle(trs_start.theta, trs_end.theta, animation_time_factor, true),
     };
     // Build and set matrix
     const mat = build_trs_matrix(trs, gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight);
@@ -105,15 +108,14 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     } else {
       animating = false;
       showing_region = anim_dir === 1;
-      if (on_complete_cb) on_complete_cb(showing_region);
+      if (on_complete_callbacks) on_complete_callbacks(showing_region);
     }
   }
 
-  // API: start_texture_region_zoom(gl, canvas, texture, texture_side, config, direction, start_transform, on_complete)
-  function start_texture_region_zoom(gl, canvas, texture, texture_side_arg, config_arg, direction, start_transform, on_complete) {
+  function start_texture_region_zoom(gl, canvas, texture, texture_side_arg, start_transform, on_complete) {
     gl_ctx = gl;
-    config = config_arg;
-    on_complete_cb = on_complete || null;
+    config = window.infinity_zoom_II.config.region_zoom;
+    on_complete_callbacks = on_complete || null;
     if (start_transform) {
       log("[TEXTURE REGION ZOOM] Received start_transform:", {
         theta: start_transform.theta,
@@ -161,8 +163,6 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     gl_ctx.vertexAttribPointer(loc_uv, 2, gl_ctx.FLOAT, false, 0, 0);
     // Build matrices
     build_matrices((canvas && canvas.width) || 0, (canvas && canvas.height) || 0);
-    // Animation direction
-    anim_dir = direction === "in" ? 1 : -1;
     animating = true;
     anim_start_time = 0;
     requestAnimationFrame(animate_step);
