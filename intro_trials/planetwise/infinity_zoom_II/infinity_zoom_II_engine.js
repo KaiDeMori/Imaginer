@@ -169,8 +169,11 @@ const engine = {
           layer.scale = this.get_layer_scale(i, 1);
         }
         const fade_t = (elapsed - zoom_duration) / fade_duration;
-        const viewport = { width: this.canvas.width, height: this.canvas.height };
-        const visible_layers = this.determine_visible_layers(viewport);
+
+        // Returns array of visible layers whose scaled size is above the minimum render size
+        const min_dim = Math.min(this.canvas.width, this.canvas.height);
+        const visible_layers = this.layers.filter((layer) => layer.scale * min_dim >= window.infinity_zoom_II.config.minimum_render_size);
+
         for (let i = 1; i < this.layers.length; ++i) {
           const layer = this.layers[i];
           if (visible_layers.includes(layer)) {
@@ -325,12 +328,6 @@ const engine = {
     }
   },
 
-  // Calculate which layers are visible at current scale
-  get_visible_layers(min_dim) {
-    // Returns array of visible layers whose scaled size is above the minimum render size
-    return this.layers.filter((layer) => layer.scale * min_dim >= window.infinity_zoom_II.config.minimum_render_size);
-  },
-
   // Compute the scale for a given layer index and first layer scale
   get_layer_scale(layer_index, first_layer_scale) {
     let scale = first_layer_scale;
@@ -338,16 +335,6 @@ const engine = {
       scale *= this.layers[i].zoom / 100;
     }
     return scale;
-  },
-
-  // Generalized: Determine which layers are visible given current zoom and viewport
-  // For now, wraps get_visible_layers logic for backward compatibility
-  // current_zoom: scale of the first layer (usually 1 during intro)
-  // viewport: { width, height } (canvas size)
-  determine_visible_layers(viewport) {
-    const min_dim = Math.min(viewport.width, viewport.height);
-    // For now, use the same logic as get_visible_layers
-    return this.get_visible_layers(min_dim);
   },
 
   // Preload all layer images to the GPU (warm-up phase)
