@@ -363,24 +363,12 @@ const engine = {
     return this.get_visible_layers(min_dim);
   },
 
-  // Upload the specified layer's texture to the GPU if not already uploaded
-  upload_layer_to_gpu(layer_index) {
-    const layer = this.layers[layer_index];
-    if (layer && !layer.texture) {
-      window.infinity_zoom_II.utils.render.upload_texture(this.gl, layer);
-    }
-  },
-
-  // Remove the specified layer's texture from the GPU if currently uploaded
-  remove_layer_from_gpu(layer_index) {
-    const layer = this.layers[layer_index];
-    if (layer && layer.texture) {
-      window.infinity_zoom_II.utils.render.delete_texture(this.gl, layer);
-    }
-  },
-
   // Preload all layer images to the GPU (warm-up phase)
   preload_all_layers_to_gpu() {
+    if (this.FLAG_images_loaded_to_GPU) {
+      throw new Error("preload_all_layers_to_gpu was already called");
+    }
+    this.FLAG_images_loaded_to_GPU = true;
     for (let i = 0; i < this.layers.length; ++i) {
       const layer = this.layers[i];
       if (!layer.texture) {
