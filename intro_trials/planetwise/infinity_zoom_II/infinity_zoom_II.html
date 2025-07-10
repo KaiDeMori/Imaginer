@@ -31,7 +31,8 @@
           { zoom: 25, image: "100_alien_closeup.jpg" },
         ];
 
-        // Set Y-flip flag for all modules (true = unflipped/natural orientation, false = flipped)
+        // Set Y-flip flag for all modules (true = natural/unflipped orientation, false = flipped)
+        // This is the single source of truth for Y-flip logic across the engine and all helpers.
         if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
         window.infinity_zoom_II.FLAG_Y_FLIP = true;
 

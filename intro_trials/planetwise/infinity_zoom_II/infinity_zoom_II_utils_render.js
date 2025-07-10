@@ -34,7 +34,7 @@ function create_quad_buffer(gl) {
 // Upload a layer's image to GPU as a texture
 function upload_texture(gl, layer) {
   // Flip Y only if not using feathering (raw images)
-  // Use engine-level FLAG_Y_FLIP for global Y-flip logic
+  // Y-flip is always controlled by window.infinity_zoom_II.FLAG_Y_FLIP (single source of truth)
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
   // Y-flip is controlled by window.infinity_zoom_II.FLAG_Y_FLIP for consistent orientation
