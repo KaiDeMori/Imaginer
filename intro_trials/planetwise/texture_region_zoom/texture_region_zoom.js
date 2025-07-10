@@ -1,3 +1,5 @@
+//Finally working.
+
 // Config for texture region zoom
 window.infinity_zoom_II.config.region_zoom = {
   anim_duration: 4000,
