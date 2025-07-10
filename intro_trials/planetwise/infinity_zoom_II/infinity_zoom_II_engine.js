@@ -36,7 +36,7 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second, default from V1).
-  zoom_speed: 3, //TRIALS originally: 1.2;
+  zoom_speed: 1, //TRIALS originally: 1.2;
   // Controls whether dynamic feathering is active (set externally before engine loads)
 };
 
@@ -239,6 +239,10 @@ const engine = {
         layer.alpha = 1;
       }
 
+      // Log the covering layer index for debugging
+      const covering_index = this.find_covering_layer_index();
+      log("Covering layer index:", covering_index);
+
       // Check if last layer covers the viewport (no bars, covers both width and height)
       const last_layer = this.layers[this.layers.length - 1];
       const last_layer_draw_size = last_layer.scale * min_dim;
@@ -341,6 +345,20 @@ const engine = {
       scale *= this.layers[i].zoom / 100;
     }
     return scale;
+  },
+
+  // Returns the index of the topmost layer that covers the viewport, or -1 if none do
+  find_covering_layer_index() {
+    const min_dim = Math.min(this.canvas.width, this.canvas.height);
+    const max_dim = Math.max(this.canvas.width, this.canvas.height);
+    for (let i = this.layers.length - 1; i >= 0; --i) {
+      const layer = this.layers[i];
+      const draw_size = layer.scale * min_dim;
+      if (draw_size >= max_dim) {
+        return i;
+      }
+    }
+    return -1;
   },
 
   // Preload all layer images to the GPU (warm-up phase)
