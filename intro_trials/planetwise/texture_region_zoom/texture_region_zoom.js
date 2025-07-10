@@ -1,14 +1,4 @@
-// Attach texture region zoom logic to window.infinity_zoom_II namespace
-if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-if (!window.infinity_zoom_II.utils) window.infinity_zoom_II.utils = {};
-if (!window.infinity_zoom_II.utils.region_zoom) {
-  // Assume texture_region_zoom_utils.js is loaded first and attaches helpers
-  // If not, fallback to local (should not happen in correct order)
-  window.infinity_zoom_II.utils.region_zoom = {};
-}
-
 // Config for texture region zoom
-if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
 window.infinity_zoom_II.config.region_zoom = {
   anim_duration: 4000,
   region_rect: {
