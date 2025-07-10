@@ -58,7 +58,6 @@ const engine = {
     }));
     this.start_time = performance.now();
     this.animation_phase = "intro";
-    this.rotation = INFINITY_ZOOM_START_ROTATION_ANGLE;
     this.rotation = window.infinity_zoom_II.config.start_rotation_angle;
     // Initialize last animate time for frame delta
     this._last_animate_time = this.start_time;
