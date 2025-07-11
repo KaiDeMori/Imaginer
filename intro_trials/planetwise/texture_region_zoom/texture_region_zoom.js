@@ -37,43 +37,11 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   let final_layer = null;
   let previous_layer = null;
 
-  let region_theta = 0;
-
-  // Aspect-correct matrix for image and canvas (copied from engine utils)
-  function make_aspect_matrix(img, canvas) {
-    const img_aspect = img.width / img.height;
-    const canvas_aspect = canvas.width / canvas.height;
-    let sx = 1,
-      sy = 1;
-    if (img_aspect > canvas_aspect) {
-      sy = canvas_aspect / img_aspect;
-    } else {
-      sx = img_aspect / canvas_aspect;
-    }
-    return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
-  }
-
-  // Compose region zoom matrix to match engine: rot * scale * aspect
-  function build_region_zoom_matrix(scale, theta, img, canvas) {
-    const aspect = make_aspect_matrix(img, canvas);
-    const scale_mat = [scale, 0, 0, 0, scale, 0, 0, 0, 1];
-    const rot_mat = [Math.cos(theta), -Math.sin(theta), 0, Math.sin(theta), Math.cos(theta), 0, 0, 0, 1];
-    // Compose: rot * scale * aspect
-    let mat = window.infinity_zoom_II.utils.texture_region_zoom.mat_mul(rot_mat, window.infinity_zoom_II.utils.texture_region_zoom.mat_mul(scale_mat, aspect));
-    // Add orthographic projection and center translation to match engine
-    const proj = window.infinity_zoom_II.utils.texture_region_zoom.mat_ortho(canvas.width, canvas.height);
-    // Center translation (engine draws at center)
-    const center = window.infinity_zoom_II.utils.texture_region_zoom.mat_translate(canvas.width * 0.5, canvas.height * 0.5);
-    mat = window.infinity_zoom_II.utils.texture_region_zoom.mat_mul(center, mat);
-    mat = window.infinity_zoom_II.utils.texture_region_zoom.mat_mul(proj, mat);
-    return mat;
-  }
-
-  function build_matrices(w, h, initial_scale) {
+  function build_matrices(w, h) {
     const proj = mat_ortho(w, h);
     const center_start = { x: image_width * 0.5, y: image_width * 0.5 };
-    // Use provided initial_scale if given, otherwise fall back to old calculation
-    const scale_start = typeof initial_scale === "number" ? initial_scale : Math.sqrt(w * w + h * h) / image_width;
+    const d_canvas = Math.sqrt(w * w + h * h);
+    const scale_start = d_canvas / image_width;
     const a_start = mat_mul(
       mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_start)), mat_rotate(initial_rotation)),
       mat_translate(-center_start.x, -center_start.y)
@@ -87,6 +55,7 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     const uy = region_rect.p3.y - region_rect.p0.y;
     const region_w = Math.hypot(vx, vy);
     const region_h = Math.hypot(ux, uy);
+    const region_theta = Math.atan2(vy, vx);
     const center_end = {
       x: (region_rect.p0.x + region_rect.p2.x) * 0.5,
       y: (region_rect.p0.y + region_rect.p2.y) * 0.5,
@@ -131,17 +100,14 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     const animation_time_factor = t;
     // Interpolate TRS
     const trs = {
-      scale: window.infinity_zoom_II.utils.texture_region_zoom.lerp(previous_layer.scale, final_layer.scale, animation_time_factor, false),
-      theta: window.infinity_zoom_II.utils.texture_region_zoom.lerp(initial_rotation, -region_theta, animation_time_factor, true),
+      center_x: ease_strategy(trs_start.center_x, trs_end.center_x, animation_time_factor, false),
+      center_y: ease_strategy(trs_start.center_y, trs_end.center_y, animation_time_factor, false),
+      scale: ease_strategy(trs_start.scale, trs_end.scale, animation_time_factor, false),
+      theta: ease_strategy_angle(trs_start.theta, trs_end.theta, animation_time_factor, true),
     };
-    // Draw previous layer first (if available)
-    if (previous_layer && previous_layer.texture) {
-      const mat_prev = build_region_zoom_matrix(trs.scale, trs.theta, previous_layer.image, gl_ctx.canvas);
-      draw_texture_region_zoom(mat_prev, previous_layer.texture);
-    }
-    // Draw final layer on top
-    const mat_final = build_region_zoom_matrix(trs.scale, trs.theta, final_layer.image, gl_ctx.canvas);
-    draw_texture_region_zoom(mat_final, final_layer.texture);
+    // Build and set matrix
+    const mat = build_trs_matrix(trs, gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight);
+    draw_texture_region_zoom(mat, final_layer.texture);
     if (t < 1) {
       requestAnimationFrame(animate_step);
     } else {
@@ -165,12 +131,6 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
 
     initial_rotation = previous_rotation;
     log("initial_rotation", initial_rotation);
-
-    // Calculate region_theta for use in animate_step
-    const region_rect = config.region_rect;
-    const vx = region_rect.p1.x - region_rect.p0.x;
-    const vy = region_rect.p1.y - region_rect.p0.y;
-    region_theta = Math.atan2(vy, vx);
 
     const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
     // No Y-flip: input is always upright
@@ -206,8 +166,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     const loc_uv = gl_ctx.getAttribLocation(gl_program, "a_tex");
     gl_ctx.enableVertexAttribArray(loc_uv);
     gl_ctx.vertexAttribPointer(loc_uv, 2, gl_ctx.FLOAT, false, 0, 0);
-    // Build matrices, pass final_layer.scale for initial scale
-    build_matrices(canvas.width, canvas.height, final_layer.scale);
+    // Build matrices
+    build_matrices(canvas.width, canvas.height);
     animating = true;
     anim_start_time = 0;
     requestAnimationFrame(animate_step);
