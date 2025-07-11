@@ -37,16 +37,23 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   let final_layer = null;
   let previous_layer = null;
 
+  // Calculates a transformation matrix matching the main zoom engine's logic, including aspect correction, no image center translation
+  function calculate_main_zoom_matrix(scale, rotation, w, h, image) {
+    // Compose aspect matrix as in the main zoom engine
+    const aspect = window.infinity_zoom_II.utils.math.make_matrix(image, { width: w, height: h });
+    const scale_mat = mat_scale(scale);
+    const rot_mat = mat_rotate(rotation);
+    // Compose: rot * scale * aspect
+    let mat = window.infinity_zoom_II.utils.math.mat3_mul(rot_mat, window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect));
+    return mat;
+  }
+
   function build_matrices(w, h) {
-    const proj = mat_ortho(w, h);
-    const center_start = { x: image_width * 0.5, y: image_width * 0.5 };
-    const d_canvas = Math.sqrt(w * w + h * h);
-    const scale_start = d_canvas / image_width;
-    const a_start = mat_mul(
-      mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_start)), mat_rotate(initial_rotation)),
-      mat_translate(-center_start.x, -center_start.y)
-    );
-    start_matrix = mat_mul(proj, a_start);
+    // Use the actual scale and rotation from the final layer for seamless handoff
+    const scale_start = final_layer && typeof final_layer.scale === "number" ? final_layer.scale : Math.sqrt(w * w + h * h) / image_width;
+    const theta_start = typeof initial_rotation === "number" ? initial_rotation : 0;
+    // Use the new unified matrix calculation for the start, now with aspect and no translation
+    start_matrix = calculate_main_zoom_matrix(scale_start, theta_start, w, h, final_layer.image);
     // Region axes
     const region_rect = config.region_rect;
     const vx = region_rect.p1.x - region_rect.p0.x;
@@ -62,10 +69,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     };
     const scale_end = Math.max(w / region_w, h / region_h);
     trs_start = {
-      center_x: center_start.x,
-      center_y: center_start.y,
       scale: scale_start,
-      theta: initial_rotation,
+      theta: theta_start,
     };
     trs_end = {
       center_x: center_end.x,
@@ -73,6 +78,7 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
       scale: scale_end,
       theta: -region_theta,
     };
+    const proj = mat_ortho(w, h);
     const a_end = mat_mul(
       mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_end)), mat_rotate(-region_theta)),
       mat_translate(-center_end.x, -center_end.y)
