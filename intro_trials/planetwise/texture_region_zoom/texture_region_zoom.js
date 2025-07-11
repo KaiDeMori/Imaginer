@@ -37,11 +37,11 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   let final_layer = null;
   let previous_layer = null;
 
-  function build_matrices(w, h) {
+  function build_matrices(w, h, initial_scale) {
     const proj = mat_ortho(w, h);
     const center_start = { x: image_width * 0.5, y: image_width * 0.5 };
-    const d_canvas = Math.sqrt(w * w + h * h);
-    const scale_start = d_canvas / image_width;
+    // Use provided initial_scale if given, otherwise fall back to old calculation
+    const scale_start = typeof initial_scale === "number" ? initial_scale : Math.sqrt(w * w + h * h) / image_width;
     const a_start = mat_mul(
       mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_start)), mat_rotate(initial_rotation)),
       mat_translate(-center_start.x, -center_start.y)
@@ -105,12 +105,16 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
       scale: ease_strategy(trs_start.scale, trs_end.scale, animation_time_factor, false),
       theta: ease_strategy_angle(trs_start.theta, trs_end.theta, animation_time_factor, true),
     };
-    // Build and set matrix
-    const mat = build_trs_matrix(trs, gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight);
     // Draw previous layer first (if available)
-    draw_texture_region_zoom(mat, previous_layer.texture);
+    if (previous_layer && previous_layer.texture) {
+      build_matrices(gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight, previous_layer.scale);
+      const mat_prev = build_trs_matrix(trs, gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight);
+      draw_texture_region_zoom(mat_prev, previous_layer.texture);
+    }
     // Draw final layer on top
-    draw_texture_region_zoom(mat, final_layer.texture);
+    build_matrices(gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight, final_layer.scale);
+    const mat_final = build_trs_matrix(trs, gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight);
+    draw_texture_region_zoom(mat_final, final_layer.texture);
     if (t < 1) {
       requestAnimationFrame(animate_step);
     } else {
@@ -169,8 +173,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     const loc_uv = gl_ctx.getAttribLocation(gl_program, "a_tex");
     gl_ctx.enableVertexAttribArray(loc_uv);
     gl_ctx.vertexAttribPointer(loc_uv, 2, gl_ctx.FLOAT, false, 0, 0);
-    // Build matrices
-    build_matrices(canvas.width, canvas.height);
+    // Build matrices, pass final_layer.scale for initial scale
+    build_matrices(canvas.width, canvas.height, final_layer.scale);
     animating = true;
     anim_start_time = 0;
     requestAnimationFrame(animate_step);

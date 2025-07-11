@@ -261,6 +261,7 @@ const engine = {
       if (!window.infinity_zoom_II.FLAG_initiate_final_reveal) {
         requestAnimationFrame(this.animate.bind(this));
       } else {
+        log("rotation", this.rotation);
         // Start region zoom animation as the final phase
         this.animation_phase = "region_zoom";
         log("Final reveal triggered. Starting region zoom animation.");
@@ -268,6 +269,7 @@ const engine = {
         const last_index = this.layers.length - 1;
         const penultimate_index = this.layers.length - 2;
         const final_layer = this.layers[last_index];
+        log("Final layer scale:", final_layer.scale);
         const previous_layer = this.layers[penultimate_index];
         // prettier-ignore
         window.infinity_zoom_II.texture_region_zoom.start_texture_region_zoom(
