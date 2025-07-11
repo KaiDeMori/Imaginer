@@ -112,16 +112,17 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   }
 
   /**
-   * Starts the region zoom animation for one or more layers.
-   * Requires: layers (array of {image, texture}), previous_rotation (radians), and a completion callback.
-   * The first layer in the array is used for geometry setup; all layers can be rendered if needed.
+   * Starts the region zoom animation for the final and previous image layers.
+   * Both layers must have {image, texture} properties. The final image is rendered on top of the previous.
+   * previous_rotation is in radians. on_complete is called when the animation finishes.
    */
-  function start_texture_region_zoom(gl, canvas, layers, previous_rotation, on_complete) {
-    log("previous_rotation", previous_rotation);
+  function start_texture_region_zoom(gl, canvas, final_layer, previous_layer, previous_rotation, on_complete) {
     gl_ctx = gl;
     config = window.infinity_zoom_II.config.region_zoom;
     on_complete_callbacks = on_complete;
+
     initial_rotation = previous_rotation;
+    log("initial_rotation", initial_rotation);
 
     const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
     // No Y-flip: input is always upright
@@ -139,9 +140,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     gl_ctx.useProgram(gl_program);
     uniform_matrix = gl_ctx.getUniformLocation(gl_program, "u_matrix");
 
-    // Use the first layer for geometry setup (assume all layers are same size)
-    const main_layer = layers[0];
-    image_width = main_layer.image.width;
+    // Use the final_layer for geometry setup (assume both layers are same size)
+    image_width = final_layer.image.width;
     // Setup geometry
     const pos = new Float32Array([0, 0, image_width, 0, 0, image_width, image_width, image_width]);
     // Flip V coordinate in UVs to compensate for Y-flip during texture upload

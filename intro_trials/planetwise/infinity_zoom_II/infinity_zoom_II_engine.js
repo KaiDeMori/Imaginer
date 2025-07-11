@@ -267,12 +267,14 @@ const engine = {
         // Use the last and penultimate layers for region zoom
         const last_index = this.layers.length - 1;
         const penultimate_index = this.layers.length - 2;
-        const region_layers = [this.layers[penultimate_index], this.layers[last_index]];
+        const final_layer = this.layers[last_index];
+        const previous_layer = this.layers[penultimate_index];
         // prettier-ignore
         window.infinity_zoom_II.texture_region_zoom.start_texture_region_zoom(
          this.gl,
          this.canvas,
-         region_layers,
+         final_layer,
+         previous_layer,
          this.rotation,
          () => {
           this.animation_phase = "really_done";
