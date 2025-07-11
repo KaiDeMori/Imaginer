@@ -107,6 +107,9 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     };
     // Build and set matrix
     const mat = build_trs_matrix(trs, gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight);
+    // Draw previous layer first (if available)
+    draw_texture_region_zoom(mat, previous_layer.texture);
+    // Draw final layer on top
     draw_texture_region_zoom(mat, final_layer.texture);
     if (t < 1) {
       requestAnimationFrame(animate_step);
