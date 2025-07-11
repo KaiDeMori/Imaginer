@@ -223,6 +223,7 @@ const engine = {
         this.animation_phase = "main_zoom";
         this.main_zoom_start_time = now;
         this.first_layer_scale_at_main_zoom = 1;
+        this._debug_logged_approaching = false; // Reset debug flag
         requestAnimationFrame(this.animate.bind(this));
       }
     } else if (this.animation_phase === "main_zoom") {
@@ -230,29 +231,114 @@ const engine = {
       const elapsed_main_zoom = (now - this.main_zoom_start_time) / 1000;
       // Advance rotation
       this.rotation += this.rotation_speed * delta;
+
       // Exponential zoom: s(t) = s0 * exp(k * t)
       const k = this.zoom_speed;
       const s0 = this.first_layer_scale_at_main_zoom;
       const first_layer_scale = s0 * Math.exp(k * elapsed_main_zoom);
-      this.layers[0].scale = first_layer_scale;
-      for (let i = 1; i < this.layers.length; ++i) {
-        const layer = this.layers[i];
-        layer.scale = this.get_layer_scale(i, first_layer_scale);
-        layer.alpha = 1;
+
+      // Check if the final layer WOULD cover the viewport with this new scale
+      // before actually applying it to prevent over-zooming
+      const final_layer_index = this.layers.length - 1;
+      const final_layer_scale = this.get_layer_scale(final_layer_index, first_layer_scale);
+
+      // For square images in any viewport, calculate the minimum scale needed to cover
+      // The key insight: we need the transformed quad corners to reach exactly (-1,-1) to (1,1)
+      // in WebGL clip space to perfectly cover the viewport
+      const aspect_matrix = window.infinity_zoom_II.utils.math.make_matrix(this.layers[final_layer_index].image, this.canvas);
+      const sx = aspect_matrix[0];
+      const sy = aspect_matrix[4];
+
+      // Calculate the composed transformation matrix for this scale
+      const scale_mat = [final_layer_scale, 0, 0, 0, final_layer_scale, 0, 0, 0, 1];
+      const composed_mat = window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect_matrix);
+
+      // Check if the quad corners (±1,±1) transform to fill at least the viewport bounds (±1,±1)
+      // The quad corner (1,1) should transform to at least (1,1) in clip space for full coverage
+      const corner_x = composed_mat[0] * 1 + composed_mat[3] * 1 + composed_mat[6]; // Transform (1,1)
+      const corner_y = composed_mat[1] * 1 + composed_mat[4] * 1 + composed_mat[7];
+
+      // For full coverage, both corners should reach or exceed ±1
+      const covers_viewport = Math.abs(corner_x) >= 1.0 && Math.abs(corner_y) >= 1.0;
+
+      // Debug logging when we're close to transition (only log once per approach)
+      if (Math.abs(corner_x) > 0.95 && !this._debug_logged_approaching) {
+        this._debug_logged_approaching = true;
+        log("🔍 APPROACHING TRANSITION:");
+        log("  Canvas dimensions:", this.canvas.width, "x", this.canvas.height);
+        log("  Canvas aspect ratio:", (this.canvas.width / this.canvas.height).toFixed(3));
+        log("  Final layer scale:", final_layer_scale.toFixed(6));
+        log("  Transformed corner:", corner_x.toFixed(6), corner_y.toFixed(6));
+        log("  Covers viewport:", covers_viewport);
+        log("  Final layer image size:", this.layers[final_layer_index].image.width, "x", this.layers[final_layer_index].image.height);
       }
 
-      // Efficiently update and log the covering layer index
-      this.update_covering_layer_index();
+      // Add small tolerance for floating-point precision (equivalent to ~1 pixel)
+      const tolerance = 1.0 / Math.max(this.canvas.width, this.canvas.height);
 
-      // Check if last layer covers the viewport (no bars, covers both width and height)
-      if (this.covering_layer_index === this.layers.length - 1) {
-        // Last layer now covers viewport: stop zoom, continue rotation
+      if (covers_viewport && Math.abs(corner_x) >= 1.0 + tolerance && Math.abs(corner_y) >= 1.0 + tolerance) {
+        // Final layer would cover viewport: stop zoom at current scale, continue rotation
         this.last_layer_cover_time = now;
         this.rotation_at_cover = this.rotation;
         this.animation_phase = "final_rotation";
-        log("Main zoom complete. Continuing rotation.");
+        log("🎯 MAIN ZOOM COMPLETE:");
+        log("  Final layer scale:", final_layer_scale.toFixed(6));
+        log("  Transformed corner:", corner_x.toFixed(6), corner_y.toFixed(6));
+        log("  Canvas mode:", sx === 1.0 ? "PORTRAIT (width-constrained)" : "LANDSCAPE (height-constrained)");
+
+        // Debug the actual aspect matrix to understand the real rendering
+        const debug_aspect = window.infinity_zoom_II.utils.math.make_matrix(this.layers[final_layer_index].image, this.canvas);
+        log("🔧 RENDERING MATRIX DEBUG:");
+        log("  Aspect matrix sx:", debug_aspect[0].toFixed(6));
+        log("  Aspect matrix sy:", debug_aspect[4].toFixed(6));
+        log("  Actual rendered width:", (final_layer_scale * debug_aspect[0] * this.canvas.width).toFixed(1));
+        log("  Actual rendered height:", (final_layer_scale * debug_aspect[4] * this.canvas.height).toFixed(1));
+
+        // Calculate expected coverage
+        if (sx === 1.0) {
+          log(
+            "  Coverage check: rendered_height vs canvas_height:",
+            (final_layer_scale * debug_aspect[4] * this.canvas.height).toFixed(1),
+            "vs",
+            this.canvas.height
+          );
+        } else {
+          log(
+            "  Coverage check: rendered_width vs canvas_width:",
+            (final_layer_scale * debug_aspect[0] * this.canvas.width).toFixed(1),
+            "vs",
+            this.canvas.width
+          );
+        }
+
+        // Debug: simulate the complete matrix transformation used in rendering
+        const scale_mat = [final_layer_scale, 0, 0, 0, final_layer_scale, 0, 0, 0, 1];
+        const composed_mat = window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, debug_aspect);
+        log("🔬 COMPLETE TRANSFORMATION DEBUG:");
+        log("  Final composed matrix [sx, sy]:", composed_mat[0].toFixed(6), composed_mat[4].toFixed(6));
+        log(
+          "  Image corner (-1,-1) transforms to:",
+          (composed_mat[0] * -1 + composed_mat[3] * -1 + composed_mat[6]).toFixed(3),
+          (composed_mat[1] * -1 + composed_mat[4] * -1 + composed_mat[7]).toFixed(3)
+        );
+        log(
+          "  Image corner (1,1) transforms to:",
+          (composed_mat[0] * 1 + composed_mat[3] * 1 + composed_mat[6]).toFixed(3),
+          (composed_mat[1] * 1 + composed_mat[4] * 1 + composed_mat[7]).toFixed(3)
+        );
+
         requestAnimationFrame(this.animate.bind(this));
       } else {
+        // Apply the new scale and continue zooming
+        this.layers[0].scale = first_layer_scale;
+        for (let i = 1; i < this.layers.length; ++i) {
+          const layer = this.layers[i];
+          layer.scale = this.get_layer_scale(i, first_layer_scale);
+          layer.alpha = 1;
+        }
+
+        // Update covering layer index for logging purposes
+        this.update_covering_layer_index();
         requestAnimationFrame(this.animate.bind(this));
       }
     } else if (this.animation_phase === "final_rotation") {
