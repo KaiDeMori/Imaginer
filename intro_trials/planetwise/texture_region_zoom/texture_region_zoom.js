@@ -33,6 +33,9 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   let initial_rotation;
   let on_complete_callbacks = null;
   let config = null;
+  // Store layers for animation/static draw
+  let previous_layer = null;
+  let final_layer = null;
 
   function build_matrices(w, h) {
     const proj = mat_ortho(w, h);
@@ -77,12 +80,23 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     end_matrix = mat_mul(proj, a_end);
   }
 
-  // Draws the current texture region zoom frame
+  // Helper: draw a given texture with a matrix
+  function draw_texture_with_matrix(matrix, texture) {
+    gl_ctx.uniformMatrix3fv(uniform_matrix, false, matrix);
+    gl_ctx.bindTexture(gl_ctx.TEXTURE_2D, texture);
+    gl_ctx.drawArrays(gl_ctx.TRIANGLE_STRIP, 0, 4);
+  }
+
+  // Draws the current texture region zoom frame (draws both images in order)
   function draw_texture_region_zoom(matrix) {
     gl_ctx.clearColor(0, 0, 0, 1);
     gl_ctx.clear(gl_ctx.COLOR_BUFFER_BIT);
-    gl_ctx.uniformMatrix3fv(uniform_matrix, false, matrix);
-    gl_ctx.drawArrays(gl_ctx.TRIANGLE_STRIP, 0, 4);
+    if (previous_layer && previous_layer.texture) {
+      draw_texture_with_matrix(matrix, previous_layer.texture);
+    }
+    if (final_layer && final_layer.texture) {
+      draw_texture_with_matrix(matrix, final_layer.texture);
+    }
   }
 
   function animate_step(ts) {
@@ -116,14 +130,14 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
    * Both layers must have {image, texture} properties. The final image is rendered on top of the previous.
    * previous_rotation is in radians. on_complete is called when the animation finishes.
    */
-  function start_texture_region_zoom(gl, canvas, final_layer, previous_layer, previous_rotation, on_complete) {
+  function start_texture_region_zoom(gl, canvas, _final_layer, _previous_layer, previous_rotation, on_complete) {
     gl_ctx = gl;
     config = window.infinity_zoom_II.config.region_zoom;
     on_complete_callbacks = on_complete;
-
+    final_layer = _final_layer;
+    previous_layer = _previous_layer;
     initial_rotation = previous_rotation;
     log("initial_rotation", initial_rotation);
-
     const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
     // No Y-flip: input is always upright
     const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,v_tex);}`;
@@ -139,7 +153,6 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     gl_ctx.linkProgram(gl_program);
     gl_ctx.useProgram(gl_program);
     uniform_matrix = gl_ctx.getUniformLocation(gl_program, "u_matrix");
-
     // Use the final_layer for geometry setup (assume both layers are same size)
     image_width = final_layer.image.width;
     // Setup geometry
@@ -167,7 +180,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
 
   // API: draw static texture region zoom (for engine-driven redraws)
   function draw_static_texture_region_zoom(show_region) {
-    draw_texture_region_zoom(show_region ? end_matrix : start_matrix);
+    const matrix = show_region ? end_matrix : start_matrix;
+    draw_texture_region_zoom(matrix);
   }
 
   // API: resize handler
