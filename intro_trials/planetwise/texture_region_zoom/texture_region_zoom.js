@@ -91,12 +91,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   function draw_texture_region_zoom(matrix) {
     gl_ctx.clearColor(0, 0, 0, 1);
     gl_ctx.clear(gl_ctx.COLOR_BUFFER_BIT);
-    if (previous_layer && previous_layer.texture) {
-      draw_texture_with_matrix(matrix, previous_layer.texture);
-    }
-    if (final_layer && final_layer.texture) {
-      draw_texture_with_matrix(matrix, final_layer.texture);
-    }
+    draw_texture_with_matrix(matrix, previous_layer.texture);
+    draw_texture_with_matrix(matrix, final_layer.texture);
   }
 
   function animate_step(ts) {
