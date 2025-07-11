@@ -159,7 +159,7 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     gl_ctx.enableVertexAttribArray(loc_uv);
     gl_ctx.vertexAttribPointer(loc_uv, 2, gl_ctx.FLOAT, false, 0, 0);
     // Build matrices
-    build_matrices((canvas && canvas.width) || 0, (canvas && canvas.height) || 0);
+    build_matrices(canvas.width, canvas && canvas.height);
     animating = true;
     anim_start_time = 0;
     requestAnimationFrame(animate_step);
