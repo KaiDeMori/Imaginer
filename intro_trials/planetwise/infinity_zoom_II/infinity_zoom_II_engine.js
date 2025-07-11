@@ -264,26 +264,21 @@ const engine = {
         // Start region zoom animation as the final phase
         this.animation_phase = "region_zoom";
         log("Final reveal triggered. Starting region zoom animation.");
-        // Use the last layer's image for the region zoom
-        const last_layer = this.layers[this.layers.length - 1];
-        // Log transition values for debugging
-        console.log("[ENGINE → REGION ZOOM] Transitioning to region zoom with:", {
-          theta: this.rotation,
-        });
-        // Start the region zoom animation, passing the existing texture and its size
+        // Use the last and penultimate layers for region zoom
+        const last_index = this.layers.length - 1;
+        const penultimate_index = this.layers.length - 2;
+        const region_layers = [this.layers[penultimate_index], this.layers[last_index]];
+        // prettier-ignore
         window.infinity_zoom_II.texture_region_zoom.start_texture_region_zoom(
-          this.gl,
-          this.canvas,
-          last_layer.texture,
-          last_layer.image.width,
-          { theta: this.rotation },
-          // Callback when region zoom is complete
-          () => {
-            this.animation_phase = "really_done";
-            log("Region zoom animation complete.");
-            requestAnimationFrame(this.animate.bind(this));
-          }
-        );
+         this.gl,
+         this.canvas,
+         region_layers,
+         this.rotation,
+         () => {
+          this.animation_phase = "really_done";
+          log("Region zoom animation complete.");
+          requestAnimationFrame(this.animate.bind(this));
+        });
         // Do not call render here; region_zoom handles its own animation
       }
     } else if (this.animation_phase === "region_zoom") {

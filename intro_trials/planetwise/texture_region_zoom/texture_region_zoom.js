@@ -22,24 +22,23 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
 
   // Internal state
   let gl_ctx, gl_program, uniform_matrix;
-  let texture_side = 0;
+  let image_width;
   let start_matrix, end_matrix;
   let trs_start, trs_end;
   let showing_region = false;
   let animating = false;
-  let anim_t = 0;
   let anim_start_time = 0;
   let ease_strategy = ease_in_out_cubic;
   let ease_strategy_angle = ease_in_out_cubic;
-  let initial_rotation = 1; // Math.random() * Math.PI * 2;
+  let initial_rotation;
   let on_complete_callbacks = null;
   let config = null;
 
   function build_matrices(w, h) {
     const proj = mat_ortho(w, h);
-    const center_start = { x: texture_side * 0.5, y: texture_side * 0.5 };
+    const center_start = { x: image_width * 0.5, y: image_width * 0.5 };
     const d_canvas = Math.sqrt(w * w + h * h);
-    const scale_start = d_canvas / texture_side;
+    const scale_start = d_canvas / image_width;
     const a_start = mat_mul(
       mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_start)), mat_rotate(initial_rotation)),
       mat_translate(-center_start.x, -center_start.y)
@@ -117,36 +116,34 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
    * Requires: layers (array of {image, texture}), initial_rotation (radians), and a completion callback.
    * The first layer in the array is used for geometry setup; all layers can be rendered if needed.
    */
-  function start_texture_region_zoom(gl, canvas, layers, initial_rotation, on_complete) {
+  function start_texture_region_zoom(gl, canvas, layers, previous_rotation, on_complete) {
+    log("previous_rotation", previous_rotation);
     gl_ctx = gl;
     config = window.infinity_zoom_II.config.region_zoom;
     on_complete_callbacks = on_complete;
-    log("initial_rotation", initial_rotation);
-    // initial_rotation must be provided explicitly
-    // Setup program if not already
-    if (!gl_program) {
-      const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
-      // No Y-flip: input is always upright
-      const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,v_tex);}`;
-      const vs = gl_ctx.createShader(gl_ctx.VERTEX_SHADER);
-      gl_ctx.shaderSource(vs, vs_src);
-      gl_ctx.compileShader(vs);
-      const fs = gl_ctx.createShader(gl_ctx.FRAGMENT_SHADER);
-      gl_ctx.shaderSource(fs, fs_src);
-      gl_ctx.compileShader(fs);
-      gl_program = gl_ctx.createProgram();
-      gl_ctx.attachShader(gl_program, vs);
-      gl_ctx.attachShader(gl_program, fs);
-      gl_ctx.linkProgram(gl_program);
-      gl_ctx.useProgram(gl_program);
-      uniform_matrix = gl_ctx.getUniformLocation(gl_program, "u_matrix");
-    }
+    initial_rotation = previous_rotation;
+
+    const vs_src = `precision mediump float;attribute vec2 a_position;attribute vec2 a_tex;uniform mat3 u_matrix;varying vec2 v_tex;void main(){vec3 p=u_matrix*vec3(a_position,1.0);gl_Position=vec4(p.xy,0.0,1.0);v_tex=a_tex;}`;
+    // No Y-flip: input is always upright
+    const fs_src = `precision mediump float;varying vec2 v_tex;uniform sampler2D u_texture;void main(){gl_FragColor=texture2D(u_texture,v_tex);}`;
+    const vs = gl_ctx.createShader(gl_ctx.VERTEX_SHADER);
+    gl_ctx.shaderSource(vs, vs_src);
+    gl_ctx.compileShader(vs);
+    const fs = gl_ctx.createShader(gl_ctx.FRAGMENT_SHADER);
+    gl_ctx.shaderSource(fs, fs_src);
+    gl_ctx.compileShader(fs);
+    gl_program = gl_ctx.createProgram();
+    gl_ctx.attachShader(gl_program, vs);
+    gl_ctx.attachShader(gl_program, fs);
+    gl_ctx.linkProgram(gl_program);
+    gl_ctx.useProgram(gl_program);
+    uniform_matrix = gl_ctx.getUniformLocation(gl_program, "u_matrix");
 
     // Use the first layer for geometry setup (assume all layers are same size)
     const main_layer = layers[0];
-    texture_side = main_layer.image.width;
+    image_width = main_layer.image.width;
     // Setup geometry
-    const pos = new Float32Array([0, 0, texture_side, 0, 0, texture_side, texture_side, texture_side]);
+    const pos = new Float32Array([0, 0, image_width, 0, 0, image_width, image_width, image_width]);
     // Flip V coordinate in UVs to compensate for Y-flip during texture upload
     const uv = new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]);
     const pos_buf = gl_ctx.createBuffer();
