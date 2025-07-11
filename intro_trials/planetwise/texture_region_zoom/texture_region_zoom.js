@@ -34,6 +34,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   let on_complete_callbacks = null;
   let config = null;
 
+  let final_layer = null;
+
   function build_matrices(w, h) {
     const proj = mat_ortho(w, h);
     const center_start = { x: image_width * 0.5, y: image_width * 0.5 };
@@ -78,9 +80,11 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   }
 
   // Draws the current texture region zoom frame
-  function draw_texture_region_zoom(matrix) {
+  function draw_texture_region_zoom(matrix, texture) {
     gl_ctx.clearColor(0, 0, 0, 1);
     gl_ctx.clear(gl_ctx.COLOR_BUFFER_BIT);
+    gl_ctx.activeTexture(gl_ctx.TEXTURE0);
+    gl_ctx.bindTexture(gl_ctx.TEXTURE_2D, texture);
     gl_ctx.uniformMatrix3fv(uniform_matrix, false, matrix);
     gl_ctx.drawArrays(gl_ctx.TRIANGLE_STRIP, 0, 4);
   }
@@ -101,7 +105,7 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     };
     // Build and set matrix
     const mat = build_trs_matrix(trs, gl_ctx.drawingBufferWidth, gl_ctx.drawingBufferHeight);
-    draw_texture_region_zoom(mat);
+    draw_texture_region_zoom(mat, final_layer.texture);
     if (t < 1) {
       requestAnimationFrame(animate_step);
     } else {
@@ -116,10 +120,11 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
    * Both layers must have {image, texture} properties. The final image is rendered on top of the previous.
    * previous_rotation is in radians. on_complete is called when the animation finishes.
    */
-  function start_texture_region_zoom(gl, canvas, final_layer, previous_layer, previous_rotation, on_complete) {
+  function start_texture_region_zoom(gl, canvas, _final_layer, _previous_layer, previous_rotation, on_complete) {
     gl_ctx = gl;
     config = window.infinity_zoom_II.config.region_zoom;
     on_complete_callbacks = on_complete;
+    final_layer = _final_layer;
 
     initial_rotation = previous_rotation;
     log("initial_rotation", initial_rotation);
