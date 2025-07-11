@@ -113,7 +113,7 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
 
   /**
    * Starts the region zoom animation for one or more layers.
-   * Requires: layers (array of {image, texture}), initial_rotation (radians), and a completion callback.
+   * Requires: layers (array of {image, texture}), previous_rotation (radians), and a completion callback.
    * The first layer in the array is used for geometry setup; all layers can be rendered if needed.
    */
   function start_texture_region_zoom(gl, canvas, layers, previous_rotation, on_complete) {
