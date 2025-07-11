@@ -243,9 +243,13 @@ const engine = {
       const final_layer_scale = this.get_layer_scale(final_layer_index, first_layer_scale);
 
       // For square images in any viewport, calculate the minimum scale needed to cover
-      // The key insight: we need the transformed quad corners to reach exactly (-1,-1) to (1,1)
-      // in WebGL clip space to perfectly cover the viewport
-      const aspect_matrix = window.infinity_zoom_II.utils.math.make_matrix(this.layers[final_layer_index].image, this.canvas);
+      // CRITICAL: Use display size (CSS pixels), not canvas buffer size (physical pixels)
+      // The canvas buffer may be DPR-scaled but coverage is based on visual display
+      const display_width = window.innerWidth;
+      const display_height = window.innerHeight;
+      const display_canvas = { width: display_width, height: display_height };
+
+      const aspect_matrix = window.infinity_zoom_II.utils.math.make_matrix(this.layers[final_layer_index].image, display_canvas);
       const sx = aspect_matrix[0];
       const sy = aspect_matrix[4];
 
@@ -265,16 +269,17 @@ const engine = {
       if (Math.abs(corner_x) > 0.95 && !this._debug_logged_approaching) {
         this._debug_logged_approaching = true;
         log("🔍 APPROACHING TRANSITION:");
-        log("  Canvas dimensions:", this.canvas.width, "x", this.canvas.height);
-        log("  Canvas aspect ratio:", (this.canvas.width / this.canvas.height).toFixed(3));
+        log("  Canvas buffer size:", this.canvas.width, "x", this.canvas.height);
+        log("  Display size (CSS):", display_width, "x", display_height);
+        log("  Display aspect ratio:", (display_width / display_height).toFixed(3));
         log("  Final layer scale:", final_layer_scale.toFixed(6));
         log("  Transformed corner:", corner_x.toFixed(6), corner_y.toFixed(6));
         log("  Covers viewport:", covers_viewport);
         log("  Final layer image size:", this.layers[final_layer_index].image.width, "x", this.layers[final_layer_index].image.height);
       }
 
-      // Add small tolerance for floating-point precision (equivalent to ~1 pixel)
-      const tolerance = 1.0 / Math.max(this.canvas.width, this.canvas.height);
+      // Add small tolerance for floating-point precision (equivalent to ~1 pixel at display size)
+      const tolerance = 1.0 / Math.max(display_width, display_height);
 
       if (covers_viewport && Math.abs(corner_x) >= 1.0 + tolerance && Math.abs(corner_y) >= 1.0 + tolerance) {
         // Final layer would cover viewport: stop zoom at current scale, continue rotation

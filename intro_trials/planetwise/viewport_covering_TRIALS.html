@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebGL Viewport Covering Test</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: black;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="webgl_canvas"></canvas>
+
+    <script>
+      function log(message) {
+        console.log("🕵️ + 🤖 " + message);
+      }
+    </script>
+
+    <script>
+      const relative_path_to_test_image = "zoom_images_planete/debug/100_alien_closeup.png";
+
+      // Vertex shader source
+      const vertex_shader_source = `
+            attribute vec2 a_position;
+            attribute vec2 a_texCoord;
+            varying vec2 v_texCoord;
+            
+            void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_texCoord = a_texCoord;
+            }
+        `;
+
+      // Fragment shader source
+      const fragment_shader_source = `
+            precision mediump float;
+            uniform sampler2D u_texture;
+            varying vec2 v_texCoord;
+            
+            void main() {
+                gl_FragColor = texture2D(u_texture, v_texCoord);
+            }
+        `;
+
+      function create_shader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return shader;
+      }
+
+      function create_program(gl, vertex_shader, fragment_shader) {
+        const program = gl.createProgram();
+        gl.attachShader(program, vertex_shader);
+        gl.attachShader(program, fragment_shader);
+        gl.linkProgram(program);
+        return program;
+      }
+
+      function load_texture(gl, url) {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Fill with placeholder color while loading (dark red)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([80, 20, 20, 255]));
+
+        const image = new Image();
+        image.onload = function () {
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+          gl.generateMipmap(gl.TEXTURE_2D);
+
+          render();
+        };
+        image.src = url;
+
+        return texture;
+      }
+
+      function setup_viewport_covering_geometry(gl, program, canvas_width, canvas_height) {
+        // Calculate viewport aspect ratio
+        const viewport_aspect = canvas_width / canvas_height;
+        const image_aspect = 1.0; // Square image
+
+        log(`=== VIEWPORT COVERING SETUP ===`);
+        log(`Canvas: ${canvas_width} × ${canvas_height}`);
+        log(`Viewport aspect: ${viewport_aspect.toFixed(3)} (${viewport_aspect > 1 ? "wider" : "taller"} than square)`);
+        log(`Image aspect: ${image_aspect.toFixed(3)}`);
+
+        // Calculate texture coordinate bounds for "cover" behavior
+        let tex_left, tex_right, tex_top, tex_bottom;
+
+        if (viewport_aspect > image_aspect) {
+          // Viewport is wider than image - fit width, crop top/bottom
+          const scale = viewport_aspect / image_aspect;
+          const crop_amount = (scale - 1.0) / (2.0 * scale);
+          tex_left = 0.0;
+          tex_right = 1.0;
+          tex_top = crop_amount;
+          tex_bottom = 1.0 - crop_amount;
+
+          log(`WIDER viewport: scale=${scale.toFixed(3)}, crop_amount=${crop_amount.toFixed(3)}`);
+          log(`Cropping TOP/BOTTOM: tex_top=${tex_top.toFixed(3)}, tex_bottom=${tex_bottom.toFixed(3)}`);
+        } else {
+          // Viewport is taller than image - fit height, crop sides
+          const scale = image_aspect / viewport_aspect;
+          const crop_amount = (scale - 1.0) / (2.0 * scale);
+          tex_left = crop_amount;
+          tex_right = 1.0 - crop_amount;
+          tex_top = 0.0;
+          tex_bottom = 1.0;
+
+          log(`TALLER viewport: scale=${scale.toFixed(3)}, crop_amount=${crop_amount.toFixed(3)}`);
+          log(`Cropping SIDES: tex_left=${tex_left.toFixed(3)}, tex_right=${tex_right.toFixed(3)}`);
+        }
+
+        log(`Final tex coords: [${tex_left.toFixed(3)}, ${tex_top.toFixed(3)}] to [${tex_right.toFixed(3)}, ${tex_bottom.toFixed(3)}]`);
+        log(`===============================`);
+
+        // Vertex positions (always cover entire viewport)
+        const positions = [
+          -1.0,
+          -1.0, // bottom left
+          1.0,
+          -1.0, // bottom right
+          -1.0,
+          1.0, // top left
+          1.0,
+          1.0, // top right
+        ];
+
+        // Texture coordinates (cropped to achieve cover effect)
+        const tex_coords = [
+          tex_left,
+          tex_bottom, // bottom left
+          tex_right,
+          tex_bottom, // bottom right
+          tex_left,
+          tex_top, // top left
+          tex_right,
+          tex_top, // top right
+        ];
+
+        // ...existing code...
+
+        // Setup position buffer (only once)
+        if (!position_buffer) {
+          position_buffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, position_buffer);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+          const a_position = gl.getAttribLocation(program, "a_position");
+          gl.enableVertexAttribArray(a_position);
+          gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
+        }
+
+        // Update texture coordinate buffer
+        if (!tex_coord_buffer) {
+          tex_coord_buffer = gl.createBuffer();
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, tex_coord_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tex_coords), gl.DYNAMIC_DRAW);
+
+        const a_texCoord = gl.getAttribLocation(program, "a_texCoord");
+        gl.enableVertexAttribArray(a_texCoord);
+        gl.vertexAttribPointer(a_texCoord, 2, gl.FLOAT, false, 0, 0);
+      }
+
+      // Global variables
+      let gl, program, texture, position_buffer, tex_coord_buffer, canvas;
+
+      function render() {
+        // Update canvas size to match viewport
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Update geometry for current viewport size
+        setup_viewport_covering_geometry(gl, program, canvas.width, canvas.height);
+
+        // Draw
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+
+      function init() {
+        canvas = document.getElementById("webgl_canvas");
+        gl = canvas.getContext("webgl");
+
+        // Create shaders and program
+        const vertex_shader = create_shader(gl, gl.VERTEX_SHADER, vertex_shader_source);
+        const fragment_shader = create_shader(gl, gl.FRAGMENT_SHADER, fragment_shader_source);
+        program = create_program(gl, vertex_shader, fragment_shader);
+
+        gl.useProgram(program);
+
+        // Setup WebGL state
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+        // Setup texture uniform
+        const u_texture = gl.getUniformLocation(program, "u_texture");
+        gl.uniform1i(u_texture, 0);
+
+        // Load texture - rendering starts only after image loads
+        texture = load_texture(gl, relative_path_to_test_image);
+      }
+
+      // Start when page loads
+      window.addEventListener("load", init);
+    </script>
+  </body>
+</html>
