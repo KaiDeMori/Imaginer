@@ -272,7 +272,7 @@ const engine = {
         log("Final layer scale:", final_layer.scale);
         const previous_layer = this.layers[penultimate_index];
         // prettier-ignore
-        // Compute aspect-corrected scale for region zoom handoff
+        // Compute aspect-corrected scale for region zoom handoff (use min(sx, sy) for perfect fit)
         const img = final_layer.image;
         const canvas = this.canvas;
         const img_aspect = img.width / img.height;
@@ -284,8 +284,8 @@ const engine = {
         } else {
           sx = img_aspect / canvas_aspect;
         }
-        // Use sx (or sy) as the aspect scale factor for the pixel-based region zoom
-        const region_zoom_scale = final_layer.scale * sx;
+        const aspect_scale = Math.min(sx, sy);
+        const region_zoom_scale = final_layer.scale * aspect_scale;
         window.infinity_zoom_II.texture_region_zoom.start_texture_region_zoom(
           this.gl,
           this.canvas,
