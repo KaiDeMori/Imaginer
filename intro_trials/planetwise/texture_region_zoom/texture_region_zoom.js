@@ -2,7 +2,7 @@
 
 // Config for texture region zoom
 window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 40000,
+  anim_duration: 4000,
   region_rect: {
     p0: { x: 1152, y: 1125 },
     p1: { x: 1014, y: 1136 },
@@ -37,30 +37,16 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   let final_layer = null;
   let previous_layer = null;
 
-  // Remove aspect matrix logic and restore pixel-based transformation
-  // Calculates a transformation matrix for region zoom using pixel-based quads
-  function calculate_region_zoom_matrix(center_x, center_y, scale, rotation, w, h) {
-    // Orthographic projection for pixel coordinates
-    const proj = mat_ortho(w, h);
-    // Compose: translate to canvas center, scale, rotate, translate to image center
-    const a = mat_mul(mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale)), mat_rotate(rotation)), mat_translate(-center_x, -center_y));
-    return mat_mul(proj, a);
-  }
-
-  function build_matrices(w, h, initial_pixel_scale) {
-    // Define proj for both start and end matrices
+  function build_matrices(w, h) {
     const proj = mat_ortho(w, h);
     const center_start = { x: image_width * 0.5, y: image_width * 0.5 };
-    // Use the provided initial_pixel_scale if available, otherwise fallback
-    const scale_start =
-      typeof initial_pixel_scale === "number"
-        ? initial_pixel_scale
-        : final_layer && typeof final_layer.scale === "number"
-        ? final_layer.scale
-        : Math.sqrt(w * w + h * h) / image_width;
-    const theta_start = typeof initial_rotation === "number" ? initial_rotation : 0;
-    // Use the pixel-based matrix calculation for the start
-    start_matrix = calculate_region_zoom_matrix(center_start.x, center_start.y, scale_start, theta_start, w, h);
+    const d_canvas = Math.sqrt(w * w + h * h);
+    const scale_start = d_canvas / image_width;
+    const a_start = mat_mul(
+      mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_start)), mat_rotate(initial_rotation)),
+      mat_translate(-center_start.x, -center_start.y)
+    );
+    start_matrix = mat_mul(proj, a_start);
     // Region axes
     const region_rect = config.region_rect;
     const vx = region_rect.p1.x - region_rect.p0.x;
@@ -79,7 +65,7 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
       center_x: center_start.x,
       center_y: center_start.y,
       scale: scale_start,
-      theta: theta_start,
+      theta: initial_rotation,
     };
     trs_end = {
       center_x: center_end.x,
@@ -87,8 +73,11 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
       scale: scale_end,
       theta: -region_theta,
     };
-    // Use the same helper for end matrix
-    end_matrix = calculate_region_zoom_matrix(center_end.x, center_end.y, scale_end, -region_theta, w, h);
+    const a_end = mat_mul(
+      mat_mul(mat_mul(mat_translate(w * 0.5, h * 0.5), mat_scale(scale_end)), mat_rotate(-region_theta)),
+      mat_translate(-center_end.x, -center_end.y)
+    );
+    end_matrix = mat_mul(proj, a_end);
   }
 
   // Draws the current texture region zoom frame
@@ -133,7 +122,7 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
    * Both layers must have {image, texture} properties. The final image is rendered on top of the previous.
    * previous_rotation is in radians. on_complete is called when the animation finishes.
    */
-  function start_texture_region_zoom(gl, canvas, _final_layer, _previous_layer, previous_rotation, on_complete, initial_pixel_scale) {
+  function start_texture_region_zoom(gl, canvas, _final_layer, _previous_layer, previous_rotation, on_complete) {
     gl_ctx = gl;
     config = window.infinity_zoom_II.config.region_zoom;
     on_complete_callbacks = on_complete;
@@ -177,8 +166,8 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     const loc_uv = gl_ctx.getAttribLocation(gl_program, "a_tex");
     gl_ctx.enableVertexAttribArray(loc_uv);
     gl_ctx.vertexAttribPointer(loc_uv, 2, gl_ctx.FLOAT, false, 0, 0);
-    // Build matrices, using the correct initial pixel scale if provided
-    build_matrices(canvas.width, canvas.height, initial_pixel_scale);
+    // Build matrices
+    build_matrices(canvas.width, canvas.height);
     animating = true;
     anim_start_time = 0;
     requestAnimationFrame(animate_step);
