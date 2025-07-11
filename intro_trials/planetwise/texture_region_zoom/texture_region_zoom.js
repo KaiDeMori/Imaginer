@@ -82,8 +82,6 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
 
   // Draws the current texture region zoom frame
   function draw_texture_region_zoom(matrix, texture) {
-    gl_ctx.clearColor(0, 0, 0, 1);
-    gl_ctx.clear(gl_ctx.COLOR_BUFFER_BIT);
     gl_ctx.activeTexture(gl_ctx.TEXTURE0);
     gl_ctx.bindTexture(gl_ctx.TEXTURE_2D, texture);
     gl_ctx.uniformMatrix3fv(uniform_matrix, false, matrix);
@@ -93,6 +91,9 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
   function animate_step(ts) {
     if (!animating) return;
     if (!anim_start_time) anim_start_time = ts;
+    // Clear the canvas once per frame before drawing any layers
+    gl_ctx.clearColor(0, 0, 0, 1);
+    gl_ctx.clear(gl_ctx.COLOR_BUFFER_BIT);
     let t = (ts - anim_start_time) / config.anim_duration;
     t = Math.min(Math.max(t, 0), 1);
     // For zooming in, we want to interpolate from 0 to 1 ('1 - t' would be zooming out)
