@@ -341,20 +341,6 @@ const engine = {
     return scale;
   },
 
-  // Returns the index of the topmost layer that covers the viewport, or -1 if none do
-  find_covering_layer_index() {
-    const min_dim = Math.min(this.canvas.width, this.canvas.height);
-    const max_dim = Math.max(this.canvas.width, this.canvas.height);
-    for (let i = this.layers.length - 1; i >= 0; --i) {
-      const layer = this.layers[i];
-      const draw_size = layer.scale * min_dim;
-      if (draw_size >= max_dim) {
-        return i;
-      }
-    }
-    return -1;
-  },
-
   // Preload all layer images to the GPU (warm-up phase)
   preload_all_layers_to_gpu() {
     if (this.FLAG_images_loaded_to_GPU) {
