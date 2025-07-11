@@ -165,11 +165,6 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
     requestAnimationFrame(animate_step);
   }
 
-  // API: draw static texture region zoom (for engine-driven redraws)
-  function draw_static_texture_region_zoom(show_region) {
-    draw_texture_region_zoom(show_region ? end_matrix : start_matrix);
-  }
-
   // API: resize handler
   function resize_texture_region_zoom(w, h) {
     if (!gl_ctx) return;
@@ -179,7 +174,6 @@ window.infinity_zoom_II.texture_region_zoom = (function () {
 
   return {
     start_texture_region_zoom,
-    draw_static_texture_region_zoom,
     resize_texture_region_zoom,
   };
 })();
