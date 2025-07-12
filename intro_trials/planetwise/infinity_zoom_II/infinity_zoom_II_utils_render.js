@@ -58,6 +58,7 @@ function delete_texture(gl, layer) {
 
 // Ensure canvas dimensions are correctly set and update viewport
 function resize_canvas_to_display_size(canvas, gl) {
+  // Enable proper DPR scaling to fix canvas dimension mismatch
   const dpr = window.devicePixelRatio || 1;
   const width = Math.round(window.innerWidth * dpr);
   const height = Math.round(window.innerHeight * dpr);

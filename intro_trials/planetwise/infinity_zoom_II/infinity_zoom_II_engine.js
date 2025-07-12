@@ -40,7 +40,7 @@ window.infinity_zoom_II.config = {
   // Controls whether dynamic feathering is active (set externally before engine loads)
 };
 
-// Exposed flag for triggering final reveal from console. ALWAYS FALSE UNTIL SET EXTERNALLY.
+// Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 
 // Main engine object (will be attached to window.infinity_zoom_II)
@@ -148,6 +148,11 @@ const engine = {
 
   // Main animation loop
   animate(now) {
+    // Track animation phase changes for debugging
+    if (this._last_animation_phase !== this.animation_phase) {
+      log("Animation phase changed to: " + this.animation_phase);
+      this._last_animation_phase = this.animation_phase;
+    }
     // Step 3.1b/3.1c: Animate first layer zoom-in, then fade-in additional layers
     // Frame-rate-independent delta time
     const delta = (now - this._last_animate_time) / 1000;
@@ -243,11 +248,12 @@ const engine = {
       const final_layer_scale = this.get_layer_scale(final_layer_index, first_layer_scale);
 
       // For square images in any viewport, calculate the minimum scale needed to cover
-      // CRITICAL: Use display size (CSS pixels), not canvas buffer size (physical pixels)
-      // The canvas buffer may be DPR-scaled but coverage is based on visual display
-      const display_width = window.innerWidth;
-      const display_height = window.innerHeight;
-      const display_canvas = { width: display_width, height: display_height };
+      // Use the actual canvas buffer dimensions to ensure perfect consistency
+      const display_canvas = { width: this.canvas.width, height: this.canvas.height };
+
+      // DEBUG: Disabled scale calculation logging - we only care about final render state
+      // log_canvas_usage("scale_calculation", "this.canvas", this.canvas);
+      // log_canvas_comparison("SCALE_CALC", this.canvas);
 
       const aspect_matrix = window.infinity_zoom_II.utils.math.make_matrix(this.layers[final_layer_index].image, display_canvas);
       const sx = aspect_matrix[0];
@@ -265,72 +271,14 @@ const engine = {
       // For full coverage, both corners should reach or exceed ±1
       const covers_viewport = Math.abs(corner_x) >= 1.0 && Math.abs(corner_y) >= 1.0;
 
-      // Debug logging when we're close to transition (only log once per approach)
-      if (Math.abs(corner_x) > 0.95 && !this._debug_logged_approaching) {
-        this._debug_logged_approaching = true;
-        log("🔍 APPROACHING TRANSITION:");
-        log("  Canvas buffer size:", this.canvas.width, "x", this.canvas.height);
-        log("  Display size (CSS):", display_width, "x", display_height);
-        log("  Display aspect ratio:", (display_width / display_height).toFixed(3));
-        log("  Final layer scale:", final_layer_scale.toFixed(6));
-        log("  Transformed corner:", corner_x.toFixed(6), corner_y.toFixed(6));
-        log("  Covers viewport:", covers_viewport);
-        log("  Final layer image size:", this.layers[final_layer_index].image.width, "x", this.layers[final_layer_index].image.height);
-      }
-
       // Add small tolerance for floating-point precision (equivalent to ~1 pixel at display size)
-      const tolerance = 1.0 / Math.max(display_width, display_height);
+      const tolerance = 1.0 / Math.max(display_canvas.width, display_canvas.height);
 
       if (covers_viewport && Math.abs(corner_x) >= 1.0 + tolerance && Math.abs(corner_y) >= 1.0 + tolerance) {
         // Final layer would cover viewport: stop zoom at current scale, continue rotation
         this.last_layer_cover_time = now;
         this.rotation_at_cover = this.rotation;
         this.animation_phase = "final_rotation";
-        log("🎯 MAIN ZOOM COMPLETE:");
-        log("  Final layer scale:", final_layer_scale.toFixed(6));
-        log("  Transformed corner:", corner_x.toFixed(6), corner_y.toFixed(6));
-        log("  Canvas mode:", sx === 1.0 ? "PORTRAIT (width-constrained)" : "LANDSCAPE (height-constrained)");
-
-        // Debug the actual aspect matrix to understand the real rendering
-        const debug_aspect = window.infinity_zoom_II.utils.math.make_matrix(this.layers[final_layer_index].image, this.canvas);
-        log("🔧 RENDERING MATRIX DEBUG:");
-        log("  Aspect matrix sx:", debug_aspect[0].toFixed(6));
-        log("  Aspect matrix sy:", debug_aspect[4].toFixed(6));
-        log("  Actual rendered width:", (final_layer_scale * debug_aspect[0] * this.canvas.width).toFixed(1));
-        log("  Actual rendered height:", (final_layer_scale * debug_aspect[4] * this.canvas.height).toFixed(1));
-
-        // Calculate expected coverage
-        if (sx === 1.0) {
-          log(
-            "  Coverage check: rendered_height vs canvas_height:",
-            (final_layer_scale * debug_aspect[4] * this.canvas.height).toFixed(1),
-            "vs",
-            this.canvas.height
-          );
-        } else {
-          log(
-            "  Coverage check: rendered_width vs canvas_width:",
-            (final_layer_scale * debug_aspect[0] * this.canvas.width).toFixed(1),
-            "vs",
-            this.canvas.width
-          );
-        }
-
-        // Debug: simulate the complete matrix transformation used in rendering
-        const scale_mat = [final_layer_scale, 0, 0, 0, final_layer_scale, 0, 0, 0, 1];
-        const composed_mat = window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, debug_aspect);
-        log("🔬 COMPLETE TRANSFORMATION DEBUG:");
-        log("  Final composed matrix [sx, sy]:", composed_mat[0].toFixed(6), composed_mat[4].toFixed(6));
-        log(
-          "  Image corner (-1,-1) transforms to:",
-          (composed_mat[0] * -1 + composed_mat[3] * -1 + composed_mat[6]).toFixed(3),
-          (composed_mat[1] * -1 + composed_mat[4] * -1 + composed_mat[7]).toFixed(3)
-        );
-        log(
-          "  Image corner (1,1) transforms to:",
-          (composed_mat[0] * 1 + composed_mat[3] * 1 + composed_mat[6]).toFixed(3),
-          (composed_mat[1] * 1 + composed_mat[4] * 1 + composed_mat[7]).toFixed(3)
-        );
 
         requestAnimationFrame(this.animate.bind(this));
       } else {
@@ -347,12 +295,12 @@ const engine = {
         requestAnimationFrame(this.animate.bind(this));
       }
     } else if (this.animation_phase === "final_rotation") {
-      // Keep rotating until FLAG_initiate_final_reveal is set from outside (e.g., browser console)
+      // Keep rotating until FLAG_initiate_final_reveal is set from outside (e.g., browser
       this.rotation += this.rotation_speed * delta;
       if (!window.infinity_zoom_II.FLAG_initiate_final_reveal) {
         requestAnimationFrame(this.animate.bind(this));
       } else {
-        log("rotation", this.rotation);
+        log("rotation: " + this.rotation);
         // Start region zoom animation as the final phase
         this.animation_phase = "region_zoom";
         log("Final reveal triggered. Starting region zoom animation.");
@@ -360,7 +308,7 @@ const engine = {
         const last_index = this.layers.length - 1;
         const penultimate_index = this.layers.length - 2;
         const final_layer = this.layers[last_index];
-        log("Final layer scale:", final_layer.scale);
+        log("Final layer scale: " + final_layer.scale);
         const previous_layer = this.layers[penultimate_index];
         // prettier-ignore
         window.infinity_zoom_II.texture_region_zoom.start_texture_region_zoom(
@@ -381,7 +329,15 @@ const engine = {
       // Optionally, could call a static draw if needed
       // No-op: region_zoom handles animation and drawing
     } else if (this.animation_phase === "really_done") {
-      log("Final state reached.");
+      // Reset debug flags to allow final state logging
+      if (!window._final_debug_reset) {
+        window._matrix_debug_logged = false;
+        window._canvas_comparison_logged = false;
+        window._matrix_comparison_logged = false;
+        window._canvas_usage_logged = false;
+        window._final_debug_reset = true;
+      }
+      log("Final state reached - ENGINE should show final matrix in render loop");
     }
     // Only call render if not in region_zoom phase (region_zoom handles its own drawing)
     if (this.animation_phase !== "region_zoom") {
@@ -402,17 +358,29 @@ const engine = {
     gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 16, 0);
     gl.enableVertexAttribArray(this.a_texcoord);
     gl.vertexAttribPointer(this.a_texcoord, 2, gl.FLOAT, false, 16, 8);
-
     for (let i = 0; i < this.layers.length; ++i) {
       const layer = this.layers[i];
       if (layer && layer.texture) {
         // Use utils for aspect, rotation, and matrix math
         const aspect = window.infinity_zoom_II.utils.math.make_matrix(layer.image, this.canvas);
         const s = layer.scale;
-        const scale_mat = [s, 0, 0, 0, s, 0, 0, 0, 1];
+
+        // CRITICAL FIX: For covering behavior, only apply aspect correction, not animated scale
+        // The aspect matrix should always use scale=1.0 for proper covering
+        const covering_scale = 1.0; // Always use 1.0 for aspect correction
+        const scale_mat = [covering_scale, 0, 0, 0, covering_scale, 0, 0, 0, 1];
         const rot = window.infinity_zoom_II.utils.math.make_rotation_matrix(this.rotation);
+
         // Compose: rot * scale * aspect
         let mat = window.infinity_zoom_II.utils.math.mat3_mul(rot, window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect));
+
+        // DEBUG: Manual trigger - press SPACE to log current matrix when you see borders
+        if (i === 0) {
+          window._current_engine_matrix = mat;
+          window._current_engine_canvas = this.canvas;
+          window._current_engine_phase = this.animation_phase;
+        }
+
         gl.uniformMatrix3fv(this.u_matrix, false, mat);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, layer.texture);
@@ -458,7 +426,7 @@ const engine = {
       if (draw_size >= max_dim) {
         // Found a new covering layer
         this.covering_layer_index = i;
-        log("New covering layer index:", this.covering_layer_index);
+        log("New covering layer index: " + this.covering_layer_index);
       }
     }
   },
@@ -494,3 +462,17 @@ window.infinity_zoom_II.engine = engine;
  *     loaded:  true
  *   }
  */
+
+// Add keyboard listener for manual debug trigger
+document.addEventListener("keydown", function (e) {
+  if (e.code === "Space" && window._current_engine_matrix) {
+    e.preventDefault();
+    const mat = window._current_engine_matrix;
+    const canvas = window._current_engine_canvas;
+    const phase = window._current_engine_phase;
+    log(
+      "MANUAL ENGINE DEBUG",
+      "Phase: " + phase + " Matrix: [" + mat[0].toFixed(6) + ", " + mat[4].toFixed(6) + "] Canvas: " + canvas.width + "x" + canvas.height
+    );
+  }
+});

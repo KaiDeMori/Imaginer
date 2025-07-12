@@ -43,14 +43,17 @@ function mat3_transform_point(m, pt) {
 function make_matrix(img, canvas) {
   const img_aspect = img.width / img.height;
   const canvas_aspect = canvas.width / canvas.height;
-  let sx = 1,
-    sy = 1;
-  if (img_aspect > canvas_aspect) {
-    sy = canvas_aspect / img_aspect;
+
+  // Use covering logic matching TRIALS code exactly
+  if (canvas_aspect > img_aspect) {
+    // Wider viewport - fit width, crop top/bottom
+    const scale_y = canvas_aspect / img_aspect;
+    return [1.0, 0, 0, 0, scale_y, 0, 0, 0, 1];
   } else {
-    sx = img_aspect / canvas_aspect;
+    // Taller viewport - fit height, crop sides
+    const scale_x = img_aspect / canvas_aspect;
+    return [scale_x, 0, 0, 0, 1.0, 0, 0, 0, 1];
   }
-  return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
 }
 
 function make_rotation_matrix(angle) {

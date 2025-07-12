@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebGL Viewport Covering Test</title>
+    <script src="infinity_zoom_II/infinity_zoom_debug.js"></script>
     <style>
       body,
       html {
@@ -23,10 +24,6 @@
     <canvas id="webgl_canvas"></canvas>
 
     <script>
-      function log(message) {
-        console.log("🕵️ + 🤖 " + message);
-      }
-
       // Simple matrix utilities
       function make_identity_matrix() {
         return [1, 0, 0, 0, 1, 0, 0, 0, 1];
@@ -185,6 +182,9 @@
 
         // Create covering matrix with gentle shrinking animation
         const base_covering_matrix = make_covering_matrix(canvas.width, canvas.height);
+
+        // DEBUG: Use standardized debug helper
+        log_matrix_debug("TRIALS", canvas, null, base_covering_matrix, undefined, undefined);
         const shrink_amount = (0.05 * (1 + Math.sin(elapsed * 0.8))) / 2; // 0 to 0.05 (0% to 5% shrink)
         const scale_animation = 1.0 - shrink_amount; // 1.0 down to 0.95, back to 1.0
 
