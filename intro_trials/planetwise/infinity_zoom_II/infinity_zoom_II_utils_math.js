@@ -56,6 +56,23 @@ function make_matrix(img, canvas) {
   }
 }
 
+// Returns a fitting 3x3 matrix for an image and canvas ("touching from inside")
+function make_fitting_matrix(img, canvas) {
+  const img_aspect = img.width / img.height;
+  const canvas_aspect = canvas.width / canvas.height;
+
+  // Use fitting logic: opposite of covering
+  if (canvas_aspect > img_aspect) {
+    // Wider viewport - fit height, show pillarbox bars on sides
+    const scale_x = img_aspect / canvas_aspect;
+    return [scale_x, 0, 0, 0, 1.0, 0, 0, 0, 1];
+  } else {
+    // Taller viewport - fit width, show letterbox bars on top/bottom
+    const scale_y = canvas_aspect / img_aspect;
+    return [1.0, 0, 0, 0, scale_y, 0, 0, 0, 1];
+  }
+}
+
 function make_rotation_matrix(angle) {
   const c = Math.cos(angle);
   const s = Math.sin(angle);
@@ -109,4 +126,5 @@ window.infinity_zoom_II.utils.math = {
   mat3_invert,
   mat3_transform_point,
   compute_final_visible_rect,
+  make_fitting_matrix,
 };
