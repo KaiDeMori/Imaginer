@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Matrix Comparison Test - Falsify Hypotheses</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #222;
+        color: white;
+        font-family: monospace;
+      }
+      .test-container {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      canvas {
+        border: 2px solid #444;
+        background: black;
+      }
+      .info {
+        background: #333;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 300px;
+      }
+      .hypothesis {
+        background: #004400;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .falsified {
+        background: #440000;
+      }
+      .confirmed {
+        background: #004400;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Matrix Comparison Test - Karl Popper Style 🔬</h1>
+
+    <div class="hypothesis" id="hypothesis1"><strong>Hypothesis 1:</strong> DPR scaling causes the matrix mismatch</div>
+    <div class="hypothesis" id="hypothesis2"><strong>Hypothesis 2:</strong> Matrix composition (aspect * scale * rotation) creates borders</div>
+    <div class="hypothesis" id="hypothesis3"><strong>Hypothesis 3:</strong> Layer.scale doesn't reach correct final value</div>
+
+    <div class="test-container">
+      <div>
+        <h3>Test 1: TRIALS Method (Working)</h3>
+        <canvas id="canvas1" width="400" height="300"></canvas>
+        <div class="info" id="info1">Loading...</div>
+      </div>
+
+      <div>
+        <h3>Test 2: ENGINE Method with DPR (Hypothesis 1)</h3>
+        <canvas id="canvas2" width="400" height="300"></canvas>
+        <div class="info" id="info2">Loading...</div>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <div>
+        <h3>Test 3: ENGINE Method without DPR</h3>
+        <canvas id="canvas3" width="400" height="300"></canvas>
+        <div class="info" id="info3">Loading...</div>
+      </div>
+
+      <div>
+        <h3>Test 4: ENGINE Composition but TRIALS Matrix</h3>
+        <canvas id="canvas4" width="400" height="300"></canvas>
+        <div class="info" id="info4">Loading...</div>
+      </div>
+    </div>
+
+    <script>
+      function log(message) {
+        console.log("🔬 TEST: " + message);
+      }
+
+      // Common utilities
+      function make_scale_matrix(scale_x, scale_y) {
+        return [scale_x, 0, 0, 0, scale_y, 0, 0, 0, 1];
+      }
+
+      function mat3_mul(a, b) {
+        const r = new Array(9);
+        for (let i = 0; i < 3; ++i) {
+          for (let j = 0; j < 3; ++j) {
+            r[i + j * 3] = a[0 + j * 3] * b[i + 0 * 3] + a[1 + j * 3] * b[i + 1 * 3] + a[2 + j * 3] * b[i + 2 * 3];
+          }
+        }
+        return r;
+      }
+
+      // TRIALS matrix method (working)
+      function make_covering_matrix_trials(canvas_width, canvas_height) {
+        const viewport_aspect = canvas_width / canvas_height;
+        const image_aspect = 1.0; // Square image
+
+        if (viewport_aspect > image_aspect) {
+          return make_scale_matrix(1.0, viewport_aspect);
+        } else {
+          return make_scale_matrix(1.0 / viewport_aspect, 1.0);
+        }
+      }
+
+      // ENGINE matrix method (potentially problematic)
+      function make_matrix_engine(img, canvas) {
+        const img_aspect = img.width / img.height;
+        const canvas_aspect = canvas.width / canvas.height;
+        let sx = 1,
+          sy = 1;
+        if (img_aspect > canvas_aspect) {
+          sy = canvas_aspect / img_aspect;
+        } else {
+          sx = img_aspect / canvas_aspect;
+        }
+        return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
+      }
+
+      // DPR sizing like engine
+      function resize_canvas_with_dpr(canvas) {
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.round(canvas.clientWidth * dpr);
+        const height = Math.round(canvas.clientHeight * dpr);
+        canvas.width = width;
+        canvas.height = height;
+        return { width, height, dpr };
+      }
+
+      // Regular sizing like trials
+      function resize_canvas_regular(canvas) {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        return { width: canvas.width, height: canvas.height, dpr: 1 };
+      }
+
+      function create_webgl_context(canvas) {
+        const gl = canvas.getContext("webgl");
+        if (!gl) {
+          throw new Error("WebGL not supported");
+        }
+
+        // Vertex shader - identical to both systems
+        const vs_source = `
+          attribute vec2 a_position;
+          attribute vec2 a_texcoord;
+          varying vec2 v_texcoord;
+          uniform mat3 u_matrix;
+          void main() {
+            vec3 pos = u_matrix * vec3(a_position, 1.0);
+            gl_Position = vec4(pos.xy, 0, 1);
+            v_texcoord = a_texcoord;
+          }
+        `;
+
+        // Fragment shader - identical to both systems
+        const fs_source = `
+          precision mediump float;
+          varying vec2 v_texcoord;
+          uniform sampler2D u_image;
+          void main() {
+            gl_FragColor = texture2D(u_image, v_texcoord);
+          }
+        `;
+
+        // Create shader
+        function create_shader(type, source) {
+          const shader = gl.createShader(type);
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            throw new Error(gl.getShaderInfoLog(shader));
+          }
+          return shader;
+        }
+
+        const vs = create_shader(gl.VERTEX_SHADER, vs_source);
+        const fs = create_shader(gl.FRAGMENT_SHADER, fs_source);
+
+        const program = gl.createProgram();
+        gl.attachShader(program, vs);
+        gl.attachShader(program, fs);
+        gl.linkProgram(program);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          throw new Error(gl.getProgramInfoLog(program));
+        }
+
+        // Create quad buffer - identical to both systems
+        const quad_verts = new Float32Array([-1, -1, 0, 0, 1, -1, 1, 0, -1, 1, 0, 1, 1, 1, 1, 1]);
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, quad_verts, gl.STATIC_DRAW);
+
+        gl.useProgram(program);
+        gl.clearColor(0, 0, 0, 1);
+
+        return {
+          gl,
+          program,
+          buffer,
+          u_matrix: gl.getUniformLocation(program, "u_matrix"),
+          u_image: gl.getUniformLocation(program, "u_image"),
+          a_position: gl.getAttribLocation(program, "a_position"),
+          a_texcoord: gl.getAttribLocation(program, "a_texcoord"),
+        };
+      }
+
+      function load_test_texture(gl, callback) {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Placeholder
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([100, 50, 50, 255]));
+
+        const image = new Image();
+        image.onload = function () {
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+          gl.generateMipmap(gl.TEXTURE_2D);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          callback(texture, image);
+        };
+        image.src = "zoom_images_planete/debug/100_alien_closeup.png";
+        return texture;
+      }
+
+      function create_texture_for_context(gl, image) {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        return texture;
+      }
+
+      function render_test(webgl_ctx, matrix, texture, info_id, test_name) {
+        const { gl, program, buffer, u_matrix, u_image, a_position, a_texcoord } = webgl_ctx;
+
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.enableVertexAttribArray(a_position);
+        gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 16, 0);
+        gl.enableVertexAttribArray(a_texcoord);
+        gl.vertexAttribPointer(a_texcoord, 2, gl.FLOAT, false, 16, 8);
+
+        gl.uniformMatrix3fv(u_matrix, false, matrix);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(u_image, 0);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        // Update info
+        document.getElementById(info_id).innerHTML = `
+          <strong>${test_name}</strong><br>
+          Canvas: ${gl.canvas.width}×${gl.canvas.height}<br>
+          Matrix: [${matrix
+            .slice(0, 3)
+            .map((x) => x.toFixed(3))
+            .join(", ")}]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[${matrix
+            .slice(3, 6)
+            .map((x) => x.toFixed(3))
+            .join(", ")}]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[${matrix
+            .slice(6, 9)
+            .map((x) => x.toFixed(3))
+            .join(", ")}]
+        `;
+      }
+
+      // Run tests
+      function run_tests() {
+        const canvases = [
+          document.getElementById("canvas1"),
+          document.getElementById("canvas2"),
+          document.getElementById("canvas3"),
+          document.getElementById("canvas4"),
+        ];
+
+        const webgl_contexts = canvases.map(create_webgl_context);
+
+        // Setup canvases with different sizing methods
+        const sizing1 = resize_canvas_regular(canvases[0]); // TRIALS method
+        const sizing2 = resize_canvas_with_dpr(canvases[1]); // ENGINE method with DPR
+        const sizing3 = resize_canvas_regular(canvases[2]); // ENGINE method without DPR
+        const sizing4 = resize_canvas_regular(canvases[3]); // Hybrid test
+
+        load_test_texture(webgl_contexts[0].gl, (texture, image) => {
+          // Create separate textures for each context
+          const textures = webgl_contexts.map((ctx) => create_texture_for_context(ctx.gl, image));
+
+          console.log("🔬 === MATRIX COMPARISON TEST RESULTS ===");
+          console.log(`Image dimensions: ${image.width}×${image.height} (aspect: ${(image.width / image.height).toFixed(3)})`);
+
+          // Test 1: TRIALS method (known working)
+          const matrix1 = make_covering_matrix_trials(canvases[0].width, canvases[0].height);
+          console.log(`\n📊 TEST 1 - TRIALS Method (Perfect):`);
+          console.log(`  Canvas: ${canvases[0].width}×${canvases[0].height} (aspect: ${(canvases[0].width / canvases[0].height).toFixed(3)})`);
+          console.log(
+            `  Matrix: [${matrix1
+              .slice(0, 3)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `          [${matrix1
+              .slice(3, 6)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `          [${matrix1
+              .slice(6, 9)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          render_test(webgl_contexts[0], matrix1, textures[0], "info1", "TRIALS Method");
+
+          // Test 2: ENGINE method with DPR (Hypothesis 1 test)
+          const matrix2 = make_matrix_engine(image, canvases[1]);
+          const scale_matrix2 = make_scale_matrix(1.0, 1.0);
+          const final_matrix2 = mat3_mul(scale_matrix2, matrix2);
+          console.log(`\n📊 TEST 2 - ENGINE + DPR (Pillarboxing):`);
+          console.log(`  Canvas: ${canvases[1].width}×${canvases[1].height} (aspect: ${(canvases[1].width / canvases[1].height).toFixed(3)})`);
+          console.log(
+            `  Base Matrix: [${matrix2
+              .slice(0, 3)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `               [${matrix2
+              .slice(3, 6)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `               [${matrix2
+              .slice(6, 9)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `  Final Matrix: [${final_matrix2
+              .slice(0, 3)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `                [${final_matrix2
+              .slice(3, 6)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `                [${final_matrix2
+              .slice(6, 9)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          render_test(webgl_contexts[1], final_matrix2, textures[1], "info2", "ENGINE + DPR");
+
+          // Test 3: ENGINE method without DPR (Hypothesis 1 falsification)
+          const matrix3 = make_matrix_engine(image, canvases[2]);
+          const scale_matrix3 = make_scale_matrix(1.0, 1.0);
+          const final_matrix3 = mat3_mul(scale_matrix3, matrix3);
+          console.log(`\n📊 TEST 3 - ENGINE - DPR (Pillarboxing):`);
+          console.log(`  Canvas: ${canvases[2].width}×${canvases[2].height} (aspect: ${(canvases[2].width / canvases[2].height).toFixed(3)})`);
+          console.log(
+            `  Base Matrix: [${matrix3
+              .slice(0, 3)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `               [${matrix3
+              .slice(3, 6)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `               [${matrix3
+              .slice(6, 9)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `  Final Matrix: [${final_matrix3
+              .slice(0, 3)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `                [${final_matrix3
+              .slice(3, 6)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `                [${final_matrix3
+              .slice(6, 9)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          render_test(webgl_contexts[2], final_matrix3, textures[2], "info3", "ENGINE - DPR");
+
+          // Test 4: ENGINE composition but TRIALS matrix (Hypothesis 2 test)
+          const matrix4 = make_covering_matrix_trials(canvases[3].width, canvases[3].height);
+          const scale_matrix4 = make_scale_matrix(1.0, 1.0);
+          const final_matrix4 = mat3_mul(scale_matrix4, matrix4);
+          console.log(`\n📊 TEST 4 - TRIALS Matrix + ENGINE Composition (Perfect):`);
+          console.log(`  Canvas: ${canvases[3].width}×${canvases[3].height} (aspect: ${(canvases[3].width / canvases[3].height).toFixed(3)})`);
+          console.log(
+            `  Base Matrix: [${matrix4
+              .slice(0, 3)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `               [${matrix4
+              .slice(3, 6)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `               [${matrix4
+              .slice(6, 9)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `  Final Matrix: [${final_matrix4
+              .slice(0, 3)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `                [${final_matrix4
+              .slice(3, 6)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          console.log(
+            `                [${final_matrix4
+              .slice(6, 9)
+              .map((x) => x.toFixed(3))
+              .join(", ")}]`
+          );
+          render_test(webgl_contexts[3], final_matrix4, textures[3], "info4", "TRIALS Matrix + ENGINE Composition");
+
+          console.log(`\n🎯 COMPARISON ANALYSIS:`);
+          console.log(`  TRIALS vs ENGINE base matrices show the key difference!`);
+          console.log(`  Final matrices in Test 1 vs Test 4 should be identical.`);
+          console.log(`  Tests 2 & 3 should have identical matrices (proving DPR not the issue).`);
+
+          // Analyze results
+          setTimeout(analyze_results, 100);
+        });
+      }
+
+      function analyze_results() {
+        log("Analyzing test results...");
+
+        // Check if tests 2 and 3 show the same result
+        // If they're different, DPR is the issue (Hypothesis 1 confirmed)
+        // If they're the same, DPR is not the issue (Hypothesis 1 falsified)
+
+        const canvas1 = document.getElementById("canvas1");
+        const canvas2 = document.getElementById("canvas2");
+        const canvas3 = document.getElementById("canvas3");
+        const canvas4 = document.getElementById("canvas4");
+
+        log("Visual inspection required:");
+        log("- If Test 1 shows perfect covering (no borders)");
+        log("- If Test 2 shows borders but Test 3 doesn't: DPR is the culprit");
+        log("- If Test 2 and Test 3 both show borders: DPR is not the issue");
+        log("- If Test 4 shows perfect covering: Matrix composition is not the issue");
+
+        // Update hypothesis status based on visual inspection needed
+        document.getElementById("hypothesis1").innerHTML += "<br><small>Compare Test 2 vs Test 3 - if different, DPR confirmed</small>";
+        document.getElementById("hypothesis2").innerHTML += "<br><small>Check Test 4 - if perfect, composition not the issue</small>";
+        document.getElementById("hypothesis3").innerHTML += "<br><small>All tests use scale=1.0, so this is isolated</small>";
+      }
+
+      // Start tests when page loads
+      window.addEventListener("load", run_tests);
+    </script>
+  </body>
+</html>
