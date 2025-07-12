@@ -36,7 +36,7 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second, default from V1).
-  zoom_speed: 3, //TRIALS originally: 1.2;
+  zoom_speed: 0.1, //TRIALS originally: 1.2;
   // Controls whether dynamic feathering is active (set externally before engine loads)
 };
 
@@ -160,12 +160,12 @@ const engine = {
     this._last_animate_time = now;
     const elapsed = (now - this.start_time) / 1000;
     if (this.animation_phase === "intro") {
-      // Advance rotation in all phases
+      // 1st Layer (planet) exponential zoom from tiny to fitting size
       this.rotation += this.rotation_speed * delta;
-      const zoom_duration = 3;
-      const fade_duration = 1;
+      const zoom_duration = 4;
+
       if (elapsed < zoom_duration) {
-        // Exponential from 1px to scale 1 (first layer)
+        // Exponential growth from 1px to scale 1
         const min_dim = Math.min(this.canvas.width, this.canvas.height);
         const t = elapsed / zoom_duration;
         const first_layer_scale = Math.exp(Math.log(min_dim) * t) / min_dim;
@@ -176,14 +176,28 @@ const engine = {
           layer.alpha = 0;
         }
         requestAnimationFrame(this.animate.bind(this));
-      } else if (elapsed < zoom_duration + fade_duration) {
-        // Fade-in additional layers: use fitting matrix for "touching from inside"
-        this.layers[0].scale = 1;
+      } else {
+        // Transition to fade-in phase
+        this.animation_phase = "intro_visible_layers_fade_in";
+        this.fade_in_start_time = now;
+        requestAnimationFrame(this.animate.bind(this));
+      }
+    } else if (this.animation_phase === "intro_visible_layers_fade_in") {
+      // Additional layers fade in with correct relative scaling
+      this.rotation += this.rotation_speed * delta;
+      const fade_duration = 3;
+      const elapsed_fade = (now - this.fade_in_start_time) / 1000;
+
+      if (elapsed_fade < fade_duration) {
+        // Planet at scale 1, others scaled relative to it
+        this.layers[0].scale = 1; // Planet will get fitting compensation in render
+
         for (let i = 1; i < this.layers.length; ++i) {
           const layer = this.layers[i];
+          // Calculate scale using cumulative zoom factors from planet
           layer.scale = this.get_layer_scale(i, 1);
         }
-        const fade_t = (elapsed - zoom_duration) / fade_duration;
+        const fade_t = elapsed_fade / fade_duration;
 
         // Returns array of visible layers whose scaled size is above the minimum render size
         const min_dim = Math.min(this.canvas.width, this.canvas.height);
@@ -199,11 +213,25 @@ const engine = {
         }
         requestAnimationFrame(this.animate.bind(this));
       } else {
-        // Hold state: use fitting matrix for "touching from inside"
+        // Transition to hold phase
+        this.animation_phase = "hold";
+        this.hold_start_time = now;
+        requestAnimationFrame(this.animate.bind(this));
+      }
+    } else if (this.animation_phase === "hold") {
+      // Hold all scales, only rotation continues
+      const hold_duration = 2;
+      const elapsed_hold = (now - this.hold_start_time) / 1000;
+      this.rotation += this.rotation_speed * delta;
+
+      if (elapsed_hold < hold_duration) {
+        // Ensure all visible layers are properly set up for hold phase
         const min_dim = Math.min(this.canvas.width, this.canvas.height);
-        this.layers[0].scale = 1;
+        this.layers[0].scale = 1; // Planet will get fitting compensation in render
+
         for (let i = 1; i < this.layers.length; ++i) {
           const layer = this.layers[i];
+          // Calculate scale using cumulative zoom factors from planet
           layer.scale = this.get_layer_scale(i, 1);
           const draw_size = layer.scale * min_dim;
           if (draw_size >= window.infinity_zoom_II.config.minimum_render_size) {
@@ -212,22 +240,12 @@ const engine = {
             layer.alpha = 0;
           }
         }
-        this.animation_phase = "hold";
-        this.hold_start_time = now;
-        requestAnimationFrame(this.animate.bind(this));
-      }
-    } else if (this.animation_phase === "hold") {
-      // Step 3.1d: Hold, only rotation
-      const hold_duration = 1.5;
-      const elapsed_hold = (now - this.hold_start_time) / 1000;
-      // Advance rotation
-      this.rotation += this.rotation_speed * delta;
-      if (elapsed_hold < hold_duration) {
         requestAnimationFrame(this.animate.bind(this));
       } else {
         // Transition to main zoom phase
         this.animation_phase = "main_zoom";
         this.main_zoom_start_time = now;
+        // Start main zoom from planet scale 1.0 with fitting compensation applied in render
         this.first_layer_scale_at_main_zoom = 1;
         this._debug_logged_approaching = false; // Reset debug flag
         requestAnimationFrame(this.animate.bind(this));
@@ -369,7 +387,7 @@ const engine = {
         // Layer-specific scale: planet (layer 0) gets fitting compensation, others get covering scale
         let render_scale;
         if (i === 0) {
-          // Planet: calculate scale for fitting behavior with covering matrix
+          // Planet: always apply fitting compensation for consistent fitting behavior
           render_scale = this.get_fitting_scale_for_covering_matrix(layer) * s;
         } else if (i === this.layers.length - 1) {
           // Final alien layer: use scale directly for covering behavior
