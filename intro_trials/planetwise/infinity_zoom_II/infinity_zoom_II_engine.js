@@ -148,6 +148,12 @@ const engine = {
 
   // Main animation loop
   animate(now) {
+    // Track animation phase changes for debugging
+    if (this._last_animation_phase !== this.animation_phase) {
+      log("Animation phase changed to: " + this.animation_phase);
+      this._last_animation_phase = this.animation_phase;
+    }
+
     // Step 3.1b/3.1c: Animate first layer zoom-in, then fade-in additional layers
     // Frame-rate-independent delta time
     const delta = (now - this._last_animate_time) / 1000;
@@ -356,15 +362,23 @@ const engine = {
     for (let i = 0; i < this.layers.length; ++i) {
       const layer = this.layers[i];
       if (layer && layer.texture) {
-        // Use fitting or covering aspect matrix based on animation phase
-        const use_covering = this.animation_phase === "final_rotation" || this.animation_phase === "really_done";
-        const aspect = use_covering
-          ? window.infinity_zoom_II.utils.math.make_matrix(layer.image, this.canvas)
-          : window.infinity_zoom_II.utils.math.make_fitting_matrix(layer.image, this.canvas);
+        // Always use covering matrix - no matrix switching
+        const aspect = window.infinity_zoom_II.utils.math.make_matrix(layer.image, this.canvas);
         const s = layer.scale;
 
-        // Use animated scale during animation phases, scale=1.0 during final phases
-        const render_scale = use_covering ? 1.0 : s;
+        // Layer-specific scale: planet (layer 0) gets fitting compensation, others get covering scale
+        let render_scale;
+        if (i === 0) {
+          // Planet: calculate scale for fitting behavior with covering matrix
+          render_scale = this.get_fitting_scale_for_covering_matrix(layer) * s;
+        } else if (i === this.layers.length - 1) {
+          // Final alien layer: use scale directly for covering behavior
+          render_scale = this.animation_phase === "final_rotation" || this.animation_phase === "really_done" ? 1.0 : s;
+        } else {
+          // Middle layers: use animated scale
+          render_scale = this.animation_phase === "final_rotation" || this.animation_phase === "really_done" ? 1.0 : s;
+        }
+
         const scale_mat = [render_scale, 0, 0, 0, render_scale, 0, 0, 0, 1];
         const rot = window.infinity_zoom_II.utils.math.make_rotation_matrix(this.rotation);
 
@@ -395,6 +409,24 @@ const engine = {
       scale *= this.layers[i].zoom / 100;
     }
     return scale;
+  },
+
+  // Calculate scale compensation to achieve fitting behavior with covering matrix
+  get_fitting_scale_for_covering_matrix(layer) {
+    const img_aspect = layer.image.width / layer.image.height;
+    const canvas_aspect = this.canvas.width / this.canvas.height;
+
+    // The covering matrix makes one dimension "too big" for fitting
+    // Calculate the reciprocal to compensate
+    if (canvas_aspect > img_aspect) {
+      // Covering matrix scales Y by canvas_aspect/img_aspect (too big)
+      // Compensation: scale by img_aspect/canvas_aspect to get fitting
+      return img_aspect / canvas_aspect;
+    } else {
+      // Covering matrix scales X by img_aspect/canvas_aspect (too big)
+      // Compensation: scale by canvas_aspect/img_aspect to get fitting
+      return canvas_aspect / img_aspect;
+    }
   },
 
   // Preload all layer images to the GPU (warm-up phase)
