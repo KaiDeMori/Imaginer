@@ -148,11 +148,6 @@ const engine = {
 
   // Main animation loop
   animate(now) {
-    // Track animation phase changes for debugging
-    if (this._last_animation_phase !== this.animation_phase) {
-      log("Animation phase changed to: " + this.animation_phase);
-      this._last_animation_phase = this.animation_phase;
-    }
     // Step 3.1b/3.1c: Animate first layer zoom-in, then fade-in additional layers
     // Frame-rate-independent delta time
     const delta = (now - this._last_animate_time) / 1000;
@@ -161,8 +156,8 @@ const engine = {
     if (this.animation_phase === "intro") {
       // Advance rotation in all phases
       this.rotation += this.rotation_speed * delta;
-      const zoom_duration = 0.1; //TRIALS orignally: 3.0;
-      const fade_duration = 0; //TRIALS originally: 1.0;
+      const zoom_duration = 3;
+      const fade_duration = 1;
       if (elapsed < zoom_duration) {
         // Exponential from 1px to scale 1 (first layer)
         const min_dim = Math.min(this.canvas.width, this.canvas.height);
@@ -176,11 +171,12 @@ const engine = {
         }
         requestAnimationFrame(this.animate.bind(this));
       } else if (elapsed < zoom_duration + fade_duration) {
-        // Fade-in additional layers: keep correct relative scale (relative to first layer)
-        this.layers[0].scale = 1;
+        // Fade-in additional layers: scale to fit inside viewport ("touching from the inside")
+        const fitting_scale = this.get_fitting_scale(this.layers[0]);
+        this.layers[0].scale = fitting_scale;
         for (let i = 1; i < this.layers.length; ++i) {
           const layer = this.layers[i];
-          layer.scale = this.get_layer_scale(i, 1);
+          layer.scale = this.get_layer_scale(i, fitting_scale);
         }
         const fade_t = (elapsed - zoom_duration) / fade_duration;
 
@@ -198,12 +194,13 @@ const engine = {
         }
         requestAnimationFrame(this.animate.bind(this));
       } else {
-        // Hold state for next step (first layer at scale 1)
+        // Hold state: planet fits inside viewport ("touching from the inside")
         const min_dim = Math.min(this.canvas.width, this.canvas.height);
-        this.layers[0].scale = 1;
+        const fitting_scale = this.get_fitting_scale(this.layers[0]);
+        this.layers[0].scale = fitting_scale;
         for (let i = 1; i < this.layers.length; ++i) {
           const layer = this.layers[i];
-          layer.scale = this.get_layer_scale(i, 1);
+          layer.scale = this.get_layer_scale(i, fitting_scale);
           const draw_size = layer.scale * min_dim;
           if (draw_size >= window.infinity_zoom_II.config.minimum_render_size) {
             layer.alpha = 1;
@@ -217,7 +214,7 @@ const engine = {
       }
     } else if (this.animation_phase === "hold") {
       // Step 3.1d: Hold, only rotation
-      const hold_duration = 0; //TRIALS originally: 1.5;
+      const hold_duration = 1.5;
       const elapsed_hold = (now - this.hold_start_time) / 1000;
       // Advance rotation
       this.rotation += this.rotation_speed * delta;
@@ -365,10 +362,10 @@ const engine = {
         const aspect = window.infinity_zoom_II.utils.math.make_matrix(layer.image, this.canvas);
         const s = layer.scale;
 
-        // CRITICAL FIX: For covering behavior, only apply aspect correction, not animated scale
-        // The aspect matrix should always use scale=1.0 for proper covering
-        const covering_scale = 1.0; // Always use 1.0 for aspect correction
-        const scale_mat = [covering_scale, 0, 0, 0, covering_scale, 0, 0, 0, 1];
+        // Conditional scale logic: use animated scale during animation phases, covering scale during final phases
+        const use_covering_scale = this.animation_phase === "final_rotation" || this.animation_phase === "really_done";
+        const render_scale = use_covering_scale ? 1.0 : s;
+        const scale_mat = [render_scale, 0, 0, 0, render_scale, 0, 0, 0, 1];
         const rot = window.infinity_zoom_II.utils.math.make_rotation_matrix(this.rotation);
 
         // Compose: rot * scale * aspect
@@ -398,6 +395,21 @@ const engine = {
       scale *= this.layers[i].zoom / 100;
     }
     return scale;
+  },
+
+  // Calculate scale needed for layer to fit inside viewport ("touching from the inside")
+  get_fitting_scale(layer) {
+    const img_aspect = layer.image.width / layer.image.height;
+    const canvas_aspect = this.canvas.width / this.canvas.height;
+
+    // For fitting: opposite of covering logic
+    if (canvas_aspect > img_aspect) {
+      // Wider viewport - fit height, show pillarbox bars on sides
+      return 1.0; // Image height matches viewport height
+    } else {
+      // Taller viewport - fit width, show letterbox bars on top/bottom
+      return canvas_aspect / img_aspect; // Scale down to fit width
+    }
   },
 
   // Preload all layer images to the GPU (warm-up phase)
