@@ -154,7 +154,7 @@ const engine = {
       this._last_animation_phase = this.animation_phase;
     }
 
-    // Step 3.1b/3.1c: Animate first layer zoom-in, then fade-in additional layers
+    // Animate first layer zoom-in, then fade-in additional layers
     // Frame-rate-independent delta time
     const delta = (now - this._last_animate_time) / 1000;
     this._last_animate_time = now;
