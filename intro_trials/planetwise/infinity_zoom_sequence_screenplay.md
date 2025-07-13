@@ -31,24 +31,40 @@
 - **All layers scale together in perfect synchronization** - exponential growth with identical rates
 - **Relative size relationships preserved** - each layer maintains its 25% size reduction relative to the previous layer
 - **Dynamic visibility continues**: As layers grow, more may become "big enough" and appear
-- **Stop condition**: When Final Layer reaches perfect covering size
+- **Synchronized exponential growth**: All layers scale up together until Final Layer reaches covering size
+  - **1st Layer (index 0)**: Starts at fitting scale, grows beyond fitting.
+  - **Final Layer (index 9)**: Starts small, grows until it reaches perfect covering scale (stop condition)
+  - **Middle layers**: Grow proportionally between these extremes
+- **Stop condition**: When Final Layer reaches perfect covering scale
 
 ### State: "final_rotation" 
 - All layers stop scaling, only rotation continues
-- Final Layer (alien) shows covering behavior
+- Final Layer shows covering behavior
+- **Exit condition**: When `FLAG_initiate_final_reveal` is set externally
 
 ### State: "region_zoom"
-- Transition to final closeup animation
+- Transition to final "region zoom"
+- ignored for now.
 
 ## Key Requirements
 
-- Single covering matrix used throughout (no matrix switching)
-- First layer always fits, never covers
-- Final layer always covers at the end
+- Single base matrix (fitting) with dynamic scale factors for all layers
+- 1st Layer (index 0) always uses fitting scale (1.0), Final Layer uses covering scale (calculated ratio)
+- All layers scale together in perfect synchronization 
 - Smooth transitions between all states
-- Viewport-independent behavior
+- Viewport-independent behavior with dynamic resize handling
 - Dynamic layer visibility based on minimum_render_size throughout
 
-## Implementation Challenge
+## Implementation Solution
 
-The challenge is implementing this design intent with a single matrix type while achieving the planet-fits/alien-covers behavior! 🌍➡️👽
+**Proven Approach:**
+- **Single base matrix** handles aspect ratio correction (fitting matrix)
+- **Dynamic scale factors** determine visual behavior:
+  - 1st Layer (index 0): scale = 1.0 (fitting behavior)
+  - Final Layer (index 9): scale = covering_ratio (covering behavior) 
+  - Middle layers: scale = interpolated values
+- **Transform pipeline:** Rotation × Scale × BaseMatrix
+- **Covering ratio calculation:** Based on image vs viewport aspect ratios
+- **Viewport independence:** Recalculate scales on resize events
+
+**Result:** Clean mathematical solution with no matrix switching! 🌍➡️👽
