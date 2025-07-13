@@ -2,7 +2,7 @@
 
 // Config for texture region zoom
 window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 40000,
+  anim_duration: 40000, // Animation duration in milliseconds
   region_rect: {
     p0: { x: 1152, y: 1125 },
     p1: { x: 1014, y: 1136 },

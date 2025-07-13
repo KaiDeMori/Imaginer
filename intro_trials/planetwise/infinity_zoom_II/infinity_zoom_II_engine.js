@@ -36,12 +36,12 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second).
-  zoom_speed: 1,
+  zoom_speed: 3,
 
   // Animation phase durations (in seconds)
-  intro_planet_zoom_duration: 2.5, // How long planet takes to grow from tiny to fitting
+  intro_planet_zoom_duration: 0.5, // How long planet takes to grow from tiny to fitting
   visible_layers_fade_duration: 1.0, // How long additional layers take to fade in
-  pre_main_zoom_hold_duration: 1.5, // How long to hold before starting main zoom
+  pre_main_zoom_hold_duration: 0.5, // How long to hold before starting main zoom
 };
 
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
