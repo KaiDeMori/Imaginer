@@ -36,7 +36,7 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second, default from V1).
-  zoom_speed: 0.1, //TRIALS originally: 1.2;
+  zoom_speed: 1, //TRIALS originally: 1.2;
   // Controls whether dynamic feathering is active (set externally before engine loads)
 };
 
@@ -75,9 +75,6 @@ const engine = {
   rotation: 0,
   rotation_speed: window.infinity_zoom_II.config.rotation_speed,
   zoom_speed: window.infinity_zoom_II.config.zoom_speed,
-
-  // Tracks the highest index of a layer that has covered the viewport so far
-  covering_layer_index: -1,
 
   // Internal: Initialize engine with preloaded images and canvas. Do not call directly; use create().
   init(layer_data, images, canvas) {
@@ -162,7 +159,7 @@ const engine = {
     if (this.animation_phase === "intro") {
       // 1st Layer (planet) exponential zoom from tiny to fitting size
       this.rotation += this.rotation_speed * delta;
-      const zoom_duration = 4;
+      const zoom_duration = 1.5; // Duration of zoom-in phase in seconds
 
       if (elapsed < zoom_duration) {
         // Exponential growth from 1px to scale 1
@@ -185,7 +182,7 @@ const engine = {
     } else if (this.animation_phase === "intro_visible_layers_fade_in") {
       // Additional layers fade in with correct relative scaling
       this.rotation += this.rotation_speed * delta;
-      const fade_duration = 3;
+      const fade_duration = 1;
       const elapsed_fade = (now - this.fade_in_start_time) / 1000;
 
       if (elapsed_fade < fade_duration) {
@@ -220,7 +217,7 @@ const engine = {
       }
     } else if (this.animation_phase === "hold") {
       // Hold all scales, only rotation continues
-      const hold_duration = 2;
+      const hold_duration = 0.5;
       const elapsed_hold = (now - this.hold_start_time) / 1000;
       this.rotation += this.rotation_speed * delta;
 
@@ -261,44 +258,15 @@ const engine = {
       const s0 = this.first_layer_scale_at_main_zoom;
       const first_layer_scale = s0 * Math.exp(k * elapsed_main_zoom);
 
-      // Check if the final layer WOULD cover the viewport with this new scale
-      // before actually applying it to prevent over-zooming
+      // Check if final layer reaches covering scale
       const final_layer_index = this.layers.length - 1;
       const final_layer_scale = this.get_layer_scale(final_layer_index, first_layer_scale);
+      const final_layer = this.layers[final_layer_index];
+      const covering_ratio = this.calculate_covering_ratio(final_layer);
 
-      // For square images in any viewport, calculate the minimum scale needed to cover
-      // Use the actual canvas buffer dimensions to ensure perfect consistency
-      const display_canvas = { width: this.canvas.width, height: this.canvas.height };
-
-      // DEBUG: Disabled scale calculation logging - we only care about final render state
-      // log_canvas_usage("scale_calculation", "this.canvas", this.canvas);
-      // log_canvas_comparison("SCALE_CALC", this.canvas);
-
-      const aspect_matrix = window.infinity_zoom_II.utils.math.make_matrix(this.layers[final_layer_index].image, display_canvas);
-      const sx = aspect_matrix[0];
-      const sy = aspect_matrix[4];
-
-      // Calculate the composed transformation matrix for this scale
-      const scale_mat = [final_layer_scale, 0, 0, 0, final_layer_scale, 0, 0, 0, 1];
-      const composed_mat = window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect_matrix);
-
-      // Check if the quad corners (±1,±1) transform to fill at least the viewport bounds (±1,±1)
-      // The quad corner (1,1) should transform to at least (1,1) in clip space for full coverage
-      const corner_x = composed_mat[0] * 1 + composed_mat[3] * 1 + composed_mat[6]; // Transform (1,1)
-      const corner_y = composed_mat[1] * 1 + composed_mat[4] * 1 + composed_mat[7];
-
-      // For full coverage, both corners should reach or exceed ±1
-      const covers_viewport = Math.abs(corner_x) >= 1.0 && Math.abs(corner_y) >= 1.0;
-
-      // Add small tolerance for floating-point precision (equivalent to ~1 pixel at display size)
-      const tolerance = 1.0 / Math.max(display_canvas.width, display_canvas.height);
-
-      if (covers_viewport && Math.abs(corner_x) >= 1.0 + tolerance && Math.abs(corner_y) >= 1.0 + tolerance) {
-        // Final layer would cover viewport: stop zoom at current scale, continue rotation
-        this.last_layer_cover_time = now;
-        this.rotation_at_cover = this.rotation;
+      if (final_layer_scale * covering_ratio >= covering_ratio) {
+        // Final layer reaches covering behavior: stop zoom, start rotation
         this.animation_phase = "final_rotation";
-
         requestAnimationFrame(this.animate.bind(this));
       } else {
         // Apply the new scale and continue zooming
@@ -309,8 +277,6 @@ const engine = {
           layer.alpha = 1;
         }
 
-        // Update covering layer index for logging purposes
-        this.update_covering_layer_index();
         requestAnimationFrame(this.animate.bind(this));
       }
     } else if (this.animation_phase === "final_rotation") {
@@ -366,7 +332,6 @@ const engine = {
 
   // Render all visible layers
   render() {
-    // WebGL rendering: draw all visible layers as textured quads, always square
     const gl = this.gl;
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.clearColor(0, 0, 0, 1);
@@ -377,40 +342,23 @@ const engine = {
     gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 16, 0);
     gl.enableVertexAttribArray(this.a_texcoord);
     gl.vertexAttribPointer(this.a_texcoord, 2, gl.FLOAT, false, 16, 8);
+
     for (let i = 0; i < this.layers.length; ++i) {
       const layer = this.layers[i];
       if (layer && layer.texture) {
-        // Always use covering matrix - no matrix switching
-        const aspect = window.infinity_zoom_II.utils.math.make_matrix(layer.image, this.canvas);
-        const s = layer.scale;
+        // Use fitting matrix for all layers
+        const aspect_matrix = window.infinity_zoom_II.utils.math.make_fitting_matrix(layer.image, this.canvas);
 
-        // Layer-specific scale: planet (layer 0) gets fitting compensation, others get covering scale
-        let render_scale;
-        if (i === 0) {
-          // Planet: always apply fitting compensation for consistent fitting behavior
-          render_scale = this.get_fitting_scale_for_covering_matrix(layer) * s;
-        } else if (i === this.layers.length - 1) {
-          // Final alien layer: use scale directly for covering behavior
-          render_scale = this.animation_phase === "final_rotation" || this.animation_phase === "really_done" ? 1.0 : s;
-        } else {
-          // Middle layers: use animated scale
-          render_scale = this.animation_phase === "final_rotation" || this.animation_phase === "really_done" ? 1.0 : s;
-        }
+        // All layers use the same scale - no special treatment
+        const render_scale = layer.scale;
 
         const scale_mat = [render_scale, 0, 0, 0, render_scale, 0, 0, 0, 1];
-        const rot = window.infinity_zoom_II.utils.math.make_rotation_matrix(this.rotation);
+        const rot_mat = window.infinity_zoom_II.utils.math.make_rotation_matrix(this.rotation);
 
-        // Compose: rot * scale * aspect
-        let mat = window.infinity_zoom_II.utils.math.mat3_mul(rot, window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect));
+        // Transform pipeline: Rotation × Scale × FittingMatrix
+        const final_matrix = window.infinity_zoom_II.utils.math.mat3_mul(rot_mat, window.infinity_zoom_II.utils.math.mat3_mul(scale_mat, aspect_matrix));
 
-        // DEBUG: Manual trigger - press SPACE to log current matrix when you see borders
-        if (i === 0) {
-          window._current_engine_matrix = mat;
-          window._current_engine_canvas = this.canvas;
-          window._current_engine_phase = this.animation_phase;
-        }
-
-        gl.uniformMatrix3fv(this.u_matrix, false, mat);
+        gl.uniformMatrix3fv(this.u_matrix, false, final_matrix);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, layer.texture);
         gl.uniform1i(this.u_image, 0);
@@ -429,22 +377,11 @@ const engine = {
     return scale;
   },
 
-  // Calculate scale compensation to achieve fitting behavior with covering matrix
-  get_fitting_scale_for_covering_matrix(layer) {
+  // Calculate covering ratio for a layer (from our trial)
+  calculate_covering_ratio(layer) {
     const img_aspect = layer.image.width / layer.image.height;
     const canvas_aspect = this.canvas.width / this.canvas.height;
-
-    // The covering matrix makes one dimension "too big" for fitting
-    // Calculate the reciprocal to compensate
-    if (canvas_aspect > img_aspect) {
-      // Covering matrix scales Y by canvas_aspect/img_aspect (too big)
-      // Compensation: scale by img_aspect/canvas_aspect to get fitting
-      return img_aspect / canvas_aspect;
-    } else {
-      // Covering matrix scales X by img_aspect/canvas_aspect (too big)
-      // Compensation: scale by canvas_aspect/img_aspect to get fitting
-      return canvas_aspect / img_aspect;
-    }
+    return canvas_aspect > img_aspect ? canvas_aspect / img_aspect : img_aspect / canvas_aspect;
   },
 
   // Preload all layer images to the GPU (warm-up phase)
@@ -460,22 +397,6 @@ const engine = {
       }
     }
     log("Preloaded all layers to GPU");
-  },
-
-  // Updates the covering_layer_index, only increasing as we zoom in
-  update_covering_layer_index() {
-    const min_dim = Math.min(this.canvas.width, this.canvas.height);
-    const max_dim = Math.max(this.canvas.width, this.canvas.height);
-    // Start from the last known covering index + 1
-    for (let i = this.covering_layer_index + 1; i < this.layers.length; ++i) {
-      const layer = this.layers[i];
-      const draw_size = layer.scale * min_dim;
-      if (draw_size >= max_dim) {
-        // Found a new covering layer
-        this.covering_layer_index = i;
-        log("New covering layer index: " + this.covering_layer_index);
-      }
-    }
   },
 };
 
