@@ -62,21 +62,31 @@ function lerp_angle(angle1, angle2, t) {
   return angle1 + diff * t;
 }
 
-// Convert TRS to a 3x3 transformation matrix
+// Convert TRS to a 3x3 transformation matrix for WebGL (-1 to 1 coordinates)
 function trs_to_matrix(trs, img_width, img_height) {
   const cos_r = Math.cos(trs.rotation);
   const sin_r = Math.sin(trs.rotation);
 
-  // Scale from image space to world space
-  const scale_x = trs.scale;
-  const scale_y = trs.scale;
+  // Scale from image pixels to normalized device coordinates
+  const scale_x = (trs.scale * img_width) / 2; // Scale to half-width
+  const scale_y = (trs.scale * img_height) / 2; // Scale to half-height
 
-  // Translation to center
-  const tx = trs.center_x - (img_width * scale_x) / 2;
-  const ty = trs.center_y - (img_height * scale_y) / 2;
+  // Translation from center position to normalized coordinates
+  const tx = (trs.center_x - (img_width * trs.scale) / 2) / (img_width / 2) - 1;
+  const ty = -((trs.center_y - (img_height * trs.scale) / 2) / (img_height / 2) - 1); // Flip Y
 
   // Combined transformation matrix: translate * rotate * scale
-  return [scale_x * cos_r, -scale_y * sin_r, 0, scale_x * sin_r, scale_y * cos_r, 0, tx, ty, 1];
+  return [
+    (scale_x * cos_r) / (img_width / 2),
+    (-scale_y * sin_r) / (img_height / 2),
+    0,
+    (scale_x * sin_r) / (img_width / 2),
+    (scale_y * cos_r) / (img_height / 2),
+    0,
+    tx,
+    ty,
+    1,
+  ];
 }
 
 // Check if TRS represents covering behavior (fills entire viewport)
