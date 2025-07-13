@@ -79,6 +79,19 @@ function trs_to_matrix(trs, img_width, img_height) {
   return [scale_x * cos_r, -scale_y * sin_r, 0, scale_x * sin_r, scale_y * cos_r, 0, tx, ty, 1];
 }
 
+// Check if TRS represents covering behavior (fills entire viewport)
+function is_trs_covering(trs, img, canvas) {
+  const covering_trs = calculate_covering_trs(img, canvas);
+  return trs.scale >= covering_trs.scale;
+}
+
+// Calculate rendered size of image with given TRS
+function get_trs_render_size(trs, img) {
+  const rendered_width = img.width * trs.scale;
+  const rendered_height = img.height * trs.scale;
+  return Math.min(rendered_width, rendered_height);
+}
+
 // Attach to namespace
 window.infinity_zoom_II.utils.trs = {
   calculate_fitting_trs,
@@ -86,4 +99,6 @@ window.infinity_zoom_II.utils.trs = {
   lerp_trs,
   lerp_angle,
   trs_to_matrix,
+  is_trs_covering,
+  get_trs_render_size,
 };
