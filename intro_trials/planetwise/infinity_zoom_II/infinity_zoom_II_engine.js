@@ -38,6 +38,11 @@ window.infinity_zoom_II.config = {
   // Exponential zoom rate (growth constant per second, default from V1).
   zoom_speed: 1, //TRIALS originally: 1.2;
   // Controls whether dynamic feathering is active (set externally before engine loads)
+
+  // Animation phase durations (in seconds)
+  intro_planet_zoom_duration: 2.5, // How long planet takes to grow from tiny to fitting
+  visible_layers_fade_duration: 1.0, // How long additional layers take to fade in
+  pre_main_zoom_hold_duration: 1.5, // How long to hold before starting main zoom
 };
 
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
@@ -159,7 +164,7 @@ const engine = {
     if (this.animation_phase === "intro") {
       // 1st Layer (planet) exponential zoom from tiny to fitting size
       this.rotation += this.rotation_speed * delta;
-      const zoom_duration = 1.5; // Duration of zoom-in phase in seconds
+      const zoom_duration = window.infinity_zoom_II.config.intro_planet_zoom_duration;
 
       if (elapsed < zoom_duration) {
         // Exponential growth from 1px to scale 1
@@ -182,7 +187,7 @@ const engine = {
     } else if (this.animation_phase === "intro_visible_layers_fade_in") {
       // Additional layers fade in with correct relative scaling
       this.rotation += this.rotation_speed * delta;
-      const fade_duration = 1;
+      const fade_duration = window.infinity_zoom_II.config.visible_layers_fade_duration;
       const elapsed_fade = (now - this.fade_in_start_time) / 1000;
 
       if (elapsed_fade < fade_duration) {
@@ -217,7 +222,7 @@ const engine = {
       }
     } else if (this.animation_phase === "hold") {
       // Hold all scales, only rotation continues
-      const hold_duration = 0.5;
+      const hold_duration = window.infinity_zoom_II.config.pre_main_zoom_hold_duration;
       const elapsed_hold = (now - this.hold_start_time) / 1000;
       this.rotation += this.rotation_speed * delta;
 
