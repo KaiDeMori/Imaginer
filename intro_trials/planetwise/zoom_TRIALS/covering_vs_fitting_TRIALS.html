@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fitting to Covering Test</title>
+    <style>
+      body {
+        margin: 0;
+        background: #000;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script>
+      const BASE_DIR = "../zoom_images_planete/debug";
+      const image = "100_alien_closeup.png";
+
+      const canvas = document.getElementById("canvas");
+      const gl = canvas.getContext("webgl");
+
+      // Resize canvas to full viewport
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+
+      // Vertex shader
+      const vs_source = `
+            attribute vec2 a_position;
+            attribute vec2 a_texcoord;
+            varying vec2 v_texcoord;
+            uniform mat3 u_matrix;
+            void main() {
+                vec3 pos = u_matrix * vec3(a_position, 1.0);
+                gl_Position = vec4(pos.xy, 0, 1);
+                v_texcoord = a_texcoord;
+            }
+        `;
+
+      // Fragment shader
+      const fs_source = `
+            precision mediump float;
+            varying vec2 v_texcoord;
+            uniform sampler2D u_image;
+            void main() {
+                gl_FragColor = texture2D(u_image, v_texcoord);
+            }
+        `;
+
+      // Create shader program
+      function create_shader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return shader;
+      }
+
+      const vs = create_shader(gl, gl.VERTEX_SHADER, vs_source);
+      const fs = create_shader(gl, gl.FRAGMENT_SHADER, fs_source);
+      const program = gl.createProgram();
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+
+      // Create quad buffer
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([
+          -1,
+          -1,
+          0,
+          0, // bottom-left
+          1,
+          -1,
+          1,
+          0, // bottom-right
+          -1,
+          1,
+          0,
+          1, // top-left
+          1,
+          1,
+          1,
+          1, // top-right
+        ]),
+        gl.STATIC_DRAW
+      );
+
+      // Get uniform locations
+      const u_matrix = gl.getUniformLocation(program, "u_matrix");
+      const u_image = gl.getUniformLocation(program, "u_image");
+      const a_position = gl.getAttribLocation(program, "a_position");
+      const a_texcoord = gl.getAttribLocation(program, "a_texcoord");
+
+      // Load image and start animation
+      const img = new Image();
+
+      img.onload = function () {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        // Calculate fitting-to-covering scale relationship
+        const img_aspect = img.width / img.height;
+        const canvas_aspect = canvas.width / canvas.height;
+
+        // Base matrix should do fitting, then we scale up to covering
+        const fitting_scale = 1.0;
+        const covering_scale = canvas_aspect > img_aspect ? canvas_aspect / img_aspect : img_aspect / canvas_aspect;
+
+        console.log("Image:", img.width + "x" + img.height, "aspect:", img_aspect.toFixed(3));
+        console.log("Canvas:", canvas.width + "x" + canvas.height, "aspect:", canvas_aspect.toFixed(3));
+        console.log("Fitting scale:", fitting_scale, "Covering scale:", covering_scale.toFixed(3));
+
+        // Simple state switching
+        const start_time = performance.now();
+        const switch_interval = 2000; // 2 seconds
+
+        function animate(now) {
+          const elapsed = (now - start_time) % (switch_interval * 2);
+
+          // Switch between fitting and covering every 2 seconds
+          const scale = elapsed < switch_interval ? fitting_scale : covering_scale;
+
+          // Base aspect matrix (use fitting matrix as base)
+          const aspect_matrix = make_fitting_matrix(img, canvas);
+
+          // Apply scale
+          const scale_matrix = [scale, 0, 0, 0, scale, 0, 0, 0, 1];
+          const final_matrix = mat3_mul(scale_matrix, aspect_matrix);
+
+          // Render
+          gl.clearColor(0.2, 0.2, 0.2, 1);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.useProgram(program);
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.enableVertexAttribArray(a_position);
+          gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 16, 0);
+          gl.enableVertexAttribArray(a_texcoord);
+          gl.vertexAttribPointer(a_texcoord, 2, gl.FLOAT, false, 16, 8);
+          gl.uniformMatrix3fv(u_matrix, false, final_matrix);
+          gl.uniform1i(u_image, 0);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+          requestAnimationFrame(animate);
+        }
+
+        requestAnimationFrame(animate);
+      };
+
+      // Base fitting matrix (touches viewport from inside)
+      function make_fitting_matrix(img, canvas) {
+        const img_aspect = img.width / img.height;
+        const canvas_aspect = canvas.width / canvas.height;
+
+        if (canvas_aspect > img_aspect) {
+          // Wider viewport - fit height, show pillarbox bars
+          const scale_x = img_aspect / canvas_aspect;
+          return [scale_x, 0, 0, 0, 1.0, 0, 0, 0, 1];
+        } else {
+          // Taller viewport - fit width, show letterbox bars
+          const scale_y = canvas_aspect / img_aspect;
+          return [1.0, 0, 0, 0, scale_y, 0, 0, 0, 1];
+        }
+      }
+
+      // Base aspect correction matrix
+      function make_aspect_matrix(img, canvas) {
+        const img_aspect = img.width / img.height;
+        const canvas_aspect = canvas.width / canvas.height;
+
+        if (canvas_aspect > img_aspect) {
+          const scale_y = canvas_aspect / img_aspect;
+          return [1.0, 0, 0, 0, scale_y, 0, 0, 0, 1];
+        } else {
+          const scale_x = img_aspect / canvas_aspect;
+          return [scale_x, 0, 0, 0, 1.0, 0, 0, 0, 1];
+        }
+      }
+
+      // Matrix multiplication
+      function mat3_mul(a, b) {
+        return [
+          a[0] * b[0] + a[3] * b[1] + a[6] * b[2],
+          a[1] * b[0] + a[4] * b[1] + a[7] * b[2],
+          a[2] * b[0] + a[5] * b[1] + a[8] * b[2],
+          a[0] * b[3] + a[3] * b[4] + a[6] * b[5],
+          a[1] * b[3] + a[4] * b[4] + a[7] * b[5],
+          a[2] * b[3] + a[5] * b[4] + a[8] * b[5],
+          a[0] * b[6] + a[3] * b[7] + a[6] * b[8],
+          a[1] * b[6] + a[4] * b[7] + a[7] * b[8],
+          a[2] * b[6] + a[5] * b[7] + a[8] * b[8],
+        ];
+      }
+
+      img.src = `${BASE_DIR}/${image}`;
+    </script>
+  </body>
+</html>
