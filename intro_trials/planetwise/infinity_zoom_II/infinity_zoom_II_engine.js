@@ -12,7 +12,7 @@
 //
 // This was confirmed with a minimal test: the feathered canvas is flipped unless a Y-flip is applied in the WebGL pipeline.
 //
-// Infinity Zoom II Engine – main structure and method stubs
+// Infinity Zoom II Engine
 
 (window.infinity_zoom_II = {
   assert_all_namespaces: function () {
@@ -35,9 +35,8 @@ window.infinity_zoom_II.config = {
   start_rotation_angle: 0,
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
-  // Exponential zoom rate (growth constant per second, default from V1).
-  zoom_speed: 1, //TRIALS originally: 1.2;
-  // Controls whether dynamic feathering is active (set externally before engine loads)
+  // Exponential zoom rate (growth constant per second).
+  zoom_speed: 1,
 
   // Animation phase durations (in seconds)
   intro_planet_zoom_duration: 2.5, // How long planet takes to grow from tiny to fitting
