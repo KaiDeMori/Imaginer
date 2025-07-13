@@ -431,11 +431,10 @@ const engine = {
     return multiplier;
   },
 
-  // Calculate covering ratio for a layer (from our trial)
+  // Calculate covering ratio for a layer (deprecated - use TRS functions instead)
   calculate_covering_ratio(layer) {
-    const img_aspect = layer.image.width / layer.image.height;
-    const canvas_aspect = this.canvas.width / this.canvas.height;
-    return canvas_aspect > img_aspect ? canvas_aspect / img_aspect : img_aspect / canvas_aspect;
+    const covering_trs = window.infinity_zoom_II.utils.trs.calculate_covering_trs(layer.image, this.canvas);
+    return covering_trs.scale;
   },
 
   // Preload all layer images to the GPU (warm-up phase)
