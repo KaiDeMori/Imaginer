@@ -80,6 +80,7 @@ const engine = {
   rotation: 0,
   rotation_speed: window.infinity_zoom_II.config.rotation_speed,
   zoom_speed: window.infinity_zoom_II.config.zoom_speed,
+  first_visible_layer_index: 0, // Occlusion culling optimization
 
   // Internal: Initialize engine with preloaded images and canvas. Do not call directly; use create().
   init(layer_data, images, canvas) {
@@ -347,7 +348,23 @@ const engine = {
     gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 16, 0);
     gl.enableVertexAttribArray(this.a_texcoord);
     gl.vertexAttribPointer(this.a_texcoord, 2, gl.FLOAT, false, 16, 8);
-    for (let i = 0; i < this.layers.length; ++i) {
+
+    // Occlusion culling optimization: check if we can hide more layers
+    const check_index = this.first_visible_layer_index + 2;
+    if (check_index < this.layers.length) {
+      const check_layer = this.layers[check_index];
+      if (check_layer && check_layer.scale) {
+        const covering_ratio = this.calculate_covering_ratio(check_layer);
+        if (check_layer.scale >= covering_ratio) {
+          // Layer at check_index is covering - we can hide the layer at first_visible_layer_index
+          this.first_visible_layer_index++;
+          log(`Layer ${check_index} covering. first_visible_layer_index: ${this.first_visible_layer_index}`);
+        }
+      }
+    }
+
+    // Render only visible layers (optimization: skip hidden layers)
+    for (let i = this.first_visible_layer_index; i < this.layers.length; ++i) {
       const layer = this.layers[i];
       if (layer && layer.texture) {
         // SINGLE MATRIX APPROACH: Always use fitting matrix
