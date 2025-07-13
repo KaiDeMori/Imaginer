@@ -264,7 +264,7 @@ const engine = {
       const final_layer = this.layers[final_layer_index];
       const covering_ratio = this.calculate_covering_ratio(final_layer);
 
-      if (final_layer_scale * covering_ratio >= covering_ratio) {
+      if (final_layer_scale >= covering_ratio) {
         // Final layer reaches covering behavior: stop zoom, start rotation
         this.animation_phase = "final_rotation";
         requestAnimationFrame(this.animate.bind(this));
@@ -342,15 +342,21 @@ const engine = {
     gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 16, 0);
     gl.enableVertexAttribArray(this.a_texcoord);
     gl.vertexAttribPointer(this.a_texcoord, 2, gl.FLOAT, false, 16, 8);
-
     for (let i = 0; i < this.layers.length; ++i) {
       const layer = this.layers[i];
       if (layer && layer.texture) {
-        // Use fitting matrix for all layers
+        // SINGLE MATRIX APPROACH: Always use fitting matrix
         const aspect_matrix = window.infinity_zoom_II.utils.math.make_fitting_matrix(layer.image, this.canvas);
 
-        // All layers use the same scale - no special treatment
-        const render_scale = layer.scale;
+        // CRITICAL FIX: For final layer in final_rotation, use covering scale, not animation scale
+        let render_scale;
+        if (i === this.layers.length - 1 && this.animation_phase === "final_rotation") {
+          // Final layer covering: use covering ratio instead of accumulated animation scale
+          render_scale = this.calculate_covering_ratio(layer);
+        } else {
+          // All other cases: use animation scale
+          render_scale = layer.scale;
+        }
 
         const scale_mat = [render_scale, 0, 0, 0, render_scale, 0, 0, 0, 1];
         const rot_mat = window.infinity_zoom_II.utils.math.make_rotation_matrix(this.rotation);
