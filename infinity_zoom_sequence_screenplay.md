@@ -28,15 +28,13 @@
 - Only rotation continues
 
 ### State: "main_zoom"
-- All layers exponentially grow while maintaining relative size relationships
+- **All layers scale together in perfect synchronization** - exponential growth with identical rates
+- **Relative size relationships preserved** - each layer maintains its 25% size reduction relative to the previous layer
 - **Dynamic visibility continues**: As layers grow, more may become "big enough" and appear
-- **1st Layer (planet)**: Always maintains fitting behavior throughout
-- **Final Layer (alien)**: Grows toward covering behavior  
 - **Stop condition**: When Final Layer reaches perfect covering size
 
 ### State: "final_rotation" 
 - All layers stop scaling, only rotation continues
-- 1st Layer (planet) shows fitting behavior
 - Final Layer (alien) shows covering behavior
 
 ### State: "region_zoom"
@@ -45,8 +43,8 @@
 ## Key Requirements
 
 - Single covering matrix used throughout (no matrix switching)
-- Planet always fits, never covers
-- Final alien always covers at the end
+- First layer always fits, never covers
+- Final layer always covers at the end
 - Smooth transitions between all states
 - Viewport-independent behavior
 - Dynamic layer visibility based on minimum_render_size throughout
