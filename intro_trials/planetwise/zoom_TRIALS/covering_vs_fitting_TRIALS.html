@@ -26,9 +26,13 @@
       const gl = canvas.getContext("webgl");
 
       // Resize canvas to full viewport
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      function resize_canvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+
+      resize_canvas();
 
       // Vertex shader
       const vs_source = `
@@ -112,16 +116,25 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
         // Calculate fitting-to-covering scale relationship
-        const img_aspect = img.width / img.height;
-        const canvas_aspect = canvas.width / canvas.height;
+        function calculate_scales() {
+          const img_aspect = img.width / img.height;
+          const canvas_aspect = canvas.width / canvas.height;
+          const fitting_scale = 1.0;
+          const covering_scale = canvas_aspect > img_aspect ? canvas_aspect / img_aspect : img_aspect / canvas_aspect;
+          return { fitting_scale, covering_scale };
+        }
 
-        // Base matrix should do fitting, then we scale up to covering
-        const fitting_scale = 1.0;
-        const covering_scale = canvas_aspect > img_aspect ? canvas_aspect / img_aspect : img_aspect / canvas_aspect;
+        let scales = calculate_scales();
+        console.log("Image:", img.width + "x" + img.height, "aspect:", (img.width / img.height).toFixed(3));
+        console.log("Canvas:", canvas.width + "x" + canvas.height, "aspect:", (canvas.width / canvas.height).toFixed(3));
+        console.log("Fitting scale:", scales.fitting_scale, "Covering scale:", scales.covering_scale.toFixed(3));
 
-        console.log("Image:", img.width + "x" + img.height, "aspect:", img_aspect.toFixed(3));
-        console.log("Canvas:", canvas.width + "x" + canvas.height, "aspect:", canvas_aspect.toFixed(3));
-        console.log("Fitting scale:", fitting_scale, "Covering scale:", covering_scale.toFixed(3));
+        // Handle window resize
+        window.addEventListener("resize", () => {
+          resize_canvas();
+          scales = calculate_scales();
+          console.log("Resized - Canvas:", canvas.width + "x" + canvas.height, "New covering scale:", scales.covering_scale.toFixed(3));
+        });
 
         // Simple state switching
         const start_time = performance.now();
@@ -131,7 +144,7 @@
           const elapsed = (now - start_time) % (switch_interval * 2);
 
           // Switch between fitting and covering every 2 seconds
-          const scale = elapsed < switch_interval ? fitting_scale : covering_scale;
+          const scale = elapsed < switch_interval ? scales.fitting_scale : scales.covering_scale;
 
           // Base aspect matrix (use fitting matrix as base)
           const aspect_matrix = make_fitting_matrix(img, canvas);
