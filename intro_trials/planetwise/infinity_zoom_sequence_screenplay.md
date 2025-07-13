@@ -48,23 +48,28 @@
 
 ## Key Requirements
 
-- Single base matrix (fitting) with dynamic scale factors for all layers
-- 1st Layer (index 0) always uses fitting scale (1.0), Final Layer uses covering scale (calculated ratio)
-- All layers scale together in perfect synchronization 
-- Smooth transitions between all states
-- Viewport-independent behavior with dynamic resize handling
+- **TRS-based transforms** for all layers with direct component interpolation
+- **1st Layer (index 0)**: Always uses fitting TRS (touches viewport from inside)
+- **Final Layer (index 9)**: Uses covering TRS (fills entire viewport)
+- All layers maintain synchronized growth through TRS interpolation
+- Smooth transitions between all states with continuous TRS parameters
+- Viewport-independent behavior with dynamic TRS recalculation on resize
 - Dynamic layer visibility based on minimum_render_size throughout
+- **Seamless region zoom integration** via direct TRS state passing
 
 ## Implementation Solution
 
-**Proven Approach:**
-- **Single base matrix** handles aspect ratio correction (fitting matrix)
-- **Dynamic scale factors** determine visual behavior:
-  - 1st Layer (index 0): scale = 1.0 (fitting behavior)
-  - Final Layer (index 9): scale = covering_ratio (covering behavior) 
-  - Middle layers: scale = interpolated values
-- **Transform pipeline:** Rotation × Scale × BaseMatrix
-- **Covering ratio calculation:** Based on image vs viewport aspect ratios
-- **Viewport independence:** Recalculate scales on resize events
+**TRS Architecture:**
+- **Transform Representation**: Each layer uses `{center_x, center_y, scale, rotation}` (TRS)
+- **Fitting behavior**: TRS calculated so image touches viewport from inside
+- **Covering behavior**: TRS calculated so image fills entire viewport
+- **Animation logic**: Direct interpolation of TRS components:
+  - Center: `lerp(start_center, end_center, t)`
+  - Scale: `lerp(start_scale, end_scale, t)` 
+  - Rotation: `lerp_angle(start_rotation, end_rotation, t)`
+- **Render pipeline**: Build final matrix from TRS only at WebGL draw time
+- **Covering detection**: Simple scale comparison against calculated thresholds
+- **Viewport independence**: Recalculate TRS parameters on resize events
+- **Region zoom transition**: Pass final TRS state directly - no conversion needed!
 
-**Result:** Clean mathematical solution with no matrix switching! 🌍➡️👽
+**Result:** Clean architectural solution with seamless phase transitions! 🌍➡️👽
