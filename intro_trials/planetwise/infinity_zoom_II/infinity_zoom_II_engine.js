@@ -36,12 +36,12 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second).
-  zoom_speed: 3,
+  zoom_speed: 1,
 
   // Animation phase durations (in seconds)
-  intro_planet_zoom_duration: 0.5, // How long planet takes to grow from tiny to fitting
+  intro_planet_zoom_duration: 1, // How long planet takes to grow from tiny to fitting
   visible_layers_fade_duration: 1.0, // How long additional layers take to fade in
-  pre_main_zoom_hold_duration: 0.5, // How long to hold before starting main zoom
+  pre_main_zoom_hold_duration: 1, // How long to hold before starting main zoom
 };
 
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
@@ -217,9 +217,10 @@ const engine = {
         const fade_t = elapsed_fade / fade_duration;
 
         // Check which layers are visible based on TRS render size
+        // could be optimized: stop after first layer that is not visible
         for (let i = 1; i < this.layers.length; ++i) {
           const layer = this.layers[i];
-          const render_size = window.infinity_zoom_II.utils.trs.get_trs_render_size(layer.trs, layer.image);
+          const render_size = window.infinity_zoom_II.utils.trs.get_trs_render_size(layer.trs, layer.image, this.canvas);
           if (render_size >= window.infinity_zoom_II.config.minimum_render_size) {
             layer.alpha = Math.min(1, fade_t);
           } else {
@@ -254,7 +255,7 @@ const engine = {
           const layer_trs = this.get_layer_trs(i, this.layers[0].trs);
           layer.trs = layer_trs;
 
-          const render_size = window.infinity_zoom_II.utils.trs.get_trs_render_size(layer.trs, layer.image);
+          const render_size = window.infinity_zoom_II.utils.trs.get_trs_render_size(layer.trs, layer.image, this.canvas);
           if (render_size >= window.infinity_zoom_II.config.minimum_render_size) {
             layer.alpha = 1;
           } else {
