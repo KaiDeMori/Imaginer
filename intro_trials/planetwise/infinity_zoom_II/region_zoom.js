@@ -49,6 +49,10 @@ window.infinity_zoom_II.region_zoom = {
   transform_point_through_TRS(point, trs, viewport_width, viewport_height) {
     const { center_x, center_y, scale, rotation } = trs;
 
+    // DEBUG: Log input values
+    log("TRS input - point: " + point.x + ", " + point.y);
+    log("TRS input - center: " + center_x.toFixed(2) + ", " + center_y.toFixed(2) + " scale: " + scale.toFixed(2) + " rotation: " + rotation.toFixed(2));
+
     // Apply TRS transformation to convert from image coordinates to screen coordinates
     const cos_r = Math.cos(rotation);
     const sin_r = Math.sin(rotation);
@@ -59,14 +63,32 @@ window.infinity_zoom_II.region_zoom = {
     const norm_x = (point.x - image_size / 2) / (image_size / 2);
     const norm_y = (point.y - image_size / 2) / (image_size / 2);
 
+    // DEBUG: Log normalization
+    log("Normalized: " + norm_x.toFixed(2) + ", " + norm_y.toFixed(2));
+
     // Apply rotation
     const rotated_x = norm_x * cos_r - norm_y * sin_r;
     const rotated_y = norm_x * sin_r + norm_y * cos_r;
+
+    // DEBUG: Log rotation
+    log("Rotated: " + rotated_x.toFixed(2) + ", " + rotated_y.toFixed(2));
 
     // Apply scale - convert to pixel size
     const pixel_scale = scale * Math.min(viewport_width, viewport_height);
     const scaled_x = rotated_x * pixel_scale;
     const scaled_y = rotated_y * pixel_scale;
+
+    // DEBUG: Log scaling
+    log(
+      "min(w,h): " +
+        Math.min(viewport_width, viewport_height) +
+        " Pixel scale: " +
+        pixel_scale.toFixed(2) +
+        " Scaled: " +
+        scaled_x.toFixed(2) +
+        ", " +
+        scaled_y.toFixed(2)
+    );
 
     // Apply translation - convert center from viewport-relative to screen coordinates
     const screen_center_x = center_x * (viewport_width / 2) + viewport_width / 2;
@@ -74,6 +96,10 @@ window.infinity_zoom_II.region_zoom = {
 
     const screen_x = scaled_x + screen_center_x;
     const screen_y = scaled_y + screen_center_y;
+
+    // DEBUG: Log final result
+    log("Screen center: " + screen_center_x.toFixed(2) + ", " + screen_center_y.toFixed(2));
+    log("Final screen: " + screen_x.toFixed(2) + ", " + screen_y.toFixed(2));
 
     return { x: screen_x, y: screen_y };
   },
@@ -101,10 +127,10 @@ window.infinity_zoom_II.region_zoom = {
     const target_center_y = -(region_center.y - viewport_height / 2) / (viewport_height / 2);
 
     // DEBUG: Log center calculation
-    log("Region center (screen): " + region_center.x + ", " + region_center.y);
+    log("Region center (screen): " + region_center.x.toFixed(2) + ", " + region_center.y.toFixed(2));
     log("Viewport center: " + viewport_width / 2 + ", " + viewport_height / 2);
-    log("Target center (viewport-rel): " + target_center_x + ", " + target_center_y);
-    log("Inverted target center: " + -target_center_x + ", " + -target_center_y);
+    log("Target center (viewport-rel): " + target_center_x.toFixed(2) + ", " + target_center_y.toFixed(2));
+    log("Inverted target center: " + (-target_center_x).toFixed(2) + ", " + (-target_center_y).toFixed(2));
 
     // Calculate target scale: current scale multiplied by covering factor
     const target_scale = current_trs.scale * covering_scale_factor;

@@ -19,7 +19,7 @@ window.infinity_zoom_II.config = {
   // Initial rotation angle in radians.
   start_rotation_angle: 0,
   // Global rotation speed in radians per second. Positive values rotate clockwise.
-  rotation_speed: 0.1,
+  rotation_speed: 0,
   // Exponential zoom rate (growth constant per second).
   zoom_speed: 7,
 
