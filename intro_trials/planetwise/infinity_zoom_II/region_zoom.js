@@ -4,10 +4,10 @@
 window.infinity_zoom_II.config.region_zoom = {
   anim_duration: 4000, // Animation duration in milliseconds
   region_rect: {
-    p0: { x: 170, y: 492 }, // origin (top-left)
-    p1: { x: 354, y: 424 }, // end of top edge (u-axis)
-    p2: { x: 421, y: 607 }, // far corner (bottom-right)
-    p3: { x: 237, y: 675 }, // end of left edge (v-axis)
+    p0: { x: 0, y: 0 }, // origin (top-left)
+    p1: { x: 99, y: 0 }, // end of top edge (u-axis)
+    p2: { x: 99, y: 99 }, // far corner (bottom-right)
+    p3: { x: 0, y: 99 }, // end of left edge (v-axis)
   },
 };
 
@@ -135,8 +135,11 @@ window.infinity_zoom_II.region_zoom = {
     // Calculate target scale: current scale multiplied by covering factor
     const target_scale = current_trs.scale * covering_scale_factor;
 
-    // Target rotation is 0 to align region edges with viewport edges
-    const target_rotation = 0;
+    // Target rotation: counter-rotate to align region edges with viewport edges
+    const target_rotation = region_rotation;
+
+    // DEBUG: Log rotation calculation
+    log("Region rotation (rad): " + region_rotation.toFixed(2) + " Target rotation: " + target_rotation.toFixed(2));
 
     return window.infinity_zoom_II.utils.create_TRS(
       -target_center_x, // Invert to center the region in viewport
