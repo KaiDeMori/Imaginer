@@ -49,10 +49,6 @@ window.infinity_zoom_II.region_zoom = {
   transform_point_through_TRS(point, trs, viewport_width, viewport_height) {
     const { center_x, center_y, scale, rotation } = trs;
 
-    // DEBUG: Log input values
-    log("TRS input - point: " + point.x + ", " + point.y);
-    log("TRS input - center: " + center_x.toFixed(2) + ", " + center_y.toFixed(2) + " scale: " + scale.toFixed(2) + " rotation: " + rotation.toFixed(2));
-
     // Apply TRS transformation to convert from image coordinates to screen coordinates
     const cos_r = Math.cos(rotation);
     const sin_r = Math.sin(rotation);
@@ -63,32 +59,14 @@ window.infinity_zoom_II.region_zoom = {
     const norm_x = (point.x - image_size / 2) / (image_size / 2);
     const norm_y = (point.y - image_size / 2) / (image_size / 2);
 
-    // DEBUG: Log normalization
-    log("Normalized: " + norm_x.toFixed(2) + ", " + norm_y.toFixed(2));
-
     // Apply rotation
     const rotated_x = norm_x * cos_r - norm_y * sin_r;
     const rotated_y = norm_x * sin_r + norm_y * cos_r;
-
-    // DEBUG: Log rotation
-    log("Rotated: " + rotated_x.toFixed(2) + ", " + rotated_y.toFixed(2));
 
     // Apply scale - convert to pixel size
     const pixel_scale = scale * Math.min(viewport_width, viewport_height);
     const scaled_x = rotated_x * pixel_scale;
     const scaled_y = rotated_y * pixel_scale;
-
-    // DEBUG: Log scaling
-    log(
-      "min(w,h): " +
-        Math.min(viewport_width, viewport_height) +
-        " Pixel scale: " +
-        pixel_scale.toFixed(2) +
-        " Scaled: " +
-        scaled_x.toFixed(2) +
-        ", " +
-        scaled_y.toFixed(2)
-    );
 
     // Apply translation - convert center from viewport-relative to screen coordinates
     const screen_center_x = center_x * (viewport_width / 2) + viewport_width / 2;
@@ -96,10 +74,6 @@ window.infinity_zoom_II.region_zoom = {
 
     const screen_x = scaled_x + screen_center_x;
     const screen_y = scaled_y + screen_center_y;
-
-    // DEBUG: Log final result
-    log("Screen center: " + screen_center_x.toFixed(2) + ", " + screen_center_y.toFixed(2));
-    log("Final screen: " + screen_x.toFixed(2) + ", " + screen_y.toFixed(2));
 
     return { x: screen_x, y: screen_y };
   },
@@ -119,18 +93,39 @@ window.infinity_zoom_II.region_zoom = {
     const region_dimensions = this.calc_region_dimensions(transformed_p0, transformed_p1, transformed_p2, transformed_p3);
     const region_rotation = this.calc_region_rotation(transformed_p0, transformed_p1);
 
+    // DEBUG: Log region dimensions
+    log("Region dimensions: " + region_dimensions.width.toFixed(2) + " x " + region_dimensions.height.toFixed(2));
+
     // Calculate covering scale for region to fill viewport
     const covering_scale_factor = this.calc_region_covering_scale(region_dimensions.width, region_dimensions.height, viewport_width, viewport_height);
 
+    // DEBUG: Log scale calculation
+    log("Covering scale factor: " + covering_scale_factor.toFixed(2));
+
     // Convert screen region center to viewport-relative coordinates
-    const target_center_x = (region_center.x - viewport_width / 2) / (viewport_width / 2);
-    const target_center_y = -(region_center.y - viewport_height / 2) / (viewport_height / 2);
+    // We want to bring the region center TO the viewport center, so we need the negative offset
+    const screen_offset_x = region_center.x - viewport_width / 2;
+    const screen_offset_y = region_center.y - viewport_height / 2;
+
+    // DEBUG: Show coordinate system conversion
+    log("Screen offset: " + screen_offset_x.toFixed(2) + ", " + screen_offset_y.toFixed(2));
+    log("Viewport half-width: " + viewport_width / 2 + ", half-height: " + viewport_height / 2);
+
+    // Current calculation (potentially wrong scale)
+    const target_center_x_old = -(screen_offset_x / (viewport_width / 2));
+    const target_center_y_old = screen_offset_y / (viewport_height / 2);
+
+    // Test: 2x correction factor for NDC range [-1, 1] = 2 units total
+    const target_center_x = -(screen_offset_x / viewport_width) * 2;
+    const target_center_y = (screen_offset_y / viewport_height) * 2;
+
+    log("OLD target (wrong scale?): " + target_center_x_old.toFixed(2) + ", " + target_center_y_old.toFixed(2));
+    log("NEW target (2x correction): " + target_center_x.toFixed(2) + ", " + target_center_y.toFixed(2));
 
     // DEBUG: Log center calculation
     log("Region center (screen): " + region_center.x.toFixed(2) + ", " + region_center.y.toFixed(2));
     log("Viewport center: " + viewport_width / 2 + ", " + viewport_height / 2);
-    log("Target center (viewport-rel): " + target_center_x.toFixed(2) + ", " + target_center_y.toFixed(2));
-    log("Inverted target center: " + (-target_center_x).toFixed(2) + ", " + (-target_center_y).toFixed(2));
+    log("Expected NDC range: [-1, 1] (total span = 2 units)");
 
     // Calculate target scale: current scale multiplied by covering factor
     const target_scale = current_trs.scale * covering_scale_factor;
@@ -141,12 +136,26 @@ window.infinity_zoom_II.region_zoom = {
     // DEBUG: Log rotation calculation
     log("Region rotation (rad): " + region_rotation.toFixed(2) + " Target rotation: " + target_rotation.toFixed(2));
 
-    return window.infinity_zoom_II.utils.create_TRS(
-      -target_center_x, // Invert to center the region in viewport
-      -target_center_y, // Invert to center the region in viewport
+    const final_target_TRS = window.infinity_zoom_II.utils.create_TRS(
+      target_center_x, // Now correctly calculated to center the region
+      target_center_y, // Now correctly calculated to center the region
       target_scale,
       target_rotation
     );
+
+    // DEBUG: Log final target TRS
+    log(
+      "Final target TRS - center: " +
+        target_center_x.toFixed(2) +
+        ", " +
+        target_center_y.toFixed(2) +
+        " scale: " +
+        target_scale.toFixed(2) +
+        " rotation: " +
+        target_rotation.toFixed(2)
+    );
+
+    return final_target_TRS;
   },
 
   // Ease-in-out cubic interpolation function
@@ -171,6 +180,18 @@ window.infinity_zoom_II.region_zoom = {
     const final_layer_index = engine.layers.length - 1;
     this.start_TRS = { ...engine.layers[final_layer_index].trs };
     this.target_TRS = this.calc_region_target_TRS(config.region_rect, this.start_TRS, engine.canvas.width, engine.canvas.height);
+
+    // DEBUG: Log start and target TRS
+    log(
+      "Start TRS - center: " +
+        this.start_TRS.center_x.toFixed(2) +
+        ", " +
+        this.start_TRS.center_y.toFixed(2) +
+        " scale: " +
+        this.start_TRS.scale.toFixed(2) +
+        " rotation: " +
+        this.start_TRS.rotation.toFixed(2)
+    );
   },
 
   // Update region zoom state (called every frame)
