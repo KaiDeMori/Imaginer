@@ -18,7 +18,7 @@ window.infinity_zoom_II.config = {
   // Initial rotation angle in radians.
   start_rotation_angle: 0,
   // Global rotation speed in radians per second. Positive values rotate clockwise.
-  rotation_speed: 2,
+  rotation_speed: 0,
   // Exponential zoom rate (growth constant per second).
   zoom_speed: 3,
 
@@ -72,9 +72,13 @@ const engine = {
     log("Engine init called");
     this.canvas = canvas;
 
-    // Set canvas size to match display size
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+    // Set canvas buffer size to match exact viewport dimensions
+    this.resize_canvas();
+
+    // Add resize handler to keep canvas and viewport synchronized
+    window.addEventListener("resize", () => {
+      this.resize_canvas();
+    });
 
     // Initialize WebGL
     const utils = window.infinity_zoom_II.utils;
@@ -111,6 +115,26 @@ const engine = {
 
     // Start animation loop
     requestAnimationFrame(this.animate.bind(this));
+  },
+
+  // Set canvas buffer size to exactly match viewport
+  resize_canvas() {
+    const canvas = this.canvas;
+
+    // Use window viewport dimensions for exact pixel matching
+    const viewport_width = window.innerWidth;
+    const viewport_height = window.innerHeight;
+
+    // Set canvas buffer dimensions to match viewport exactly
+    canvas.width = viewport_width;
+    canvas.height = viewport_height;
+
+    // Update WebGL viewport if context exists
+    if (this.gl_context) {
+      this.gl_context.viewport(0, 0, viewport_width, viewport_height);
+    }
+
+    log(`Canvas resized to: ${viewport_width}x${viewport_height}`);
   },
 
   // Main animation loop

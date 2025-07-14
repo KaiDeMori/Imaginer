@@ -43,19 +43,21 @@ window.infinity_zoom_II.utils = {
     const norm_center_x = center_x;
     const norm_center_y = center_y;
 
-    // Direct viewport-relative to WebGL conversion
-    // scale=1.0 should make image touch viewport edges (fitting behavior)
-    const norm_scale_x = (scale * Math.min(viewport_width, viewport_height)) / viewport_width;
-    const norm_scale_y = (scale * Math.min(viewport_width, viewport_height)) / viewport_height;
+    // Scale calculation: uniform scaling preserves square aspect ratio
+    const pixel_scale = scale * Math.min(viewport_width, viewport_height);
 
-    // Combined translation, rotation, and scale matrix for normalized coordinates
+    // Viewport normalization: convert pixel scale to normalized device coordinates
+    const norm_scale_x = pixel_scale / viewport_width;
+    const norm_scale_y = pixel_scale / viewport_height;
+
+    // Pure rotation matrix (orthonormal) with uniform scaling
     return [
-      norm_scale_x * cos_r,
-      norm_scale_x * sin_r,
+      norm_scale_x * cos_r, // X-axis rotated and viewport-normalized
+      norm_scale_y * sin_r, // Y-axis component (maintains orthonormal property)
       0,
       0,
-      -norm_scale_y * sin_r,
-      norm_scale_y * cos_r,
+      -norm_scale_x * sin_r, // X-axis component (maintains orthonormal property)
+      norm_scale_y * cos_r, // Y-axis rotated and viewport-normalized
       0,
       0,
       0,
