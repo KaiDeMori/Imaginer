@@ -20,7 +20,7 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 1,
   // Exponential zoom rate (growth constant per second).
-  zoom_speed: 3,
+  zoom_speed: 1,
 
   // Animation phase durations (in seconds)
   intro_planet_zoom_duration: 2, // How long planet takes to grow from tiny to fitting
@@ -41,7 +41,7 @@ const engine = {
    * @param {number} [feather_size] - Feather size (optional).
    */
   create(layer_data, image_path, canvas, feather_size) {
-    log("Engine create called with:", { layer_data, image_path, canvas, feather_size });
+    log("Engine create called.");
 
     // Store canvas reference
     this.canvas = canvas;
@@ -171,6 +171,9 @@ const engine = {
     } else if (this.animation_phase === "final_rotation") {
       this.update_final_rotation_state(now);
     }
+
+    // Update occlusion culling optimization
+    this.update_first_visible_layer_index();
 
     // Render the scene
     this.render();
@@ -320,19 +323,32 @@ const engine = {
           next_layer.fade_start_time = now;
         }
 
-        log(
-          `Layer index ${next_candidate_index} just became visible! Scale: ${next_layer.trs.scale.toFixed(4)}, Pixel size: ${(
-            next_layer.trs.scale * Math.min(this.canvas.width, this.canvas.height)
-          ).toFixed(1)}px`
-        );
+        log(`layers[${next_candidate_index}] added`);
+      }
+    }
+  },
+
+  // Update occlusion culling optimization (O(1) check per frame)
+  update_first_visible_layer_index() {
+    const check_index = this.first_visible_layer_index + 2;
+
+    if (check_index < this.layers.length) {
+      const covering_layer = this.layers[check_index];
+      const covering_scale = this.utils.calc_covering_scale(this.canvas.width, this.canvas.height, 1);
+
+      if (covering_layer.trs.scale >= covering_scale) {
+        const old_index = this.first_visible_layer_index;
+        this.first_visible_layer_index++;
+
+        log(`layers[${old_index}] removed`);
       }
     }
   },
 
   // Update layer alphas based on visibility and fade state
   update_layer_alphas(now) {
-    // Set alpha for visible layers
-    for (let i = 0; i <= this.deepest_visible_layer_index; i++) {
+    // Set alpha for visible layers (starting from first_visible_layer_index)
+    for (let i = this.first_visible_layer_index; i <= this.deepest_visible_layer_index; i++) {
       if (i === 0) {
         this.layers[i].alpha = 1.0;
       } else if (this.layers[i].fade_start_time) {
@@ -348,7 +364,10 @@ const engine = {
       }
     }
 
-    // Set alpha for invisible layers
+    // Set alpha for invisible layers (both before first_visible and after deepest_visible)
+    for (let i = 0; i < this.first_visible_layer_index; i++) {
+      this.layers[i].alpha = 0.0;
+    }
     for (let i = this.deepest_visible_layer_index + 1; i < this.layers.length; i++) {
       this.layers[i].alpha = 0.0;
     }
@@ -362,8 +381,8 @@ const engine = {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // Render only visible layers
-    for (let i = 0; i <= this.deepest_visible_layer_index; i++) {
+    // Render only visible layers (optimized with occlusion culling)
+    for (let i = this.first_visible_layer_index; i <= this.deepest_visible_layer_index; i++) {
       const layer = this.layers[i];
       if (layer.alpha > 0) {
         this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
