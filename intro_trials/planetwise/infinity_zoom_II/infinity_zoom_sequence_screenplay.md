@@ -3,10 +3,15 @@
 ## Layer Nomenclature
 
 - **1st Layer (index 0)**: Planet - must always show **fitting** behavior (touches viewport from inside)
-- **2nd Layer (index 1)**: First zoom level - 25% smaller than 1st Layer
-- **3rd Layer (index 2)**: Second zoom level - 25% smaller than 2nd Layer  
+- **2nd Layer (index 1)**: First zoom level - Example: 25% the size of 1st Layer (aka: "the width and height of this layer are 25% of the previous layer")
+- **3rd Layer (index 2)**: Second zoom level
 - **...continuing with 25% reduction each time...**
 - **Final Layer (index 9)**: Alien closeup - must show **covering** behavior (fills entire viewport)
+
+## Images
+- The images are all square.
+- Each consecutive layer "fits" into the previous one as specified in the layer zoom.
+- The images must **ALWAYS** apear in their natural (1:1) aspect ration.
 
 ## Animation Sequence
 
@@ -29,7 +34,7 @@
 
 ### State: "main_zoom"
 - **All layers scale together in perfect synchronization** - exponential growth with identical rates
-- **Relative size relationships preserved** - each layer maintains its 25% size reduction relative to the previous layer
+- **Relative size relationships preserved** - each layer maintains its relative size to the previous layer
 - **Dynamic visibility continues**: As layers grow, more may become "big enough" and appear
 - **Synchronized exponential growth**: All layers scale up together until Final Layer reaches covering size
   - **1st Layer (index 0)**: Starts at fitting scale, grows beyond fitting.
@@ -49,20 +54,18 @@
 ## Key Requirements
 
 - **TRS-based transforms** for all layers with direct component interpolation
-- **1st Layer (index 0)**: Always uses fitting TRS (touches viewport from inside)
-- **Final Layer (index 9)**: Uses covering TRS (fills entire viewport)
+- **1st Layer (index 0)**: Detect when fitting (touches viewport from inside)
+- **Final Layer (index 9)**: Detect when covering (fills entire viewport)
 - All layers maintain synchronized growth through TRS interpolation
 - Smooth transitions between all states with continuous TRS parameters
 - Viewport-independent behavior with dynamic TRS recalculation on resize
 - Dynamic layer visibility based on minimum_render_size throughout
-- **Seamless region zoom integration** via direct TRS state passing
+- **Seamless region zoom integration** via direct TRS state passing (ignore for now)
 
 ## Implementation Solution
 
 **TRS Architecture:**
 - **Transform Representation**: Each layer uses `{center_x, center_y, scale, rotation}` (TRS)
-- **Fitting behavior**: TRS calculated so image touches viewport from inside
-- **Covering behavior**: TRS calculated so image fills entire viewport
 - **Animation logic**: Direct interpolation of TRS components:
   - Center: `lerp(start_center, end_center, t)`
   - Scale: `lerp(start_scale, end_scale, t)` 
