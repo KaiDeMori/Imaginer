@@ -1,6 +1,23 @@
 // Region Zoom functionality for Infinity Zoom II Engine
 
+// Add default configuration for region zoom
+window.infinity_zoom_II.config.region_zoom = {
+  anim_duration: 4000, // Animation duration in milliseconds
+  region_rect: {
+    p0: { x: 170, y: 492 }, // origin (top-left)
+    p1: { x: 354, y: 424 }, // end of top edge (u-axis)
+    p2: { x: 421, y: 607 }, // far corner (bottom-right)
+    p3: { x: 237, y: 675 }, // end of left edge (v-axis)
+  },
+};
+
 window.infinity_zoom_II.region_zoom = {
+  // State storage
+  engine: null,
+  start_time: null,
+  start_TRS: null,
+  target_TRS: null,
+
   // Calculate the center point of a region defined by 4 corner points
   calc_region_center(p0, p1, p2, p3) {
     return {
@@ -83,6 +100,12 @@ window.infinity_zoom_II.region_zoom = {
     const target_center_x = (region_center.x - viewport_width / 2) / (viewport_width / 2);
     const target_center_y = -(region_center.y - viewport_height / 2) / (viewport_height / 2);
 
+    // DEBUG: Log center calculation
+    log("Region center (screen): " + region_center.x + ", " + region_center.y);
+    log("Viewport center: " + viewport_width / 2 + ", " + viewport_height / 2);
+    log("Target center (viewport-rel): " + target_center_x + ", " + target_center_y);
+    log("Inverted target center: " + -target_center_x + ", " + -target_center_y);
+
     // Calculate target scale: current scale multiplied by covering factor
     const target_scale = current_trs.scale * covering_scale_factor;
 
@@ -102,85 +125,52 @@ window.infinity_zoom_II.region_zoom = {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   },
 
-  // Update region zoom state (called from engine)
-  update_region_zoom_state(engine, now) {
-    // Initialize region zoom if not started
-    if (!engine.region_zoom_start_time) {
-      engine.region_zoom_start_time = now;
+  // Initialize region zoom (called once when state changes)
+  init_region_zoom(engine, now) {
+    // Store engine reference and timing
+    this.engine = engine;
+    this.start_time = now;
 
-      // Get configuration
-      const config = window.infinity_zoom_II.config.region_zoom;
-      if (!config || !config.region_rect) {
-        console.error("Region zoom configuration missing");
-        return;
-      }
-
-      // Store start and end TRS states
-      const final_layer_index = engine.layers.length - 1;
-
-      // DEBUG: Check what we're working with
-      log("Region zoom init - final_layer_index: " + final_layer_index);
-      log("Region zoom init - engine.layers.length: " + engine.layers.length);
-      log("Region zoom init - final layer exists: " + !!engine.layers[final_layer_index]);
-      log("Region zoom init - final layer trs exists: " + !!engine.layers[final_layer_index]?.trs);
-      log("Region zoom init - final layer trs value: " + JSON.stringify(engine.layers[final_layer_index]?.trs));
-
-      engine.region_zoom_start_TRS = { ...engine.layers[final_layer_index].trs };
-
-      engine.region_zoom_target_TRS = this.calc_region_target_TRS(config.region_rect, engine.region_zoom_start_TRS, engine.canvas.width, engine.canvas.height);
-
-      console.log("Region zoom started:", {
-        start_TRS: engine.region_zoom_start_TRS,
-        target_TRS: engine.region_zoom_target_TRS,
-      });
+    // Get configuration
+    const config = window.infinity_zoom_II.config.region_zoom;
+    if (!config || !config.region_rect) {
+      console.error("Region zoom configuration missing");
+      return;
     }
 
+    // Store start and target TRS states
+    const final_layer_index = engine.layers.length - 1;
+    this.start_TRS = { ...engine.layers[final_layer_index].trs };
+    this.target_TRS = this.calc_region_target_TRS(config.region_rect, this.start_TRS, engine.canvas.width, engine.canvas.height);
+  },
+
+  // Update region zoom state (called every frame)
+  update_region_zoom_state(now) {
     // Calculate interpolation progress
     const config = window.infinity_zoom_II.config.region_zoom;
-    const elapsed_ms = now - engine.region_zoom_start_time;
+    const elapsed_ms = now - this.start_time;
     const raw_progress = elapsed_ms / config.anim_duration;
     const clamped_progress = Math.min(raw_progress, 1.0);
     const eased_progress = this.ease_in_out_cubic(clamped_progress);
 
     // Interpolate TRS
-    const current_TRS = engine.utils.lerp_TRS(engine.region_zoom_start_TRS, engine.region_zoom_target_TRS, eased_progress);
+    const current_TRS = this.engine.utils.lerp_TRS(this.start_TRS, this.target_TRS, eased_progress);
 
     // Apply identical TRS to both penultimate and final layers
-    const final_layer_index = engine.layers.length - 1;
+    const final_layer_index = this.engine.layers.length - 1;
     const penultimate_layer_index = final_layer_index - 1;
 
     if (penultimate_layer_index >= 0) {
-      engine.layers[penultimate_layer_index].trs = { ...current_TRS };
-      engine.layers[penultimate_layer_index].alpha = 1.0;
+      this.engine.layers[penultimate_layer_index].trs = { ...current_TRS };
+      this.engine.layers[penultimate_layer_index].alpha = 1.0;
     }
 
-    engine.layers[final_layer_index].trs = { ...current_TRS };
-    engine.layers[final_layer_index].alpha = 1.0;
+    this.engine.layers[final_layer_index].trs = { ...current_TRS };
+    this.engine.layers[final_layer_index].alpha = 1.0;
 
     // Set all other layers to invisible
     for (let i = 0; i < penultimate_layer_index; i++) {
-      engine.layers[i].alpha = 0.0;
+      this.engine.layers[i].alpha = 0.0;
     }
-
-    // Log progress for debugging
-    if (Math.floor(clamped_progress * 100) % 10 === 0) {
-      console.log(`Region zoom progress: ${Math.floor(clamped_progress * 100)}%`);
-    }
-
-    // Animation complete
-    if (clamped_progress >= 1.0) {
-      console.log("Region zoom animation complete");
-    }
-  },
-};
-
-// Add default configuration for region zoom
-window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 4000, // Animation duration in milliseconds
-  region_rect: {
-    p0: { x: 1152, y: 1125 }, // Top-left corner
-    p1: { x: 1014, y: 1136 }, // Top-right corner
-    p2: { x: 1004, y: 1036 }, // Bottom-right corner
-    p3: { x: 1142, y: 1024 }, // Bottom-left corner
   },
 };

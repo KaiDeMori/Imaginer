@@ -21,7 +21,7 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0.1,
   // Exponential zoom rate (growth constant per second).
-  zoom_speed: 4,
+  zoom_speed: 7,
 
   // Animation phase durations (in seconds)
   intro_planet_zoom_duration: 0.2, // How long planet takes to grow from tiny to fitting
@@ -172,7 +172,7 @@ const engine = {
     } else if (this.animation_phase === "final_rotation") {
       this.update_final_rotation_state(now);
     } else if (this.animation_phase === "region_zoom") {
-      this.update_region_zoom_state(now);
+      window.infinity_zoom_II.region_zoom.update_region_zoom_state(now);
     }
 
     // Update occlusion culling optimization (skip during region zoom)
@@ -308,16 +308,10 @@ const engine = {
 
     // Check exit condition: external flag set
     if (window.infinity_zoom_II.FLAG_initiate_final_reveal) {
-      log("Final reveal flag detected - transitioning to region_zoom");
+      log("FLAG_initiate_final_reveal set");
       this.animation_phase = "region_zoom";
-      this.region_zoom_start_time = now;
+      window.infinity_zoom_II.region_zoom.init_region_zoom(this, now);
     }
-  },
-
-  // State: "region_zoom" - Transition to final region zoom
-  update_region_zoom_state(now) {
-    // Delegate to region zoom module
-    window.infinity_zoom_II.region_zoom.update_region_zoom_state(this, now);
   },
 
   // Update layer visibility frontier (O(1) check per frame)
