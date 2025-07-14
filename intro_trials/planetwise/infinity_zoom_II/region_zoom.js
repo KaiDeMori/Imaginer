@@ -114,6 +114,13 @@ window.infinity_zoom_II.region_zoom = {
     log("Screen offset: " + screen_offset_x.toFixed(2) + ", " + screen_offset_y.toFixed(2));
     log("Target center (viewport-rel): " + target_center_x.toFixed(2) + ", " + target_center_y.toFixed(2));
 
+    // TEST: NDC Clipping Hypothesis - Clamp translation to [-1, 1] range
+    const test_target_center_x = Math.max(-1, Math.min(1, target_center_x));
+    const test_target_center_y = Math.max(-1, Math.min(1, target_center_y));
+
+    log("TEST clamped target: " + test_target_center_x.toFixed(2) + ", " + test_target_center_y.toFixed(2));
+    log("Clamp applied: " + (test_target_center_x !== target_center_x || test_target_center_y !== target_center_y));
+
     // Calculate target scale: current scale multiplied by covering factor
     const target_scale = current_trs.scale * covering_scale_factor;
 
@@ -124,8 +131,8 @@ window.infinity_zoom_II.region_zoom = {
     log("Region rotation (rad): " + region_rotation.toFixed(2) + " Target rotation: " + target_rotation.toFixed(2));
 
     const final_target_TRS = window.infinity_zoom_II.utils.create_TRS(
-      target_center_x, // Now correctly calculated to center the region
-      target_center_y, // Now correctly calculated to center the region
+      test_target_center_x, // TEST: Use clamped values instead of original
+      test_target_center_y, // TEST: Use clamped values instead of original
       target_scale,
       target_rotation
     );
@@ -133,9 +140,9 @@ window.infinity_zoom_II.region_zoom = {
     // DEBUG: Log final target TRS
     log(
       "Final target TRS - center: " +
-        target_center_x.toFixed(2) +
+        test_target_center_x.toFixed(2) +
         ", " +
-        target_center_y.toFixed(2) +
+        test_target_center_y.toFixed(2) +
         " scale: " +
         target_scale.toFixed(2) +
         " rotation: " +
