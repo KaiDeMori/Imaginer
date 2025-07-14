@@ -3,10 +3,14 @@
 ## Layer Nomenclature
 
 - **1st Layer (index 0)**: Planet - must always show **fitting** behavior (touches viewport from inside)
-- **2nd Layer (index 1)**: First zoom level - Example: 25% the size of 1st Layer (aka: "the width and height of this layer are 25% of the previous layer")
-- **3rd Layer (index 2)**: Second zoom level
-- **...continuing with 25% reduction each time...**
+- **2nd Layer (index 1)**: First zoom level - Size relative to 1st Layer defined by `layer.zoom` property (e.g., zoom: 25 means 25% the size of the previous layer)
+- **3rd Layer (index 2)**: Second zoom level - Size relative to 2nd Layer defined by its `layer.zoom` property
+- **...continuing with each layer's individual zoom value...**
 - **Final Layer (index 9)**: Alien closeup - must show **covering** behavior (fills entire viewport)
+
+**Important**: Each layer has its own configurable `zoom` property that defines its size relative to the previous layer. The zoom values are not fixed - they can vary per layer as defined in the layer data.
+
+*In a technical context we always use `Layer index 0` or `First Layer`. The content is only used for explanations and clarifications*
 
 ## Images
 - The images are all square.
