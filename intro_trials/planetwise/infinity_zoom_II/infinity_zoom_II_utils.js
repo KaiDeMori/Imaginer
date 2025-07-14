@@ -2,8 +2,8 @@
 
 window.infinity_zoom_II.utils = {
   // Create a new TRS object
-  create_TRS(center_x = 0, center_y = 0, scale = 1, rotation = 0) {
-    return { center_x, center_y, scale, rotation };
+  create_TRS(center_x = 0, center_y = 0, scale = 1) {
+    return { center_x, center_y, scale };
   },
 
   // Linear interpolation between two TRS objects
@@ -32,41 +32,20 @@ window.infinity_zoom_II.utils = {
 
     return start_angle + diff * t;
   },
-
   // Convert TRS to 4x4 transformation matrix for WebGL
   TRS_to_matrix(trs, viewport_width, viewport_height) {
-    const { center_x, center_y, scale, rotation } = trs;
-    const cos_r = Math.cos(rotation);
-    const sin_r = Math.sin(rotation);
+    const { center_x, center_y, scale } = trs;
 
-    // Convert center coordinates: 0,0 = screen center (no conversion needed for viewport-relative)
+    // Convert center coordinates: 0,0 = screen center
     const norm_center_x = center_x;
     const norm_center_y = center_y;
 
-    // Direct viewport-relative to WebGL conversion
-    // scale=1.0 should make image touch viewport edges (fitting behavior)
+    // Scale calculation for fitting behavior
     const norm_scale_x = (scale * Math.min(viewport_width, viewport_height)) / viewport_width;
     const norm_scale_y = (scale * Math.min(viewport_width, viewport_height)) / viewport_height;
 
-    // Combined translation, rotation, and scale matrix for normalized coordinates
-    return [
-      norm_scale_x * cos_r,
-      norm_scale_x * sin_r,
-      0,
-      0,
-      -norm_scale_y * sin_r,
-      norm_scale_y * cos_r,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      norm_center_x,
-      norm_center_y,
-      0,
-      1,
-    ];
+    // Identity matrix with scale and translation only
+    return [norm_scale_x, 0, 0, 0, 0, norm_scale_y, 0, 0, 0, 0, 1, 0, norm_center_x, norm_center_y, 0, 1];
   },
 
   // Calculate fitting scale for square image in rectangular viewport
@@ -112,15 +91,14 @@ window.infinity_zoom_II.utils = {
     });
   },
 
-  // Update all layer TRS objects with synchronized scaling and rotation
-  update_all_layer_TRS(layers, layer_0_scale, global_rotation) {
+  // Update all layer TRS objects with synchronized scaling
+  update_all_layer_TRS(layers, layer_0_scale) {
     const all_scales = this.calc_all_layer_scales(layer_0_scale, layers);
 
     layers.forEach((layer, index) => {
       layer.trs.center_x = 0; // All layers centered
       layer.trs.center_y = 0;
       layer.trs.scale = all_scales[index];
-      layer.trs.rotation = global_rotation;
     });
   },
 

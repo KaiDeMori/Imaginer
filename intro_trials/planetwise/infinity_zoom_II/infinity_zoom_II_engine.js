@@ -18,7 +18,7 @@ window.infinity_zoom_II.config = {
   // Initial rotation angle in radians.
   start_rotation_angle: 0,
   // Global rotation speed in radians per second. Positive values rotate clockwise.
-  rotation_speed: 0,
+  rotation_speed: 2,
   // Exponential zoom rate (growth constant per second).
   zoom_speed: 3,
 
@@ -96,7 +96,7 @@ const engine = {
         image: images[i],
         zoom: layer.zoom,
         alpha: i === 0 ? 1.0 : 0.0, // Only the first layer starts visible
-        trs: utils.create_TRS(0, 0, initial_scale, 0),
+        trs: utils.create_TRS(0, 0, initial_scale),
         texture: utils.create_texture(this.gl_context, images[i]),
         loaded: true,
       };
@@ -164,7 +164,7 @@ const engine = {
     const current_scale = Math.min(raw_scale, fitting_scale); // Cap at fitting scale
 
     // Update all layer TRS (the first layer gets current_scale, others get relative scales)
-    utils.update_all_layer_TRS(this.layers, current_scale, this.global_rotation);
+    utils.update_all_layer_TRS(this.layers, current_scale);
 
     // Check transition condition: the first layer reaches fitting scale
     if (growth_progress >= 1.0) {
@@ -182,7 +182,7 @@ const engine = {
     const fitting_scale = 1.0;
 
     // Update all layer TRS (the first layer stays at fitting, others get relative scales)
-    utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
+    utils.update_all_layer_TRS(this.layers, fitting_scale);
 
     // Calculate fade progress since fade started
     const fade_elapsed = (performance.now() - this.fade_start_time) / 1000;
@@ -208,7 +208,7 @@ const engine = {
     const fitting_scale = 1.0;
 
     // Update all layer TRS (maintain current scales and relationships)
-    utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
+    utils.update_all_layer_TRS(this.layers, fitting_scale);
 
     // Update layer visibility and alphas using unified system
     this.update_layer_visibility(performance.now());
@@ -253,7 +253,7 @@ const engine = {
     }
 
     // Update all layer TRS with synchronized scaling
-    utils.update_all_layer_TRS(this.layers, current_base_scale, this.global_rotation);
+    utils.update_all_layer_TRS(this.layers, current_base_scale);
 
     // Update layer visibility and alphas using unified system
     this.update_layer_visibility(performance.now());
