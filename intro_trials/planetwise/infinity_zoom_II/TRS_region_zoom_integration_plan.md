@@ -98,23 +98,22 @@ window.infinity_zoom_II.config.region_zoom = {
 ```
 
 ### 7. Implementation Steps
-1. **Add region zoom utilities** to `infinity_zoom_II_utils.js`:
+1. **Add region zoom code** to `region_zoom.js`:
+   - `update_region_zoom_state(now)` function
    - `calc_region_center(p0, p1, p2, p3)`
    - `calc_region_dimensions(p0, p1, p2, p3)`
    - `calc_region_rotation(p0, p1)`
    - `calc_region_covering_scale(region_width, region_height, viewport_width, viewport_height)`
+   - Region TRS calculation and interpolation
 
 2. **Add region zoom state** to `infinity_zoom_II_engine.js`:
-   - `update_region_zoom_state(now)` function
+   - call `update_region_zoom_state`
    - State transition logic in main `animate()` loop
-   - Region TRS calculation and interpolation
 
 3. **Modify rendering** for region zoom state:
    - Render only penultimate and final layers
    - Apply identical TRS to both layers
    - Maintain proper rendering order
-
-4. **Remove old module**: Delete standalone texture region zoom files after integration
 
 ### 8. Success Criteria
 - Smooth transition from final_rotation to region zoom
@@ -124,13 +123,6 @@ window.infinity_zoom_II.config.region_zoom = {
 - Clean TRS-based architecture
 - Reuses existing engine infrastructure
 - No duplicate WebGL setup or animation loops
-
-### 9. Architecture Benefits
-- **Unified rendering pipeline**: One WebGL context, one animation loop
-- **Consistent TRS system**: Same transformation math throughout
-- **Clean state machine**: Logical progression through states
-- **Performance optimized**: Reuses existing optimizations
-- **Maintainable**: No duplicate code or competing systems
 
 ## Notes
 - All coordinate calculations assume square source images

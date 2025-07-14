@@ -170,10 +170,14 @@ const engine = {
       this.update_main_zoom_state(now);
     } else if (this.animation_phase === "final_rotation") {
       this.update_final_rotation_state(now);
+    } else if (this.animation_phase === "region_zoom") {
+      this.update_region_zoom_state(now);
     }
 
-    // Update occlusion culling optimization
-    this.update_first_visible_layer_index();
+    // Update occlusion culling optimization (skip during region zoom)
+    if (this.animation_phase !== "region_zoom") {
+      this.update_first_visible_layer_index();
+    }
 
     // Render the scene
     this.render();
@@ -305,8 +309,14 @@ const engine = {
     if (window.infinity_zoom_II.FLAG_initiate_final_reveal) {
       log("Final reveal flag detected - transitioning to region_zoom");
       this.animation_phase = "region_zoom";
-      // Note: region_zoom state ignored for now as per screenplay
+      this.region_zoom_start_time = now;
     }
+  },
+
+  // State: "region_zoom" - Transition to final region zoom
+  update_region_zoom_state(now) {
+    // Delegate to region zoom module
+    window.infinity_zoom_II.region_zoom.update_region_zoom_state(this, now);
   },
 
   // Update layer visibility frontier (O(1) check per frame)
@@ -381,11 +391,27 @@ const engine = {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // Render only visible layers (optimized with occlusion culling)
-    for (let i = this.first_visible_layer_index; i <= this.deepest_visible_layer_index; i++) {
-      const layer = this.layers[i];
-      if (layer.alpha > 0) {
-        this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
+    // Special rendering for region zoom state
+    if (this.animation_phase === "region_zoom") {
+      const final_layer_index = this.layers.length - 1;
+      const penultimate_layer_index = final_layer_index - 1;
+
+      // Render penultimate layer first (backdrop)
+      if (penultimate_layer_index >= 0 && this.layers[penultimate_layer_index].alpha > 0) {
+        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[penultimate_layer_index], this.canvas.width, this.canvas.height);
+      }
+
+      // Render final layer on top (with feathered edges)
+      if (this.layers[final_layer_index].alpha > 0) {
+        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[final_layer_index], this.canvas.width, this.canvas.height);
+      }
+    } else {
+      // Standard rendering for all other states (optimized with occlusion culling)
+      for (let i = this.first_visible_layer_index; i <= this.deepest_visible_layer_index; i++) {
+        const layer = this.layers[i];
+        if (layer.alpha > 0) {
+          this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
+        }
       }
     }
   },
