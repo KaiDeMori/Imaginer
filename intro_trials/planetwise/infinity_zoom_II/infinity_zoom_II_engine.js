@@ -271,7 +271,12 @@ const engine = {
       const next_layer = this.layers[next_candidate_index];
       if (utils.is_layer_visible(next_layer.trs, this.canvas.width, this.canvas.height, config.minimum_render_size)) {
         this.deepest_visible_layer_index = next_candidate_index;
-        next_layer.fade_start_time = now;
+
+        // Only fade during intro_visible_layers_fade_in state, pop in immediately during other states
+        if (this.animation_phase === "intro_visible_layers_fade_in") {
+          next_layer.fade_start_time = now;
+        }
+
         log(
           `Layer index ${next_candidate_index} just became visible! Scale: ${next_layer.trs.scale.toFixed(4)}, Pixel size: ${(
             next_layer.trs.scale * Math.min(this.canvas.width, this.canvas.height)
