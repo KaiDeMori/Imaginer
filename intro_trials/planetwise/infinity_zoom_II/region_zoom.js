@@ -117,6 +117,14 @@ window.infinity_zoom_II.region_zoom = {
 
       // Store start and end TRS states
       const final_layer_index = engine.layers.length - 1;
+
+      // DEBUG: Check what we're working with
+      log("Region zoom init - final_layer_index: " + final_layer_index);
+      log("Region zoom init - engine.layers.length: " + engine.layers.length);
+      log("Region zoom init - final layer exists: " + !!engine.layers[final_layer_index]);
+      log("Region zoom init - final layer trs exists: " + !!engine.layers[final_layer_index]?.trs);
+      log("Region zoom init - final layer trs value: " + JSON.stringify(engine.layers[final_layer_index]?.trs));
+
       engine.region_zoom_start_TRS = { ...engine.layers[final_layer_index].trs };
 
       engine.region_zoom_target_TRS = this.calc_region_target_TRS(config.region_rect, engine.region_zoom_start_TRS, engine.canvas.width, engine.canvas.height);
@@ -167,14 +175,12 @@ window.infinity_zoom_II.region_zoom = {
 };
 
 // Add default configuration for region zoom
-if (!window.infinity_zoom_II.config.region_zoom) {
-  window.infinity_zoom_II.config.region_zoom = {
-    anim_duration: 4000, // Animation duration in milliseconds
-    region_rect: {
-      p0: { x: 1152, y: 1125 }, // Top-left corner
-      p1: { x: 1014, y: 1136 }, // Top-right corner
-      p2: { x: 1004, y: 1036 }, // Bottom-right corner
-      p3: { x: 1142, y: 1024 }, // Bottom-left corner
-    },
-  };
-}
+window.infinity_zoom_II.config.region_zoom = {
+  anim_duration: 4000, // Animation duration in milliseconds
+  region_rect: {
+    p0: { x: 1152, y: 1125 }, // Top-left corner
+    p1: { x: 1014, y: 1136 }, // Top-right corner
+    p2: { x: 1004, y: 1036 }, // Bottom-right corner
+    p3: { x: 1142, y: 1024 }, // Bottom-left corner
+  },
+};
