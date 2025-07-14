@@ -107,25 +107,12 @@ window.infinity_zoom_II.region_zoom = {
     const screen_offset_x = region_center.x - viewport_width / 2;
     const screen_offset_y = region_center.y - viewport_height / 2;
 
-    // DEBUG: Show coordinate system conversion
-    log("Screen offset: " + screen_offset_x.toFixed(2) + ", " + screen_offset_y.toFixed(2));
-    log("Viewport half-width: " + viewport_width / 2 + ", half-height: " + viewport_height / 2);
-
-    // Current calculation (potentially wrong scale)
-    const target_center_x_old = -(screen_offset_x / (viewport_width / 2));
-    const target_center_y_old = screen_offset_y / (viewport_height / 2);
-
-    // Test: 2x correction factor for NDC range [-1, 1] = 2 units total
-    const target_center_x = -(screen_offset_x / viewport_width) * 2;
-    const target_center_y = (screen_offset_y / viewport_height) * 2;
-
-    log("OLD target (wrong scale?): " + target_center_x_old.toFixed(2) + ", " + target_center_y_old.toFixed(2));
-    log("NEW target (2x correction): " + target_center_x.toFixed(2) + ", " + target_center_y.toFixed(2));
+    const target_center_x = -(screen_offset_x / (viewport_width / 2));
+    const target_center_y = screen_offset_y / (viewport_height / 2);
 
     // DEBUG: Log center calculation
-    log("Region center (screen): " + region_center.x.toFixed(2) + ", " + region_center.y.toFixed(2));
-    log("Viewport center: " + viewport_width / 2 + ", " + viewport_height / 2);
-    log("Expected NDC range: [-1, 1] (total span = 2 units)");
+    log("Screen offset: " + screen_offset_x.toFixed(2) + ", " + screen_offset_y.toFixed(2));
+    log("Target center (viewport-rel): " + target_center_x.toFixed(2) + ", " + target_center_y.toFixed(2));
 
     // Calculate target scale: current scale multiplied by covering factor
     const target_scale = current_trs.scale * covering_scale_factor;
@@ -204,7 +191,11 @@ window.infinity_zoom_II.region_zoom = {
     const eased_progress = this.ease_in_out_cubic(clamped_progress);
 
     // Interpolate TRS
-    const current_TRS = this.engine.utils.lerp_TRS(this.start_TRS, this.target_TRS, eased_progress);
+    // TEMPORARY: Skip interpolation and jump directly to target
+    const current_TRS = this.target_TRS;
+
+    // DEBUG: Log that we're using target directly
+    log("� JUMPING to target TRS: " + current_TRS.center_x.toFixed(2) + "," + current_TRS.center_y.toFixed(2) + " scale:" + current_TRS.scale.toFixed(1));
 
     // Apply identical TRS to both penultimate and final layers
     const final_layer_index = this.engine.layers.length - 1;
