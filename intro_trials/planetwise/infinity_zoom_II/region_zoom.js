@@ -193,21 +193,6 @@ window.infinity_zoom_II.region_zoom = {
     // Interpolate TRS
     const current_TRS = this.engine.utils.lerp_TRS(this.start_TRS, this.target_TRS, eased_progress);
 
-    // DEBUG: Log interpolated values to see if large translations are preserved
-    if (elapsed_ms < 100 || eased_progress >= 1) {
-      // Log only at start and end
-      log(
-        "🔄 t=" +
-          eased_progress.toFixed(2) +
-          " TRS: " +
-          current_TRS.center_x.toFixed(2) +
-          "," +
-          current_TRS.center_y.toFixed(2) +
-          " scale:" +
-          current_TRS.scale.toFixed(1)
-      );
-    }
-
     // Apply identical TRS to both penultimate and final layers
     const final_layer_index = this.engine.layers.length - 1;
     const penultimate_layer_index = final_layer_index - 1;
