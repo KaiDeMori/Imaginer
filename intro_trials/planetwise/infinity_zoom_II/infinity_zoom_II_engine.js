@@ -20,12 +20,12 @@ window.infinity_zoom_II.config = {
   // Global rotation speed in radians per second. Positive values rotate clockwise.
   rotation_speed: 0,
   // Exponential zoom rate (growth constant per second).
-  zoom_speed: 1,
+  zoom_speed: 3,
 
   // Animation phase durations (in seconds)
-  intro_planet_zoom_duration: 1, // How long planet takes to grow from tiny to fitting
-  visible_layers_fade_duration: 1.0, // How long additional layers take to fade in
-  pre_main_zoom_hold_duration: 1, // How long to hold before starting main zoom
+  intro_planet_zoom_duration: 2, // How long planet takes to grow from tiny to fitting
+  visible_layers_fade_duration: 2.0, // How long additional layers take to fade in
+  pre_main_zoom_hold_duration: 2, // How long to hold before starting main zoom
 };
 
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
@@ -95,7 +95,7 @@ const engine = {
       return {
         image: images[i],
         zoom: layer.zoom,
-        alpha: 1.0,
+        alpha: i === 0 ? 1.0 : 0.0, // Only the first layer starts visible
         trs: utils.create_TRS(0, 0, initial_scale, 0),
         texture: utils.create_texture(this.gl_context, images[i]),
         loaded: true,
@@ -134,6 +134,8 @@ const engine = {
       this.update_intro_visible_layers_fade_in_state(elapsed_seconds);
     } else if (this.animation_phase === "hold") {
       this.update_hold_state(elapsed_seconds);
+    } else if (this.animation_phase === "main_zoom") {
+      this.update_main_zoom_state(elapsed_seconds);
     }
 
     // Render the scene
@@ -143,7 +145,7 @@ const engine = {
     requestAnimationFrame(this.animate.bind(this));
   },
 
-  // State: "intro" - Layer 0 grows from tiny to fitting size
+  // State: "intro" - the first layer grows from tiny to fitting size
   update_intro_state(elapsed_seconds) {
     const utils = window.infinity_zoom_II.utils;
     const config = window.infinity_zoom_II.config;
@@ -161,10 +163,10 @@ const engine = {
     );
     const current_scale = Math.min(raw_scale, fitting_scale); // Cap at fitting scale
 
-    // Update all layer TRS (Layer 0 gets current_scale, others get relative scales)
+    // Update all layer TRS (the first layer gets current_scale, others get relative scales)
     utils.update_all_layer_TRS(this.layers, current_scale, this.global_rotation);
 
-    // Check transition condition: Layer 0 reaches fitting scale
+    // Check transition condition: the first layer reaches fitting scale
     if (growth_progress >= 1.0) {
       this.animation_phase = "intro_visible_layers_fade_in";
       this.fade_start_time = performance.now(); // Track fade timing
@@ -176,10 +178,10 @@ const engine = {
     const utils = window.infinity_zoom_II.utils;
     const config = window.infinity_zoom_II.config;
 
-    // Keep Layer 0 at fitting size (no further scaling)
+    // Keep the first layer at fitting size (no further scaling)
     const fitting_scale = 1.0;
 
-    // Update all layer TRS (Layer 0 stays at fitting, others get relative scales)
+    // Update all layer TRS (the first layer stays at fitting, others get relative scales)
     utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
 
     // Calculate fade progress since fade started
@@ -202,7 +204,7 @@ const engine = {
     const utils = window.infinity_zoom_II.utils;
     const config = window.infinity_zoom_II.config;
 
-    // Keep Layer 0 at fitting size
+    // Keep the first layer at fitting size
     const fitting_scale = 1.0;
 
     // Update all layer TRS (maintain current scales and relationships)
@@ -222,6 +224,42 @@ const engine = {
     }
   },
 
+  // State: "main_zoom" - All layers scale together until Final Layer reaches covering
+  update_main_zoom_state(elapsed_seconds) {
+    const utils = window.infinity_zoom_II.utils;
+    const config = window.infinity_zoom_II.config;
+
+    // Calculate time since main zoom started
+    const main_zoom_elapsed = (performance.now() - this.main_zoom_start_time) / 1000;
+
+    // Calculate covering scale for stop condition
+    const final_layer_index = this.layers.length - 1;
+    const covering_scale = utils.calc_covering_scale(this.canvas.width, this.canvas.height, 1);
+
+    // Apply exponential growth to all layers simultaneously
+    const fitting_scale = 1.0;
+    const exponential_growth_factor = Math.exp(config.zoom_speed * main_zoom_elapsed);
+    let current_base_scale = fitting_scale * exponential_growth_factor;
+
+    // Clamp to prevent overshoot: if final layer would exceed covering, stop exactly at covering
+    const final_layer_relative_scale = utils.calc_layer_relative_scale(this.layers, final_layer_index);
+    const final_layer_target_scale = current_base_scale * final_layer_relative_scale;
+
+    if (final_layer_target_scale > covering_scale) {
+      // Calculate exact base scale that makes final layer hit covering scale perfectly
+      current_base_scale = covering_scale / final_layer_relative_scale;
+      this.animation_phase = "final_rotation";
+      this.final_rotation_start_time = performance.now();
+    }
+
+    // Update all layer TRS with synchronized scaling
+    utils.update_all_layer_TRS(this.layers, current_base_scale, this.global_rotation);
+
+    // Update layer visibility and alphas using unified system
+    this.update_layer_visibility(performance.now());
+    this.update_layer_alphas(performance.now());
+  },
+
   // Update layer visibility frontier (O(1) check per frame)
   update_layer_visibility(now) {
     const utils = window.infinity_zoom_II.utils;
@@ -234,6 +272,11 @@ const engine = {
       if (utils.is_layer_visible(next_layer.trs, this.canvas.width, this.canvas.height, config.minimum_render_size)) {
         this.deepest_visible_layer_index = next_candidate_index;
         next_layer.fade_start_time = now;
+        log(
+          `Layer index ${next_candidate_index} just became visible! Scale: ${next_layer.trs.scale.toFixed(4)}, Pixel size: ${(
+            next_layer.trs.scale * Math.min(this.canvas.width, this.canvas.height)
+          ).toFixed(1)}px`
+        );
       }
     }
   },
@@ -274,12 +317,13 @@ const engine = {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // Render each layer
-    this.layers.forEach((layer) => {
+    // Render only visible layers
+    for (let i = 0; i <= this.deepest_visible_layer_index; i++) {
+      const layer = this.layers[i];
       if (layer.alpha > 0) {
         utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
       }
-    });
+    }
   },
 };
 

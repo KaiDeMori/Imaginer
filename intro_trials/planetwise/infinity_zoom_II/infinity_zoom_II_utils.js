@@ -76,7 +76,9 @@ window.infinity_zoom_II.utils = {
 
   // Calculate covering scale for square image in rectangular viewport
   calc_covering_scale(viewport_width, viewport_height, image_size) {
-    return Math.max(viewport_width, viewport_height) / Math.min(viewport_width, viewport_height); // Aspect ratio for covering
+    // For covering: scale so image fills entire viewport (may crop edges)
+    // In TRS system: scale=1.0 fits to shorter dimension, so covering needs larger scale
+    return Math.max(viewport_width, viewport_height) / Math.min(viewport_width, viewport_height);
   },
 
   // Check if layer is large enough to be visible
@@ -184,8 +186,11 @@ window.infinity_zoom_II.utils = {
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-    // Set texture parameters for square images
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    // Generate mipmaps for better quality at different scales
+    gl.generateMipmap(gl.TEXTURE_2D);
+
+    // Set texture parameters with mipmap filtering
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
