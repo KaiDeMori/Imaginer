@@ -65,6 +65,7 @@ const engine = {
   rotation_speed: window.infinity_zoom_II.config.rotation_speed,
   zoom_speed: window.infinity_zoom_II.config.zoom_speed,
   first_visible_layer_index: 0,
+  deepest_visible_layer_index: 0,
 
   // Initialize engine with preloaded images and canvas
   init(layer_data, images, canvas) {
@@ -163,11 +164,6 @@ const engine = {
     // Update all layer TRS (Layer 0 gets current_scale, others get relative scales)
     utils.update_all_layer_TRS(this.layers, current_scale, this.global_rotation);
 
-    // Set layer visibility: only Layer 0 visible, others invisible
-    this.layers.forEach((layer, index) => {
-      layer.alpha = index === 0 ? 1.0 : 0.0;
-    });
-
     // Check transition condition: Layer 0 reaches fitting scale
     if (growth_progress >= 1.0) {
       this.animation_phase = "intro_visible_layers_fade_in";
@@ -186,35 +182,18 @@ const engine = {
     // Update all layer TRS (Layer 0 stays at fitting, others get relative scales)
     utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
 
-    // Determine visible layers once when entering this state
-    if (!this.visibility_determined) {
-      this.determine_visible_layers();
-      this.visibility_determined = true;
-    }
-
     // Calculate fade progress since fade started
     const fade_elapsed = (performance.now() - this.fade_start_time) / 1000;
     const fade_progress = Math.min(fade_elapsed / config.visible_layers_fade_duration, 1.0);
 
-    // Set layer visibility using pre-calculated flags (no per-frame visibility checks)
-    this.layers.forEach((layer, index) => {
-      if (index === 0) {
-        // Layer 0 stays fully visible
-        layer.alpha = 1.0;
-      } else if (layer.should_fade_in) {
-        // Fade in from 0 to 1 over the fade duration
-        layer.alpha = fade_progress;
-      } else {
-        // Too small to be visible
-        layer.alpha = 0.0;
-      }
-    });
+    // Update layer visibility and alphas using unified system
+    this.update_layer_visibility(performance.now());
+    this.update_layer_alphas(performance.now());
 
     // Check transition condition: fade completed
     if (fade_progress >= 1.0) {
       this.animation_phase = "hold";
       this.hold_start_time = performance.now(); // Track hold timing
-      this.visibility_determined = false; // Reset for next time
     }
   },
 
@@ -229,8 +208,9 @@ const engine = {
     // Update all layer TRS (maintain current scales and relationships)
     utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
 
-    // Maintain current visibility (no alpha changes)
-    // Layers that faded in stay visible, others stay invisible
+    // Update layer visibility and alphas using unified system
+    this.update_layer_visibility(performance.now());
+    this.update_layer_alphas(performance.now());
 
     // Calculate hold duration
     const hold_elapsed = (performance.now() - this.hold_start_time) / 1000;
@@ -242,32 +222,46 @@ const engine = {
     }
   },
 
-  // Determine which layers should fade in (called once when entering fade state)
-  determine_visible_layers() {
+  // Update layer visibility frontier (O(1) check per frame)
+  update_layer_visibility(now) {
     const utils = window.infinity_zoom_II.utils;
     const config = window.infinity_zoom_II.config;
 
-    // Layer 0 is always visible, doesn't need to fade
-    this.layers[0].should_fade_in = false;
+    const next_candidate_index = this.deepest_visible_layer_index + 1;
 
-    // Find the first layer that's too small to be visible (early termination)
-    let first_invisible_index = this.layers.length; // Assume all are visible initially
+    if (next_candidate_index < this.layers.length) {
+      const next_layer = this.layers[next_candidate_index];
+      if (utils.is_layer_visible(next_layer.trs, this.canvas.width, this.canvas.height, config.minimum_render_size)) {
+        this.deepest_visible_layer_index = next_candidate_index;
+        next_layer.fade_start_time = now;
+      }
+    }
+  },
 
-    for (let i = 1; i < this.layers.length; i++) {
-      const is_visible = utils.is_layer_visible(this.layers[i].trs, this.canvas.width, this.canvas.height, config.minimum_render_size);
+  // Update layer alphas based on visibility and fade state
+  update_layer_alphas(now) {
+    const config = window.infinity_zoom_II.config;
 
-      if (!is_visible) {
-        first_invisible_index = i;
-        break; // Early termination - all subsequent layers are smaller
+    // Set alpha for visible layers
+    for (let i = 0; i <= this.deepest_visible_layer_index; i++) {
+      if (i === 0) {
+        this.layers[i].alpha = 1.0;
+      } else if (this.layers[i].fade_start_time) {
+        const fade_elapsed = (now - this.layers[i].fade_start_time) / 1000;
+        const fade_progress = Math.min(fade_elapsed / config.visible_layers_fade_duration, 1.0);
+        this.layers[i].alpha = fade_progress;
+
+        if (fade_progress >= 1.0) {
+          delete this.layers[i].fade_start_time;
+        }
+      } else {
+        this.layers[i].alpha = 1.0;
       }
     }
 
-    // Set fade flags based on cutoff point
-    for (let i = 1; i < first_invisible_index; i++) {
-      this.layers[i].should_fade_in = true;
-    }
-    for (let i = first_invisible_index; i < this.layers.length; i++) {
-      this.layers[i].should_fade_in = false;
+    // Set alpha for invisible layers
+    for (let i = this.deepest_visible_layer_index + 1; i < this.layers.length; i++) {
+      this.layers[i].alpha = 0.0;
     }
   },
 
