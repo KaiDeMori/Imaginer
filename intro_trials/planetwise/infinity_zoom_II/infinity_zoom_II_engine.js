@@ -86,14 +86,20 @@ const engine = {
     this.quad_buffer = utils.create_quad_buffer(this.gl_context);
 
     // Store layers with basic structure and create textures
-    this.layers = layer_data.map((layer, i) => ({
-      image: images[i],
-      zoom: layer.zoom,
-      alpha: 1.0,
-      trs: utils.create_TRS(0, 0, 1.0, 0),
-      texture: utils.create_texture(this.gl_context, images[i]),
-      loaded: true,
-    }));
+    this.layers = layer_data.map((layer, i) => {
+      // Calculate initial relative scale for each layer
+      const relative_scale = utils.calc_layer_relative_scale(layer_data, i);
+      const initial_scale = relative_scale * (1.0 / Math.min(canvas.width, canvas.height)); // Start tiny
+
+      return {
+        image: images[i],
+        zoom: layer.zoom,
+        alpha: 1.0,
+        trs: utils.create_TRS(0, 0, initial_scale, 0),
+        texture: utils.create_texture(this.gl_context, images[i]),
+        loaded: true,
+      };
+    });
 
     this.start_time = performance.now();
     this.animation_phase = "intro";
@@ -137,16 +143,18 @@ const engine = {
     const utils = window.infinity_zoom_II.utils;
     const config = window.infinity_zoom_II.config;
 
-    // Use actual image width for Layer 0
-    const layer_0_image_width = this.layers[0].image.width; // Square images
-
-    // Calculate Layer 0's current scale (exponential growth from tiny to fitting)
-    const tiny_start_scale = 1; // 1 pixel
-    const fitting_scale = utils.calc_fitting_scale(this.canvas.width, this.canvas.height, layer_0_image_width);
+    // Use pure viewport-relative scales - no image size dependencies
+    const tiny_start_scale = 1.0 / Math.min(this.canvas.width, this.canvas.height); // 1px as viewport ratio
+    const fitting_scale = 1.0; // Fitting is always 1.0
 
     // Exponential growth over intro duration
     const growth_progress = Math.min(elapsed_seconds / config.intro_planet_zoom_duration, 1.0);
-    const current_scale = utils.lerp(tiny_start_scale, fitting_scale, growth_progress);
+    const raw_scale = utils.apply_exponential_growth(
+      tiny_start_scale,
+      Math.log(fitting_scale / tiny_start_scale) / config.intro_planet_zoom_duration,
+      elapsed_seconds
+    );
+    const current_scale = Math.min(raw_scale, fitting_scale); // Cap at fitting scale
 
     // Update all layer TRS (Layer 0 gets current_scale, others get relative scales)
     utils.update_all_layer_TRS(this.layers, current_scale, this.global_rotation);

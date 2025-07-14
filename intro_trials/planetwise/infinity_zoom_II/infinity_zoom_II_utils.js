@@ -39,11 +39,14 @@ window.infinity_zoom_II.utils = {
     const cos_r = Math.cos(rotation);
     const sin_r = Math.sin(rotation);
 
-    // Convert center coordinates: 0,0 = screen center
-    const norm_center_x = (center_x / viewport_width) * 2.0;
-    const norm_center_y = (center_y / viewport_height) * 2.0;
-    const norm_scale_x = (scale * 2.0) / viewport_width;
-    const norm_scale_y = (scale * 2.0) / viewport_height;
+    // Convert center coordinates: 0,0 = screen center (no conversion needed for viewport-relative)
+    const norm_center_x = center_x;
+    const norm_center_y = center_y;
+
+    // Direct viewport-relative to WebGL conversion
+    // scale=1.0 should make image touch viewport edges (fitting behavior)
+    const norm_scale_x = (scale * Math.min(viewport_width, viewport_height)) / viewport_width;
+    const norm_scale_y = (scale * Math.min(viewport_width, viewport_height)) / viewport_height;
 
     // Combined translation, rotation, and scale matrix for normalized coordinates
     return [
@@ -68,17 +71,19 @@ window.infinity_zoom_II.utils = {
 
   // Calculate fitting scale for square image in rectangular viewport
   calc_fitting_scale(viewport_width, viewport_height, image_size) {
-    return Math.min(viewport_width, viewport_height) / image_size;
+    return 1.0; // Fitting scale is always 1.0 in viewport-relative system
   },
 
   // Calculate covering scale for square image in rectangular viewport
   calc_covering_scale(viewport_width, viewport_height, image_size) {
-    return Math.max(viewport_width, viewport_height) / image_size;
+    return Math.max(viewport_width, viewport_height) / Math.min(viewport_width, viewport_height); // Aspect ratio for covering
   },
 
   // Check if layer is large enough to be visible
-  is_layer_visible(trs, image_size, minimum_render_size) {
-    return trs.scale * image_size >= minimum_render_size;
+  is_layer_visible(trs, viewport_width, viewport_height, minimum_render_size) {
+    // Convert scale to actual pixel size for visibility check
+    const actual_pixel_size = trs.scale * Math.min(viewport_width, viewport_height);
+    return actual_pixel_size >= minimum_render_size;
   },
 
   // Apply exponential growth to scale component
