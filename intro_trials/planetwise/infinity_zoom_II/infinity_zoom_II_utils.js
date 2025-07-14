@@ -239,7 +239,7 @@ window.infinity_zoom_II.utils = {
     gl.vertexAttribPointer(texcoord_location, 2, gl.FLOAT, false, 16, 8);
 
     // Set uniforms
-    const transform_matrix = window.infinity_zoom_II.TRS_utils.TRS_to_matrix(layer.trs);
+    const transform_matrix = this.TRS_to_matrix(layer.trs);
     const transform_location = gl.getUniformLocation(program, "u_transform");
     gl.uniformMatrix4fv(transform_location, false, transform_matrix);
 

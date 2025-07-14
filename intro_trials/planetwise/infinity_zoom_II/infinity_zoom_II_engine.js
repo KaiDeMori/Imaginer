@@ -41,8 +41,19 @@ const engine = {
    * @param {number} [feather_size] - Feather size (optional).
    */
   create(layer_data, image_path, canvas, feather_size) {
-    console.log("Engine create called with:", { layer_data, image_path, canvas, feather_size });
-    // TODO: Implement image loading and initialization
+    log("Engine create called with:", { layer_data, image_path, canvas, feather_size });
+
+    // Store canvas reference
+    this.canvas = canvas;
+
+    // Start image preloading
+    window.infinity_zoom_II.preloader.preload_images(layer_data, image_path);
+
+    // When images are loaded, initialize the engine
+    window.infinity_zoom_II.preloader.on_images_loaded((loaded_images) => {
+      log("All images loaded, initializing engine");
+      this.init(layer_data, loaded_images, canvas);
+    });
   },
 
   gl_context: null,
@@ -57,22 +68,35 @@ const engine = {
 
   // Initialize engine with preloaded images and canvas
   init(layer_data, images, canvas) {
-    console.log("Engine init called");
+    log("Engine init called");
     this.canvas = canvas;
 
-    // Store layers with basic structure
+    // Initialize WebGL
+    const utils = window.infinity_zoom_II.utils;
+    this.gl_context = utils.init_webgl(canvas);
+
+    // Create shader program
+    this.program = utils.create_program(this.gl_context, utils.get_vertex_shader_source(), utils.get_fragment_shader_source());
+
+    // Create quad buffer for rendering
+    this.quad_buffer = utils.create_quad_buffer(this.gl_context);
+
+    // Store layers with basic structure and create textures
     this.layers = layer_data.map((layer, i) => ({
-      image: images[i] || null,
+      image: images[i],
       zoom: layer.zoom,
       alpha: 1.0,
-      trs: { center_x: 0, center_y: 0, scale: 1.0, rotation: 0 },
-      loaded: false,
+      trs: utils.create_TRS(0, 0, 1.0, 0),
+      texture: utils.create_texture(this.gl_context, images[i]),
+      loaded: true,
     }));
 
     this.start_time = performance.now();
     this.animation_phase = "intro";
     this.global_rotation = window.infinity_zoom_II.config.start_rotation_angle;
     this._last_animate_time = this.start_time;
+
+    log("Engine initialized with " + this.layers.length + " layers");
 
     // Start animation loop
     requestAnimationFrame(this.animate.bind(this));
@@ -86,12 +110,69 @@ const engine = {
       this._last_animation_phase = this.animation_phase;
     }
 
-    //state machine here, i guess
+    // Calculate elapsed time since start
+    const elapsed_seconds = (now - this.start_time) / 1000;
+
+    // Update global rotation
+    this.global_rotation = window.infinity_zoom_II.config.start_rotation_angle + window.infinity_zoom_II.config.rotation_speed * elapsed_seconds;
+
+    // State machine
+    if (this.animation_phase === "intro") {
+      this.update_intro_state(elapsed_seconds);
+    }
+
+    // Render the scene
+    this.render();
+
+    // Continue animation loop
+    requestAnimationFrame(this.animate.bind(this));
+  },
+
+  // State: "intro" - Layer 0 grows from tiny to fitting size
+  update_intro_state(elapsed_seconds) {
+    const utils = window.infinity_zoom_II.utils;
+    const config = window.infinity_zoom_II.config;
+
+    // Calculate Layer 0's current scale (exponential growth from tiny to fitting)
+    const tiny_start_scale = 1 / Math.min(this.canvas.width, this.canvas.height); // 1px scale
+    const fitting_scale = utils.calc_fitting_scale(this.canvas.width, this.canvas.height, 1.0); // Assume image size = 1.0
+
+    // Exponential growth over intro duration
+    const growth_progress = Math.min(elapsed_seconds / config.intro_planet_zoom_duration, 1.0);
+    const current_scale = utils.lerp(tiny_start_scale, fitting_scale, growth_progress);
+
+    // Update all layer TRS (Layer 0 gets current_scale, others get relative scales)
+    utils.update_all_layer_TRS(this.layers, current_scale, this.global_rotation);
+
+    // Set layer visibility: only Layer 0 visible, others invisible
+    this.layers.forEach((layer, index) => {
+      layer.alpha = index === 0 ? 1.0 : 0.0;
+    });
+
+    // Check transition condition: Layer 0 reaches fitting scale
+    if (growth_progress >= 1.0) {
+      this.animation_phase = "intro_visible_layers_fade_in";
+      this.fade_start_time = performance.now(); // Track fade timing
+    }
   },
 
   // Render all visible layers
   render() {
-    //tbd
+    if (!this.gl_context || !this.program || !this.quad_buffer) return;
+
+    const gl = this.gl_context;
+    const utils = window.infinity_zoom_II.utils;
+
+    // Clear the screen
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Render each layer
+    this.layers.forEach((layer) => {
+      if (layer.alpha > 0 && layer.texture) {
+        utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
+      }
+    });
   },
 };
 
