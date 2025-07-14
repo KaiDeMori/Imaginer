@@ -71,6 +71,10 @@ const engine = {
     log("Engine init called");
     this.canvas = canvas;
 
+    // Set canvas size to match display size
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+
     // Initialize WebGL
     const utils = window.infinity_zoom_II.utils;
     this.gl_context = utils.init_webgl(canvas);
@@ -133,9 +137,12 @@ const engine = {
     const utils = window.infinity_zoom_II.utils;
     const config = window.infinity_zoom_II.config;
 
+    // Use actual image width for Layer 0
+    const layer_0_image_width = this.layers[0].image.width; // Square images
+
     // Calculate Layer 0's current scale (exponential growth from tiny to fitting)
-    const tiny_start_scale = 1 / Math.min(this.canvas.width, this.canvas.height); // 1px scale
-    const fitting_scale = utils.calc_fitting_scale(this.canvas.width, this.canvas.height, 1.0); // Assume image size = 1.0
+    const tiny_start_scale = 1; // 1 pixel
+    const fitting_scale = utils.calc_fitting_scale(this.canvas.width, this.canvas.height, layer_0_image_width);
 
     // Exponential growth over intro duration
     const growth_progress = Math.min(elapsed_seconds / config.intro_planet_zoom_duration, 1.0);
@@ -158,8 +165,6 @@ const engine = {
 
   // Render all visible layers
   render() {
-    if (!this.gl_context || !this.program || !this.quad_buffer) return;
-
     const gl = this.gl_context;
     const utils = window.infinity_zoom_II.utils;
 
@@ -169,7 +174,7 @@ const engine = {
 
     // Render each layer
     this.layers.forEach((layer) => {
-      if (layer.alpha > 0 && layer.texture) {
+      if (layer.alpha > 0) {
         utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
       }
     });

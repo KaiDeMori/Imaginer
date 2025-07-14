@@ -34,13 +34,36 @@ window.infinity_zoom_II.utils = {
   },
 
   // Convert TRS to 4x4 transformation matrix for WebGL
-  TRS_to_matrix(trs) {
+  TRS_to_matrix(trs, viewport_width, viewport_height) {
     const { center_x, center_y, scale, rotation } = trs;
     const cos_r = Math.cos(rotation);
     const sin_r = Math.sin(rotation);
 
-    // Combined translation, rotation, and scale matrix
-    return [scale * cos_r, scale * sin_r, 0, 0, -scale * sin_r, scale * cos_r, 0, 0, 0, 0, 1, 0, center_x, center_y, 0, 1];
+    // Convert center coordinates: 0,0 = screen center
+    const norm_center_x = (center_x / viewport_width) * 2.0;
+    const norm_center_y = (center_y / viewport_height) * 2.0;
+    const norm_scale_x = (scale * 2.0) / viewport_width;
+    const norm_scale_y = (scale * 2.0) / viewport_height;
+
+    // Combined translation, rotation, and scale matrix for normalized coordinates
+    return [
+      norm_scale_x * cos_r,
+      norm_scale_x * sin_r,
+      0,
+      0,
+      -norm_scale_y * sin_r,
+      norm_scale_y * cos_r,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      norm_center_x,
+      norm_center_y,
+      0,
+      1,
+    ];
   },
 
   // Calculate fitting scale for square image in rectangular viewport
@@ -151,6 +174,9 @@ window.infinity_zoom_II.utils = {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
+    // Flip Y to match browser coordinate system
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
     // Set texture parameters for square images
@@ -222,8 +248,6 @@ window.infinity_zoom_II.utils = {
 
   // Render a single layer
   render_layer(gl, program, quad_buffer, layer, viewport_width, viewport_height) {
-    if (!layer.texture || layer.alpha <= 0) return;
-
     gl.useProgram(program);
 
     // Bind quad geometry
@@ -239,7 +263,7 @@ window.infinity_zoom_II.utils = {
     gl.vertexAttribPointer(texcoord_location, 2, gl.FLOAT, false, 16, 8);
 
     // Set uniforms
-    const transform_matrix = this.TRS_to_matrix(layer.trs);
+    const transform_matrix = this.TRS_to_matrix(layer.trs, viewport_width, viewport_height);
     const transform_location = gl.getUniformLocation(program, "u_transform");
     gl.uniformMatrix4fv(transform_location, false, transform_matrix);
 
