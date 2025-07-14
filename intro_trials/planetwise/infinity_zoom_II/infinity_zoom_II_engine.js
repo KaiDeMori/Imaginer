@@ -18,7 +18,7 @@ window.infinity_zoom_II.config = {
   // Initial rotation angle in radians.
   start_rotation_angle: 0,
   // Global rotation speed in radians per second. Positive values rotate clockwise.
-  rotation_speed: 0.2,
+  rotation_speed: 1,
   // Exponential zoom rate (growth constant per second).
   zoom_speed: 3,
 
@@ -159,17 +159,17 @@ const engine = {
     // Update global rotation
     this.global_rotation = this.start_rotation_angle + this.rotation_speed * elapsed_seconds;
 
-    // State machine
+    // State machine (pass now to all state functions)
     if (this.animation_phase === "intro") {
-      this.update_intro_state(elapsed_seconds);
+      this.update_intro_state(now);
     } else if (this.animation_phase === "intro_visible_layers_fade_in") {
-      this.update_intro_visible_layers_fade_in_state(elapsed_seconds);
+      this.update_intro_visible_layers_fade_in_state(now);
     } else if (this.animation_phase === "hold") {
-      this.update_hold_state(elapsed_seconds);
+      this.update_hold_state(now);
     } else if (this.animation_phase === "main_zoom") {
-      this.update_main_zoom_state(elapsed_seconds);
+      this.update_main_zoom_state(now);
     } else if (this.animation_phase === "final_rotation") {
-      this.update_final_rotation_state(elapsed_seconds);
+      this.update_final_rotation_state(now);
     }
 
     // Render the scene
@@ -180,7 +180,8 @@ const engine = {
   },
 
   // State: "intro" - the first layer grows from tiny to fitting size
-  update_intro_state(elapsed_seconds) {
+  update_intro_state(now) {
+    const elapsed_seconds = (now - this.start_time) / 1000;
     // Use pure viewport-relative scales - no image size dependencies
     const tiny_start_scale = 1.0 / Math.min(this.canvas.width, this.canvas.height); // 1px as viewport ratio
     const fitting_scale = 1.0; // Fitting is always 1.0
@@ -200,12 +201,12 @@ const engine = {
     // Check transition condition: the first layer reaches fitting scale
     if (growth_progress >= 1.0) {
       this.animation_phase = "intro_visible_layers_fade_in";
-      this.fade_start_time = performance.now(); // Track fade timing
+      this.fade_start_time = now; // Track fade timing
     }
   },
 
   // State: "intro_visible_layers_fade_in" - Fade in layers that are big enough to be visible
-  update_intro_visible_layers_fade_in_state(elapsed_seconds) {
+  update_intro_visible_layers_fade_in_state(now) {
     // Keep the first layer at fitting size (no further scaling)
     const fitting_scale = 1.0;
 
@@ -213,22 +214,22 @@ const engine = {
     this.utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
 
     // Calculate fade progress since fade started
-    const fade_elapsed = (performance.now() - this.fade_start_time) / 1000;
+    const fade_elapsed = (now - this.fade_start_time) / 1000;
     const fade_progress = Math.min(fade_elapsed / this.visible_layers_fade_duration, 1.0);
 
     // Update layer visibility and alphas using unified system
-    this.update_layer_visibility(performance.now());
-    this.update_layer_alphas(performance.now());
+    this.update_layer_visibility(now);
+    this.update_layer_alphas(now);
 
     // Check transition condition: fade completed
     if (fade_progress >= 1.0) {
       this.animation_phase = "hold";
-      this.hold_start_time = performance.now(); // Track hold timing
+      this.hold_start_time = now; // Track hold timing
     }
   },
 
   // State: "hold" - All visible layers hold their sizes, only rotation continues
-  update_hold_state(elapsed_seconds) {
+  update_hold_state(now) {
     // Keep the first layer at fitting size
     const fitting_scale = 1.0;
 
@@ -236,23 +237,23 @@ const engine = {
     this.utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
 
     // Update layer visibility and alphas using unified system
-    this.update_layer_visibility(performance.now());
-    this.update_layer_alphas(performance.now());
+    this.update_layer_visibility(now);
+    this.update_layer_alphas(now);
 
     // Calculate hold duration
-    const hold_elapsed = (performance.now() - this.hold_start_time) / 1000;
+    const hold_elapsed = (now - this.hold_start_time) / 1000;
 
     // Check transition condition: hold duration completed
     if (hold_elapsed >= this.pre_main_zoom_hold_duration) {
       this.animation_phase = "main_zoom";
-      this.main_zoom_start_time = performance.now(); // Track main zoom timing
+      this.main_zoom_start_time = now; // Track main zoom timing
     }
   },
 
   // State: "main_zoom" - All layers scale together until Final Layer reaches covering
-  update_main_zoom_state(elapsed_seconds) {
+  update_main_zoom_state(now) {
     // Calculate time since main zoom started
-    const main_zoom_elapsed = (performance.now() - this.main_zoom_start_time) / 1000;
+    const main_zoom_elapsed = (now - this.main_zoom_start_time) / 1000;
 
     // Calculate covering scale for stop condition
     const final_layer_index = this.layers.length - 1;
@@ -271,19 +272,19 @@ const engine = {
       // Calculate exact base scale that makes final layer hit covering scale perfectly
       current_base_scale = covering_scale / final_layer_relative_scale;
       this.animation_phase = "final_rotation";
-      this.final_rotation_start_time = performance.now();
+      this.final_rotation_start_time = now;
     }
 
     // Update all layer TRS with synchronized scaling
     this.utils.update_all_layer_TRS(this.layers, current_base_scale, this.global_rotation);
 
     // Update layer visibility and alphas using unified system
-    this.update_layer_visibility(performance.now());
-    this.update_layer_alphas(performance.now());
+    this.update_layer_visibility(now);
+    this.update_layer_alphas(now);
   },
 
   // State: "final_rotation" - All layers stop scaling, only rotation continues
-  update_final_rotation_state(elapsed_seconds) {
+  update_final_rotation_state(now) {
     // Maintain current scale relationships (no further scaling)
     const final_layer_index = this.layers.length - 1;
     const covering_scale = this.utils.calc_covering_scale(this.canvas.width, this.canvas.height, 1);
@@ -294,8 +295,8 @@ const engine = {
     this.utils.update_all_layer_TRS(this.layers, current_base_scale, this.global_rotation);
 
     // Update layer visibility and alphas (maintain current state)
-    this.update_layer_visibility(performance.now());
-    this.update_layer_alphas(performance.now());
+    this.update_layer_visibility(now);
+    this.update_layer_alphas(now);
 
     // Check exit condition: external flag set
     if (window.infinity_zoom_II.FLAG_initiate_final_reveal) {
