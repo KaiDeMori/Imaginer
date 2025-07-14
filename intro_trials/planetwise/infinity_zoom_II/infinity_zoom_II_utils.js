@@ -36,6 +36,10 @@ window.infinity_zoom_II.utils = {
   // Convert TRS to 4x4 transformation matrix for WebGL
   TRS_to_matrix(trs, viewport_width, viewport_height) {
     const { center_x, center_y, scale, rotation } = trs;
+
+    if (window.infinity_zoom_II.region_zoom_phase === "START" || window.infinity_zoom_II.region_zoom_phase === "END") {
+      log("🔧 TRS input: center=" + center_x.toFixed(2) + "," + center_y.toFixed(2));
+    }
     const cos_r = Math.cos(rotation);
     const sin_r = Math.sin(rotation);
 
@@ -51,7 +55,7 @@ window.infinity_zoom_II.utils = {
     const norm_scale_y = pixel_scale / viewport_height;
 
     // Pure rotation matrix (orthonormal) with uniform scaling
-    return [
+    const matrix = [
       norm_scale_x * cos_r, // X-axis rotated and viewport-normalized
       norm_scale_y * sin_r, // Y-axis component (maintains orthonormal property)
       0,
@@ -69,6 +73,20 @@ window.infinity_zoom_II.utils = {
       0,
       1,
     ];
+
+    // Log matrix output and set flag so we never log again during this region zoom
+    if (window.infinity_zoom_II.region_zoom_phase === "START") {
+      log("🔧 Matrix output: translate=" + matrix[12].toFixed(2) + "," + matrix[13].toFixed(2));
+      window.infinity_zoom_II.region_zoom_phase = "ONGOING";
+      log(" # ONGOING");
+    }
+    if (window.infinity_zoom_II.region_zoom_phase === "END") {
+      log("🔧 Matrix output: translate=" + matrix[12].toFixed(2) + "," + matrix[13].toFixed(2));
+      window.infinity_zoom_II.region_zoom_phase = "DONE";
+      log(" # DONE");
+    }
+
+    return matrix;
   },
 
   // Calculate fitting scale for square image in rectangular viewport

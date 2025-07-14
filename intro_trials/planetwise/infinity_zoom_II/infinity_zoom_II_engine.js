@@ -32,6 +32,9 @@ window.infinity_zoom_II.config = {
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 
+// Debug flags for region zoom matrix logging
+window.infinity_zoom_II.region_zoom_phase = "none";
+
 // Main engine object (will be attached to window.infinity_zoom_II)
 const engine = {
   /**
@@ -151,6 +154,16 @@ const engine = {
     // Track animation phase changes for debugging
     if (this._last_animation_phase !== this.animation_phase) {
       log("Animation phase changed to: " + this.animation_phase);
+
+      // Set flags when entering region zoom state
+      if (this.animation_phase === "region_zoom") {
+        window.infinity_zoom_II.region_zoom_phase = "START";
+        log(" # START");
+      } else if (this._last_animation_phase === "region_zoom") {
+        window.infinity_zoom_II.region_zoom_phase = "END";
+        log(" # END");
+      }
+
       this._last_animation_phase = this.animation_phase;
     }
 
@@ -160,7 +173,7 @@ const engine = {
     // Update global rotation
     this.global_rotation = this.start_rotation_angle + this.rotation_speed * elapsed_seconds;
 
-    // State machine (pass now to all state functions)
+    // State machine (pass `now` to all state functions)
     if (this.animation_phase === "intro") {
       this.update_intro_state(now);
     } else if (this.animation_phase === "intro_visible_layers_fade_in") {
@@ -173,6 +186,8 @@ const engine = {
       this.update_final_rotation_state(now);
     } else if (this.animation_phase === "region_zoom") {
       window.infinity_zoom_II.region_zoom.update_region_zoom_state(now);
+    } else if (this.animation_phase === "FIN") {
+      //noop
     }
 
     // Update occlusion culling optimization (skip during region zoom)
