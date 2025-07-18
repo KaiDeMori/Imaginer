@@ -1,19 +1,93 @@
 # Region Zoom Revamped - Implementation Plan
 
+## Relevant Files
+
+- `region_zoom.js` - Region zoom functionality (will be stripped and rebuilt)
+- `infinity_zoom_II_engine.js` - Main engine with animation loop and state machine
+- `infinity_zoom_II_utils.js` - Utility functions including TRS and WebGL helpers
+- `infinity_zoom_II.html` - Main HTML file with layer configuration
+- `infinity_zoom_sequence_screenplay.md` - Animation sequence documentation and requirements
+- `region_zoom_revamped.md` - This implementation plan document
+
 ## Problem Analysis
 
-The current TRS-Flow approach fails because it tries to force region zoom through the same coordinate system designed for uniform scaling. The region zoom requires:
+The current TRS-Flow approach fails because it tries to force region zoom through the same coordinate system designed for uniform scaling. This creates a fundamental architectural mismatch.
 
-- Zooming into arbitrary off-center rectangular regions
-- Massive scale factors (50x+)
-- Complex coordinate transformations
-- Translation values that exceed WebGL clip space limits [-1, +1]
+### The Two Different Operations
+
+#### Main Zoom (Works Perfectly with TRS)
+```javascript
+// TRS excels at this:
+trs = { center_x: 0, center_y: 0, scale: 2.0, rotation: 0 }
+// "Make everything 2x bigger, centered"
+// Values stay reasonable: scale=2.0, center=(0,0)
+```
+
+#### Region Zoom (Cannot Work with TRS)
+```javascript
+// Region zoom needs this:
+"Take arbitrarily rotated rectangle and make it fill entire viewport with correct orientation"
+// This requires:
+// - Large translations to move off-center regions to screen center
+// - Large scale factors to zoom into regions  
+// - Arbitrary rotation to align tilted region edges with viewport edges
+// - Translation values that can exceed WebGL clip space [-1, +1]
+```
+
+**Note**: Our debug region `(0,0)→(99,0)→(99,99)→(0,99)` is axis-aligned. Production regions are always rotated.
+
+### The Coordinate Overflow Problem
+
+When forcing region zoom through TRS conversion:
+
+1. **Large translation values needed**: Moving regions to screen center can require large translation values
+2. **Arbitrary rotation required**: Production regions can be rotated at any angle
+3. **WebGL clip space limits**: Valid range is [-1, +1], region zoom can need values outside this range
+4. **Automatic culling**: When transformed vertices exceed clip space, WebGL culls the quad → black screen
+5. **Clamping breaks geometry**: Limiting to [-1, +1] prevents culling but affects positioning accuracy
+
+**Note**: Our debug region `p0:(0,0) p1:(99,0) p2:(99,99) p3:(0,99)` is axis-aligned. Production regions are always rotated.
+
+### Three Failed Attempts Pattern
+
+Each previous attempt hit the same wall:
+- **Attempt 1**: Coordinate overflow → black screen
+- **Attempt 2**: Different coordinate conversions → still overflow  
+- **Attempt 3**: Clamping to prevent overflow → wrong geometry positioning
 
 **Root Cause**: Using TRS (Translation, Rotation, Scale) system for a fundamentally different operation than it was designed for.
 
 ## Solution Strategy
 
 **Abandon TRS integration for region zoom.** Instead, implement a separate rendering path that calculates transformation matrices directly, similar to the working MatrixStack approach.
+
+### Why MatrixStack Succeeds
+
+The MatrixStack version works because it **doesn't try to force region zoom through the TRS pipeline**. Instead:
+
+```javascript
+// MatrixStack approach (working):
+if (animation_phase === "region_zoom") {
+  // Use completely different renderer - NO TRS conversion
+  matrix = calc_region_matrix_directly(region_rect, viewport);
+  render_with_matrix(matrix);
+} else {
+  // Use TRS system for main zoom (perfect for uniform scaling)  
+  matrix = TRS_to_matrix(layer.trs);
+  render_with_matrix(matrix);
+}
+```
+
+### The Key Insight: Different Math for Different Problems
+
+- **Main Zoom**: Scale everything uniformly from center → TRS works well
+- **Region Zoom**: Show specific rotated rectangular region filling screen → Direct matrix calculation needed
+
+Production regions can involve rotated rectangular areas. The TRS system has limitations handling extreme translation, scaling, and rotation combinations.
+
+### Architectural Lesson
+
+The unified TRS system approach does not work well for region zoom. MatrixStack uses different approaches for different phases.
 
 ## Architecture Changes
 
@@ -99,6 +173,24 @@ Region Zoom: region rect → direct matrices → render ✓
 - **Browser-first**: Use `window`, DOM APIs, and browser globals directly
 - **No error handling**: If something is wrong, we want to know immediately via console errors
 
+## The Architectural Insight
+
+### Why We Kept Trying TRS
+The TRS approach seemed simpler - one unified system for all transformations.
+
+### The Lesson
+Main zoom and region zoom are different operations that may need different approaches.
+
+### Comparison with MatrixStack Success
+```javascript
+// MatrixStack approach:
+if (is_main_zoom) use_TRS_system();
+if (is_region_zoom) use_direct_matrices();
+
+// TRS-Flow approach:
+always_use_TRS_system(); // ← Problematic for region zoom
+```
+
 ## Expected Benefits
 
 1. **Elimination of coordinate overflow** - no more clip space saturation
@@ -109,29 +201,52 @@ Region Zoom: region rect → direct matrices → render ✓
 ## Implementation Notes
 
 ### Matrix Calculation Strategy
-- Calculate region center, dimensions, and rotation from corner points
-- Compute transformation matrix to map region to full viewport
-- Apply identical matrix to both penultimate and final layers
-- Set other layers to invisible (alpha = 0)
+```javascript
+// Direct approach (no TRS conversion):
+calc_region_transformation_matrix(region_rect, viewport) {
+  // 1. Calculate region properties from corner points
+  const center = calc_region_center(p0, p1, p2, p3);
+  const dimensions = calc_region_dimensions(p0, p1, p2, p3);
+  const rotation = calc_region_rotation(p0, p1);
+  
+  // 2. Compute transformation to map region to viewport
+  const scale_factor = calc_covering_scale(dimensions, viewport);
+  const translation = calc_centering_offset(center, viewport);
+  
+  // 3. Build WebGL matrix directly
+  return build_webgl_matrix(translation, scale_factor, rotation);
+}
+```
 
 ### Coordinate System Handling
-- Work directly in screen/pixel coordinates
-- Convert to normalized device coordinates only at final matrix stage
-- Avoid intermediate coordinate system conversions
+- **Work in screen/pixel coordinates**: Avoid coordinate system conversions
+- **Single conversion step**: Screen coordinates → WebGL matrix (at final stage only)
+- **No intermediate representations**: Skip TRS, UV space, NDC conversions entirely
+
+### Failed vs Working Approaches
+```javascript
+// FAILED: TRS approach
+region_rect → convert_to_TRS() → TRS_to_matrix() → webgl_matrix
+//              ↑ FAILS HERE ↑
+
+// WORKING: Direct approach  
+region_rect → calc_region_matrix_directly() → webgl_matrix
+//            ↑ WORKS ↑
+```
 
 ### Animation Integration
-- Interpolate between start and target matrices using existing easing
-- Maintain frame-by-frame update pattern
-- Preserve transition timing from current implementation
+- **Matrix interpolation**: `lerp_matrix(start_matrix, target_matrix, t)`
+- **Same easing function**: Continue using `ease_in_out_cubic`
+- **Direct application**: Apply interpolated matrices to layers without TRS conversion
 
 ## Success Criteria
 
 - Region zoom works without black screen issues
 - Smooth animation from final_rotation to region_zoom
-- Region properly centers and scales to fill viewport
+- Rotated regions properly center and scale to fill viewport
 - No coordinate system overflow or clipping problems
 - Clean, maintainable code without TRS conversion complexity
 
 ---
 
-**Bottom Line**: Stop trying to force region zoom through TRS system. Implement direct matrix approach as separate rendering path. Keep it simple, keep it working.
+**Bottom Line**: Implement direct matrix approach as separate rendering path for region zoom.
