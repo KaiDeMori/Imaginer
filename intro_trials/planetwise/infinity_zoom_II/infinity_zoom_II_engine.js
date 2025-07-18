@@ -32,9 +32,6 @@ window.infinity_zoom_II.config = {
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 
-// Debug flags for region zoom matrix logging
-window.infinity_zoom_II.region_zoom_phase = "none";
-
 // Main engine object (will be attached to window.infinity_zoom_II)
 const engine = {
   /**
@@ -154,16 +151,6 @@ const engine = {
     // Track animation phase changes for debugging
     if (this._last_animation_phase !== this.animation_phase) {
       log("Animation phase changed to: " + this.animation_phase);
-
-      // Set flags when entering region zoom state
-      if (this.animation_phase === "region_zoom") {
-        window.infinity_zoom_II.region_zoom_phase = "START";
-        log(" # START");
-      } else if (this._last_animation_phase === "region_zoom") {
-        window.infinity_zoom_II.region_zoom_phase = "END";
-        log(" # END");
-      }
-
       this._last_animation_phase = this.animation_phase;
     }
 
@@ -185,6 +172,7 @@ const engine = {
     } else if (this.animation_phase === "final_rotation") {
       this.update_final_rotation_state(now);
     } else if (this.animation_phase === "region_zoom") {
+      // TODO: Replace with new direct matrix approach
       window.infinity_zoom_II.region_zoom.update_region_zoom_state(now);
     } else if (this.animation_phase === "FIN") {
       //noop
@@ -403,6 +391,7 @@ const engine = {
 
     // Special rendering for region zoom state
     if (this.animation_phase === "region_zoom") {
+      // TODO: Replace with new direct matrix rendering approach
       const final_layer_index = this.layers.length - 1;
       const penultimate_layer_index = final_layer_index - 1;
 
