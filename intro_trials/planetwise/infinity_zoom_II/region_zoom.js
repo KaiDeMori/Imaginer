@@ -58,15 +58,7 @@ window.infinity_zoom_II.region_zoom = {
 
   // Update region zoom state (called every frame)
   update_region_zoom_state(now) {
-    const config = window.infinity_zoom_II.config.region_zoom;
-    const elapsed_ms = now - this.start_time;
-    const raw_progress = elapsed_ms / config.anim_duration;
-    const clamped_progress = Math.min(raw_progress, 1.0);
-    const eased_progress = this.ease_in_out_cubic(clamped_progress);
-
     // TODO: Interpolate matrices directly
     // TODO: Apply matrices to layers without TRS conversion
-
-    log("Region zoom progress: " + (eased_progress * 100).toFixed(1) + "%");
   },
 };
