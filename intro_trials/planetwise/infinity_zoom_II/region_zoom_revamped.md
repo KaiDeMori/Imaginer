@@ -61,7 +61,7 @@ Region Zoom: region rect → direct matrices → render ✓
 
 4. **Logging Preservation Rule**:
    - Keep all logging that helps debug main zoom phases (intro, hold, main_zoom, final_rotation)
-   - Keep WebGL error logging and shader compilation logging
+   - Remove WebGL error logging and shader compilation logging
    - Keep performance and timing logs
    - Remove only TRS conversion debugging and region zoom coordinate overflow logs
    - Preserve engine state transition logging
@@ -91,6 +91,13 @@ Region Zoom: region rect → direct matrices → render ✓
 - Accept that different phases need different approaches
 - Prioritize working functionality over architectural purity
 - Follow MatrixStack pattern that already works
+
+### Fail-Fast Development
+- **NO defensive coding**: Let errors throw immediately and visibly
+- **NO Node.js patterns**: Pure browser environment, no require/module.exports
+- **Crash fast and hard**: Use direct property access, assume objects exist
+- **Browser-first**: Use `window`, DOM APIs, and browser globals directly
+- **No error handling**: If something is wrong, we want to know immediately via console errors
 
 ## Expected Benefits
 
