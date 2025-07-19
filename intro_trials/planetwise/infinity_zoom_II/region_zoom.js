@@ -337,4 +337,10 @@ window.infinity_zoom_II.region_zoom = {
 
     return false; // Animation continues
   },
+
+  // Render the final zoomed frame (for holding state)
+  render_final_frame() {
+    // Use the final target parameters to render the zoomed region
+    this.render_region_zoom_frame(this.target_params);
+  },
 };
