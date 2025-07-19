@@ -49,6 +49,14 @@
             window.infinity_zoom_II.FLAG_initiate_final_reveal = true;
           }
         });
+
+        // Add click trigger for region zoom testing
+        document.getElementById("zoom_canvas").addEventListener("click", function (event) {
+          if (window.infinity_zoom_II.engine.animation_phase === "main_zoom") {
+            console.log("Click detected - triggering region zoom...");
+            window.infinity_zoom_II.FLAG_initiate_final_reveal = true;
+          }
+        });
       }
     </script>
 
