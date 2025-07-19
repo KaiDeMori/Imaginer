@@ -122,27 +122,71 @@ create_orthographic_matrix(screen_width, screen_height) {
     0, -2 / screen_height, 0,
     -1, 1, 1
   ]);
+},
+
+// 3x3 matrix multiplication (column-major)
+matrix_multiply_3x3(a, b) {
+  const result = new Float32Array(9);
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      let sum = 0;
+      for (let k = 0; k < 3; k++) {
+        sum += a[i + k * 3] * b[k + j * 3];
+      }
+      result[i + j * 3] = sum;
+    }
+  }
+  return result;
+},
+
+// Translation matrix (3x3)
+create_translation_matrix(tx, ty) {
+  return new Float32Array([
+    1, 0, 0,
+    0, 1, 0,
+    tx, ty, 1
+  ]);
+},
+
+// Scale matrix (3x3)
+create_scale_matrix(scale) {
+  return new Float32Array([
+    scale, 0, 0,
+    0, scale, 0,
+    0, 0, 1
+  ]);
+},
+
+// Rotation matrix (3x3)
+create_rotation_matrix(angle) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return new Float32Array([
+    c, s, 0,
+    -s, c, 0,
+    0, 0, 1
+  ]);
 }
 
 // Build transformation matrix in screen pixel coordinates
 build_screen_space_matrix(center_x, center_y, scale, rotation, screen_width, screen_height) {
-  // Translation to screen center
-  const translate_to_center = create_translation_matrix(screen_width * 0.5, screen_height * 0.5);
+  // Step 1: Translation to screen center
+  const translate_to_center = this.create_translation_matrix(screen_width * 0.5, screen_height * 0.5);
   
-  // Scale and rotation
-  const scale_matrix = create_scale_matrix(scale);
-  const rotation_matrix = create_rotation_matrix(rotation);
+  // Step 2: Scale and rotation
+  const scale_matrix = this.create_scale_matrix(scale);
+  const rotation_matrix = this.create_rotation_matrix(rotation);
   
-  // Translation from image center
-  const translate_from_center = create_translation_matrix(-center_x, -center_y);
+  // Step 3: Translation from image center
+  const translate_from_center = this.create_translation_matrix(-center_x, -center_y);
   
-  // Compose transformation
-  return matrix_multiply_chain([
-    translate_to_center,
-    scale_matrix, 
-    rotation_matrix,
-    translate_from_center
-  ]);
+  // Step 4: Compose transformation (order matters!)
+  let result = translate_to_center;
+  result = this.matrix_multiply_3x3(result, scale_matrix);
+  result = this.matrix_multiply_3x3(result, rotation_matrix);
+  result = this.matrix_multiply_3x3(result, translate_from_center);
+  
+  return result;
 }
 ```
 
@@ -169,8 +213,8 @@ const region_vertex_shader = `
 // Create quad in IMAGE PIXEL coordinates (not clip space)
 create_image_pixel_quad(image_width, image_height) {
   return new Float32Array([
-    0, 0,                    0, 1,  // Bottom-left
-    image_width, 0,          1, 1,  // Bottom-right  
+    0, 0,                    0, 1,  // Bottom-left (pos + uv)
+    image_width, 0,          1, 1,  // Bottom-right
     0, image_height,         0, 0,  // Top-left
     image_width, image_height, 1, 0   // Top-right
   ]);
@@ -248,27 +292,51 @@ calc_region_parameters(region_rect) {
 update_region_zoom_animation(now) {
   const elapsed = (now - this.start_time) / this.config.anim_duration;
   const t = Math.min(elapsed, 1.0);
-  const eased_t = ease_in_out_cubic(t);
+  const eased_t = this.ease_in_out_cubic(t);
   
   // Interpolate transformation parameters in screen space
   const current_params = {
-    center_x: lerp(this.start_params.center_x, this.target_params.center_x, eased_t),
-    center_y: lerp(this.start_params.center_y, this.target_params.center_y, eased_t),
-    scale: lerp(this.start_params.scale, this.target_params.scale, eased_t),
-    rotation: lerp_angle(this.start_params.rotation, this.target_params.rotation, eased_t)
+    center_x: this.lerp(this.start_params.center_x, this.target_params.center_x, eased_t),
+    center_y: this.lerp(this.start_params.center_y, this.target_params.center_y, eased_t),
+    scale: this.lerp(this.start_params.scale, this.target_params.scale, eased_t),
+    rotation: this.lerp_angle(this.start_params.rotation, this.target_params.rotation, eased_t)
   };
   
   return current_params;
+},
+
+// Linear interpolation
+lerp(a, b, t) {
+  return a + (b - a) * t;
+},
+
+// Angle interpolation with wrap-around
+lerp_angle(start_angle, end_angle, t) {
+  const TWO_PI = 2 * Math.PI;
+  let diff = end_angle - start_angle;
+  
+  // Normalize to shortest path
+  while (diff > Math.PI) diff -= TWO_PI;
+  while (diff < -Math.PI) diff += TWO_PI;
+  
+  return start_angle + diff * t;
 }
 ```
 
 #### 4.2 Rendering
 ```javascript
 render_region_zoom_frame(transformation_params) {
-  const gl = this.engine.gl;
+  const gl = this.engine.gl_context;
+  
+  // Clear canvas
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  
+  // Use region zoom shader program
+  gl.useProgram(this.region_program);
   
   // Build transformation matrix in screen pixel coordinates
-  const transform_matrix = build_screen_space_matrix(
+  const transform_matrix = this.build_screen_space_matrix(
     transformation_params.center_x,
     transformation_params.center_y, 
     transformation_params.scale,
@@ -278,12 +346,18 @@ render_region_zoom_frame(transformation_params) {
   );
   
   // Apply orthographic projection
-  const orthographic = create_orthographic_matrix(gl.canvas.width, gl.canvas.height);
-  const final_matrix = matrix_multiply(orthographic, transform_matrix);
+  const orthographic = this.create_orthographic_matrix(gl.canvas.width, gl.canvas.height);
+  const final_matrix = this.matrix_multiply_3x3(orthographic, transform_matrix);
   
-  // Render with combined matrix
-  gl.useProgram(this.region_program);
+  // Set uniforms
   gl.uniformMatrix3fv(this.u_matrix_location, false, final_matrix);
+  
+  // Bind texture
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, this.current_layer.texture);
+  gl.uniform1i(this.u_texture_location, 0);
+  
+  // Draw quad
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 ```

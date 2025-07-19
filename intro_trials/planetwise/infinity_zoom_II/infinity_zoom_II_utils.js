@@ -295,18 +295,8 @@ window.infinity_zoom_II.utils = {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   },
 
-  // TODO: Direct matrix calculation functions for region zoom
-  // Calculate transformation matrix directly from region rectangle
-  calc_region_transformation_matrix(region_rect, viewport_width, viewport_height) {
-    // TODO: Implement direct matrix calculation
-    // No TRS conversion - calculate WebGL matrix directly from region
-    log("TODO: Direct matrix calculation for region zoom");
-    return new Float32Array(16); // Identity matrix placeholder
-  },
-
-  // Linear interpolation between two 4x4 matrices
+  // Matrix interpolation utility (for general use)
   lerp_matrix(matrix_start, matrix_end, t) {
-    // TODO: Implement matrix interpolation
     const result = new Float32Array(16);
     for (let i = 0; i < 16; i++) {
       result[i] = matrix_start[i] + (matrix_end[i] - matrix_start[i]) * t;

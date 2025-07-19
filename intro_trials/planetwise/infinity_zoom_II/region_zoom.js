@@ -1,4 +1,5 @@
 // Region Zoom functionality for Infinity Zoom II Engine
+// Orthographic Projection Approach - Clean Implementation
 
 // Add default configuration for region zoom
 window.infinity_zoom_II.config.region_zoom = {
@@ -15,28 +16,15 @@ window.infinity_zoom_II.region_zoom = {
   // State storage
   engine: null,
   start_time: null,
-  start_matrix: null,
-  target_matrix: null,
+  start_params: null,
+  target_params: null,
 
-  // Calculate the center point of a region defined by 4 corner points
-  calc_region_center(p0, p1, p2, p3) {
-    return {
-      x: (p0.x + p2.x) / 2,
-      y: (p0.y + p2.y) / 2,
-    };
-  },
-
-  // Calculate region dimensions from 4 corner points
-  calc_region_dimensions(p0, p1, p2, p3) {
-    const width = Math.sqrt((p1.x - p0.x) ** 2 + (p1.y - p0.y) ** 2);
-    const height = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
-    return { width, height };
-  },
-
-  // Calculate region rotation from top edge (p0 to p1)
-  calc_region_rotation(p0, p1) {
-    return Math.atan2(p1.y - p0.y, p1.x - p0.x);
-  },
+  // Region zoom shader program and buffers
+  region_program: null,
+  region_quad_buffer: null,
+  u_matrix_location: null,
+  u_texture_location: null,
+  current_layer: null,
 
   // Ease-in-out cubic interpolation function
   ease_in_out_cubic(t) {
@@ -48,17 +36,11 @@ window.infinity_zoom_II.region_zoom = {
     this.engine = engine;
     this.start_time = now;
 
-    const config = window.infinity_zoom_II.config.region_zoom;
-
-    // TODO: Calculate start and target matrices directly
-    // TODO: Remove TRS dependency completely
-
-    log("Region zoom initialized - direct matrix approach");
+    log("Region zoom initialized - orthographic projection approach");
   },
 
   // Update region zoom state (called every frame)
   update_region_zoom_state(now) {
-    // TODO: Interpolate matrices directly
-    // TODO: Apply matrices to layers without TRS conversion
+    log("Region zoom state update - ready for implementation");
   },
 };
