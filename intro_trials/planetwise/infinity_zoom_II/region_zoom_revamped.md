@@ -113,112 +113,155 @@ orthographic_matrix * finite_screen_coordinate = valid_clip_coordinate  // Alway
 ### Phase 1: Add Orthographic Matrix System
 
 #### 1.1 Create Orthographic Utility Functions
-Add to `infinity_zoom_II_utils.js`:
+**Add ALL functions to `region_zoom.js` - NOT to `infinity_zoom_II_utils.js`!**
+
 ```javascript
-// Orthographic projection matrix for screen→clip conversion
-create_orthographic_matrix(screen_width, screen_height) {
-  return new Float32Array([
-    2 / screen_width, 0, 0,
-    0, -2 / screen_height, 0,
-    -1, 1, 1
-  ]);
-},
+window.infinity_zoom_II.region_zoom = {
+  // ... existing properties ...
 
-// 3x3 matrix multiplication (column-major)
-matrix_multiply_3x3(a, b) {
-  const result = new Float32Array(9);
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      let sum = 0;
-      for (let k = 0; k < 3; k++) {
-        sum += a[i + k * 3] * b[k + j * 3];
+  // 3x3 matrix multiplication (column-major) - DUPLICATED from MatrixStack
+  matrix_multiply_3x3(a, b) {
+    const result = new Float32Array(9);
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        let sum = 0;
+        for (let k = 0; k < 3; k++) {
+          sum += a[i + k * 3] * b[k + j * 3];
+        }
+        result[i + j * 3] = sum;
       }
-      result[i + j * 3] = sum;
     }
+    return result;
+  },
+
+  // Orthographic projection matrix for screen→clip conversion
+  create_orthographic_matrix(screen_width, screen_height) {
+    return new Float32Array([
+      2 / screen_width, 0, 0,
+      0, -2 / screen_height, 0,
+      -1, 1, 1
+    ]);
+  },
+
+  // Translation matrix (3x3)
+  create_translation_matrix(tx, ty) {
+    return new Float32Array([
+      1, 0, 0,
+      0, 1, 0,
+      tx, ty, 1
+    ]);
+  },
+
+  // Scale matrix (3x3)
+  create_scale_matrix(scale) {
+    return new Float32Array([
+      scale, 0, 0,
+      0, scale, 0,
+      0, 0, 1
+    ]);
+  },
+
+  // Rotation matrix (3x3)
+  create_rotation_matrix(angle) {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    return new Float32Array([
+      c, s, 0,
+      -s, c, 0,
+      0, 0, 1
+    ]);
+  },
+
+  // Build transformation matrix in screen pixel coordinates
+  build_screen_space_matrix(center_x, center_y, scale, rotation, screen_width, screen_height) {
+    // Step 1: Translation to screen center
+    const translate_to_center = this.create_translation_matrix(screen_width * 0.5, screen_height * 0.5);
+    
+    // Step 2: Scale and rotation
+    const scale_matrix = this.create_scale_matrix(scale);
+    const rotation_matrix = this.create_rotation_matrix(rotation);
+    
+    // Step 3: Translation from image center
+    const translate_from_center = this.create_translation_matrix(-center_x, -center_y);
+    
+    // Step 4: Compose transformation (order matters!)
+    let result = translate_to_center;
+    result = this.matrix_multiply_3x3(result, scale_matrix);
+    result = this.matrix_multiply_3x3(result, rotation_matrix);
+    result = this.matrix_multiply_3x3(result, translate_from_center);
+    
+    return result;
   }
-  return result;
-},
-
-// Translation matrix (3x3)
-create_translation_matrix(tx, ty) {
-  return new Float32Array([
-    1, 0, 0,
-    0, 1, 0,
-    tx, ty, 1
-  ]);
-},
-
-// Scale matrix (3x3)
-create_scale_matrix(scale) {
-  return new Float32Array([
-    scale, 0, 0,
-    0, scale, 0,
-    0, 0, 1
-  ]);
-},
-
-// Rotation matrix (3x3)
-create_rotation_matrix(angle) {
-  const c = Math.cos(angle);
-  const s = Math.sin(angle);
-  return new Float32Array([
-    c, s, 0,
-    -s, c, 0,
-    0, 0, 1
-  ]);
-}
-
-// Build transformation matrix in screen pixel coordinates
-build_screen_space_matrix(center_x, center_y, scale, rotation, screen_width, screen_height) {
-  // Step 1: Translation to screen center
-  const translate_to_center = this.create_translation_matrix(screen_width * 0.5, screen_height * 0.5);
-  
-  // Step 2: Scale and rotation
-  const scale_matrix = this.create_scale_matrix(scale);
-  const rotation_matrix = this.create_rotation_matrix(rotation);
-  
-  // Step 3: Translation from image center
-  const translate_from_center = this.create_translation_matrix(-center_x, -center_y);
-  
-  // Step 4: Compose transformation (order matters!)
-  let result = translate_to_center;
-  result = this.matrix_multiply_3x3(result, scale_matrix);
-  result = this.matrix_multiply_3x3(result, rotation_matrix);
-  result = this.matrix_multiply_3x3(result, translate_from_center);
-  
-  return result;
-}
+};
 ```
 
 #### 1.2 Region Zoom Separate Rendering Pipeline
-Create new rendering path that bypasses TRS system completely:
+**Create new rendering path in `region_zoom.js` that bypasses TRS system:**
+
 ```javascript
-// New shader program for region zoom (uses 3x3 matrices)
-const region_vertex_shader = `
-  attribute vec2 a_position;  // In image pixel coordinates
-  attribute vec2 a_texcoord;
-  uniform mat3 u_matrix;      // Screen space + orthographic combined
-  varying vec2 v_texcoord;
-  
-  void main() {
-    vec3 pos = u_matrix * vec3(a_position, 1.0);
-    gl_Position = vec4(pos.xy, 0, 1);
-    v_texcoord = a_texcoord;
+window.infinity_zoom_II.region_zoom = {
+  // ... existing functions ...
+
+  // Region zoom shader sources (3x3 matrices!)
+  get_region_vertex_shader_source() {
+    return `
+      attribute vec2 a_position;  // In image pixel coordinates
+      attribute vec2 a_texcoord;
+      uniform mat3 u_matrix;      // Screen space + orthographic combined (3x3!)
+      varying vec2 v_texcoord;
+      
+      void main() {
+        vec3 pos = u_matrix * vec3(a_position, 1.0);
+        gl_Position = vec4(pos.xy, 0, 1);  // Convert 3D→4D for WebGL
+        v_texcoord = a_texcoord;
+      }
+    `;
+  },
+
+  get_region_fragment_shader_source() {
+    return `
+      precision mediump float;
+      varying vec2 v_texcoord;
+      uniform sampler2D u_texture;
+      
+      void main() {
+        gl_FragColor = texture2D(u_texture, v_texcoord);
+      }
+    `;
+  },
+
+  // Create region zoom shader program (uses engine's WebGL utilities)
+  create_region_shader_program(gl) {
+    const engine_utils = window.infinity_zoom_II.utils;
+    return engine_utils.create_program(
+      gl,
+      this.get_region_vertex_shader_source(),
+      this.get_region_fragment_shader_source()
+    );
   }
-`;
+};
 ```
 
 #### 1.3 Geometry Buffer for Image Coordinates
 ```javascript
-// Create quad in IMAGE PIXEL coordinates (not clip space)
-create_image_pixel_quad(image_width, image_height) {
-  return new Float32Array([
-    0, 0,                    0, 1,  // Bottom-left (pos + uv)
-    image_width, 0,          1, 1,  // Bottom-right
-    0, image_height,         0, 0,  // Top-left
-    image_width, image_height, 1, 0   // Top-right
-  ]);
-}
+window.infinity_zoom_II.region_zoom = {
+  // ... existing functions ...
+
+  // Create quad in IMAGE PIXEL coordinates (not clip space)
+  create_image_pixel_quad_buffer(gl, image_width, image_height) {
+    const vertices = new Float32Array([
+      0, 0,                    0, 1,  // Bottom-left (pos + uv)
+      image_width, 0,          1, 1,  // Bottom-right
+      0, image_height,         0, 0,  // Top-left
+      image_width, image_height, 1, 0   // Top-right
+    ]);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    return buffer;
+  }
+};
 ```
 
 ### Phase 2: Region Zoom State Machine Integration
@@ -436,5 +479,110 @@ New matrix utilities needed:
 - **Crash fast and hard**: Use direct property access, assume objects exist
 - **Browser-first**: Use `window`, DOM APIs, and browser globals directly
 - **No error handling**: If something is wrong, we want to know immediately via console errors
+
+## Critical Implementation Guidelines
+
+### Namespace Architecture
+**All region zoom code goes into `region_zoom.js` - NO EXCEPTIONS!**
+
+**Main Engine Namespaces:**
+```javascript
+window.infinity_zoom_II.engine          // Main engine
+window.infinity_zoom_II.utils           // Main engine utilities (TRS, WebGL basics)
+window.infinity_zoom_II.config          // Global configuration
+```
+
+**Region Zoom Namespace (Self-Contained):**
+```javascript
+window.infinity_zoom_II.region_zoom     // Region zoom main object
+window.infinity_zoom_II.config.region_zoom  // Region zoom configuration
+```
+
+**Utils Handling:**
+- **Main engine utils**: `window.infinity_zoom_II.utils` (keep as-is)
+- **Region zoom utils**: Add directly to `window.infinity_zoom_II.region_zoom` object
+- **NO sharing** between main engine and region zoom utilities to avoid confusion
+
+### Code Separation Philosophy
+- **Duplicate code is GOOD** - keeps region zoom completely isolated
+- **All region zoom functionality** goes in `region_zoom.js` - shaders, matrices, rendering, everything
+- **Main engine** stays untouched except for the animation loop switch
+- **No cross-dependencies** - region zoom is self-contained
+
+### Shader Implementation Rules
+When implementing shaders, use this exact pattern:
+
+```javascript
+// INSIDE region_zoom.js - NOT in utils!
+window.infinity_zoom_II.region_zoom = {
+  // Shader sources (keep in region_zoom.js)
+  get_region_vertex_shader_source() {
+    return `
+      attribute vec2 a_position;  
+      attribute vec2 a_texcoord;
+      uniform mat3 u_matrix;      // 3x3 matrix for orthographic!
+      varying vec2 v_texcoord;
+      
+      void main() {
+        vec3 pos = u_matrix * vec3(a_position, 1.0);
+        gl_Position = vec4(pos.xy, 0, 1);  // Convert 3D result to 4D
+        v_texcoord = a_texcoord;
+      }
+    `;
+  },
+
+  get_region_fragment_shader_source() {
+    return `
+      precision mediump float;
+      varying vec2 v_texcoord;
+      uniform sampler2D u_texture;
+      
+      void main() {
+        gl_FragColor = texture2D(u_texture, v_texcoord);
+      }
+    `;
+  },
+
+  // Use engine's WebGL utilities by reference
+  create_region_shader_program(gl) {
+    const engine_utils = window.infinity_zoom_II.utils;
+    return engine_utils.create_program(
+      gl,
+      this.get_region_vertex_shader_source(),
+      this.get_region_fragment_shader_source()
+    );
+  }
+};
+```
+
+### Matrix System (All in region_zoom.js)
+```javascript
+window.infinity_zoom_II.region_zoom = {
+  // 3x3 matrix utilities (duplicate from MatrixStack - that's OK!)
+  matrix_multiply_3x3(a, b) {
+    const result = new Float32Array(9);
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        let sum = 0;
+        for (let k = 0; k < 3; k++) {
+          sum += a[i + k * 3] * b[k + j * 3];
+        }
+        result[i + j * 3] = sum;
+      }
+    }
+    return result;
+  },
+
+  create_orthographic_matrix(screen_width, screen_height) {
+    return new Float32Array([
+      2 / screen_width, 0, 0,
+      0, -2 / screen_height, 0,
+      -1, 1, 1
+    ]);
+  },
+
+  // ... all other matrix functions here
+};
+```
 
 
