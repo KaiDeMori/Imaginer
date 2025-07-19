@@ -172,8 +172,8 @@ const engine = {
     } else if (this.animation_phase === "final_rotation") {
       this.update_final_rotation_state(now);
     } else if (this.animation_phase === "region_zoom") {
-      // Update the new orthographic region zoom system
-      region_zoom.update();
+      // TODO: Replace with new direct matrix approach
+      window.infinity_zoom_II.region_zoom.update_region_zoom_state(now);
     } else if (this.animation_phase === "FIN") {
       //noop
     }
@@ -313,15 +313,7 @@ const engine = {
     if (window.infinity_zoom_II.FLAG_initiate_final_reveal) {
       log("FLAG_initiate_final_reveal set");
       this.animation_phase = "region_zoom";
-      // Initialize the new orthographic region zoom system
-      region_zoom.init(this.gl_context);
-      // Start region zoom animation (example: center at image middle with 3x zoom)
-      const final_layer = this.layers[this.layers.length - 1];
-      if (final_layer && final_layer.image) {
-        const center_x = final_layer.image.width * 0.5;
-        const center_y = final_layer.image.height * 0.5;
-        region_zoom.start_region_zoom(center_x, center_y, 3, 0);
-      }
+      window.infinity_zoom_II.region_zoom.init_region_zoom(this, now);
     }
   },
 
@@ -399,18 +391,18 @@ const engine = {
 
     // Special rendering for region zoom state
     if (this.animation_phase === "region_zoom") {
-      // Render backdrop layer first
+      // TODO: Replace with new direct matrix rendering approach
       const final_layer_index = this.layers.length - 1;
       const penultimate_layer_index = final_layer_index - 1;
 
+      // Render penultimate layer first (backdrop)
       if (penultimate_layer_index >= 0 && this.layers[penultimate_layer_index].alpha > 0) {
         this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[penultimate_layer_index], this.canvas.width, this.canvas.height);
       }
 
-      // Render final layer with orthographic region zoom system
-      if (final_layer_index >= 0 && this.layers[final_layer_index].texture) {
-        const final_layer = this.layers[final_layer_index];
-        region_zoom.render(final_layer.texture, this.canvas.width, this.canvas.height, final_layer.image.width, final_layer.image.height);
+      // Render final layer on top (with feathered edges)
+      if (this.layers[final_layer_index].alpha > 0) {
+        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[final_layer_index], this.canvas.width, this.canvas.height);
       }
     } else {
       // Standard rendering for all other states (optimized with occlusion culling)
