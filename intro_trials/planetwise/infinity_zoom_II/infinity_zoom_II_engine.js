@@ -172,8 +172,12 @@ const engine = {
     } else if (this.animation_phase === "final_rotation") {
       this.update_final_rotation_state(now);
     } else if (this.animation_phase === "region_zoom") {
-      // TODO: Replace with new direct matrix approach
-      window.infinity_zoom_II.region_zoom.update_region_zoom_state(now);
+      // Use separate region zoom renderer - NO TRS system involvement
+      const region_complete = window.infinity_zoom_II.region_zoom.update_region_zoom_state(now);
+      if (region_complete) {
+        this.animation_phase = "FIN";
+        log("Region zoom complete - entering FIN state");
+      }
     } else if (this.animation_phase === "FIN") {
       //noop
     }
@@ -183,8 +187,10 @@ const engine = {
       this.update_first_visible_layer_index();
     }
 
-    // Render the scene
-    this.render();
+    // Render the scene (skip during region zoom - it handles its own rendering)
+    if (this.animation_phase !== "region_zoom") {
+      this.render();
+    }
 
     // Continue animation loop
     requestAnimationFrame(this.animate.bind(this));

@@ -3,7 +3,7 @@
 
 // Add default configuration for region zoom
 window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 4000, // Animation duration in milliseconds
+  anim_duration: 40000, // Animation duration in milliseconds
   region_rect: {
     p0: { x: 0, y: 0 }, // origin (top-left)
     p1: { x: 99, y: 0 }, // end of top edge (u-axis)
@@ -31,16 +31,310 @@ window.infinity_zoom_II.region_zoom = {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   },
 
+  // === ORTHOGRAPHIC MATRIX SYSTEM (Phase 1) ===
+
+  // 3x3 matrix multiplication (column-major) - DUPLICATED from MatrixStack
+  matrix_multiply_3x3(a, b) {
+    const result = new Float32Array(9);
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        let sum = 0;
+        for (let k = 0; k < 3; k++) {
+          sum += a[i + k * 3] * b[k + j * 3];
+        }
+        result[i + j * 3] = sum;
+      }
+    }
+    return result;
+  },
+
+  // Orthographic projection matrix for screen→clip conversion
+  create_orthographic_matrix(screen_width, screen_height) {
+    return new Float32Array([2 / screen_width, 0, 0, 0, -2 / screen_height, 0, -1, 1, 1]);
+  },
+
+  // Translation matrix (3x3)
+  create_translation_matrix(tx, ty) {
+    return new Float32Array([1, 0, 0, 0, 1, 0, tx, ty, 1]);
+  },
+
+  // Scale matrix (3x3)
+  create_scale_matrix(scale) {
+    return new Float32Array([scale, 0, 0, 0, scale, 0, 0, 0, 1]);
+  },
+
+  // Rotation matrix (3x3)
+  create_rotation_matrix(angle) {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    return new Float32Array([c, s, 0, -s, c, 0, 0, 0, 1]);
+  },
+
+  // Build transformation matrix in screen pixel coordinates
+  build_screen_space_matrix(center_x, center_y, scale, rotation, screen_width, screen_height) {
+    // Step 1: Translation to screen center
+    const translate_to_center = this.create_translation_matrix(screen_width * 0.5, screen_height * 0.5);
+
+    // Step 2: Scale and rotation
+    const scale_matrix = this.create_scale_matrix(scale);
+    const rotation_matrix = this.create_rotation_matrix(rotation);
+
+    // Step 3: Translation from image center
+    const translate_from_center = this.create_translation_matrix(-center_x, -center_y);
+
+    // Step 4: Compose transformation (order matters!)
+    let result = translate_to_center;
+    result = this.matrix_multiply_3x3(result, scale_matrix);
+    result = this.matrix_multiply_3x3(result, rotation_matrix);
+    result = this.matrix_multiply_3x3(result, translate_from_center);
+
+    return result;
+  },
+
+  // === REGION ZOOM SHADERS (Phase 1) ===
+
+  // Region zoom vertex shader source (3x3 matrices!)
+  get_region_vertex_shader_source() {
+    return `
+      attribute vec2 a_position;  // In image pixel coordinates
+      attribute vec2 a_texcoord;
+      uniform mat3 u_matrix;      // Screen space + orthographic combined (3x3!)
+      varying vec2 v_texcoord;
+      
+      void main() {
+        vec3 pos = u_matrix * vec3(a_position, 1.0);
+        gl_Position = vec4(pos.xy, 0, 1);  // Convert 3D→4D for WebGL
+        v_texcoord = a_texcoord;
+      }
+    `;
+  },
+
+  get_region_fragment_shader_source() {
+    return `
+      precision mediump float;
+      varying vec2 v_texcoord;
+      uniform sampler2D u_texture;
+      
+      void main() {
+        gl_FragColor = texture2D(u_texture, v_texcoord);
+      }
+    `;
+  },
+
+  // Create region zoom shader program (uses engine's WebGL utilities)
+  create_region_shader_program(gl) {
+    const engine_utils = window.infinity_zoom_II.utils;
+    return engine_utils.create_program(gl, this.get_region_vertex_shader_source(), this.get_region_fragment_shader_source());
+  },
+
+  // Create quad in IMAGE PIXEL coordinates (not clip space)
+  create_image_pixel_quad_buffer(gl, image_width, image_height) {
+    const vertices = new Float32Array([
+      0,
+      0,
+      0,
+      1, // Bottom-left (pos + uv)
+      image_width,
+      0,
+      1,
+      1, // Bottom-right
+      0,
+      image_height,
+      0,
+      0, // Top-left
+      image_width,
+      image_height,
+      1,
+      0, // Top-right
+    ]);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    return buffer;
+  },
+
   // Initialize region zoom (called once when state changes)
   init_region_zoom(engine, now) {
     this.engine = engine;
     this.start_time = now;
 
+    // Get current layer for texture and dimensions
+    this.current_layer = engine.layers[engine.layers.length - 1];
+    const gl = engine.gl_context;
+
+    // Create region zoom shader program and buffers
+    this.region_program = this.create_region_shader_program(gl);
+    this.region_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.current_layer.image.width, this.current_layer.image.height);
+
+    // Get shader uniform locations
+    this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
+    this.u_texture_location = gl.getUniformLocation(this.region_program, "u_texture");
+
+    // Calculate starting transformation parameters
+    this.start_params = {
+      center_x: this.current_layer.image.width * 0.5, // Image center
+      center_y: this.current_layer.image.height * 0.5,
+      scale: this.calculate_engine_final_scale(),
+      rotation: engine.global_rotation || 0,
+    };
+
+    // Calculate target region parameters
+    this.target_params = this.calculate_region_parameters();
+
     log("Region zoom initialized - orthographic projection approach");
+    log("Start params:", this.start_params);
+    log("Target params:", this.target_params);
+  },
+
+  // === REGION PARAMETER CALCULATION (Phase 3) ===
+
+  // Calculate engine's final scale factor
+  calculate_engine_final_scale() {
+    // Convert from engine's TRS scale to screen pixel scale
+    const canvas_width = this.engine.canvas.width;
+    const canvas_height = this.engine.canvas.height;
+    const image_width = this.current_layer.image.width;
+    const image_height = this.current_layer.image.height;
+
+    // Estimate scale that would fill screen with current image
+    return Math.min(canvas_width / image_width, canvas_height / image_height);
+  },
+
+  // Calculate region rectangle parameters for targeting
+  calculate_region_parameters() {
+    const config = window.infinity_zoom_II.config.region_zoom;
+    const { p0, p1, p2, p3 } = config.region_rect;
+
+    // Region center in image pixel coordinates
+    const center_x = (p0.x + p2.x) * 0.5;
+    const center_y = (p0.y + p2.y) * 0.5;
+
+    // Region dimensions (handle arbitrary quadrilateral)
+    const edge1 = { x: p1.x - p0.x, y: p1.y - p0.y };
+    const edge2 = { x: p3.x - p0.x, y: p3.y - p0.y };
+    const region_width = Math.hypot(edge1.x, edge1.y);
+    const region_height = Math.hypot(edge2.x, edge2.y);
+
+    // Region rotation from first edge
+    const rotation = Math.atan2(edge1.y, edge1.x);
+
+    // Scale to fit region in screen (covering scale)
+    const screen_width = this.engine.canvas.width;
+    const screen_height = this.engine.canvas.height;
+    const scale = Math.max(screen_width / region_width, screen_height / region_height);
+
+    return { center_x, center_y, scale, rotation };
+  },
+
+  // === ANIMATION SYSTEM (Phase 4) ===
+
+  // Linear interpolation
+  lerp(a, b, t) {
+    return a + (b - a) * t;
+  },
+
+  // Angle interpolation with wrap-around
+  lerp_angle(start_angle, end_angle, t) {
+    const TWO_PI = 2 * Math.PI;
+    let diff = end_angle - start_angle;
+
+    // Normalize to shortest path
+    while (diff > Math.PI) diff -= TWO_PI;
+    while (diff < -Math.PI) diff += TWO_PI;
+
+    return start_angle + diff * t;
+  },
+
+  // Update region zoom animation parameters
+  update_region_zoom_animation(now) {
+    const config = window.infinity_zoom_II.config.region_zoom;
+    const elapsed = (now - this.start_time) / config.anim_duration;
+    const t = Math.min(elapsed, 1.0);
+    const eased_t = this.ease_in_out_cubic(t);
+
+    // Interpolate transformation parameters in screen space
+    const current_params = {
+      center_x: this.lerp(this.start_params.center_x, this.target_params.center_x, eased_t),
+      center_y: this.lerp(this.start_params.center_y, this.target_params.center_y, eased_t),
+      scale: this.lerp(this.start_params.scale, this.target_params.scale, eased_t),
+      rotation: this.lerp_angle(this.start_params.rotation, this.target_params.rotation, eased_t),
+    };
+
+    return current_params;
+  },
+
+  // === ORTHOGRAPHIC RENDERING (Phase 2 & 4) ===
+
+  // Render region zoom frame using orthographic system
+  render_region_zoom_frame(transformation_params) {
+    const gl = this.engine.gl_context;
+
+    // Clear canvas
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Use region zoom shader program
+    gl.useProgram(this.region_program);
+
+    // Build transformation matrix in screen pixel coordinates
+    const transform_matrix = this.build_screen_space_matrix(
+      transformation_params.center_x,
+      transformation_params.center_y,
+      transformation_params.scale,
+      transformation_params.rotation,
+      gl.canvas.width,
+      gl.canvas.height
+    );
+
+    // Apply orthographic projection - THE KEY STEP!
+    const orthographic = this.create_orthographic_matrix(gl.canvas.width, gl.canvas.height);
+    const final_matrix = this.matrix_multiply_3x3(orthographic, transform_matrix);
+
+    // Set up vertex attributes
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.region_quad_buffer);
+
+    const position_location = gl.getAttribLocation(this.region_program, "a_position");
+    const texcoord_location = gl.getAttribLocation(this.region_program, "a_texcoord");
+
+    gl.enableVertexAttribArray(position_location);
+    gl.enableVertexAttribArray(texcoord_location);
+
+    // Position attribute (2 floats, stride 4 floats, offset 0)
+    gl.vertexAttribPointer(position_location, 2, gl.FLOAT, false, 4 * 4, 0);
+    // Texcoord attribute (2 floats, stride 4 floats, offset 2 floats)
+    gl.vertexAttribPointer(texcoord_location, 2, gl.FLOAT, false, 4 * 4, 2 * 4);
+
+    // Set uniforms
+    gl.uniformMatrix3fv(this.u_matrix_location, false, final_matrix);
+
+    // Bind texture
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.current_layer.texture);
+    gl.uniform1i(this.u_texture_location, 0);
+
+    // Draw quad using TRIANGLE_STRIP
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   },
 
   // Update region zoom state (called every frame)
   update_region_zoom_state(now) {
-    log("Region zoom state update - ready for implementation");
+    // Get current animation parameters
+    const current_params = this.update_region_zoom_animation(now);
+
+    // Render the current frame using orthographic system
+    this.render_region_zoom_frame(current_params);
+
+    // Check if animation is complete
+    const config = window.infinity_zoom_II.config.region_zoom;
+    const elapsed = (now - this.start_time) / config.anim_duration;
+
+    if (elapsed >= 1.0) {
+      log("Region zoom animation complete - transitioning to next phase");
+      // Animation complete - engine will handle phase transition
+      return true; // Signal completion
+    }
+
+    return false; // Animation continues
   },
 };
