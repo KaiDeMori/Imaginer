@@ -3,7 +3,7 @@
 
 // Add default configuration for region zoom
 window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 40000, // Animation duration in milliseconds
+  anim_duration: 4000, // Animation duration in milliseconds
   region_rect: {
     p0: { x: 0, y: 0 }, // origin (top-left)
     p1: { x: 99, y: 0 }, // end of top edge (u-axis)
@@ -197,8 +197,8 @@ window.infinity_zoom_II.region_zoom = {
     const image_width = this.current_layer.image.width;
     const image_height = this.current_layer.image.height;
 
-    // Estimate scale that would fill screen with current image
-    return Math.min(canvas_width / image_width, canvas_height / image_height);
+    // Use covering scale (same as engine) - fills entire screen
+    return Math.max(canvas_width / image_width, canvas_height / image_height);
   },
 
   // Calculate region rectangle parameters for targeting
