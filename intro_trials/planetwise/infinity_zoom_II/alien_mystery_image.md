@@ -100,6 +100,7 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 - **Single source of truth**: Calculate transformation matrix once
 - **Apply to both images**: Use identical matrix for alien and mystery rendering
 - **Center alignment**: Ensure mystery image center equals region center
+- **Region format**: The region is always given in pixel coordinates of the containing image (in our case the final layer)
 
 ```javascript
 const transform_matrix = build_screen_space_matrix(
