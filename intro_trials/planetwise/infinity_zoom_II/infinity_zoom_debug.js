@@ -41,7 +41,6 @@ function apply_persisted_debug_values() {
   if (global_rotation_enabled !== null) {
     // If rotation is disabled, set rotation_speed to 0
     config.rotation_speed = global_rotation_enabled ? config.rotation_speed : 0;
-    window.infinity_zoom_II.debug.log("cccccccccccccccccccc Applied persisted global_rotation_enabled:", global_rotation_enabled);
   }
 }
 

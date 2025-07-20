@@ -14,7 +14,7 @@ let feathered_callbacks = [];
  * @param {string} image_folder - Folder containing the images.
  * @param {number} feather_size - Size of the feathering effect.
  */
-function preload_and_feather_images(layer_data, image_folder = "zoom_images", feather_size = 32) {
+function preload_and_feather_images(layer_data, image_folder, feather_size = 32) {
   if (feathered_loaded) throw new Error("Feathered images already loaded. Cannot preload again.");
 
   window.infinity_zoom_II.preloader.preload_images(layer_data, image_folder);
