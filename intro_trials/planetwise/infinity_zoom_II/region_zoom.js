@@ -49,6 +49,13 @@ window.infinity_zoom_II.region_zoom = {
     return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
   },
 
+  ease_out_back(t) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  },
+
   // === ORTHOGRAPHIC MATRIX SYSTEM (Phase 1) ===
 
   // 3x3 matrix multiplication (column-major) - DUPLICATED from MatrixStack
@@ -280,7 +287,8 @@ window.infinity_zoom_II.region_zoom = {
     const t = Math.min(elapsed, 1.0);
 
     // Use different easing for different parameters
-    const translation_eased_t = this.ease_out_elastic(t);
+    const translation_eased_t = this.ease_out_back(t);
+    //const translation_eased_t = this.ease_out_elastic(t);
     //const translation_eased_t = this.ease_in_out_sine(t);
     const scale_rotation_eased_t = this.ease_in_sine(t);
 

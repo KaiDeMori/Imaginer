@@ -1,5 +1,21 @@
 # Alien Mystery Image - Portal Effect Implementation
 
+## Implementation Scope - MAIN ZOOM ONLY
+- **Phase 1 COMPLETE**: Mystery image integration ✅
+- **Phase 2 FOCUS**: Dual rendering for MAIN ZOOM phases (TRS system) only
+- **Region Zoom**: Deferred to later implementation
+- **NO additional effects**: No screen flicker, scan lines, or other embellishments
+
+## Current Status
+- **Phase 1**: ✅ COMPLETE - Mystery image loaded and texture created
+- **Next**: Phase 2 - Modify main engine render() method for dual-layer rendering
+
+## Technical Constraints
+- Mystery image NEVER gets feathered (always loaded separately)
+- Focus on TRS transformation synchronization only
+- No visual effects beyond the core portal effect
+- **ALL images maintain natural aspect ratio ALWAYS (project uses 1:1 square images)**
+
 ## Overview
 
 The alien mystery image feature creates a "portal" effect where the alien's screen region becomes a transparent window revealing mystery content underneath. As the infinity zoom sequence progresses, both the alien image and mystery image transform in perfect synchronization, maintaining the illusion that we're looking at the alien's actual screen display.
@@ -7,7 +23,7 @@ The alien mystery image feature creates a "portal" effect where the alien's scre
 ## Technical Concept
 
 ### Dual-Layer Rendering System
-- **Background Layer**: Mystery image (`mystery_alien_display_image.png`) - the alien's screen content
+- **Background Layer**: Mystery image (`MYSTERY_IMAGE`) - the alien's screen content
 - **Foreground Layer**: Alien image with smooth PNG alpha transparency in the screen region
 - **Portal Effect**: The transparent region acts as a window, revealing the mystery content below
 
@@ -31,7 +47,7 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 **Why covering?**
 - Ensures mystery content fills the entire screen region
 - No letterboxing or empty spaces in the alien's "display"
-- Maintains aspect ratio while guaranteeing complete coverage
+- Maintains 1:1 aspect ratio (all project images are square)
 - Matches the visual expectation of a filled screen
 
 ## Animation Phase Integration
@@ -55,18 +71,18 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 
 ## Implementation Roadmap
 
-### Phase 1: Mystery Image Integration
-1. **Add mystery image to configuration**
-   - Filename: `"mystery_alien_display_image.png"`
+### Phase 1: Mystery Image Integration ✅ COMPLETE
+1. **Add mystery image to configuration** ✅
+   - Config: `MYSTERY_IMAGE`
    - Add to layer data structure
    - Integrate with preloader system
 
-2. **Extend current layer loading**
+2. **Extend current layer loading** ✅
    - Add mystery image as additional layer
    - Create WebGL texture for mystery content
    - Store alongside existing alien image texture
 
-### Phase 2: Dual Rendering Pipeline Modification
+### Phase 2: Dual Rendering Pipeline Modification (MAIN ZOOM ONLY)
 
 #### Main Engine Rendering (TRS Phases)
 1. **Modify `render()` method in main engine**
@@ -74,13 +90,7 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
    - Use identical TRS transformation matrix for both images
    - Ensure proper WebGL state management between renders
 
-#### Region Zoom Rendering (Orthographic Phase)  
-1. **Extend `render_region_zoom_frame()`**
-   - Render mystery image first with transformation matrix
-   - Render alien image second with same transformation matrix
-   - Maintain identical geometry buffers for both images
-
-### Phase 3: Transformation Synchronization
+### Phase 3: Transformation Synchronization (MAIN ZOOM ONLY)
 
 #### Matrix Calculation
 - **Single source of truth**: Calculate transformation matrix once
@@ -149,7 +159,7 @@ calculate_mystery_covering_scale(region_width, region_height, screen_width, scre
 
 ## File Structure
 - **Main implementation**: Extensions to existing `region_zoom.js` and engine files
-- **Asset**: `mystery_alien_display_image.png` (square, standalone)
+- **Asset**: `MYSTERY_IMAGE` (square, standalone)
 - **Configuration**: Mystery image integrated into existing layer config system
 - **No new files required**: Leverages existing orthographic infrastructure
 
