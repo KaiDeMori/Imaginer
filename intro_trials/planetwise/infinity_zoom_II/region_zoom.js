@@ -85,7 +85,7 @@ window.infinity_zoom_II.region_zoom = {
   create_rotation_matrix(angle) {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    return new Float32Array([c, s, 0, -s, c, 0, 0, 0, 1]);
+    return new Float32Array([c, -s, 0, s, c, 0, 0, 0, 1]);
   },
 
   // Build transformation matrix in screen pixel coordinates
