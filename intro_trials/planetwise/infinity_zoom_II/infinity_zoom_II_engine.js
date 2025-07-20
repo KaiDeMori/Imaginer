@@ -392,6 +392,16 @@ const engine = {
       for (let i = this.first_visible_layer_index; i <= this.deepest_visible_layer_index; i++) {
         const layer = this.layers[i];
         if (layer.alpha > 0) {
+          // Render mystery image before final alien layer
+          if (i === this.layers.length - 1) {
+            const mystery_trs = this.utils.create_TRS(0, 0, 1, 0);
+            const mystery_layer = {
+              trs: mystery_trs,
+              texture: this.mystery_texture,
+              alpha: layer.alpha,
+            };
+            this.utils.render_layer(gl, this.program, this.quad_buffer, mystery_layer, this.canvas.width, this.canvas.height);
+          }
           this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
         }
       }
