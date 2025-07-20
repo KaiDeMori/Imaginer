@@ -394,7 +394,7 @@ const engine = {
         if (layer.alpha > 0) {
           // Render mystery image before final alien layer
           if (i === this.layers.length - 1) {
-            const mystery_trs = this.utils.create_TRS(0, 0, 0.2, 0);
+            const mystery_trs = this.calculate_mystery_image_TRS(layer);
             const mystery_layer = {
               trs: mystery_trs,
               texture: this.mystery_texture,
@@ -406,6 +406,28 @@ const engine = {
         }
       }
     }
+  },
+
+  // Calculate mystery image TRS based on alien layer TRS and region coordinates
+  calculate_mystery_image_TRS(alien_layer) {
+    const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
+
+    // Calculate region center in alien image pixel coordinates
+    const region_center_x = (region_rect.p0.x + region_rect.p2.x) / 2;
+    const region_center_y = (region_rect.p0.y + region_rect.p2.y) / 2;
+
+    // Get alien image size (assuming square images)
+    const alien_image_size = alien_layer.image.width;
+
+    // Transform region center to screen coordinates
+    const screen_center = this.utils.transform_point_image_to_screen(region_center_x, region_center_y, alien_layer.trs, alien_image_size);
+
+    // Calculate covering scale for region dimensions
+    const region_width = Math.abs(region_rect.p1.x - region_rect.p0.x);
+    const region_height = Math.abs(region_rect.p3.y - region_rect.p0.y);
+    const covering_scale = Math.max(this.canvas.width / region_width, this.canvas.height / region_height) * alien_layer.trs.scale;
+
+    return this.utils.create_TRS(screen_center.x, screen_center.y, covering_scale, alien_layer.trs.rotation);
   },
 };
 

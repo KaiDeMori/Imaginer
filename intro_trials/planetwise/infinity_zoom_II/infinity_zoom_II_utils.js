@@ -129,6 +129,29 @@ window.infinity_zoom_II.utils = {
     });
   },
 
+  // Transform point from image pixel space to screen space using layer's TRS
+  transform_point_image_to_screen(pixel_x, pixel_y, layer_trs, image_size) {
+    // Convert pixel coordinates to normalized image coordinates [-1, 1]
+    // Flip Y coordinate: image Y=0 (top) becomes screen Y=1 (top)
+    const norm_x = (pixel_x / image_size) * 2 - 1;
+    const norm_y = -((pixel_y / image_size) * 2 - 1);
+
+    // Apply TRS transformation (rotation, scale, translation)
+    const cos_r = Math.cos(layer_trs.rotation);
+    const sin_r = Math.sin(layer_trs.rotation);
+
+    const rotated_x = norm_x * cos_r - norm_y * sin_r;
+    const rotated_y = norm_x * sin_r + norm_y * cos_r;
+
+    const scaled_x = rotated_x * layer_trs.scale;
+    const scaled_y = rotated_y * layer_trs.scale;
+
+    const screen_x = scaled_x + layer_trs.center_x;
+    const screen_y = scaled_y + layer_trs.center_y;
+
+    return { x: screen_x, y: screen_y };
+  },
+
   // WebGL functions
   // Initialize WebGL context and shaders
   init_webgl(canvas) {
