@@ -394,7 +394,7 @@ const engine = {
         if (layer.alpha > 0) {
           // Render mystery image before final alien layer
           if (i === this.layers.length - 1) {
-            const mystery_trs = this.utils.create_TRS(0, 0, 1, 0);
+            const mystery_trs = this.utils.create_TRS(0, 0, 0.2, 0);
             const mystery_layer = {
               trs: mystery_trs,
               texture: this.mystery_texture,
