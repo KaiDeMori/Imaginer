@@ -1,14 +1,18 @@
 # Alien Mystery Image - Portal Effect Implementation
 
+*general warngin*
+This taks is really hard. This is not the time for speculation or overcomplications.
+We need to stay laser focused!
+
 ## Implementation Scope - MAIN ZOOM ONLY
 - **Phase 1 COMPLETE**: Mystery image integration ✅
-- **Phase 2 FOCUS**: Dual rendering for MAIN ZOOM phases (TRS system) only
+- **Phase 2 Main Zoom**: Dual rendering for MAIN ZOOM phases (TRS system) only
 - **Region Zoom**: Deferred to later implementation
 - **NO additional effects**: No screen flicker, scan lines, or other embellishments
 
 ## Current Status
 - **Phase 1**: ✅ COMPLETE - Mystery image loaded and texture created
-- **Next**: Phase 2 - Modify main engine render() method for dual-layer rendering
+- **Next**: Phase 2
 
 ## Technical Constraints
 - Mystery image NEVER gets feathered (always loaded separately)
@@ -162,6 +166,29 @@ calculate_mystery_covering_scale(region_width, region_height, screen_width, scre
 - **Asset**: `MYSTERY_IMAGE` (square, standalone)
 - **Configuration**: Mystery image integrated into existing layer config system
 - **No new files required**: Leverages existing orthographic infrastructure
+
+# Relevant Project Files
+
+## Core Engine Files
+- **infinity_zoom_II_engine.js** - Main rendering engine requiring modification for dual-layer rendering system
+- **region_zoom.js** - Orthographic rendering system implementation for region zoom phases
+- **infinity_zoom_II_utils.js** - Utility functions including matrix calculations and transformation logic
+
+## Configuration and Data
+- **infinity_zoom_II_configs.js** - File containing various configurations. This is where MYSTERY_IMAGE is defined
+- **regions.js** - Region definitions and management for alien screen portal area (mostly for debugging)
+
+## Loading and Preloading
+- **infinity_zoom_preloader.js** - Main preloader system for textures and images
+- **infinity_zoom_feather_preloader.js** - Optional Feather-specific preloader (mystery image never gets feathered)
+
+## Project Structure
+- **infinity_zoom_II.html** - Main HTML entry point for the infinity zoom application
+- **infinity_zoom_debug.js** - Debug utilities and development tools
+
+## Documentation
+- **alien_mystery_image.md** - This documentation file for portal effect implementation
+- **infinity_zoom_sequence_screenplay.md** - Animation sequence and timing documentation. Most questions are answered in this file ;-)
 
 ---
 
