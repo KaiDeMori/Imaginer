@@ -42,18 +42,35 @@ function apply_persisted_debug_values() {
     // If rotation is disabled, set rotation_speed to 0
     config.rotation_speed = global_rotation_enabled ? config.rotation_speed : 0;
   }
+
+  // Check if feather enabled value is persisted
+  const feather_enabled = window.infinity_zoom_II.debug.recall_value("feather_enabled");
+  if (feather_enabled !== null) {
+    // If feather is disabled, set feather_size to undefined
+    config.feather_size = feather_enabled ? 300 : undefined;
+  }
 }
 
 function setup_debug_controls() {
-  const checkbox = document.getElementById("global_rotation_enabled");
+  const rotation_checkbox = document.getElementById("global_rotation_enabled");
+  const feather_checkbox = document.getElementById("feather_enabled");
 
-  // Restore checkbox state
-  const saved_state = recall_debug_value("global_rotation_enabled", true);
-  checkbox.checked = saved_state;
+  // Restore rotation checkbox state
+  const saved_rotation_state = recall_debug_value("global_rotation_enabled", true);
+  rotation_checkbox.checked = saved_rotation_state;
 
-  // Add event listener to persist changes
-  checkbox.addEventListener("change", function () {
-    persist_debug_value("global_rotation_enabled", checkbox.checked);
+  // Add event listener to persist rotation changes
+  rotation_checkbox.addEventListener("change", function () {
+    persist_debug_value("global_rotation_enabled", rotation_checkbox.checked);
+  });
+
+  // Restore feather checkbox state
+  const saved_feather_state = recall_debug_value("feather_enabled", true);
+  feather_checkbox.checked = saved_feather_state;
+
+  // Add event listener to persist feather changes
+  feather_checkbox.addEventListener("change", function () {
+    persist_debug_value("feather_enabled", feather_checkbox.checked);
   });
 }
 
