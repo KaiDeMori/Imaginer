@@ -26,30 +26,12 @@ const engine = {
     this.pre_main_zoom_hold_duration = window.infinity_zoom_II.config.pre_main_zoom_hold_duration;
     this.minimum_render_size = window.infinity_zoom_II.config.minimum_render_size;
 
-    // Check if feathering is enabled
-    const feather_size = window.infinity_zoom_II.config.feather_size;
-
-    if (feather_size !== undefined) {
-      // Use feathering preloader
-      log(`Using feathering preloader with size: ${feather_size}`);
-      window.infinity_zoom_II.feather_preloader.preload_and_feather_images(layer_data, image_path, feather_size);
-
-      // When feathered images are ready, initialize the engine
-      window.infinity_zoom_II.feather_preloader.on_feathered_images_ready((feathered_images) => {
-        log("All feathered images ready, initializing engine");
-        this.init(layer_data, feathered_images, canvas);
-      });
-    } else {
-      // Use normal preloader
-      log("Using normal preloader (no feathering)");
-      window.infinity_zoom_II.preloader.preload_images(layer_data, image_path);
-
-      // When images are loaded, initialize the engine
-      window.infinity_zoom_II.preloader.on_images_loaded((loaded_images, mystery_image) => {
-        log("All images loaded, initializing engine");
-        this.init(layer_data, loaded_images, mystery_image, canvas);
-      });
-    }
+    // Use unified preloader interface
+    log("Using unified preloader interface");
+    window.infinity_zoom_II.preloader.load_all_images(layer_data, image_path, (processed_images, mystery_image) => {
+      log("All images loaded and processed, initializing engine");
+      this.init(layer_data, processed_images, mystery_image, canvas);
+    });
   },
 
   gl_context: null,
