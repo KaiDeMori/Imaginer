@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <script src="infinity_zoom_II_configs.js" defer></script>
+    <script src="infinity_zoom_debug.js" defer></script>
     <script src="infinity_zoom_II_engine.js" defer></script>
     <script src="infinity_zoom_II_utils.js" defer></script>
     <script src="infinity_zoom_preloader.js" defer></script>
-    <script src="infinity_zoom_debug.js" defer></script>
     <script src="regions.js" defer></script>
     <script src="region_zoom.js" defer></script>
     <script src="infinity_zoom_feather_preloader.js" defer></script>
@@ -21,7 +21,12 @@
       function start_infinity_zoom_II() {
         const config = window.infinity_zoom_II.config;
 
-        window.infinity_zoom_II.engine.create(config.LAYERS_DATA, config.RELATIVE_IMAGE_PATH, document.getElementById("zoom_canvas"), config.FEATHER_SIZE);
+        // Setup debug controls
+        window.infinity_zoom_II.debug.setup_controls();
+        // Apply persisted debug values to config
+        window.infinity_zoom_II.debug.apply_persisted_debug_values();
+
+        window.infinity_zoom_II.engine.create(document.getElementById("zoom_canvas"));
 
         // Add keyboard shortcut for testing region zoom (press 'R' key)
         document.addEventListener("keydown", function (event) {
@@ -50,10 +55,26 @@
         height: 100vh;
         background: #000;
       }
+
+      #debug_div {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        border: 2px solid green;
+        background-color: wheat;
+        padding: 10px;
+        z-index: 1000;
+      }
     </style>
   </head>
 
   <body onload="start_infinity_zoom_II()">
     <canvas id="zoom_canvas"></canvas>
+
+    <div id="debug_div">
+      <button onclick="location.reload()">Reload</button>
+      <br />
+      <label> <input type="checkbox" id="global_rotation_enabled" /> Global rotation enabled </label>
+    </div>
   </body>
 </html>

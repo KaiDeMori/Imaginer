@@ -7,16 +7,24 @@ window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 const engine = {
   /**
    * Create and initialize the engine.
-   * @param {Array} layer_data - Array of layer objects.
-   * @param {string} image_path - Path to image folder.
+   * @param {Object} config - Configuration object containing layer data and image paths.
    * @param {HTMLCanvasElement} canvas - The canvas element.
-   * @param {number} [feather_size] - Feather size (optional).
    */
-  create(layer_data, image_path, canvas, feather_size) {
+  create(canvas) {
     log("Engine create called.");
 
-    // Store canvas reference
+    const layer_data = window.infinity_zoom_II.config.LAYERS_DATA;
+    const image_path = window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH;
+
+    // Store important configuration values locally
     this.canvas = canvas;
+    this.rotation_speed = window.infinity_zoom_II.config.rotation_speed;
+    this.zoom_speed = window.infinity_zoom_II.config.zoom_speed;
+    this.start_rotation_angle = window.infinity_zoom_II.config.start_rotation_angle;
+    this.intro_planet_zoom_duration = window.infinity_zoom_II.config.intro_planet_zoom_duration;
+    this.visible_layers_fade_duration = window.infinity_zoom_II.config.visible_layers_fade_duration;
+    this.pre_main_zoom_hold_duration = window.infinity_zoom_II.config.pre_main_zoom_hold_duration;
+    this.minimum_render_size = window.infinity_zoom_II.config.minimum_render_size;
 
     // Start image preloading
     window.infinity_zoom_II.preloader.preload_images(layer_data, image_path);
@@ -35,13 +43,6 @@ const engine = {
   animation_phase: "intro",
   global_rotation: 0,
   utils: null,
-  rotation_speed: window.infinity_zoom_II.config.rotation_speed,
-  zoom_speed: window.infinity_zoom_II.config.zoom_speed,
-  start_rotation_angle: window.infinity_zoom_II.config.start_rotation_angle,
-  intro_planet_zoom_duration: window.infinity_zoom_II.config.intro_planet_zoom_duration,
-  visible_layers_fade_duration: window.infinity_zoom_II.config.visible_layers_fade_duration,
-  pre_main_zoom_hold_duration: window.infinity_zoom_II.config.pre_main_zoom_hold_duration,
-  minimum_render_size: window.infinity_zoom_II.config.minimum_render_size,
   first_visible_layer_index: 0,
   deepest_visible_layer_index: 0,
 
