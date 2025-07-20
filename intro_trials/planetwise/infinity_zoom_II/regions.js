@@ -16,9 +16,9 @@ window.infinity_zoom_II.regions = {
 
   // 100_alien_debug_grid tilted 90° ccw
   debug_grid_tilted: {
-    p0: { x: 921, y: 726 },
-    p1: { x: 921, y: 921 },
-    p2: { x: 726, y: 921 },
-    p3: { x: 726, y: 726 },
+    p0: { x: 726, y: 921 },
+    p1: { x: 726, y: 726 },
+    p2: { x: 921, y: 726 },
+    p3: { x: 921, y: 921 },
   },
 };
