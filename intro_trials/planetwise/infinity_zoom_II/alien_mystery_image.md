@@ -32,11 +32,12 @@ The alien mystery image feature creates a "portal" effect where the alien's scre
 - **Portal Effect**: The transparent region acts as a window, revealing the mystery content below
 
 ### Perfect Synchronization
-Both images undergo **identical transformations** throughout all animation phases:
-- Same center point
-- Same scale factor  
-- Same rotation angle
-- Same timing/easing
+The mystery image transforms to stay aligned with the alien's screen region:
+- **Region center**: Calculated from region pixel coordinates within alien image
+- **Transformed center**: Region center transformed through alien's current TRS
+- **Covering scale**: Sized to fill the transformed region dimensions
+- **Same rotation**: Identical rotation angle as alien image
+- **Same timing/easing**: Transforms synchronously with alien layer
 
 This ensures the mystery image remains perfectly aligned with the alien's screen region regardless of zoom level, rotation, or position.
 
@@ -57,10 +58,10 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 ## Animation Phase Integration
 
 ### Main Zoom Phases (TRS System)
-- Both alien and mystery images transform via existing TRS system
-- Mystery image transformation calculated identically to alien transformation
-- Region coordinates transform naturally with the alien image
-- Perfect alignment maintained throughout zoom sequence
+- Mystery image transforms to follow alien's screen region
+- Region center in alien image pixel space gets transformed via alien's TRS
+- Mystery image uses transformed region center + covering scale + alien rotation
+- Perfect portal alignment maintained as alien layer scales/rotates/moves
 
 ### Region Zoom Phase (Orthographic System) 
 - Both images transition to orthographic rendering system
@@ -97,16 +98,18 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 ### Phase 3: Transformation Synchronization (MAIN ZOOM ONLY)
 
 #### Matrix Calculation
-- **Single source of truth**: Calculate transformation matrix once
-- **Apply to both images**: Use identical matrix for alien and mystery rendering
-- **Center alignment**: Ensure mystery image center equals region center
-- **Region format**: The region is always given in pixel coordinates of the containing image (in our case the final layer)
+- **Region coordinates**: Given in pixel space of alien image (e.g., `{x: 726, y: 726}` to `{x: 921, y: 921}`)
+- **Transform region center**: Apply alien layer's TRS to convert region center from image space to screen space
+- **Mystery image positioning**: Use transformed region center as mystery image center
+- **Covering scale**: Calculate relative to transformed region dimensions
 
 ```javascript
-const transform_matrix = build_screen_space_matrix(
-  region_center_x, region_center_y, covering_scale, rotation, screen_w, screen_h
-);
-// Apply same matrix to both mystery and alien rendering
+// Region center in alien image pixel coordinates
+const region_center_pixels = {x: (p0.x + p2.x) / 2, y: (p0.y + p2.y) / 2};
+// Transform to screen space using alien layer's TRS
+const mystery_center_screen = transform_point_with_TRS(region_center_pixels, alien_layer.trs);
+// Apply covering scale for region dimensions
+const mystery_trs = create_TRS(mystery_center_screen.x, mystery_center_screen.y, covering_scale, alien_layer.trs.rotation);
 ```
 
 #### Covering Scale Implementation
