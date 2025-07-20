@@ -47,14 +47,37 @@ function preload_and_feather_layers_only(layer_data, image_folder, feather_size,
             `;
       const frag_src = `
                 precision mediump float;
+                varying vec2 v_tex;
                 uniform sampler2D u_image;
                 uniform float u_feather;
-                varying vec2 v_tex;
                 void main() {
                     vec4 color = texture2D(u_image, v_tex);
+                    float feather = u_feather;
                     float edge_dist = min(min(v_tex.x, 1.0 - v_tex.x), min(v_tex.y, 1.0 - v_tex.y));
-                    float alpha_mult = smoothstep(0.0, u_feather, edge_dist);
-                    gl_FragColor = vec4(color.rgb, color.a * alpha_mult);
+                    float corner_radius = feather;
+                    float alpha = 1.0;
+                    bool in_corner = false;
+                    float d_corner = 0.0;
+                    if (v_tex.x < corner_radius && v_tex.y < corner_radius) {
+                        in_corner = true;
+                        d_corner = length(v_tex - vec2(corner_radius, corner_radius));
+                    } else if (v_tex.x > 1.0 - corner_radius && v_tex.y < corner_radius) {
+                        in_corner = true;
+                        d_corner = length(v_tex - vec2(1.0 - corner_radius, corner_radius));
+                    } else if (v_tex.x < corner_radius && v_tex.y > 1.0 - corner_radius) {
+                        in_corner = true;
+                        d_corner = length(v_tex - vec2(corner_radius, 1.0 - corner_radius));
+                    } else if (v_tex.x > 1.0 - corner_radius && v_tex.y > 1.0 - corner_radius) {
+                        in_corner = true;
+                        d_corner = length(v_tex - vec2(1.0 - corner_radius, 1.0 - corner_radius));
+                    }
+                    if (in_corner) {
+                        alpha = smoothstep(feather, 0.0, d_corner);
+                    } else {
+                        alpha = smoothstep(0.0, feather, edge_dist);
+                    }
+                    float out_alpha = color.a * alpha;
+                    gl_FragColor = vec4(color.rgb * out_alpha, out_alpha);
                 }
             `;
 
@@ -105,13 +128,15 @@ function preload_and_feather_layers_only(layer_data, image_folder, feather_size,
       // Create texture and render with feathering
       const tex = shared_gl.createTexture();
       shared_gl.bindTexture(shared_gl.TEXTURE_2D, tex);
+      // Flip Y so browser images (top-left origin) appear correct in WebGL (bottom-left origin)
+      shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, true);
       shared_gl.texImage2D(shared_gl.TEXTURE_2D, 0, shared_gl.RGBA, shared_gl.RGBA, shared_gl.UNSIGNED_BYTE, img);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MIN_FILTER, shared_gl.LINEAR);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MAG_FILTER, shared_gl.LINEAR);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_S, shared_gl.CLAMP_TO_EDGE);
       shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_T, shared_gl.CLAMP_TO_EDGE);
 
-      const feather_norm = feather_size / Math.min(img.width, img.height);
+      const feather_norm = feather_size / Math.max(img.width, img.height);
       shared_gl.uniform1f(u_feather, feather_norm);
       shared_gl.uniform1i(u_image, 0);
       shared_gl.drawArrays(shared_gl.TRIANGLE_STRIP, 0, 4);
