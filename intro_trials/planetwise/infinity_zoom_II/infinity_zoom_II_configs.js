@@ -39,7 +39,7 @@ window.infinity_zoom_II.config.feather_size = 300;
 // Example: without feathering
 window.infinity_zoom_II.config.feather_size = undefined;
 */
-window.infinity_zoom_II.config.feather_size = undefined;
+window.infinity_zoom_II.config.feather_size = 300;
 
 // Engine configuration settings
 // Minimum rendered layer size in pixels

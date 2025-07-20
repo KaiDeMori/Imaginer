@@ -1,8 +1,4 @@
-// infinity_zoom_feather_preloader.js
-
 // Feathered image preloader logic for Infinity Zoom II
-// This module is only called by the engine. Do not call directly from user code.
-// Feathering is always controlled by the engine's create() method.
 let feathered_images = [];
 let feathered_loaded = false;
 let feathered_callbacks = [];
