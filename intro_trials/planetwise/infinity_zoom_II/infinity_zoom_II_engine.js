@@ -45,9 +45,9 @@ const engine = {
       window.infinity_zoom_II.preloader.preload_images(layer_data, image_path);
 
       // When images are loaded, initialize the engine
-      window.infinity_zoom_II.preloader.on_images_loaded((loaded_images) => {
+      window.infinity_zoom_II.preloader.on_images_loaded((loaded_images, mystery_image) => {
         log("All images loaded, initializing engine");
-        this.init(layer_data, loaded_images, canvas);
+        this.init(layer_data, loaded_images, mystery_image, canvas);
       });
     }
   },
@@ -55,6 +55,7 @@ const engine = {
   gl_context: null,
   canvas: null,
   layers: [],
+  mystery_texture: null,
   start_time: 0,
   animation_phase: "intro",
   global_rotation: 0,
@@ -63,7 +64,7 @@ const engine = {
   deepest_visible_layer_index: 0,
 
   // Initialize engine with preloaded images and canvas
-  init(layer_data, images, canvas) {
+  init(layer_data, images, mystery_image, canvas) {
     log("Engine init called");
     this.canvas = canvas;
 
@@ -102,6 +103,9 @@ const engine = {
         loaded: true,
       };
     });
+
+    // Create mystery texture
+    this.mystery_texture = this.utils.create_texture(this.gl_context, mystery_image);
 
     this.start_time = performance.now();
     this.animation_phase = "intro";
