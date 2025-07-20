@@ -44,6 +44,11 @@ window.infinity_zoom_II.region_zoom = {
     return -(Math.cos(Math.PI * t) - 1) / 2;
   },
 
+  ease_out_elastic(t) {
+    const c4 = (2 * Math.PI) / 3;
+    return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+  },
+
   // === ORTHOGRAPHIC MATRIX SYSTEM (Phase 1) ===
 
   // 3x3 matrix multiplication (column-major) - DUPLICATED from MatrixStack
@@ -275,16 +280,16 @@ window.infinity_zoom_II.region_zoom = {
     const t = Math.min(elapsed, 1.0);
 
     // Use different easing for different parameters
-    const translation_eased_t = this.ease_in_out_sine(t); // Faster translation
-    const scale_rotation_eased_t = this.ease_in_sine(t); // Keep current zoom behavior
-    //const eased_t = this.linear_lerp(t); // Use this for debugging with linear interpolation
+    const translation_eased_t = this.ease_out_elastic(t);
+    //const translation_eased_t = this.ease_in_out_sine(t);
+    const scale_rotation_eased_t = this.ease_in_sine(t);
 
     // Interpolate transformation parameters with different easing
     const current_params = {
-      center_x: this.lerp(this.start_params.center_x, this.target_params.center_x, translation_eased_t), // Faster translation
-      center_y: this.lerp(this.start_params.center_y, this.target_params.center_y, translation_eased_t), // Faster translation
-      scale: this.lerp_scale_log(this.start_params.scale, this.target_params.scale, scale_rotation_eased_t), // Keep current zoom
-      rotation: this.lerp_angle(this.start_params.rotation, this.target_params.rotation, scale_rotation_eased_t), // Keep current rotation
+      center_x: this.lerp(this.start_params.center_x, this.target_params.center_x, translation_eased_t),
+      center_y: this.lerp(this.start_params.center_y, this.target_params.center_y, translation_eased_t),
+      scale: this.lerp_scale_log(this.start_params.scale, this.target_params.scale, scale_rotation_eased_t),
+      rotation: this.lerp_angle(this.start_params.rotation, this.target_params.rotation, scale_rotation_eased_t),
     };
 
     return current_params;
