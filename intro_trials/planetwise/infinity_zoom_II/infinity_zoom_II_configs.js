@@ -51,7 +51,7 @@ window.infinity_zoom_II.config.feather_min_px = 2;
 // Initial rotation angle in radians.
 window.infinity_zoom_II.config.start_rotation_angle = 0;
 // Global rotation speed in radians per second. Positive values rotate counter-clockwise (gl convention).
-window.infinity_zoom_II.config.rotation_speed = 0;
+window.infinity_zoom_II.config.rotation_speed = 0.2;
 // Exponential zoom rate (growth constant per second).
 window.infinity_zoom_II.config.zoom_speed = 6;
 
