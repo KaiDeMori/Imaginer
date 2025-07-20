@@ -49,11 +49,18 @@ function apply_persisted_debug_values() {
     // If feather is disabled, set feather_size to undefined
     config.feather_size = feather_enabled ? 300 : undefined;
   }
+
+  // Check if region selection is persisted
+  const selected_region = window.infinity_zoom_II.debug.recall_value("selected_region");
+  if (selected_region !== null) {
+    config.region_zoom.region_rect = window.infinity_zoom_II.regions[selected_region];
+  }
 }
 
 function setup_debug_controls() {
   const rotation_checkbox = document.getElementById("global_rotation_enabled");
   const feather_checkbox = document.getElementById("feather_enabled");
+  const region_select = document.getElementById("region_select");
 
   // Restore rotation checkbox state
   const saved_rotation_state = recall_debug_value("global_rotation_enabled", true);
@@ -71,6 +78,24 @@ function setup_debug_controls() {
   // Add event listener to persist feather changes
   feather_checkbox.addEventListener("change", function () {
     persist_debug_value("feather_enabled", feather_checkbox.checked);
+  });
+
+  // Populate region dropdown dynamically
+  const region_keys = Object.keys(window.infinity_zoom_II.regions);
+  region_keys.forEach(function (key) {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = key;
+    region_select.appendChild(option);
+  });
+
+  // Restore region selection state
+  const saved_region = recall_debug_value("selected_region", "original");
+  region_select.value = saved_region;
+
+  // Add event listener to persist region changes
+  region_select.addEventListener("change", function () {
+    persist_debug_value("selected_region", region_select.value);
   });
 }
 

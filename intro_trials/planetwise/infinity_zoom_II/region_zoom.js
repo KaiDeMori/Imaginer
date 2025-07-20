@@ -4,7 +4,7 @@
 // Add default configuration for region zoom
 window.infinity_zoom_II.config.region_zoom = {
   anim_duration: 4000, // Animation duration in milliseconds
-  region_rect: window.infinity_zoom_II.regions.debug_grid,
+  region_rect: window.infinity_zoom_II.regions.original,
 };
 
 window.infinity_zoom_II.region_zoom = {
