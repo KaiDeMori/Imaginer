@@ -1,3 +1,11 @@
+(window.infinity_zoom_II = {
+  assert_all_namespaces: function () {
+    if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
+    if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
+    if (!window.infinity_zoom_II.region_zoom) window.infinity_zoom_II.region_zoom = {};
+  },
+}).assert_all_namespaces();
+
 // Infinity Zoom II Configuration Module
 
 // Constants originally from HTML file
@@ -43,7 +51,7 @@ window.infinity_zoom_II.config.feather_min_px = 2;
 // Initial rotation angle in radians.
 window.infinity_zoom_II.config.start_rotation_angle = 0;
 // Global rotation speed in radians per second. Positive values rotate counter-clockwise (gl convention).
-window.infinity_zoom_II.config.rotation_speed = 0.2;
+window.infinity_zoom_II.config.rotation_speed = 0;
 // Exponential zoom rate (growth constant per second).
 window.infinity_zoom_II.config.zoom_speed = 6;
 

@@ -5,6 +5,7 @@
     <title>Infinity Zoom II</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <script src="infinity_zoom_II_configs.js" defer></script>
     <script src="infinity_zoom_II_engine.js" defer></script>
     <script src="infinity_zoom_II_utils.js" defer></script>
     <script src="infinity_zoom_preloader.js" defer></script>
@@ -17,30 +18,9 @@
       console.info(" -----------------  version code: " + version_code);
 
       function start_infinity_zoom_II() {
-        // To use feathering, provide a feather_size (e.g., 300). To disable, omit the fourth argument.
-        const RELATIVE_IMAGE_PATH = "../zoom_images_planete/debug";
-        const LAYERS_DATA = [
-          { zoom: 25, image: "10_new_planete_fixed.jpg" },
-          { zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.jpg" },
-          { zoom: 25, image: "30_alien_island_II_tricky_transition.jpg" },
-          { zoom: 25, image: "40_alien_island_II_atoll_tiny_land.jpg" },
-          { zoom: 25, image: "50_alien_island_II_atoll.jpg" },
-          { zoom: 25, image: "60_alien_island_II.jpg" },
-          { zoom: 25, image: "70_alien_forest.jpg" },
-          { zoom: 25, image: "80_alien_village.jpg" },
-          { zoom: 25, image: "90_alien_hut.jpg" },
-          //{ zoom: 25, image: "100_alien_closeup.png" },
-          { zoom: 25, image: "100_alien_closeup_square_corner_region.png" },
-        ];
-        /*
-        // Example: with feathering
-        const feather_size = 300;
-        // Example: without feathering
-        const feather_size = undefined;
-        */
-        const feather_size = undefined;
+        const config = window.infinity_zoom_II.config;
 
-        window.infinity_zoom_II.engine.create(LAYERS_DATA, RELATIVE_IMAGE_PATH, document.getElementById("zoom_canvas"), feather_size);
+        window.infinity_zoom_II.engine.create(config.LAYERS_DATA, config.RELATIVE_IMAGE_PATH, document.getElementById("zoom_canvas"), config.FEATHER_SIZE);
 
         // Add keyboard shortcut for testing region zoom (press 'R' key)
         document.addEventListener("keydown", function (event) {

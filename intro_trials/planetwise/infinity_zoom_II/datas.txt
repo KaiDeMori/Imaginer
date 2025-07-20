@@ -48,7 +48,7 @@
     p3: { x: 1142, y: 1024 }, // bottom left
   },
 
-
+// 100_alien_debug_grid
   region_rect: {
     p0: { x: 726, y: 726 }, // top left
     p1: { x: 921, y: 726 }, // top right

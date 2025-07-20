@@ -1,34 +1,5 @@
 // Infinity Zoom II Engine - Skeleton
 
-(window.infinity_zoom_II = {
-  assert_all_namespaces: function () {
-    if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-    if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
-    if (!window.infinity_zoom_II.region_zoom) window.infinity_zoom_II.region_zoom = {};
-  },
-}).assert_all_namespaces();
-
-// Config module for Infinity Zoom II
-window.infinity_zoom_II.config = {
-  // Minimum rendered layer size in pixels
-  minimum_render_size: 3,
-  // Edge feathering for all but first layer (fraction of edge).
-  feather_value: 0.1,
-  // Minimum feather width for edge alpha ramp in pixels.
-  feather_min_px: 2,
-  // Initial rotation angle in radians.
-  start_rotation_angle: 0,
-  // Global rotation speed in radians per second. Positive values rotate clockwise.
-  rotation_speed: 0,
-  // Exponential zoom rate (growth constant per second).
-  zoom_speed: 7,
-
-  // Animation phase durations (in seconds)
-  intro_planet_zoom_duration: 0.2, // How long planet takes to grow from tiny to fitting
-  visible_layers_fade_duration: 0.2, // How long additional layers take to fade in
-  pre_main_zoom_hold_duration: 0.2, // How long to hold before starting main zoom
-};
-
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 
