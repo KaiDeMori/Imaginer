@@ -55,7 +55,62 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 
 ## Implementation Roadmap
 
-*TBD*
+### Phase 1: Mystery Image Integration
+1. **Add mystery image to configuration**
+   - Filename: `"mystery_alien_display_image.png"`
+   - Add to layer data structure
+   - Integrate with preloader system
+
+2. **Extend current layer loading**
+   - Add mystery image as additional layer
+   - Create WebGL texture for mystery content
+   - Store alongside existing alien image texture
+
+### Phase 2: Dual Rendering Pipeline Modification
+
+#### Main Engine Rendering (TRS Phases)
+1. **Modify `render()` method in main engine**
+   - Add mystery image rendering before alien image
+   - Use identical TRS transformation matrix for both images
+   - Ensure proper WebGL state management between renders
+
+#### Region Zoom Rendering (Orthographic Phase)  
+1. **Extend `render_region_zoom_frame()`**
+   - Render mystery image first with transformation matrix
+   - Render alien image second with same transformation matrix
+   - Maintain identical geometry buffers for both images
+
+### Phase 3: Transformation Synchronization
+
+#### Matrix Calculation
+- **Single source of truth**: Calculate transformation matrix once
+- **Apply to both images**: Use identical matrix for alien and mystery rendering
+- **Center alignment**: Ensure mystery image center equals region center
+
+```javascript
+const transform_matrix = build_screen_space_matrix(
+  region_center_x, region_center_y, covering_scale, rotation, screen_w, screen_h
+);
+// Apply same matrix to both mystery and alien rendering
+```
+
+#### Covering Scale Implementation
+```javascript
+calculate_mystery_covering_scale(region_width, region_height, screen_width, screen_height) {
+  return Math.max(screen_width / region_width, screen_height / region_height);
+}
+```
+
+### Phase 4: WebGL State Management
+1. **Texture binding order**
+   - Bind mystery texture → render mystery quad
+   - Bind alien texture → render alien quad (with alpha blending)
+   - Proper cleanup between texture switches
+
+2. **Alpha blending setup**
+   - Enable GL blending: `gl.enable(gl.BLEND)`
+   - Blend function: `gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)`
+   - Mystery image renders opaque, alien image blends over with alpha
 
 ## Development Philosophy
 
@@ -87,8 +142,16 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 - Mathematically guaranteed alignment between layers
 - Smooth transitions from TRS to orthographic rendering
 
+### Covering Scale Benefits  
+- Consistent visual fill regardless of region aspect ratio
+- Natural scaling behavior that matches screen display expectations
+- No letterboxing artifacts in the portal effect
 
-## Important Files
+## File Structure
+- **Main implementation**: Extensions to existing `region_zoom.js` and engine files
+- **Asset**: `mystery_alien_display_image.png` (square, standalone)
+- **Configuration**: Mystery image integrated into existing layer config system
+- **No new files required**: Leverages existing orthographic infrastructure
 
 ---
 
