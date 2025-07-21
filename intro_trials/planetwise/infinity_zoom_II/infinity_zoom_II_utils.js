@@ -34,7 +34,10 @@ window.infinity_zoom_II.utils = {
   },
 
   // Convert TRS to 4x4 transformation matrix for WebGL
-  TRS_to_matrix(trs, viewport_width, viewport_height) {
+  TRS_to_matrix(trs, canvas) {
+    const viewport_width = canvas.width;
+    const viewport_height = canvas.height;
+
     const { center_x, center_y, scale, rotation } = trs;
 
     const cos_r = Math.cos(rotation);
@@ -113,8 +116,8 @@ window.infinity_zoom_II.utils = {
   },
 
   // Update all layer TRS objects with synchronized scaling and rotation
-  update_all_layer_TRS(layers, layer_0_scale, global_rotation) {
-    const all_scales = this.calc_all_layer_scales(layer_0_scale, layers);
+  update_all_layer_TRS(layers, first_layer_scale, global_rotation) {
+    const all_scales = this.calc_all_layer_scales(first_layer_scale, layers);
 
     layers.forEach((layer, index) => {
       layer.trs.center_x = 0; // All layers centered
@@ -257,7 +260,9 @@ window.infinity_zoom_II.utils = {
   },
 
   // Render a single layer
-  render_layer(gl, program, quad_buffer, layer, viewport_width, viewport_height) {
+  render_layer(gl, program, quad_buffer, layer, canvas) {
+    const viewport_width = canvas.width;
+    const viewport_height = canvas.height;
     gl.useProgram(program);
 
     // Bind quad geometry
@@ -273,7 +278,7 @@ window.infinity_zoom_II.utils = {
     gl.vertexAttribPointer(texcoord_location, 2, gl.FLOAT, false, 16, 8);
 
     // Set uniforms
-    const transform_matrix = this.TRS_to_matrix(layer.trs, viewport_width, viewport_height);
+    const transform_matrix = this.TRS_to_matrix(layer.trs, canvas);
     const transform_location = gl.getUniformLocation(program, "u_transform");
     gl.uniformMatrix4fv(transform_location, false, transform_matrix);
 

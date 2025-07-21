@@ -380,12 +380,12 @@ const engine = {
 
       // Render penultimate layer first (backdrop)
       if (penultimate_layer_index >= 0 && this.layers[penultimate_layer_index].alpha > 0) {
-        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[penultimate_layer_index], this.canvas.width, this.canvas.height);
+        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[penultimate_layer_index], this.canvas);
       }
 
       // Render final layer on top (with feathered edges)
       if (this.layers[final_layer_index].alpha > 0) {
-        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[final_layer_index], this.canvas.width, this.canvas.height);
+        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[final_layer_index], this.canvas);
       }
     } else {
       // Standard rendering for all other states (optimized with occlusion culling)
@@ -406,9 +406,9 @@ const engine = {
             };
 
             // Render mystery image first (background)
-            this.utils.render_layer(gl, this.program, this.quad_buffer, mystery_layer, this.canvas.width, this.canvas.height);
+            this.utils.render_layer(gl, this.program, this.quad_buffer, mystery_layer, this.canvas);
           }
-          this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
+          this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas);
         }
       }
     }
