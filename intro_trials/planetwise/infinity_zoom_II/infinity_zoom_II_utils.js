@@ -74,11 +74,6 @@ window.infinity_zoom_II.utils = {
     return matrix;
   },
 
-  // Calculate fitting scale for square image in rectangular viewport
-  calc_fitting_scale(viewport_width, viewport_height, image_size) {
-    return 1.0; // Fitting scale is always 1.0 in viewport-relative system
-  },
-
   // Calculate covering scale for square image in rectangular viewport
   calc_covering_scale(viewport_width, viewport_height, image_size) {
     // For covering: scale so image fills entire viewport (may crop edges)
@@ -295,15 +290,6 @@ window.infinity_zoom_II.utils = {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   },
 
-  // Matrix interpolation utility (for general use)
-  lerp_matrix(matrix_start, matrix_end, t) {
-    const result = new Float32Array(16);
-    for (let i = 0; i < 16; i++) {
-      result[i] = matrix_start[i] + (matrix_end[i] - matrix_start[i]) * t;
-    }
-    return result;
-  },
-
   // Calculate region orientation angle from its corner points
   calc_region_orientation(region_rect) {
     // Use vector from p0 to p1 to determine orientation
@@ -338,7 +324,7 @@ window.infinity_zoom_II.utils = {
     const cos_r = Math.cos(region_trs.rotation);
     const sin_r = Math.sin(region_trs.rotation);
 
-    // Scale the normalized coordinates by alien's scale
+    // Scale the normalized coordinates by layer's scale
     // Use same base scale as TRS system: scale * min(width, height)
     const base_pixel_scale = region_trs.scale * Math.min(viewport_width, viewport_height);
     const scaled_x = (region_center_normalized.x * base_pixel_scale) / viewport_width;
@@ -353,24 +339,5 @@ window.infinity_zoom_II.utils = {
     const final_y = rotated_y + region_trs.center_y;
 
     return { x: final_x, y: final_y };
-  },
-
-  // Calculate covering scale for mystery image to fill the transformed region
-  calc_mystery_covering_scale(region_rect) {
-    const alien_image_size = region_layer.image.width;
-    // Calculate region dimensions in image pixels
-    const region_width_pixels = Math.abs(region_rect.p1.x - region_rect.p0.x);
-    const region_height_pixels = Math.abs(region_rect.p3.y - region_rect.p0.y);
-
-    // Calculate what relative scale the mystery image needs to cover the region
-    // Region dimensions as fraction of alien image
-    const region_width_fraction = region_width_pixels / alien_image_size;
-    const region_height_fraction = region_height_pixels / alien_image_size;
-
-    // Calculate covering scale factor (use max to ensure we cover the region)
-    const covering_scale_factor = Math.max(1 / region_width_fraction, 1 / region_height_fraction);
-
-    // Return the relative scale factor (not multiplied by alien's current scale)
-    return covering_scale_factor;
   },
 };
