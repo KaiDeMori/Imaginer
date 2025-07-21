@@ -345,7 +345,8 @@ window.infinity_zoom_II.utils = {
   },
 
   // Calculate covering scale for mystery image to fill the transformed region
-  calc_mystery_covering_scale(region_rect, alien_image_size) {
+  calc_mystery_covering_scale(region_rect) {
+    const alien_image_size = region_layer.image.width;
     // Calculate region dimensions in image pixels
     const region_width_pixels = Math.abs(region_rect.p1.x - region_rect.p0.x);
     const region_height_pixels = Math.abs(region_rect.p3.y - region_rect.p0.y);
