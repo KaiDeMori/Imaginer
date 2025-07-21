@@ -26,6 +26,26 @@ The alien mystery image feature creates a "portal" effect where the alien's scre
 
 ## Technical Concept
 
+### Core Mental Model
+The mystery image represents **content displayed on the alien's screen surface**:
+
+- **NOT**: Another layer that rotates with the alien
+- **IS**: Content that appears on the screen surface and must align with screen edges
+- **Analogy**: Like a TV showing content - the content aligns with the TV screen, not the TV stand
+- **Key insight**: Mystery image orientation = region orientation, NOT alien layer rotation
+
+### Region Format Specification
+- **4 points**: p0, p1, p2, p3 in CLOCKWISE order defining rectangle
+- **Shape**: Always rectangular (not arbitrary quadrilateral)  
+- **Center calculation**: (p0 + p2) / 2 for opposite corners in CW rectangle
+- **Orientation**: Calculate from edge vectors of the rectangle
+
+### Coordinate Systems Reference
+- **Region coordinates**: Image pixel space, Y=0 at top, typical range 0-2048
+- **TRS coordinates**: Viewport-relative, center at (0,0), range ~-1 to +1  
+- **Transform chain**: Region pixels → Normalized image coords → Apply alien TRS → Screen space
+- **Y-axis direction**: Top-down image coordinates vs bottom-up WebGL (requires flip)
+
 ### Dual-Layer Rendering System
 - **Background Layer**: Mystery image (`MYSTERY_IMAGE`) - the alien's screen content
 - **Foreground Layer**: Alien image with smooth PNG alpha transparency in the screen region
@@ -104,12 +124,14 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 - **Covering scale**: Calculate relative to transformed region dimensions
 
 ```javascript
-// Region center in alien image pixel coordinates
+// Region center in alien image pixel coordinates (CW rectangle)
 const region_center_pixels = {x: (p0.x + p2.x) / 2, y: (p0.y + p2.y) / 2};
-// Transform to screen space using alien layer's TRS
+// Transform to screen space using alien layer's TRS  
 const mystery_center_screen = transform_point_with_TRS(region_center_pixels, alien_layer.trs);
+// Calculate region orientation from CW rectangle edges
+const region_orientation = calculate_region_orientation(p0, p1, p2, p3);
 // Apply covering scale for region dimensions
-const mystery_trs = create_TRS(mystery_center_screen.x, mystery_center_screen.y, covering_scale, alien_layer.trs.rotation);
+const mystery_trs = create_TRS(mystery_center_screen.x, mystery_center_screen.y, covering_scale, region_orientation);
 ```
 
 #### Covering Scale Implementation
@@ -129,6 +151,23 @@ calculate_mystery_covering_scale(region_width, region_height, screen_width, scre
    - Enable GL blending: `gl.enable(gl.BLEND)`
    - Blend function: `gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)`
    - Mystery image renders opaque, alien image blends over with alpha
+
+## Implementation Approach
+- **Build new functions**: Create purpose-built mystery image calculations
+- **NO reuse of existing TRS utilities**: Build from scratch for mystery image needs
+- **Code duplication acceptable**: Don't force architectural reuse where it doesn't fit
+- **Focus on core functionality**: Fix obvious errors before considering edge cases
+
+## Common Implementation Anti-Patterns
+❌ **Don't assume region center = average of all 4 points** (it's opposite corners for CW rectangle)
+❌ **Don't use alien layer rotation for mystery image rotation** (use region orientation)
+❌ **Don't try to reuse existing coordinate transformation functions**
+❌ **Don't think of mystery image as "just another layer"**
+
+✅ **Do calculate region center from opposite corners (p0 + p2) / 2**
+✅ **Do calculate region orientation from rectangle edges**  
+✅ **Do build new coordinate transformation pipeline**
+✅ **Do think of mystery image as screen display content**
 
 ## Development Philosophy
 

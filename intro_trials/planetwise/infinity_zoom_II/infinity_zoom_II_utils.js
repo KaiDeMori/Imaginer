@@ -304,6 +304,16 @@ window.infinity_zoom_II.utils = {
     return result;
   },
 
+  // Calculate region orientation angle from its corner points
+  calc_region_orientation(region_rect) {
+    // Use vector from p0 to p1 to determine orientation
+    const dx = region_rect.p1.x - region_rect.p0.x;
+    const dy = region_rect.p1.y - region_rect.p0.y;
+
+    // Calculate angle (note: Y is flipped in image coordinates)
+    return Math.atan2(-dy, dx); // Negative dy for image coordinate system
+  },
+
   // Transform region center from image pixel coordinates to screen TRS coordinates
   transform_region_center_to_screen(region_layer, canvas) {
     const viewport_width = canvas.width;
@@ -312,9 +322,10 @@ window.infinity_zoom_II.utils = {
     const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
     const region_trs = region_layer.trs;
     // Calculate region center in image pixel coordinates
+    // For a quadrilateral, center is average of all 4 points
     const region_center_pixels = {
-      x: (region_rect.p0.x + region_rect.p2.x) / 2,
-      y: (region_rect.p0.y + region_rect.p2.y) / 2,
+      x: (region_rect.p0.x + region_rect.p1.x + region_rect.p2.x + region_rect.p3.x) / 4,
+      y: (region_rect.p0.y + region_rect.p1.y + region_rect.p2.y + region_rect.p3.y) / 4,
     };
 
     // Convert from image pixels to normalized image coordinates (-1 to +1)

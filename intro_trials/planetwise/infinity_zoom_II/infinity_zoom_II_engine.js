@@ -377,8 +377,14 @@ const engine = {
     // Mystery image should be the same size as the region
     const mystery_scale = region_layer.trs.scale * region_size_fraction;
 
-    // Create mystery TRS with same rotation as alien
-    return this.utils.create_TRS(mystery_center.x, mystery_center.y, mystery_scale, region_layer.trs.rotation);
+    // Calculate region orientation from its corner points
+    const region_orientation = this.utils.calc_region_orientation(region_rect);
+
+    // Combine region orientation with final layer rotation
+    const mystery_rotation = region_layer.trs.rotation + region_orientation;
+
+    // Create mystery TRS with region-aligned rotation
+    return this.utils.create_TRS(mystery_center.x, mystery_center.y, mystery_scale, mystery_rotation);
   },
 
   // Render all visible layers
