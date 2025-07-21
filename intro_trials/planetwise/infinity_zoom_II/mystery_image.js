@@ -66,7 +66,7 @@ window.infinity_zoom_II.mystery_image = {
       center_x: mystery_center_screen.x,
       center_y: mystery_center_screen.y,
       scale: mystery_scale,
-      rotation: region_orientation, // Only region tilt, no extra rotation applied to image
+      rotation: region_orientation + Math.PI / 2, // Region tilt + same 90° rotation as position
     };
   },
 
