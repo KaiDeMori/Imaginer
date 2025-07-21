@@ -40,6 +40,34 @@ The mystery image represents **content displayed on the alien's screen surface**
 - **Center calculation**: (p0 + p2) / 2 for opposite corners in CW rectangle
 - **Orientation**: Calculate from edge vectors of the rectangle
 
+### Region Axis Alignment (CRITICAL CONCEPT)
+The alien screen region is **NOT aligned** with the alien image's natural axes. It can be tilted at any arbitrary angle within the alien image. This creates a compound rotation system:
+
+**Problem**: If we only rotate the mystery image by the alien's global rotation, the mystery content won't align with the tilted screen edges.
+
+**Solution**: **Compound Rotation System**
+```
+mystery_rotation = region_intrinsic_orientation + alien_global_rotation
+```
+
+**Visual Examples**:
+- **debug_grid region**: Perfect square (0° region tilt) → mystery rotates only with alien
+- **original region**: Tilted alien screen (~15° region tilt) → mystery gets extra 15° + alien rotation  
+- **debug_grid_tilted**: 90° rotated square → mystery gets extra 90° + alien rotation
+
+**Implementation**:
+```javascript
+// Calculate region's intrinsic tilt from rectangle edges
+const dx = region_rect.p1.x - region_rect.p0.x; // p0→p1 vector (top edge)
+const dy = region_rect.p1.y - region_rect.p0.y;
+const region_orientation = Math.atan2(-dy, dx); // Y-flip for image coords
+
+// Compound rotation: region tilt + alien's current rotation
+const mystery_rotation = region_orientation + alien_layer.trs.rotation;
+```
+
+This ensures the mystery content appears perfectly aligned with the screen's tilted edges, creating a convincing "content displayed on screen surface" effect.
+
 ### Coordinate Systems Reference
 - **Region coordinates**: Image pixel space, Y=0 at top, typical range 0-2048
 - **TRS coordinates**: Viewport-relative, center at (0,0), range ~-1 to +1  
@@ -56,8 +84,10 @@ The mystery image transforms to stay aligned with the alien's screen region:
 - **Region center**: Calculated from region pixel coordinates within alien image
 - **Transformed center**: Region center transformed through alien's current TRS
 - **Covering scale**: Sized to fill the transformed region dimensions
-- **Same rotation**: Identical rotation angle as alien image
+- **CRITICAL - Compound Rotation**: Mystery rotation = region_intrinsic_orientation + alien_layer_rotation
 - **Same timing/easing**: Transforms synchronously with alien layer
+
+**Key Insight**: The mystery image must align with the **tilted region axes**, not just rotate with the alien layer. The alien screen region can be rotated at any arbitrary angle within the alien image, so the mystery content must appear as if it's actually displayed ON that tilted screen surface.
 
 This ensures the mystery image remains perfectly aligned with the alien's screen region regardless of zoom level, rotation, or position.
 
@@ -80,7 +110,8 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 ### Main Zoom Phases (TRS System)
 - Mystery image transforms to follow alien's screen region
 - Region center in alien image pixel space gets transformed via alien's TRS
-- Mystery image uses transformed region center + covering scale + alien rotation
+- Mystery image uses transformed region center + covering scale + **compound rotation**
+- **Compound rotation**: `mystery_rotation = region_orientation + alien_rotation`
 - Perfect portal alignment maintained as alien layer scales/rotates/moves
 
 ### Region Zoom Phase (Orthographic System) 
@@ -128,10 +159,12 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
 const region_center_pixels = {x: (p0.x + p2.x) / 2, y: (p0.y + p2.y) / 2};
 // Transform to screen space using alien layer's TRS  
 const mystery_center_screen = transform_point_with_TRS(region_center_pixels, alien_layer.trs);
-// Calculate region orientation from CW rectangle edges
+// Calculate region orientation from CW rectangle edges (CRITICAL)
 const region_orientation = calculate_region_orientation(p0, p1, p2, p3);
+// Compound rotation: region tilt + alien global rotation
+const mystery_rotation = region_orientation + alien_layer.trs.rotation;
 // Apply covering scale for region dimensions
-const mystery_trs = create_TRS(mystery_center_screen.x, mystery_center_screen.y, covering_scale, region_orientation);
+const mystery_trs = create_TRS(mystery_center_screen.x, mystery_center_screen.y, covering_scale, mystery_rotation);
 ```
 
 #### Covering Scale Implementation
@@ -160,14 +193,16 @@ calculate_mystery_covering_scale(region_width, region_height, screen_width, scre
 
 ## Common Implementation Anti-Patterns
 ❌ **Don't assume region center = average of all 4 points** (it's opposite corners for CW rectangle)
-❌ **Don't use alien layer rotation for mystery image rotation** (use region orientation)
+❌ **Don't use ONLY alien layer rotation for mystery image rotation** (must add region orientation)
 ❌ **Don't try to reuse existing coordinate transformation functions**
 ❌ **Don't think of mystery image as "just another layer"**
+❌ **Don't ignore region's intrinsic tilt** (this breaks alignment with tilted screen edges)
 
 ✅ **Do calculate region center from opposite corners (p0 + p2) / 2**
-✅ **Do calculate region orientation from rectangle edges**  
+✅ **Do use compound rotation: region_orientation + alien_rotation**  
 ✅ **Do build new coordinate transformation pipeline**
 ✅ **Do think of mystery image as screen display content**
+✅ **Do calculate region orientation from edge vectors (p0→p1)**
 
 ## Development Philosophy
 
