@@ -40,10 +40,10 @@ window.infinity_zoom_II.mystery_image = {
       y: alien_center_square.y + square_offset.y,
     };
 
-    // Apply 90° CCW rotation in square coordinate space
-    const test_rotation_angle = Math.PI / 2;
-    const cos_r = Math.cos(test_rotation_angle);
-    const sin_r = Math.sin(test_rotation_angle);
+    // Apply global rotation in square coordinate space
+    const global_rotation_angle = alien_layer.trs.rotation;
+    const cos_r = Math.cos(global_rotation_angle);
+    const sin_r = Math.sin(global_rotation_angle);
 
     const rotated_center_square = {
       x: mystery_center_square.x * cos_r - mystery_center_square.y * sin_r,
@@ -66,7 +66,7 @@ window.infinity_zoom_II.mystery_image = {
       center_x: mystery_center_screen.x,
       center_y: mystery_center_screen.y,
       scale: mystery_scale,
-      rotation: region_orientation + Math.PI / 2, // Region tilt + same 90° rotation as position
+      rotation: region_orientation + alien_layer.trs.rotation, // Region tilt + global rotation (compound rotation!)
     };
   },
 
