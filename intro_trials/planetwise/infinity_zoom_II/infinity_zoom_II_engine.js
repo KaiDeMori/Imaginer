@@ -394,13 +394,7 @@ const engine = {
         if (layer.alpha > 0) {
           // Render mystery image before final alien layer
           if (i === this.layers.length - 1) {
-            const mystery_trs = this.calculate_mystery_image_TRS(layer);
-            const mystery_layer = {
-              trs: mystery_trs,
-              texture: this.mystery_texture,
-              alpha: layer.alpha,
-            };
-            this.utils.render_layer(gl, this.program, this.quad_buffer, mystery_layer, this.canvas.width, this.canvas.height);
+            //TBD
           }
           this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
         }
