@@ -59,9 +59,14 @@ window.infinity_zoom_II.mystery_image = {
     // Calculate region's intrinsic orientation only (ignore alien rotation)
     const region_orientation = this.calculate_region_orientation(region_rect);
 
-    // Calculate covering scale factor based on region dimensions
-    const covering_factor = this.calculate_covering_scale_factor(region_rect, alien_image_size);
-    const mystery_scale = alien_layer.trs.scale * covering_factor;
+    // Calculate region dimensions for covering scale
+    const region_width = Math.sqrt((region_rect.p1.x - region_rect.p0.x) ** 2 + (region_rect.p1.y - region_rect.p0.y) ** 2);
+    const region_height = Math.sqrt((region_rect.p2.x - region_rect.p1.x) ** 2 + (region_rect.p2.y - region_rect.p1.y) ** 2);
+
+    // Use covering square size (longer side)
+    const covering_square_size = Math.max(region_width, region_height);
+    const region_scale_ratio = covering_square_size / alien_image_size;
+    const mystery_scale = alien_layer.trs.scale * region_scale_ratio;
 
     return {
       center_x: mystery_center_screen.x,
@@ -79,20 +84,5 @@ window.infinity_zoom_II.mystery_image = {
 
     // Y-flip for image coordinate system (Y=0 at top)
     return Math.atan2(-dy, dx);
-  },
-
-  // Calculate covering scale factor for mystery image to fill region
-  calculate_covering_scale_factor(region_rect, alien_image_size) {
-    // Calculate region dimensions in pixels
-    const region_width = Math.abs(region_rect.p1.x - region_rect.p0.x);
-    const region_height = Math.abs(region_rect.p3.y - region_rect.p0.y);
-
-    // Normalize to alien image size (fraction of image)
-    const region_width_fraction = region_width / alien_image_size;
-    const region_height_fraction = region_height / alien_image_size;
-
-    // Covering scale: take maximum to ensure mystery image fills entire region
-    // (some mystery content may be cropped, but no empty spaces in region)
-    return Math.max(region_width_fraction, region_height_fraction);
   },
 };

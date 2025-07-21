@@ -6,14 +6,13 @@ We need to stay laser focused!
 
 ## Implementation Scope - MAIN ZOOM ONLY (CURRENT FOCUS)
 - **Phase 1 COMPLETE**: Mystery image integration ✅
-- **Phase 2 PARTIAL**: Dual rendering for MAIN ZOOM phases (positioning/rotation ✅, scaling ❌)
+- **Phase 2 COMPLETE**: Dual rendering for MAIN ZOOM phases ✅
 - **Region Zoom**: DEFERRED - requires orthographic system integration (complex implementation)
 - **NO additional effects**: No screen flicker, scan lines, or other embellishments
 
 ## Current Status
 - **Phase 1**: COMPLETE - Mystery image loaded and texture created
-- **Phase 2**: PARTIALLY COMPLETE - Portal effect working with proper positioning and compound rotation
-- **Scale Issue**: Mystery image scale still incorrect relative to region dimensions
+- **Phase 2**: COMPLETE - Portal effect working with perfect positioning, rotation, and scaling
 - **Region Zoom**: NOT IMPLEMENTED - requires orthographic system integration (complex)
 
 ## Technical Constraints
@@ -117,11 +116,24 @@ This ensures the mystery image remains perfectly aligned with the alien's screen
 
 ## Covering Scale Logic
 
-The mystery image uses **covering scale** relative to the region dimensions:
+The mystery image automatically calculates covering scale based on region geometry:
 
 ```javascript
-mystery_scale = Math.max(screen_width / region_width, screen_height / region_height)
+// Calculate region dimensions from corner points
+const region_width = Math.sqrt((region_rect.p1.x - region_rect.p0.x)**2 + (region_rect.p1.y - region_rect.p0.y)**2);
+const region_height = Math.sqrt((region_rect.p2.x - region_rect.p1.x)**2 + (region_rect.p2.y - region_rect.p1.y)**2);
+
+// Use covering square size (longer side) 
+const covering_square_size = Math.max(region_width, region_height);
+const region_scale_ratio = covering_square_size / alien_image_size;
+const mystery_scale = alien_layer.trs.scale * region_scale_ratio;
 ```
+
+**How it works:**
+- Calculate actual pixel dimensions of the region rectangle using distance formula
+- Take the longer side to create a "covering square" that fills the entire region
+- Scale ratio = covering square size ÷ alien image size  
+- Mystery image scales proportionally with alien layer using this ratio
 
 **Why covering?**
 - Ensures mystery content fills the entire screen region
@@ -162,7 +174,7 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
    - Create WebGL texture for mystery content
    - Store alongside existing alien image texture
 
-### Phase 2: Main Zoom Portal Effect 🔄 PARTIALLY COMPLETE
+### Phase 2: Main Zoom Portal Effect ✅ COMPLETE
 1. **Position System** ✅ COMPLETE
    - Perfect region center tracking
    - Square coordinate space transformation 
@@ -173,10 +185,10 @@ mystery_scale = Math.max(screen_width / region_width, screen_height / region_hei
    - WebGL coordinate system compatibility
    - Smooth rotation in all viewport aspect ratios
 
-3. **Scale System** ❌ INCOMPLETE
-   - Mystery image scale calculation needs debugging
-   - Should use covering scale relative to region dimensions
-   - Current scale doesn't properly fill/align with screen region
+3. **Scale System** ✅ COMPLETE
+   - Automatic covering scale calculation based on region geometry
+   - Perfect mystery image sizing relative to region dimensions
+   - Works across all region shapes and orientations
 
 4. **Dual Rendering Pipeline** ✅ COMPLETE
    - WebGL texture binding order working
@@ -270,12 +282,12 @@ const mystery_center_screen = {
 
 ## Expected Behavior
 
-### Visual Result 🔄 PARTIALLY ACHIEVED
+### Visual Result ✅ ACHIEVED
 - ✅ Perfect positioning: Mystery content follows alien screen region center
 - ✅ Smooth compound rotation: Mystery content rotates with region orientation + alien rotation  
+- ✅ Perfect covering scale: Mystery image automatically sizes to fill region
 - ✅ Aspect ratio independence: No elliptical motion or translation artifacts in any viewport
 - ✅ Seamless dual-layer rendering: PNG alpha transparency creates natural portal boundaries
-- ❌ **Scale mismatch**: Mystery image scale doesn't properly fill/align with region dimensions
 - ❌ **Region zoom**: Portal effect only works during main zoom phases, not region zoom
 
 ### Animation Flow
