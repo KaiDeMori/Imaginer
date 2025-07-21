@@ -305,7 +305,12 @@ window.infinity_zoom_II.utils = {
   },
 
   // Transform region center from image pixel coordinates to screen TRS coordinates
-  transform_region_center_to_screen(region_rect, alien_trs, alien_image_size) {
+  transform_region_center_to_screen(region_layer, canvas) {
+    const viewport_width = canvas.width;
+    const viewport_height = canvas.height;
+    const alien_image_size = region_layer.image.width;
+    const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
+    const region_trs = region_layer.trs;
     // Calculate region center in image pixel coordinates
     const region_center_pixels = {
       x: (region_rect.p0.x + region_rect.p2.x) / 2,
@@ -319,20 +324,22 @@ window.infinity_zoom_II.utils = {
     };
 
     // Apply alien's TRS transformation to get screen position
-    const cos_r = Math.cos(alien_trs.rotation);
-    const sin_r = Math.sin(alien_trs.rotation);
+    const cos_r = Math.cos(region_trs.rotation);
+    const sin_r = Math.sin(region_trs.rotation);
 
     // Scale the normalized coordinates by alien's scale
-    const scaled_x = region_center_normalized.x * alien_trs.scale;
-    const scaled_y = region_center_normalized.y * alien_trs.scale;
+    // Use same base scale as TRS system: scale * min(width, height)
+    const base_pixel_scale = region_trs.scale * Math.min(viewport_width, viewport_height);
+    const scaled_x = (region_center_normalized.x * base_pixel_scale) / viewport_width;
+    const scaled_y = (region_center_normalized.y * base_pixel_scale) / viewport_height;
 
     // Apply rotation
     const rotated_x = scaled_x * cos_r - scaled_y * sin_r;
     const rotated_y = scaled_x * sin_r + scaled_y * cos_r;
 
-    // Apply translation (alien center)
-    const final_x = rotated_x + alien_trs.center_x;
-    const final_y = rotated_y + alien_trs.center_y;
+    // Apply translation (region center)
+    const final_x = rotated_x + region_trs.center_x;
+    const final_y = rotated_y + region_trs.center_y;
 
     return { x: final_x, y: final_y };
   },

@@ -53,7 +53,7 @@ window.infinity_zoom_II.config.start_rotation_angle = 0;
 // Global rotation speed in radians per second. Positive values rotate counter-clockwise (gl convention).
 window.infinity_zoom_II.config.rotation_speed = 0.2;
 // Exponential zoom rate (growth constant per second).
-window.infinity_zoom_II.config.zoom_speed = 0.6;
+window.infinity_zoom_II.config.zoom_speed = 6;
 
 // Animation phase durations (in seconds)
 window.infinity_zoom_II.config.intro_planet_zoom_duration = 0.2; // How long planet takes to grow from tiny to fitting
