@@ -364,29 +364,6 @@ const engine = {
     }
   },
 
-  // Calculate mystery image TRS to align with alien's screen region
-  calculate_mystery_image_TRS(region_layer) {
-    const mystery_center = this.utils.transform_region_center_to_screen(region_layer, this.canvas);
-    const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
-
-    // Calculate how big the region is as a fraction of the alien image
-    const region_width_pixels = Math.abs(region_rect.p1.x - region_rect.p0.x);
-    const alien_image_width = region_layer.image.width;
-    const region_size_fraction = region_width_pixels / alien_image_width;
-
-    // Mystery image should be the same size as the region
-    const mystery_scale = region_layer.trs.scale * region_size_fraction;
-
-    // Calculate region orientation from its corner points
-    const region_orientation = this.utils.calc_region_orientation(region_rect);
-
-    // Combine region orientation with final layer rotation
-    const mystery_rotation = region_layer.trs.rotation + region_orientation;
-
-    // Create mystery TRS with region-aligned rotation
-    return this.utils.create_TRS(mystery_center.x, mystery_center.y, mystery_scale, mystery_rotation);
-  },
-
   // Render all visible layers
   render() {
     const gl = this.gl_context;

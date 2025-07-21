@@ -5,13 +5,13 @@ This taks is really hard. This is not the time for speculation or overcomplicati
 We need to stay laser focused!
 
 ## Implementation Scope - MAIN ZOOM ONLY
-- **Phase 1 COMPLETE**: Mystery image integration ✅
+- **Phase 1 COMPLETE**: Mystery image integration
 - **Phase 2 Main Zoom**: Dual rendering for MAIN ZOOM phases (TRS system) only
 - **Region Zoom**: Deferred to later implementation
 - **NO additional effects**: No screen flicker, scan lines, or other embellishments
 
 ## Current Status
-- **Phase 1**: ✅ COMPLETE - Mystery image loaded and texture created
+- **Phase 1**: COMPLETE - Mystery image loaded and texture created
 - **Next**: Phase 2
 
 ## Technical Constraints
@@ -213,9 +213,10 @@ calculate_mystery_covering_scale(region_width, region_height, screen_width, scre
 # Relevant Project Files
 
 ## Core Engine Files
+- **mystery_image.js** ALL methoda that have to do with the mystery image go into this file
 - **infinity_zoom_II_engine.js** - Main rendering engine requiring modification for dual-layer rendering system
 - **region_zoom.js** - Orthographic rendering system implementation for region zoom phases
-- **infinity_zoom_II_utils.js** - Utility functions including matrix calculations and transformation logic
+- **infinity_zoom_II_utils.js** - Utility functions including matrix calculations and transformation logic (NOT for mystery image)
 
 ## Configuration and Data
 - **infinity_zoom_II_configs.js** - File containing various configurations. This is where MYSTERY_IMAGE is defined
