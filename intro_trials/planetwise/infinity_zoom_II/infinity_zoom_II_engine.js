@@ -364,6 +364,27 @@ const engine = {
     }
   },
 
+  // Calculate mystery image TRS to align with alien's screen region
+  calculate_mystery_image_TRS(alien_layer) {
+    const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
+
+    // Assume alien image is square (project uses 1:1 images)
+    const alien_image_size = alien_layer.image.width;
+
+    // Get transformed region center in screen coordinates
+    const mystery_center = this.utils.transform_region_center_to_screen(region_rect, alien_layer.trs, alien_image_size);
+
+    // Calculate how big the region is as a fraction of the alien image
+    const region_width_pixels = Math.abs(region_rect.p1.x - region_rect.p0.x);
+    const region_size_fraction = region_width_pixels / alien_image_size;
+
+    // Mystery image should be the same size as the region
+    const mystery_scale = alien_layer.trs.scale * region_size_fraction;
+
+    // Create mystery TRS with same rotation as alien
+    return this.utils.create_TRS(mystery_center.x, mystery_center.y, mystery_scale, alien_layer.trs.rotation);
+  },
+
   // Render all visible layers
   render() {
     const gl = this.gl_context;
@@ -394,7 +415,7 @@ const engine = {
         if (layer.alpha > 0) {
           // Render mystery image before final alien layer
           if (i === this.layers.length - 1) {
-            const mystery_trs = this.utils.create_TRS(0, 0, 0.2, 0);
+            const mystery_trs = this.calculate_mystery_image_TRS(layer);
             const mystery_layer = {
               trs: mystery_trs,
               texture: this.mystery_texture,

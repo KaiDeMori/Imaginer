@@ -303,4 +303,55 @@ window.infinity_zoom_II.utils = {
     }
     return result;
   },
+
+  // Transform region center from image pixel coordinates to screen TRS coordinates
+  transform_region_center_to_screen(region_rect, alien_trs, alien_image_size) {
+    // Calculate region center in image pixel coordinates
+    const region_center_pixels = {
+      x: (region_rect.p0.x + region_rect.p2.x) / 2,
+      y: (region_rect.p0.y + region_rect.p2.y) / 2,
+    };
+
+    // Convert from image pixels to normalized image coordinates (-1 to +1)
+    const region_center_normalized = {
+      x: (region_center_pixels.x / alien_image_size) * 2 - 1,
+      y: -((region_center_pixels.y / alien_image_size) * 2 - 1), // Y-flip for WebGL
+    };
+
+    // Apply alien's TRS transformation to get screen position
+    const cos_r = Math.cos(alien_trs.rotation);
+    const sin_r = Math.sin(alien_trs.rotation);
+
+    // Scale the normalized coordinates by alien's scale
+    const scaled_x = region_center_normalized.x * alien_trs.scale;
+    const scaled_y = region_center_normalized.y * alien_trs.scale;
+
+    // Apply rotation
+    const rotated_x = scaled_x * cos_r - scaled_y * sin_r;
+    const rotated_y = scaled_x * sin_r + scaled_y * cos_r;
+
+    // Apply translation (alien center)
+    const final_x = rotated_x + alien_trs.center_x;
+    const final_y = rotated_y + alien_trs.center_y;
+
+    return { x: final_x, y: final_y };
+  },
+
+  // Calculate covering scale for mystery image to fill the transformed region
+  calc_mystery_covering_scale(region_rect, alien_image_size) {
+    // Calculate region dimensions in image pixels
+    const region_width_pixels = Math.abs(region_rect.p1.x - region_rect.p0.x);
+    const region_height_pixels = Math.abs(region_rect.p3.y - region_rect.p0.y);
+
+    // Calculate what relative scale the mystery image needs to cover the region
+    // Region dimensions as fraction of alien image
+    const region_width_fraction = region_width_pixels / alien_image_size;
+    const region_height_fraction = region_height_pixels / alien_image_size;
+
+    // Calculate covering scale factor (use max to ensure we cover the region)
+    const covering_scale_factor = Math.max(1 / region_width_fraction, 1 / region_height_fraction);
+
+    // Return the relative scale factor (not multiplied by alien's current scale)
+    return covering_scale_factor;
+  },
 };

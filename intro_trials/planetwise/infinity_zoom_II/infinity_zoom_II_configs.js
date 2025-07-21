@@ -26,7 +26,7 @@ window.infinity_zoom_II.config.LAYERS_DATA = [
   //{ zoom: 25, image: "100_alien_closeup_debug_display_square.png" },
   //{ zoom: 25, image: "100_alien_closeup_debug_display_extreme_AR.png" },
   //{ zoom: 25, image: "100_alien_closeup_transparent_display_empty.png" },
-  { zoom: 25, image: "100_alien_debug_grid.png" },
+  { zoom: 25, image: "100_alien_debug_grid_transparent.png" },
   //{ zoom: 25, image: "100_alien_closeup_transparent_display.png" },
 ];
 
