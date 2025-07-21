@@ -2,7 +2,7 @@
 // Handles portal effect where mystery content appears through alien's transparent screen region
 
 window.infinity_zoom_II.mystery_image = {
-  // Calculate mystery image TRS synchronized with alien layer
+  // Calculate mystery image TRS - simplified version without global rotation
   calculate_mystery_TRS(alien_layer, region_rect, canvas_width, canvas_height) {
     // Calculate region center from opposite corners (clockwise rectangle)
     const region_center_pixels = {
@@ -10,27 +10,39 @@ window.infinity_zoom_II.mystery_image = {
       y: (region_rect.p0.y + region_rect.p2.y) / 2,
     };
 
-    // Transform region center from alien image pixel space to screen TRS space
-    const mystery_center_screen = this.transform_region_center_to_screen(region_center_pixels, alien_layer, canvas_width, canvas_height);
+    // Calculate offset of region center from alien image center (in normalized coordinates)
+    const alien_image_size = alien_layer.image.width;
+    const alien_center_pixels = alien_image_size / 2;
 
-    // Calculate region's intrinsic orientation (independent of alien rotation)
+    const region_offset_pixels = {
+      x: region_center_pixels.x - alien_center_pixels,
+      y: region_center_pixels.y - alien_center_pixels,
+    };
+
+    // Convert pixel offset to screen space offset (no rotation applied)
+    const base_pixel_scale = alien_layer.trs.scale * Math.min(canvas_width, canvas_height);
+    const screen_offset = {
+      x: (((region_offset_pixels.x / alien_image_size) * base_pixel_scale) / canvas_width) * 2,
+      y: ((-(region_offset_pixels.y / alien_image_size) * base_pixel_scale) / canvas_height) * 2, // Y-flip
+    };
+
+    // Mystery center = alien center + region offset
+    const mystery_center_screen = {
+      x: alien_layer.trs.center_x + screen_offset.x,
+      y: alien_layer.trs.center_y + screen_offset.y,
+    };
+
+    // Calculate region's intrinsic orientation only (ignore alien rotation)
     const region_orientation = this.calculate_region_orientation(region_rect);
 
-    // Compound rotation: region tilt + alien global rotation
-    const mystery_rotation = region_orientation + alien_layer.trs.rotation;
-
-    // Calculate covering scale to fill screen region completely
-    const region_dimensions = this.get_region_dimensions(region_rect);
-    const covering_scale = this.calculate_covering_scale(region_dimensions.width, region_dimensions.height, canvas_width, canvas_height);
-
-    // Apply covering scale relative to alien layer's current scale
-    const mystery_scale = alien_layer.trs.scale * covering_scale;
+    // Use alien layer's scale directly
+    const mystery_scale = alien_layer.trs.scale;
 
     return {
       center_x: mystery_center_screen.x,
       center_y: mystery_center_screen.y,
       scale: mystery_scale,
-      rotation: mystery_rotation,
+      rotation: region_orientation, // Only region tilt, no global rotation
     };
   },
 
@@ -42,51 +54,5 @@ window.infinity_zoom_II.mystery_image = {
 
     // Y-flip for image coordinate system (Y=0 at top)
     return Math.atan2(-dy, dx);
-  },
-
-  // Transform region center from image pixel coordinates to screen TRS coordinates
-  transform_region_center_to_screen(region_center_pixels, alien_layer, canvas_width, canvas_height) {
-    const alien_image_size = alien_layer.image.width;
-
-    // Convert from image pixels to normalized image coordinates (-1 to +1)
-    const region_center_normalized = {
-      x: (region_center_pixels.x / alien_image_size) * 2 - 1,
-      y: -((region_center_pixels.y / alien_image_size) * 2 - 1), // Y-flip for WebGL
-    };
-
-    // Apply alien's TRS transformation to get screen position
-    const cos_r = Math.cos(alien_layer.trs.rotation);
-    const sin_r = Math.sin(alien_layer.trs.rotation);
-
-    // Scale the normalized coordinates by alien layer's scale
-    const base_pixel_scale = alien_layer.trs.scale * Math.min(canvas_width, canvas_height);
-    const scaled_x = (region_center_normalized.x * base_pixel_scale) / canvas_width;
-    const scaled_y = (region_center_normalized.y * base_pixel_scale) / canvas_height;
-
-    // Apply rotation
-    const rotated_x = scaled_x * cos_r - scaled_y * sin_r;
-    const rotated_y = scaled_x * sin_r + scaled_y * cos_r;
-
-    // Apply translation (alien center)
-    const final_x = rotated_x + alien_layer.trs.center_x;
-    const final_y = rotated_y + alien_layer.trs.center_y;
-
-    return { x: final_x, y: final_y };
-  },
-
-  // Calculate region width and height from clockwise rectangle points
-  get_region_dimensions(region_rect) {
-    // For clockwise rectangle: width from p0 to p1, height from p0 to p3
-    const width = Math.abs(region_rect.p1.x - region_rect.p0.x);
-    const height = Math.abs(region_rect.p3.y - region_rect.p0.y);
-
-    return { width, height };
-  },
-
-  // Calculate covering scale to fill screen region without gaps
-  calculate_covering_scale(region_width, region_height, screen_width, screen_height) {
-    // For square images in square regions, covering scale should be 1.0
-    // The mystery image just needs to fill the region, not the entire screen
-    return 1.0;
   },
 };
