@@ -21,15 +21,39 @@ window.infinity_zoom_II.mystery_image = {
 
     // Convert pixel offset to screen space offset (no rotation applied)
     const base_pixel_scale = alien_layer.trs.scale * Math.min(canvas_width, canvas_height);
-    const screen_offset = {
-      x: (((region_offset_pixels.x / alien_image_size) * base_pixel_scale) / canvas_width) * 2,
-      y: ((-(region_offset_pixels.y / alien_image_size) * base_pixel_scale) / canvas_height) * 2, // Y-flip
+
+    // Convert to square coordinate space for rotation (eliminates AR distortion)
+    const square_offset = {
+      x: ((region_offset_pixels.x / alien_image_size) * base_pixel_scale) / Math.min(canvas_width, canvas_height),
+      y: (-(region_offset_pixels.y / alien_image_size) * base_pixel_scale) / Math.min(canvas_width, canvas_height), // Y-flip
     };
 
-    // Mystery center = alien center + region offset
+    // Convert alien center to square coordinates too
+    const alien_center_square = {
+      x: (alien_layer.trs.center_x * canvas_width) / Math.min(canvas_width, canvas_height) / 2,
+      y: (alien_layer.trs.center_y * canvas_height) / Math.min(canvas_width, canvas_height) / 2,
+    };
+
+    // Mystery center in square coordinates
+    let mystery_center_square = {
+      x: alien_center_square.x + square_offset.x,
+      y: alien_center_square.y + square_offset.y,
+    };
+
+    // Apply 90° CCW rotation in square coordinate space
+    const test_rotation_angle = Math.PI / 2;
+    const cos_r = Math.cos(test_rotation_angle);
+    const sin_r = Math.sin(test_rotation_angle);
+
+    const rotated_center_square = {
+      x: mystery_center_square.x * cos_r - mystery_center_square.y * sin_r,
+      y: mystery_center_square.x * sin_r + mystery_center_square.y * cos_r,
+    };
+
+    // Convert back to TRS coordinate space
     const mystery_center_screen = {
-      x: alien_layer.trs.center_x + screen_offset.x,
-      y: alien_layer.trs.center_y + screen_offset.y,
+      x: ((rotated_center_square.x * Math.min(canvas_width, canvas_height)) / canvas_width) * 2,
+      y: ((rotated_center_square.y * Math.min(canvas_width, canvas_height)) / canvas_height) * 2,
     };
 
     // Calculate region's intrinsic orientation only (ignore alien rotation)
@@ -42,7 +66,7 @@ window.infinity_zoom_II.mystery_image = {
       center_x: mystery_center_screen.x,
       center_y: mystery_center_screen.y,
       scale: mystery_scale,
-      rotation: region_orientation, // Only region tilt, no global rotation
+      rotation: region_orientation, // Only region tilt, no extra rotation applied to image
     };
   },
 
