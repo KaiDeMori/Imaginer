@@ -394,7 +394,19 @@ const engine = {
         if (layer.alpha > 0) {
           // Render mystery image before final alien layer
           if (i === this.layers.length - 1) {
-            //TBD
+            // Calculate mystery image TRS synchronized with alien layer
+            const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
+            const mystery_trs = window.infinity_zoom_II.mystery_image.calculate_mystery_TRS(layer, region_rect, this.canvas.width, this.canvas.height);
+
+            // Create temporary mystery layer object for rendering
+            const mystery_layer = {
+              texture: this.mystery_texture,
+              trs: mystery_trs,
+              alpha: layer.alpha, // Same alpha as alien layer
+            };
+
+            // Render mystery image first (background)
+            this.utils.render_layer(gl, this.program, this.quad_buffer, mystery_layer, this.canvas.width, this.canvas.height);
           }
           this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas.width, this.canvas.height);
         }
