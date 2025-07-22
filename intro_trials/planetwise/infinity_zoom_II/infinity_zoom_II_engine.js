@@ -375,49 +375,27 @@ const engine = {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // Special rendering for region zoom state
-    if (this.animation_phase === "region_zoom") {
-      // TODO: Replace with new direct matrix rendering approach
-      const final_layer_index = this.layers.length - 1;
-      const penultimate_layer_index = final_layer_index - 1;
+    // Standard rendering for all states (optimized with occlusion culling)
+    for (let i = this.first_visible_layer_index; i <= this.deepest_visible_layer_index; i++) {
+      const layer = this.layers[i];
+      if (layer.alpha > 0) {
+        // Render mystery image before final alien layer
+        if (i === this.layers.length - 1) {
+          // Calculate mystery image TRS synchronized with alien layer
+          const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
+          const mystery_trs = window.infinity_zoom_II.mystery_image_main_zoom.calculate_mystery_TRS(layer, region_rect, this.canvas.width, this.canvas.height);
 
-      // Render penultimate layer first (backdrop)
-      if (penultimate_layer_index >= 0 && this.layers[penultimate_layer_index].alpha > 0) {
-        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[penultimate_layer_index], this.canvas);
-      }
+          // Create temporary mystery layer object for rendering
+          const mystery_layer = {
+            texture: this.alien_display_screen.texture,
+            trs: mystery_trs,
+            alpha: layer.alpha, // Same alpha as alien layer
+          };
 
-      // Render final layer on top (with feathered edges)
-      if (this.layers[final_layer_index].alpha > 0) {
-        this.utils.render_layer(gl, this.program, this.quad_buffer, this.layers[final_layer_index], this.canvas);
-      }
-    } else {
-      // Standard rendering for all other states (optimized with occlusion culling)
-      for (let i = this.first_visible_layer_index; i <= this.deepest_visible_layer_index; i++) {
-        const layer = this.layers[i];
-        if (layer.alpha > 0) {
-          // Render mystery image before final alien layer
-          if (i === this.layers.length - 1) {
-            // Calculate mystery image TRS synchronized with alien layer
-            const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
-            const mystery_trs = window.infinity_zoom_II.mystery_image_main_zoom.calculate_mystery_TRS(
-              layer,
-              region_rect,
-              this.canvas.width,
-              this.canvas.height
-            );
-
-            // Create temporary mystery layer object for rendering
-            const mystery_layer = {
-              texture: this.alien_display_screen.texture,
-              trs: mystery_trs,
-              alpha: layer.alpha, // Same alpha as alien layer
-            };
-
-            // Render mystery image first (background)
-            this.utils.render_layer(gl, this.program, this.quad_buffer, mystery_layer, this.canvas);
-          }
-          this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas);
+          // Render mystery image first (background)
+          this.utils.render_layer(gl, this.program, this.quad_buffer, mystery_layer, this.canvas);
         }
+        this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas);
       }
     }
   },
