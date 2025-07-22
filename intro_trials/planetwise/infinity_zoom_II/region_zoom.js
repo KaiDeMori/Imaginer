@@ -17,9 +17,11 @@ window.infinity_zoom_II.region_zoom = {
   // Region zoom shader program and buffers
   region_program: null,
   region_quad_buffer: null,
+  penultimate_quad_buffer: null,
   u_matrix_location: null,
   u_texture_location: null,
-  current_layer: null,
+  final_layer: null,
+  penultimate_layer: null,
 
   // Ease-in-out cubic interpolation function
   ease_in_out_cubic(t) {
@@ -184,13 +186,18 @@ window.infinity_zoom_II.region_zoom = {
     this.engine = engine;
     this.start_time = now;
 
-    // Get current layer for texture and dimensions
-    this.current_layer = engine.layers[engine.layers.length - 1];
+    // Get both final and penultimate layers
+    this.final_layer = engine.layers[engine.layers.length - 1];
+    this.penultimate_layer = engine.layers.length > 1 ? engine.layers[engine.layers.length - 2] : null;
     const gl = engine.gl_context;
 
     // Create region zoom shader program and buffers
     this.region_program = this.create_region_shader_program(gl);
-    this.region_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.current_layer.image.width, this.current_layer.image.height);
+    this.region_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
+
+    if (this.penultimate_layer) {
+      this.penultimate_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
+    }
 
     // Get shader uniform locations
     this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
@@ -198,8 +205,8 @@ window.infinity_zoom_II.region_zoom = {
 
     // Calculate starting transformation parameters
     this.start_params = {
-      center_x: this.current_layer.image.width * 0.5, // Image center
-      center_y: this.current_layer.image.height * 0.5,
+      center_x: this.final_layer.image.width * 0.5, // Image center
+      center_y: this.final_layer.image.height * 0.5,
       scale: this.calculate_engine_final_scale(),
       rotation: engine.global_rotation || 0,
     };
@@ -219,8 +226,8 @@ window.infinity_zoom_II.region_zoom = {
     // Convert from engine's TRS scale to screen pixel scale
     const canvas_width = this.engine.canvas.width;
     const canvas_height = this.engine.canvas.height;
-    const image_width = this.current_layer.image.width;
-    const image_height = this.current_layer.image.height;
+    const image_width = this.final_layer.image.width;
+    const image_height = this.final_layer.image.height;
 
     // Use covering scale (same as engine) - fills entire screen
     return Math.max(canvas_width / image_width, canvas_height / image_height);
@@ -305,13 +312,9 @@ window.infinity_zoom_II.region_zoom = {
 
   // === ORTHOGRAPHIC RENDERING (Phase 2 & 4) ===
 
-  // Render region zoom frame using orthographic system
-  render_region_zoom_frame(transformation_params) {
+  // Render a single layer using orthographic system
+  render_single_layer(layer, quad_buffer, transformation_params) {
     const gl = this.engine.gl_context;
-
-    // Clear canvas
-    gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
 
     // Use region zoom shader program
     gl.useProgram(this.region_program);
@@ -331,7 +334,7 @@ window.infinity_zoom_II.region_zoom = {
     const final_matrix = this.matrix_multiply_3x3(orthographic, transform_matrix);
 
     // Set up vertex attributes
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.region_quad_buffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad_buffer);
 
     const position_location = gl.getAttribLocation(this.region_program, "a_position");
     const texcoord_location = gl.getAttribLocation(this.region_program, "a_texcoord");
@@ -349,11 +352,28 @@ window.infinity_zoom_II.region_zoom = {
 
     // Bind texture
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.current_layer.texture);
+    gl.bindTexture(gl.TEXTURE_2D, layer.texture);
     gl.uniform1i(this.u_texture_location, 0);
 
     // Draw quad using TRIANGLE_STRIP
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  },
+
+  // Render region zoom frame using orthographic system
+  render_region_zoom_frame(transformation_params) {
+    const gl = this.engine.gl_context;
+
+    // Clear canvas
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // 1. Render penultimate layer FIRST (backdrop) - if it exists
+    if (this.penultimate_layer) {
+      this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, transformation_params);
+    }
+
+    // 2. Render final layer SECOND (on top)
+    this.render_single_layer(this.final_layer, this.region_quad_buffer, transformation_params);
   },
 
   // Update region zoom state (called every frame)

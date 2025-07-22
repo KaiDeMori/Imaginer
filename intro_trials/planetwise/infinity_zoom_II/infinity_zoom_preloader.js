@@ -7,9 +7,6 @@ function load_mystery_image_only(callback) {
     log(`[load_mystery_image_only] loaded mystery image (${mystery_img.width}x${mystery_img.height})`);
     callback(mystery_img);
   };
-  mystery_img.onerror = (e) => {
-    log(`[load_mystery_image_only] ERROR loading mystery image`);
-  };
   mystery_img.src = window.infinity_zoom_II.config.MYSTERY_IMAGE;
   log(`[load_mystery_image_only] Started loading mystery image`);
 }
