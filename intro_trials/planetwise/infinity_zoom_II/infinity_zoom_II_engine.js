@@ -13,9 +13,6 @@ const engine = {
   create(canvas) {
     log("Engine create called.");
 
-    const layer_data = window.infinity_zoom_II.config.LAYERS_DATA;
-    const image_path = window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH;
-
     // Store important configuration values locally
     this.canvas = canvas;
     this.rotation_speed = window.infinity_zoom_II.config.rotation_speed;
@@ -26,11 +23,9 @@ const engine = {
     this.pre_main_zoom_hold_duration = window.infinity_zoom_II.config.pre_main_zoom_hold_duration;
     this.minimum_render_size = window.infinity_zoom_II.config.minimum_render_size;
 
-    // Use unified preloader interface
-    log("Using unified preloader interface");
-    window.infinity_zoom_II.preloader.load_all_images(layer_data, image_path, (processed_images, mystery_image) => {
+    window.infinity_zoom_II.preloader.load_all_images((processed_images, mystery_image) => {
       log("All images loaded and processed, initializing engine");
-      this.init(layer_data, processed_images, mystery_image, canvas);
+      this.init(processed_images, mystery_image);
     });
   },
 
@@ -46,9 +41,10 @@ const engine = {
   deepest_visible_layer_index: 0,
 
   // Initialize engine with preloaded images and canvas
-  init(layer_data, images, mystery_image, canvas) {
+  init(images, mystery_image) {
     log("Engine init called");
-    this.canvas = canvas;
+
+    const layer_data = window.infinity_zoom_II.config.LAYERS_DATA;
 
     // Set canvas buffer size to match exact viewport dimensions
     this.resize_canvas();
