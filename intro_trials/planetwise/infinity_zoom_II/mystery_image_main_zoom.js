@@ -1,7 +1,7 @@
 // Mystery Image Module for Infinity Zoom II Engine
 // Handles portal effect where mystery content appears through alien's transparent screen region
 
-window.infinity_zoom_II.mystery_image = {
+window.infinity_zoom_II.mystery_image_main_zoom = {
   // Calculate mystery image TRS - simplified version without global rotation
   calculate_mystery_TRS(alien_layer, region_rect, canvas_width, canvas_height) {
     // Calculate region center from opposite corners (clockwise rectangle)

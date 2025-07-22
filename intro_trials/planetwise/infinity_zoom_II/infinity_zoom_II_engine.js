@@ -37,7 +37,7 @@ const engine = {
   gl_context: null,
   canvas: null,
   layers: [],
-  mystery_texture: null,
+  alien_display_screen: null,
   start_time: 0,
   animation_phase: "intro",
   global_rotation: 0,
@@ -86,8 +86,11 @@ const engine = {
       };
     });
 
-    // Create mystery texture
-    this.mystery_texture = this.utils.create_texture(this.gl_context, mystery_image);
+    this.alien_display_screen = {
+      image: mystery_image,
+      texture: this.utils.create_texture(this.gl_context, mystery_image),
+      loaded: true,
+    };
 
     this.start_time = performance.now();
     this.animation_phase = "intro";
@@ -396,11 +399,16 @@ const engine = {
           if (i === this.layers.length - 1) {
             // Calculate mystery image TRS synchronized with alien layer
             const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
-            const mystery_trs = window.infinity_zoom_II.mystery_image.calculate_mystery_TRS(layer, region_rect, this.canvas.width, this.canvas.height);
+            const mystery_trs = window.infinity_zoom_II.mystery_image_main_zoom.calculate_mystery_TRS(
+              layer,
+              region_rect,
+              this.canvas.width,
+              this.canvas.height
+            );
 
             // Create temporary mystery layer object for rendering
             const mystery_layer = {
-              texture: this.mystery_texture,
+              texture: this.alien_display_screen.texture,
               trs: mystery_trs,
               alpha: layer.alpha, // Same alpha as alien layer
             };
