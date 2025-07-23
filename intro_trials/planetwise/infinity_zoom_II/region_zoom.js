@@ -3,7 +3,7 @@
 
 // Add default configuration for region zoom
 window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 4000, // Animation duration in milliseconds
+  anim_duration: 40000, // Animation duration in milliseconds
   region_rect: window.infinity_zoom_II.regions.original,
 };
 
@@ -195,9 +195,7 @@ window.infinity_zoom_II.region_zoom = {
     this.region_program = this.create_region_shader_program(gl);
     this.region_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
 
-    if (this.penultimate_layer) {
-      this.penultimate_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
-    }
+    this.penultimate_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
 
     // Get shader uniform locations
     this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
@@ -367,10 +365,8 @@ window.infinity_zoom_II.region_zoom = {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // 1. Render penultimate layer FIRST (backdrop) - if it exists
-    if (this.penultimate_layer) {
-      this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, transformation_params);
-    }
+    // 1. Render penultimate layer FIRST (backdrop)
+    this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, transformation_params);
 
     // 2. Render final layer SECOND (on top)
     this.render_single_layer(this.final_layer, this.region_quad_buffer, transformation_params);
