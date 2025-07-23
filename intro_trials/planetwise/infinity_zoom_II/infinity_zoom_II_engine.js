@@ -45,6 +45,7 @@ const engine = {
     log("Engine init called");
 
     const layer_data = window.infinity_zoom_II.config.LAYERS_DATA;
+    const canvas = this.canvas;
 
     // Set canvas buffer size to match exact viewport dimensions
     this.resize_canvas();
