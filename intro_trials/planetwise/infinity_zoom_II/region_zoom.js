@@ -3,7 +3,7 @@
 
 // Add default configuration for region zoom
 window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 40000, // Animation duration in milliseconds
+  anim_duration: 10000, // Animation duration in milliseconds
   region_rect: window.infinity_zoom_II.regions.original,
 };
 
@@ -310,6 +310,28 @@ window.infinity_zoom_II.region_zoom = {
 
   // === ORTHOGRAPHIC RENDERING (Phase 2 & 4) ===
 
+  // Calculate penultimate layer transformation parameters
+  calculate_penultimate_transform_params(final_params) {
+    const scale_factor = 100 / this.final_layer.zoom;
+
+    // Calculate the offset from image center for final layer
+    const final_center_x = this.final_layer.image.width * 0.5;
+    const final_center_y = this.final_layer.image.height * 0.5;
+    const offset_x = final_params.center_x - final_center_x;
+    const offset_y = final_params.center_y - final_center_y;
+
+    // Scale down the offset for penultimate layer (since it will be scaled up)
+    const penultimate_center_x = this.penultimate_layer.image.width * 0.5;
+    const penultimate_center_y = this.penultimate_layer.image.height * 0.5;
+
+    return {
+      center_x: penultimate_center_x + offset_x / scale_factor, // Scaled-down offset
+      center_y: penultimate_center_y + offset_y / scale_factor, // Scaled-down offset
+      rotation: final_params.rotation, // Same rotation - rotates together
+      scale: final_params.scale * scale_factor, // Bigger scale - 4x backdrop effect
+    };
+  },
+
   // Render a single layer using orthographic system
   render_single_layer(layer, quad_buffer, transformation_params) {
     const gl = this.engine.gl_context;
@@ -366,7 +388,8 @@ window.infinity_zoom_II.region_zoom = {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // 1. Render penultimate layer FIRST (backdrop)
-    this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, transformation_params);
+    const penultimate_params = this.calculate_penultimate_transform_params(transformation_params);
+    this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, penultimate_params);
 
     // 2. Render final layer SECOND (on top)
     this.render_single_layer(this.final_layer, this.region_quad_buffer, transformation_params);
