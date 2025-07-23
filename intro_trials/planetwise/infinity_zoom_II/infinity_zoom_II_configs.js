@@ -10,7 +10,7 @@
 
 // Constants originally from HTML file
 window.infinity_zoom_II.config.version_code = "templar";
-window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH = "../zoom_images_planete/jpg";
+window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH = "../zoom_images_planete/debug";
 window.infinity_zoom_II.config.LAYERS_DATA = [
   { zoom: 25, image: "10_new_planete_fixed.jpg" },
   { zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.jpg" },
@@ -26,8 +26,8 @@ window.infinity_zoom_II.config.LAYERS_DATA = [
   //{ zoom: 25, image: "100_alien_closeup_debug_display_square.png" },
   //{ zoom: 25, image: "100_alien_closeup_debug_display_extreme_AR.png" },
   //{ zoom: 25, image: "100_alien_closeup_transparent_display_empty.png" },
-  //{ zoom: 25, image: "100_alien_debug_grid_transparent.png" },
-  { zoom: 25, image: "100_alien_closeup_transparent_display.png" },
+  { zoom: 25, image: "100_alien_debug_grid_transparent.png" },
+  //{ zoom: 25, image: "100_alien_closeup_transparent_display.png" },
 ];
 
 // Mystery image for alien screen portal effect
