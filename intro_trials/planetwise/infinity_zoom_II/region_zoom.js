@@ -17,11 +17,17 @@ window.infinity_zoom_II.region_zoom = {
   // Region zoom shader program and buffers
   region_program: null,
   region_quad_buffer: null,
-  penultimate_quad_buffer: null,
+
+  final_layer: null,
+
   u_matrix_location: null,
   u_texture_location: null,
-  final_layer: null,
+
   penultimate_layer: null,
+  penultimate_quad_buffer: null,
+
+  display_image_layer: null,
+  display_image_quad_buffer: null,
 
   // Ease-in-out cubic interpolation function
   ease_in_out_cubic(t) {
@@ -189,6 +195,7 @@ window.infinity_zoom_II.region_zoom = {
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
     this.penultimate_layer = engine.layers[engine.layers.length - 2];
+    this.display_layer = this.alien_display_screen;
     const gl = engine.gl_context;
 
     // Create region zoom shader program and buffers
@@ -332,13 +339,13 @@ window.infinity_zoom_II.region_zoom = {
     };
   },
 
-  // Calculate mystery image transformation parameters
-  calculate_mystery_image_transform_params(current_params) {
-    // Mystery image always centers on the display region center
+  // Calculate display image transformation parameters
+  calculate_display_image_transform_params(current_params) {
+    // Display image always centers on the display region center
     const region_center_x = this.target_params.center_x;
     const region_center_y = this.target_params.center_y;
 
-    // Mystery image uses the same scale and rotation as alien
+    // Display image uses the same scale and rotation as alien
     return {
       center_x: region_center_x, // Always region center
       center_y: region_center_y, // Always region center
@@ -406,9 +413,9 @@ window.infinity_zoom_II.region_zoom = {
     const penultimate_params = this.calculate_penultimate_transform_params(transformation_params);
     this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, penultimate_params);
 
-    // 2. Render mystery image (portal content)
-    const mystery_params = this.calculate_mystery_image_transform_params(transformation_params);
-    this.render_single_layer(this.mystery_layer, this.mystery_quad_buffer, mystery_params);
+    // 2. Render display image (portal content)
+    const display_params = this.calculate_display_image_transform_params(transformation_params);
+    this.render_single_layer(this.display_image_layer, this.display_image_quad_buffer, display_params);
 
     // 3. Render final layer SECOND (on top)
     this.render_single_layer(this.final_layer, this.region_quad_buffer, transformation_params);
