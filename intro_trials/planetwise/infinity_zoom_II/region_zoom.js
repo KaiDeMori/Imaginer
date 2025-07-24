@@ -195,7 +195,7 @@ window.infinity_zoom_II.region_zoom = {
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
     this.penultimate_layer = engine.layers[engine.layers.length - 2];
-    this.display_layer = this.alien_display_screen;
+    this.display_image_layer = engine.alien_display_screen; //maybe re-use existing texture
     const gl = engine.gl_context;
 
     // Create region zoom shader program and buffers
@@ -203,6 +203,7 @@ window.infinity_zoom_II.region_zoom = {
     this.region_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
 
     this.penultimate_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
+    this.display_image_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.display_image_layer.image.width, this.display_image_layer.image.height);
 
     // Get shader uniform locations
     this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
