@@ -342,16 +342,22 @@ window.infinity_zoom_II.region_zoom = {
 
   // Calculate display image transformation parameters
   calculate_display_image_transform_params(current_params) {
-    // Display image always centers on the display region center
-    const region_center_x = this.target_params.center_x;
-    const region_center_y = this.target_params.center_y;
+    // Calculate region dimensions (steal from calculate_region_parameters)
+    const config = window.infinity_zoom_II.config.region_zoom;
+    const { p0, p1, p2, p3 } = config.region_rect;
+    const edge1 = { x: p1.x - p0.x, y: p1.y - p0.y };
+    const edge2 = { x: p3.x - p0.x, y: p3.y - p0.y };
+    const region_width = Math.hypot(edge1.x, edge1.y);
+    const region_height = Math.hypot(edge2.x, edge2.y);
 
-    // Display image uses the same scale and rotation as alien
+    // Calculate covering scale for mystery image to fill the region
+    const mystery_scale_factor = Math.max(region_width / this.display_image_layer.image.width, region_height / this.display_image_layer.image.height);
+
     return {
-      center_x: region_center_x, // Always region center
-      center_y: region_center_y, // Always region center
-      scale: current_params.scale, // Same scale as alien
-      rotation: current_params.rotation, // Same rotation as alien
+      center_x: this.target_params.center_x,
+      center_y: this.target_params.center_y,
+      scale: current_params.scale * mystery_scale_factor, // Scale relative to current zoom level
+      rotation: current_params.rotation,
     };
   },
 
