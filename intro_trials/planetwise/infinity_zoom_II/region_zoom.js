@@ -188,7 +188,7 @@ window.infinity_zoom_II.region_zoom = {
 
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
-    this.penultimate_layer = engine.layers.length > 1 ? engine.layers[engine.layers.length - 2] : null;
+    this.penultimate_layer = engine.layers[engine.layers.length - 2];
     const gl = engine.gl_context;
 
     // Create region zoom shader program and buffers
@@ -332,6 +332,21 @@ window.infinity_zoom_II.region_zoom = {
     };
   },
 
+  // Calculate mystery image transformation parameters
+  calculate_mystery_image_transform_params(current_params) {
+    // Mystery image always centers on the display region center
+    const region_center_x = this.target_params.center_x;
+    const region_center_y = this.target_params.center_y;
+
+    // Mystery image uses the same scale and rotation as alien
+    return {
+      center_x: region_center_x, // Always region center
+      center_y: region_center_y, // Always region center
+      scale: current_params.scale, // Same scale as alien
+      rotation: current_params.rotation, // Same rotation as alien
+    };
+  },
+
   // Render a single layer using orthographic system
   render_single_layer(layer, quad_buffer, transformation_params) {
     const gl = this.engine.gl_context;
@@ -391,7 +406,11 @@ window.infinity_zoom_II.region_zoom = {
     const penultimate_params = this.calculate_penultimate_transform_params(transformation_params);
     this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, penultimate_params);
 
-    // 2. Render final layer SECOND (on top)
+    // 2. Render mystery image (portal content)
+    const mystery_params = this.calculate_mystery_image_transform_params(transformation_params);
+    this.render_single_layer(this.mystery_layer, this.mystery_quad_buffer, mystery_params);
+
+    // 3. Render final layer SECOND (on top)
     this.render_single_layer(this.final_layer, this.region_quad_buffer, transformation_params);
   },
 
