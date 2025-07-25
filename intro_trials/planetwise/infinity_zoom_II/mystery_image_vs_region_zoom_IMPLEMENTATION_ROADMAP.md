@@ -61,6 +61,16 @@ Implementing the mystery image portal effect requires three phases: getting the 
 
 ## Implementation Notes
 
+### Coding Standards
+- Use **loose_snake_case** for all variable, method, and file names
+- Use proper English words, avoid abbreviations except standard ones (DB, SQL, JSON)
+- No defensive code - crash hard and fast, no checking if something exists
+- NO logging without explicit user consent!
+- No comments! (except when really needed)
+- IF comments are needed:
+  - Keep comments timeless and general - explain "why" and "how", not "what"
+  - No redundant comments - let code be self-explanatory where possible
+
 ### Coordinate Systems
 - Mystery image uses image pixel coordinates (same as alien)
 - Display region defined in alien image pixel coordinates
