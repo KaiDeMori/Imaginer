@@ -8,6 +8,8 @@ window.infinity_zoom_II.config.region_zoom = {
 };
 
 window.infinity_zoom_II.region_zoom = {
+  utils: null, // Will be set to region_zoom_utils
+
   // State storage
   engine: null,
   start_time: null,
@@ -159,35 +161,9 @@ window.infinity_zoom_II.region_zoom = {
     return engine_utils.create_program(gl, this.get_region_vertex_shader_source(), this.get_region_fragment_shader_source());
   },
 
-  // Create quad in IMAGE PIXEL coordinates (not clip space)
-  create_image_pixel_quad_buffer(gl, image_width, image_height) {
-    const vertices = new Float32Array([
-      0,
-      0,
-      0,
-      1, // Bottom-left (pos + uv)
-      image_width,
-      0,
-      1,
-      1, // Bottom-right
-      0,
-      image_height,
-      0,
-      0, // Top-left
-      image_width,
-      image_height,
-      1,
-      0, // Top-right
-    ]);
-
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-    return buffer;
-  },
-
   // Initialize region zoom (called once when state changes)
   init_region_zoom(engine, now) {
+    this.utils = window.infinity_zoom_II.region_zoom_utils;
     this.engine = engine;
     this.start_time = now;
 
@@ -199,11 +175,11 @@ window.infinity_zoom_II.region_zoom = {
 
     // Create region zoom shader program and buffers
     this.region_program = this.create_region_shader_program(gl);
-    this.region_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
+    this.region_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
 
-    this.penultimate_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
+    this.penultimate_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
 
-    this.mystery_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.mystery_image.image.width, this.mystery_image.image.height);
+    this.mystery_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.mystery_image.image.width, this.mystery_image.image.height);
 
     // Get shader uniform locations
     this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");

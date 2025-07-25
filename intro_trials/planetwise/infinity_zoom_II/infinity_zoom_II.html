@@ -11,6 +11,8 @@
     <script src="infinity_zoom_II_utils.js" defer></script>
     <script src="infinity_zoom_II_preloader.js" defer></script>
     <script src="regions.js" defer></script>
+
+    <script src="region_zoom_utils.js" defer></script>
     <script src="mystery_image_region_zoom.js" defer></script>
     <script src="infinity_zoom_II_featherer.js" defer></script>
     <script src="region_zoom.js" defer></script>
@@ -74,7 +76,7 @@
     <canvas id="zoom_canvas"></canvas>
 
     <div id="debug_div">
-      <button onclick="location.reload()">Reload</button>
+      <button onclick="location.reload(true)">Reload</button>
       <button onclick="window.infinity_zoom_II.FLAG_initiate_final_reveal = true;">trigger final reveal</button>
       <br />
       <label> <input type="checkbox" id="global_rotation_enabled" /> Global rotation enabled </label>
