@@ -25,6 +25,8 @@ window.infinity_zoom_II.region_zoom = {
 
   penultimate_layer: null,
   penultimate_quad_buffer: null,
+  mystery_image: null,
+  mystery_quad_buffer: null,
 
   // Ease-in-out cubic interpolation function
   ease_in_out_cubic(t) {
@@ -192,6 +194,7 @@ window.infinity_zoom_II.region_zoom = {
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
     this.penultimate_layer = engine.layers.length > 1 ? engine.layers[engine.layers.length - 2] : null;
+    this.mystery_image = engine.alien_display_screen;
     const gl = engine.gl_context;
 
     // Create region zoom shader program and buffers
@@ -199,6 +202,8 @@ window.infinity_zoom_II.region_zoom = {
     this.region_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
 
     this.penultimate_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
+
+    this.mystery_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.mystery_image.image.width, this.mystery_image.image.height);
 
     // Get shader uniform locations
     this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
@@ -335,6 +340,33 @@ window.infinity_zoom_II.region_zoom = {
     };
   },
 
+  // Calculate mystery image transformation parameters for proper alignment
+  calculate_mystery_image_transform_params(final_params) {
+    // Region center in alien image coordinates (where mystery should align)
+    const region_center_x = this.target_params.center_x;
+    const region_center_y = this.target_params.center_y;
+
+    // Current alien transformation center
+    const alien_current_center_x = final_params.center_x;
+    const alien_current_center_y = final_params.center_y;
+
+    // Mystery image center in its own coordinate space
+    const mystery_center_x = this.mystery_image.image.width * 0.5;
+    const mystery_center_y = this.mystery_image.image.height * 0.5;
+
+    // Calculate offset: where alien center differs from region center
+    const offset_x = alien_current_center_x - region_center_x;
+    const offset_y = alien_current_center_y - region_center_y;
+
+    // Apply offset to mystery center so it aligns with region when both use same transformation
+    return {
+      center_x: mystery_center_x + offset_x,
+      center_y: mystery_center_y + offset_y,
+      scale: final_params.scale, // Same scale as alien
+      rotation: final_params.rotation, // Same rotation as alien
+    };
+  },
+
   // Render a single layer using orthographic system
   render_single_layer(layer, quad_buffer, transformation_params) {
     const gl = this.engine.gl_context;
@@ -394,7 +426,11 @@ window.infinity_zoom_II.region_zoom = {
     const penultimate_params = this.calculate_penultimate_transform_params(transformation_params);
     this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, penultimate_params);
 
-    // 2. Render final layer SECOND (on top)
+    // 2. Render mystery image SECOND (portal content)
+    const mystery_params = this.calculate_mystery_image_transform_params(transformation_params);
+    this.render_single_layer(this.mystery_image, this.mystery_quad_buffer, mystery_params);
+
+    // 3. Render final layer THIRD (alien with transparent screen)
     this.render_single_layer(this.final_layer, this.region_quad_buffer, transformation_params);
   },
 
