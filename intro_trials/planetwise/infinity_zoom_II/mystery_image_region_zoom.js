@@ -70,8 +70,8 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
     // Position mystery image so that when scaled, its center aligns with region screen position
     // We need to "reverse" the scale effect to get the right starting position
     return {
-      center_x: mystery_center_x + region_offset_x / mystery_scale,
-      center_y: mystery_center_y + region_offset_y / mystery_scale,
+      center_x: mystery_center_x - region_offset_x / mystery_scale,
+      center_y: mystery_center_y - region_offset_y / mystery_scale,
     };
   },
 
