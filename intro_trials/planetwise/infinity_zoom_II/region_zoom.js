@@ -17,17 +17,11 @@ window.infinity_zoom_II.region_zoom = {
   // Region zoom shader program and buffers
   region_program: null,
   region_quad_buffer: null,
-
-  final_layer: null,
-
+  penultimate_quad_buffer: null,
   u_matrix_location: null,
   u_texture_location: null,
-
+  final_layer: null,
   penultimate_layer: null,
-  penultimate_quad_buffer: null,
-
-  display_image_layer: null,
-  display_image_quad_buffer: null,
 
   // Ease-in-out cubic interpolation function
   ease_in_out_cubic(t) {
@@ -194,8 +188,7 @@ window.infinity_zoom_II.region_zoom = {
 
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
-    this.penultimate_layer = engine.layers[engine.layers.length - 2];
-    this.display_image_layer = engine.alien_display_screen; //maybe re-use existing texture
+    this.penultimate_layer = engine.layers.length > 1 ? engine.layers[engine.layers.length - 2] : null;
     const gl = engine.gl_context;
 
     // Create region zoom shader program and buffers
@@ -203,7 +196,6 @@ window.infinity_zoom_II.region_zoom = {
     this.region_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
 
     this.penultimate_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
-    this.display_image_quad_buffer = this.create_image_pixel_quad_buffer(gl, this.display_image_layer.image.width, this.display_image_layer.image.height);
 
     // Get shader uniform locations
     this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
@@ -340,27 +332,6 @@ window.infinity_zoom_II.region_zoom = {
     };
   },
 
-  // Calculate display image transformation parameters
-  calculate_display_image_transform_params(current_params) {
-    // Calculate region dimensions (steal from calculate_region_parameters)
-    const config = window.infinity_zoom_II.config.region_zoom;
-    const { p0, p1, p2, p3 } = config.region_rect;
-    const edge1 = { x: p1.x - p0.x, y: p1.y - p0.y };
-    const edge2 = { x: p3.x - p0.x, y: p3.y - p0.y };
-    const region_width = Math.hypot(edge1.x, edge1.y);
-    const region_height = Math.hypot(edge2.x, edge2.y);
-
-    // Calculate covering scale for mystery image to fill the region
-    const mystery_scale_factor = Math.max(region_width / this.display_image_layer.image.width, region_height / this.display_image_layer.image.height);
-
-    return {
-      center_x: this.target_params.center_x,
-      center_y: this.target_params.center_y,
-      scale: current_params.scale * mystery_scale_factor, // Scale relative to current zoom level
-      rotation: current_params.rotation,
-    };
-  },
-
   // Render a single layer using orthographic system
   render_single_layer(layer, quad_buffer, transformation_params) {
     const gl = this.engine.gl_context;
@@ -420,11 +391,7 @@ window.infinity_zoom_II.region_zoom = {
     const penultimate_params = this.calculate_penultimate_transform_params(transformation_params);
     this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, penultimate_params);
 
-    // 2. Render display image (portal content)
-    const display_params = this.calculate_display_image_transform_params(transformation_params);
-    this.render_single_layer(this.display_image_layer, this.display_image_quad_buffer, display_params);
-
-    // 3. Render final layer SECOND (on top)
+    // 2. Render final layer SECOND (on top)
     this.render_single_layer(this.final_layer, this.region_quad_buffer, transformation_params);
   },
 
