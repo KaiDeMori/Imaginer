@@ -196,6 +196,9 @@ window.infinity_zoom_II.region_zoom = {
     // Calculate target region parameters
     this.target_params = this.calculate_region_parameters();
 
+    // Initialize mystery image module
+    window.infinity_zoom_II.mystery_image_region_zoom.init_mystery_image(engine, this.target_params);
+
     log("Region zoom initialized - orthographic projection approach");
     log("Start params:", this.start_params);
     log("Target params:", this.target_params);
@@ -316,33 +319,6 @@ window.infinity_zoom_II.region_zoom = {
     };
   },
 
-  // Calculate mystery image transformation parameters for proper alignment
-  calculate_mystery_image_transform_params(final_params) {
-    // Region center in alien image coordinates (where mystery should align)
-    const region_center_x = this.target_params.center_x;
-    const region_center_y = this.target_params.center_y;
-
-    // Current alien transformation center
-    const alien_current_center_x = final_params.center_x;
-    const alien_current_center_y = final_params.center_y;
-
-    // Mystery image center in its own coordinate space
-    const mystery_center_x = this.mystery_image.image.width * 0.5;
-    const mystery_center_y = this.mystery_image.image.height * 0.5;
-
-    // Calculate offset: where alien center differs from region center
-    const offset_x = alien_current_center_x - region_center_x;
-    const offset_y = alien_current_center_y - region_center_y;
-
-    // Apply offset to mystery center so it aligns with region when both use same transformation
-    return {
-      center_x: mystery_center_x + offset_x,
-      center_y: mystery_center_y + offset_y,
-      scale: final_params.scale, // Same scale as alien
-      rotation: final_params.rotation, // Same rotation as alien
-    };
-  },
-
   // Render a single layer using orthographic system
   render_single_layer(layer, quad_buffer, transformation_params) {
     const gl = this.engine.gl_context;
@@ -403,7 +379,7 @@ window.infinity_zoom_II.region_zoom = {
     this.render_single_layer(this.penultimate_layer, this.penultimate_quad_buffer, penultimate_params);
 
     // 2. Render mystery image SECOND (portal content)
-    const mystery_params = this.calculate_mystery_image_transform_params(transformation_params);
+    const mystery_params = window.infinity_zoom_II.mystery_image_region_zoom.calculate_mystery_image_transform_params(transformation_params);
     this.render_single_layer(this.mystery_image, this.mystery_quad_buffer, mystery_params);
 
     // 3. Render final layer THIRD (alien with transparent screen)
