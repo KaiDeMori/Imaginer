@@ -15,7 +15,7 @@ It is defined by 4 points (p0-p3). The points are given in pixels relative to th
 
 **Covering Square**: A conceptual square derived from the display region by taking the longer edge of the region rectangle and using it as both width and height, centered on the region's center point.
 
-**Synchronized Transformation**: The behavior where both images (alien and mystery) undergo identical mathematical transformations simultaneously, maintaining their relative positioning and alignment.
+**Synchronized Transformation**: The behavior where both images (alien and mystery) maintain their relative positioning and alignment.
 
 **Orthographic Coordinate Space**: A coordinate system where measurements are in actual pixel units relative to image dimensions, as opposed to normalized viewport-relative coordinates.
 
@@ -37,10 +37,7 @@ At the beginning of region zoom, the scene consists of two perfectly aligned ima
 
 During the region zoom animation sequence:
 
-1. **Synchronized Transformation**: Both alien image and mystery image undergo identical mathematical transformations simultaneously
-   - Same translation vectors applied to both images
-   - Same scaling factors applied to both images  
-   - Same rotation increments applied to both images
+1. **Synchronized Transformation**: Both alien image and mystery image move "in-sync". The math transformations needed are different due to the different start and end parameters.
 
 2. **Relative Positioning Preservation**: The initial spatial relationship between the two images remains constant throughout the animation
    - Mystery image maintains its position relative to the display region
