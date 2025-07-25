@@ -17,11 +17,14 @@ window.infinity_zoom_II.region_zoom = {
   // Region zoom shader program and buffers
   region_program: null,
   region_quad_buffer: null,
-  penultimate_quad_buffer: null,
+
+  final_layer: null,
+
   u_matrix_location: null,
   u_texture_location: null,
-  final_layer: null,
+
   penultimate_layer: null,
+  penultimate_quad_buffer: null,
 
   // Ease-in-out cubic interpolation function
   ease_in_out_cubic(t) {
