@@ -24,14 +24,14 @@ Implementing the mystery image portal effect requires three phases: getting the 
 ### Mystery Image Access
 - Access mystery image from `engine.alien_display_screen.image` and `engine.alien_display_screen.texture`
 - Create mystery quad buffer using mystery image dimensions
-- Store mystery references in region zoom module
+- Store mystery references in `mystery_image_region_zoom.js`
 
 ### Initial Position Calculation  
 - Calculate display region center from region rectangle points
 - Calculate covering square dimensions from region rectangle
 - Calculate mystery image scale using covering scale relative to covering square
 - Calculate mystery image rotation to match display region orientation
-- Mystery center = region center (no offset from alien center)
+- Mystery center = region center
 
 ### Mystery Rendering Integration
 - Add mystery layer rendering in `render_region_zoom_frame()` between penultimate and alien
@@ -70,6 +70,7 @@ Implementing the mystery image portal effect requires three phases: getting the 
 - IF comments are needed:
   - Keep comments timeless and general - explain "why" and "how", not "what"
   - No redundant comments - let code be self-explanatory where possible
+- DO NOT start servers or try to test anything. Only the user can do that.
 
 ### Coordinate Systems
 - Mystery image uses image pixel coordinates (same as alien)
