@@ -65,62 +65,23 @@ window.infinity_zoom_II.region_zoom = {
     return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
   },
 
-  // === ORTHOGRAPHIC MATRIX SYSTEM (Phase 1) ===
-
-  // 3x3 matrix multiplication (column-major) - DUPLICATED from MatrixStack
-  matrix_multiply_3x3(a, b) {
-    const result = new Float32Array(9);
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        let sum = 0;
-        for (let k = 0; k < 3; k++) {
-          sum += a[i + k * 3] * b[k + j * 3];
-        }
-        result[i + j * 3] = sum;
-      }
-    }
-    return result;
-  },
-
-  // Orthographic projection matrix for screen→clip conversion
-  create_orthographic_matrix(screen_width, screen_height) {
-    return new Float32Array([2 / screen_width, 0, 0, 0, -2 / screen_height, 0, -1, 1, 1]);
-  },
-
-  // Translation matrix (3x3)
-  create_translation_matrix(tx, ty) {
-    return new Float32Array([1, 0, 0, 0, 1, 0, tx, ty, 1]);
-  },
-
-  // Scale matrix (3x3)
-  create_scale_matrix(scale) {
-    return new Float32Array([scale, 0, 0, 0, scale, 0, 0, 0, 1]);
-  },
-
-  // Rotation matrix (3x3)
-  create_rotation_matrix(angle) {
-    const c = Math.cos(angle);
-    const s = Math.sin(angle);
-    return new Float32Array([c, -s, 0, s, c, 0, 0, 0, 1]);
-  },
-
   // Build transformation matrix in screen pixel coordinates
   build_screen_space_matrix(center_x, center_y, scale, rotation, screen_width, screen_height) {
     // Step 1: Translation to screen center
-    const translate_to_center = this.create_translation_matrix(screen_width * 0.5, screen_height * 0.5);
+    const translate_to_center = this.utils.create_translation_matrix(screen_width * 0.5, screen_height * 0.5);
 
     // Step 2: Scale and rotation
-    const scale_matrix = this.create_scale_matrix(scale);
-    const rotation_matrix = this.create_rotation_matrix(rotation);
+    const scale_matrix = this.utils.create_scale_matrix(scale);
+    const rotation_matrix = this.utils.create_rotation_matrix(rotation);
 
     // Step 3: Translation from image center
-    const translate_from_center = this.create_translation_matrix(-center_x, -center_y);
+    const translate_from_center = this.utils.create_translation_matrix(-center_x, -center_y);
 
     // Step 4: Compose transformation (order matters!)
     let result = translate_to_center;
-    result = this.matrix_multiply_3x3(result, scale_matrix);
-    result = this.matrix_multiply_3x3(result, rotation_matrix);
-    result = this.matrix_multiply_3x3(result, translate_from_center);
+    result = this.utils.matrix_multiply_3x3(result, scale_matrix);
+    result = this.utils.matrix_multiply_3x3(result, rotation_matrix);
+    result = this.utils.matrix_multiply_3x3(result, translate_from_center);
 
     return result;
   },
@@ -337,8 +298,8 @@ window.infinity_zoom_II.region_zoom = {
     );
 
     // Apply orthographic projection - THE KEY STEP!
-    const orthographic = this.create_orthographic_matrix(gl.canvas.width, gl.canvas.height);
-    const final_matrix = this.matrix_multiply_3x3(orthographic, transform_matrix);
+    const orthographic = this.utils.create_orthographic_matrix(gl.canvas.width, gl.canvas.height);
+    const final_matrix = this.utils.matrix_multiply_3x3(orthographic, transform_matrix);
 
     // Set up vertex attributes
     gl.bindBuffer(gl.ARRAY_BUFFER, quad_buffer);

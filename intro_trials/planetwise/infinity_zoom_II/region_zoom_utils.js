@@ -1,4 +1,44 @@
 window.infinity_zoom_II.region_zoom_utils = {
+  // === ORTHOGRAPHIC MATRIX SYSTEM ===
+
+  // 3x3 matrix multiplication (column-major) - DUPLICATED from MatrixStack
+  matrix_multiply_3x3(a, b) {
+    const result = new Float32Array(9);
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        let sum = 0;
+        for (let k = 0; k < 3; k++) {
+          sum += a[i + k * 3] * b[k + j * 3];
+        }
+        result[i + j * 3] = sum;
+      }
+    }
+    return result;
+  },
+
+  // Orthographic projection matrix for screen→clip conversion
+  create_orthographic_matrix(screen_width, screen_height) {
+    return new Float32Array([2 / screen_width, 0, 0, 0, -2 / screen_height, 0, -1, 1, 1]);
+  },
+
+  // Translation matrix (3x3)
+  create_translation_matrix(tx, ty) {
+    return new Float32Array([1, 0, 0, 0, 1, 0, tx, ty, 1]);
+  },
+
+  // Scale matrix (3x3)
+  create_scale_matrix(scale) {
+    return new Float32Array([scale, 0, 0, 0, scale, 0, 0, 0, 1]);
+  },
+
+  // Rotation matrix (3x3)
+  create_rotation_matrix(angle) {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    return new Float32Array([c, -s, 0, s, c, 0, 0, 0, 1]);
+  },
+
+  // === WebGL UTILS ===
   // Create quad in IMAGE PIXEL coordinates (not clip space)
   create_image_pixel_quad_buffer(gl, image_width, image_height) {
     const vertices = new Float32Array([
