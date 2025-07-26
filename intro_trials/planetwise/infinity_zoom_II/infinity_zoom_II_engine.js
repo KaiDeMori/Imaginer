@@ -23,16 +23,17 @@ const engine = {
     this.pre_main_zoom_hold_duration = window.infinity_zoom_II.config.pre_main_zoom_hold_duration;
     this.minimum_render_size = window.infinity_zoom_II.config.minimum_render_size;
 
-    window.infinity_zoom_II.preloader.load_all_images((processed_images, mystery_image) => {
+    window.infinity_zoom_II.preloader.load_all_images((processed_images, mystery_images) => {
       log("All images loaded and processed, initializing engine");
-      this.init(processed_images, mystery_image);
+      this.init(processed_images, mystery_images);
     });
   },
 
   gl_context: null,
   canvas: null,
   layers: [],
-  alien_display_screen: null,
+  alien_display_screens: null,
+  alien_display_screen_current: null,
   start_time: 0,
   animation_phase: "intro",
   global_rotation: 0,
@@ -41,7 +42,7 @@ const engine = {
   deepest_visible_layer_index: 0,
 
   // Initialize engine with preloaded images and canvas
-  init(images, mystery_image) {
+  init(images, mystery_images) {
     log("Engine init called");
 
     const layer_data = window.infinity_zoom_II.config.LAYERS_DATA;
@@ -83,11 +84,15 @@ const engine = {
       };
     });
 
-    this.alien_display_screen = {
-      image: mystery_image,
-      texture: this.utils.create_texture(this.gl_context, mystery_image),
-      loaded: true,
-    };
+    this.alien_display_screens = mystery_images.map((mystery_image, i) => {
+      return {
+        image: mystery_image,
+        texture: this.utils.create_texture(this.gl_context, mystery_image),
+        loaded: true,
+      };
+    });
+
+    this.alien_display_screen_current = this.alien_display_screens[0];
 
     this.start_time = performance.now();
     this.animation_phase = "intro";
@@ -384,7 +389,7 @@ const engine = {
 
           // Create temporary mystery layer object for rendering
           const mystery_layer = {
-            texture: this.alien_display_screen.texture,
+            texture: this.alien_display_screen_current.texture,
             trs: mystery_trs,
             alpha: layer.alpha, // Same alpha as alien layer
           };

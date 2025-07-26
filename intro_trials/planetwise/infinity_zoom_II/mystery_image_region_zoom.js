@@ -1,8 +1,8 @@
 window.infinity_zoom_II.mystery_image_region_zoom = {
   utils: null, // Will be set to region_zoom_utils
   // Properties
-  display_image_layer: null, // Will be set to engine.alien_display_screen
-  mystery_quad_buffer: null,
+  display_image_layer_current: null, // Will be set to engine.alien_display_screen_current
+  mystery_quad_buffer_current: null,
   target_params: null,
   mystery_base_scale: null, // Calculated once during init
   region_base_rotation: null, // Region's intrinsic rotation relative to alien image
@@ -10,10 +10,14 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
   // Initialization
   init_mystery_image(engine, target_params) {
     this.utils = window.infinity_zoom_II.region_zoom_utils;
-    this.display_image_layer = engine.alien_display_screen;
+    this.display_image_layer_current = engine.alien_display_screen_current;
     this.target_params = target_params;
     const gl = engine.gl_context;
-    this.mystery_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.display_image_layer.image.width, this.display_image_layer.image.height);
+    this.mystery_quad_buffer_current = this.utils.create_image_pixel_quad_buffer(
+      gl,
+      this.display_image_layer_current.image.width,
+      this.display_image_layer_current.image.height
+    );
 
     // Calculate mystery base scale once during initialization
     this.mystery_base_scale = this.calculate_mystery_base_scale();
@@ -40,7 +44,7 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
     const covering_square_size = Math.max(region_width, region_height);
 
     // Calculate mystery image scale to cover the covering square
-    const mystery_image_size = Math.max(this.display_image_layer.image.width, this.display_image_layer.image.height);
+    const mystery_image_size = Math.max(this.display_image_layer_current.image.width, this.display_image_layer_current.image.height);
     const mystery_base_scale = covering_square_size / mystery_image_size;
 
     return mystery_base_scale;
@@ -78,8 +82,8 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
     const region_offset_y = (region_center_y - alien_current_center_y) * alien_scale;
 
     // Mystery image center in its own coordinate space
-    const mystery_center_x = this.display_image_layer.image.width * 0.5;
-    const mystery_center_y = this.display_image_layer.image.height * 0.5;
+    const mystery_center_x = this.display_image_layer_current.image.width * 0.5;
+    const mystery_center_y = this.display_image_layer_current.image.height * 0.5;
 
     // Calculate mystery scale for this frame
     const mystery_scale = this.calculate_mystery_scale(final_params);

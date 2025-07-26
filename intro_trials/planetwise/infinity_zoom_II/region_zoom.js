@@ -27,8 +27,8 @@ window.infinity_zoom_II.region_zoom = {
 
   penultimate_layer: null,
   penultimate_quad_buffer: null,
-  mystery_image: null,
-  mystery_quad_buffer: null,
+  mystery_image_current: null,
+  mystery_quad_buffer_current: null,
 
   // Ease-in-out cubic interpolation function
   ease_in_out_cubic(t) {
@@ -95,7 +95,7 @@ window.infinity_zoom_II.region_zoom = {
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
     this.penultimate_layer = engine.layers.length > 1 ? engine.layers[engine.layers.length - 2] : null;
-    this.mystery_image = engine.alien_display_screen;
+    this.mystery_image_current = engine.alien_display_screen_current;
     const gl = engine.gl_context;
 
     // Create region zoom shader program and buffers
@@ -104,7 +104,11 @@ window.infinity_zoom_II.region_zoom = {
 
     this.penultimate_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
 
-    this.mystery_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.mystery_image.image.width, this.mystery_image.image.height);
+    this.mystery_quad_buffer_current = this.utils.create_image_pixel_quad_buffer(
+      gl,
+      this.mystery_image_current.image.width,
+      this.mystery_image_current.image.height
+    );
 
     // Get shader uniform locations
     this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
@@ -305,7 +309,7 @@ window.infinity_zoom_II.region_zoom = {
 
     // 2. Render mystery image SECOND (portal content)
     const mystery_params = window.infinity_zoom_II.mystery_image_region_zoom.calculate_mystery_image_transform_params(transformation_params);
-    this.render_single_layer(this.mystery_image, this.mystery_quad_buffer, mystery_params);
+    this.render_single_layer(this.mystery_image_current, this.mystery_quad_buffer_current, mystery_params);
 
     // 3. Render final layer THIRD (alien with transparent screen)
     this.render_single_layer(this.final_layer, this.region_quad_buffer, transformation_params);
