@@ -5,6 +5,7 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
   mystery_quad_buffer: null,
   target_params: null,
   mystery_base_scale: null, // Calculated once during init
+  region_base_rotation: null, // Region's intrinsic rotation relative to alien image
 
   // Initialization
   init_mystery_image(engine, target_params) {
@@ -17,7 +18,11 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
     // Calculate mystery base scale once during initialization
     this.mystery_base_scale = this.calculate_mystery_base_scale();
 
+    // Calculate region's base rotation once during initialization
+    this.region_base_rotation = this.calculate_region_base_rotation();
+
     log("Mystery image initialized with base scale:", this.mystery_base_scale);
+    log("Mystery image initialized with region base rotation:", this.region_base_rotation);
   },
 
   // Calculate the base scale for mystery image to cover the display region
@@ -39,6 +44,18 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
     const mystery_base_scale = covering_square_size / mystery_image_size;
 
     return mystery_base_scale;
+  },
+
+  // Calculate the region's intrinsic rotation relative to alien image
+  calculate_region_base_rotation() {
+    const config = window.infinity_zoom_II.config.region_zoom;
+    const { p0, p1, p2, p3 } = config.region_rect;
+
+    // Calculate region rotation from first edge (same logic as in region_zoom.js)
+    const edge1 = { x: p1.x - p0.x, y: p1.y - p0.y };
+    const region_rotation = Math.atan2(edge1.y, edge1.x);
+
+    return region_rotation;
   },
 
   // Calculate mystery image positioning (separate from scaling)
@@ -67,11 +84,19 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
     // Calculate mystery scale for this frame
     const mystery_scale = this.calculate_mystery_scale(final_params);
 
+    // Apply rotation compensation to the positioning offset
+    // Since mystery image has additional rotation, we need to "un-rotate" the positioning offset
+    const cos_angle = Math.cos(this.region_base_rotation); // Positive angle now (flipped sign!)
+    const sin_angle = Math.sin(this.region_base_rotation); // Positive angle now (flipped sign!)
+
+    const rotated_offset_x = region_offset_x * cos_angle - region_offset_y * sin_angle;
+    const rotated_offset_y = region_offset_x * sin_angle + region_offset_y * cos_angle;
+
     // Position mystery image so that when scaled, its center aligns with region screen position
     // We need to "reverse" the scale effect to get the right starting position
     return {
-      center_x: mystery_center_x - region_offset_x / mystery_scale,
-      center_y: mystery_center_y - region_offset_y / mystery_scale,
+      center_x: mystery_center_x - rotated_offset_x / mystery_scale,
+      center_y: mystery_center_y - rotated_offset_y / mystery_scale,
     };
   },
 
@@ -95,7 +120,7 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
       center_x: positioning_result.center_x,
       center_y: positioning_result.center_y,
       scale: mystery_scale, // Use mystery-specific scale
-      rotation: final_params.rotation, // Same rotation as alien
+      rotation: final_params.rotation - this.region_base_rotation, // Alien rotation - region offset (flipped sign!)
     };
   },
 };
