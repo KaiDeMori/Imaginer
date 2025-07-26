@@ -1,12 +1,6 @@
 // Region Zoom functionality for Infinity Zoom II Engine
 // Orthographic Projection Approach - Clean Implementation
 
-// Add default configuration for region zoom
-window.infinity_zoom_II.config.region_zoom = {
-  anim_duration: 10000, // Animation duration in milliseconds
-  region_rect: window.infinity_zoom_II.regions.original,
-};
-
 window.infinity_zoom_II.region_zoom = {
   utils: null, // Will be set to region_zoom_utils
 

@@ -1,3 +1,5 @@
+if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
+
 window.infinity_zoom_II.regions = {
   original: {
     p0: { x: 1152, y: 1125 }, // origin (top-left)

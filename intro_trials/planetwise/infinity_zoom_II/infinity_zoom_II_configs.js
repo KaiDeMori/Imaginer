@@ -1,10 +1,6 @@
-(window.infinity_zoom_II = {
-  assert_all_namespaces: function () {
-    if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
-    if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
-    if (!window.infinity_zoom_II.region_zoom) window.infinity_zoom_II.region_zoom = {};
-  },
-}).assert_all_namespaces();
+if (!window.infinity_zoom_II) window.infinity_zoom_II = {};
+if (!window.infinity_zoom_II.config) window.infinity_zoom_II.config = {};
+if (!window.infinity_zoom_II.region_zoom) window.infinity_zoom_II.region_zoom = {};
 
 // Infinity Zoom II Configuration Module
 
@@ -32,8 +28,14 @@ window.infinity_zoom_II.config.LAYERS_DATA = [
   //{ zoom: 25, image: "100_alien_closeup_transparent_display.png" },
 ];
 
-// Mystery image for alien screen portal effect
-window.infinity_zoom_II.config.MYSTERY_IMAGES = [
+// Add default configuration for region zoom
+window.infinity_zoom_II.config.region_zoom = {
+  anim_duration: 10000, // Animation duration in milliseconds
+  region_rect: window.infinity_zoom_II.regions.original,
+};
+
+// Display images for alien screen portal effect
+window.infinity_zoom_II.config.region_zoom.DISPLAY_IMAGES = [
   "../zoom_images_planete/debug/alien_display_mystery_image_grid.png",
   "../zoom_images_planete/alien_display_mystery_image_1.png",
   "../zoom_images_planete/alien_display_mystery_image_2.png",
