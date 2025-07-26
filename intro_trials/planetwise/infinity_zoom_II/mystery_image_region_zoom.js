@@ -84,19 +84,18 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
     // Calculate mystery scale for this frame
     const mystery_scale = this.calculate_mystery_scale(final_params);
 
-    // Apply rotation compensation to the positioning offset
-    // Since mystery image has additional rotation, we need to "un-rotate" the positioning offset
-    const cos_angle = Math.cos(this.region_base_rotation); // Positive angle now (flipped sign!)
-    const sin_angle = Math.sin(this.region_base_rotation); // Positive angle now (flipped sign!)
-
-    const rotated_offset_x = region_offset_x * cos_angle - region_offset_y * sin_angle;
-    const rotated_offset_y = region_offset_x * sin_angle + region_offset_y * cos_angle;
+    // Rotate the offset vector by negative region rotation to compensate for mystery image rotation
+    // This fixes the "one square off" issue when region is tilted
+    const cos_angle = Math.cos(-this.region_base_rotation);
+    const sin_angle = Math.sin(-this.region_base_rotation);
+    const compensated_offset_x = region_offset_x * cos_angle - region_offset_y * sin_angle;
+    const compensated_offset_y = region_offset_x * sin_angle + region_offset_y * cos_angle;
 
     // Position mystery image so that when scaled, its center aligns with region screen position
     // We need to "reverse" the scale effect to get the right starting position
     return {
-      center_x: mystery_center_x - rotated_offset_x / mystery_scale,
-      center_y: mystery_center_y - rotated_offset_y / mystery_scale,
+      center_x: mystery_center_x - compensated_offset_x / mystery_scale,
+      center_y: mystery_center_y - compensated_offset_y / mystery_scale,
     };
   },
 
