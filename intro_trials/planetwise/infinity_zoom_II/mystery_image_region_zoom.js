@@ -105,8 +105,11 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
 
   // Calculate mystery image scale (base scale * animation scale)
   calculate_mystery_scale(final_params) {
+    // Recalculate base scale in case mystery image changed
+    const current_base_scale = this.calculate_mystery_base_scale();
+
     // Mystery scales with the animation, but from its own base scale
-    return this.mystery_base_scale * final_params.scale;
+    return current_base_scale * final_params.scale;
   },
 
   // Core calculation method - now uses separate positioning and scaling

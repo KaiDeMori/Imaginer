@@ -15,6 +15,8 @@ window.infinity_zoom_II.region_zoom = {
   start_time: null,
   start_params: null,
   target_params: null,
+  animation_t: 0, // Raw animation progress [0,1]
+  current_mystery_index: 0, // Current mystery image index
 
   // Region zoom shader program and buffers
   region_program: null,
@@ -29,6 +31,7 @@ window.infinity_zoom_II.region_zoom = {
   penultimate_quad_buffer: null,
   mystery_image_current: null,
   mystery_quad_buffer_current: null,
+  mystery_quad_buffers: null, // Array of all pre-created mystery quad buffers
 
   // Ease-in-out cubic interpolation function
   ease_in_out_cubic(t) {
@@ -91,6 +94,8 @@ window.infinity_zoom_II.region_zoom = {
     this.utils = window.infinity_zoom_II.region_zoom_utils;
     this.engine = engine;
     this.start_time = now;
+    this.animation_t = 0; // Reset animation progress
+    this.current_mystery_index = 0; // Start with first mystery image
 
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
@@ -104,11 +109,12 @@ window.infinity_zoom_II.region_zoom = {
 
     this.penultimate_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
 
-    this.mystery_quad_buffer_current = this.utils.create_image_pixel_quad_buffer(
-      gl,
-      this.mystery_image_current.image.width,
-      this.mystery_image_current.image.height
-    );
+    // Pre-create ALL mystery quad buffers to avoid jitter during swapping
+    this.mystery_quad_buffers = this.engine.alien_display_screens.map((mystery_screen) => {
+      return this.utils.create_image_pixel_quad_buffer(gl, mystery_screen.image.width, mystery_screen.image.height);
+    });
+
+    this.mystery_quad_buffer_current = this.mystery_quad_buffers[0];
 
     // Get shader uniform locations
     this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
@@ -205,13 +211,16 @@ window.infinity_zoom_II.region_zoom = {
   update_region_zoom_animation(now) {
     const config = window.infinity_zoom_II.config.region_zoom;
     const elapsed = (now - this.start_time) / config.anim_duration;
-    const t = Math.min(elapsed, 1.0);
+    this.animation_t = Math.min(elapsed, 1.0); // Store raw animation progress
+
+    // Check for mystery image swap at t >= 0.5
+    this.check_mystery_image_swap();
 
     // Use different easing for different parameters
-    const translation_eased_t = this.ease_out_back(t);
-    //const translation_eased_t = this.ease_out_elastic(t);
-    //const translation_eased_t = this.ease_in_out_sine(t);
-    const scale_rotation_eased_t = this.ease_in_sine(t);
+    const translation_eased_t = this.ease_out_back(this.animation_t);
+    //const translation_eased_t = this.ease_out_elastic(this.animation_t);
+    //const translation_eased_t = this.ease_in_out_sine(this.animation_t);
+    const scale_rotation_eased_t = this.ease_in_sine(this.animation_t);
 
     // Interpolate transformation parameters with different easing
     const current_params = {
@@ -222,6 +231,27 @@ window.infinity_zoom_II.region_zoom = {
     };
 
     return current_params;
+  },
+
+  // Check for mystery image swap at animation midpoint
+  check_mystery_image_swap() {
+    if (this.animation_t >= 0.5 && this.current_mystery_index === 0) {
+      this.swap_mystery_image(1); // Swap to second mystery image
+      log("🎭 MYSTERY IMAGE SWAPPED AT t=0.5! 🎭");
+    }
+  },
+
+  // Swap to different mystery image
+  swap_mystery_image(new_index) {
+    this.current_mystery_index = new_index;
+    this.mystery_image_current = this.engine.alien_display_screens[new_index];
+    this.mystery_quad_buffer_current = this.mystery_quad_buffers[new_index]; // Use pre-created buffer!
+
+    // Update mystery module reference
+    window.infinity_zoom_II.mystery_image_region_zoom.display_image_layer_current = this.mystery_image_current;
+    window.infinity_zoom_II.mystery_image_region_zoom.mystery_quad_buffer_current = this.mystery_quad_buffer_current;
+
+    log("Mystery image swapped to index:", new_index);
   },
 
   // === ORTHOGRAPHIC RENDERING ===
@@ -323,11 +353,8 @@ window.infinity_zoom_II.region_zoom = {
     // Render the current frame using orthographic system
     this.render_region_zoom_frame(current_params);
 
-    // Check if animation is complete
-    const config = window.infinity_zoom_II.config.region_zoom;
-    const elapsed = (now - this.start_time) / config.anim_duration;
-
-    if (elapsed >= 1.0) {
+    // Check if animation is complete using stored animation_t
+    if (this.animation_t >= 1.0) {
       log("Region zoom animation complete - transitioning to next phase");
       // Animation complete - engine will handle phase transition
       return true; // Signal completion
