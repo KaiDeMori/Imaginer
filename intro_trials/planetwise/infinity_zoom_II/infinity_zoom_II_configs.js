@@ -33,7 +33,11 @@ window.infinity_zoom_II.config.LAYERS_DATA = [
 ];
 
 // Mystery image for alien screen portal effect
-window.infinity_zoom_II.config.MYSTERY_IMAGE = "../zoom_images_planete/debug/alien_display_mystery_image_grid.png";
+window.infinity_zoom_II.config.MYSTERY_IMAGES = [
+  "../zoom_images_planete/debug/alien_display_mystery_image_grid.png",
+  "../zoom_images_planete/alien_display_mystery_image_1.png",
+  "../zoom_images_planete/alien_display_mystery_image_2.png",
+];
 
 /*
 // Example: with feathering
