@@ -34,8 +34,15 @@ window.infinity_zoom_II.config.region_zoom = {
   region_rect: window.infinity_zoom_II.regions.original,
 };
 
-// Display images for alien screen portal effect
-window.infinity_zoom_II.config.region_zoom.DISPLAY_IMAGES = [
+// Display images for alien screen portal effect during region zoom
+window.infinity_zoom_II.config.REGION_DISPLAY_IMAGE_PATHS = [
+  "../zoom_images_planete/debug/alien_display_mystery_image_grid.png",
+  "../zoom_images_planete/alien_display_mystery_image_1.png",
+  "../zoom_images_planete/alien_display_mystery_image_2.png",
+];
+
+// Display images for main zoom portal effect
+window.infinity_zoom_II.config.MAIN_DISPLAY_IMAGE_PATHS = [
   "../zoom_images_planete/debug/alien_display_mystery_image_grid.png",
   "../zoom_images_planete/alien_display_mystery_image_1.png",
   "../zoom_images_planete/alien_display_mystery_image_2.png",

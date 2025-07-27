@@ -2,6 +2,21 @@
 // Handles portal effect where mystery content appears through alien's transparent screen region
 
 window.infinity_zoom_II.mystery_image_main_zoom = {
+  gl_context: null,
+
+  init(gl_context) {
+    this.gl_context = gl_context;
+    this.alien_display_screens = window.infinity_zoom_II.MAIN_DISPLAY_IMAGES.map((mystery_image, i) => {
+      return {
+        image: mystery_image,
+        texture: window.infinity_zoom_II.utils.create_texture(this.gl_context, mystery_image),
+        loaded: true,
+      };
+    });
+
+    this.alien_display_screen_current = this.alien_display_screens[0];
+  },
+
   // Calculate mystery image TRS - simplified version without global rotation
   calculate_mystery_TRS(alien_layer, region_rect, canvas_width, canvas_height) {
     // Calculate region center from opposite corners (clockwise rectangle)
@@ -84,5 +99,36 @@ window.infinity_zoom_II.mystery_image_main_zoom = {
 
     // Y-flip for image coordinate system (Y=0 at top)
     return Math.atan2(-dy, dx);
+  },
+
+  // Render mystery image with proper positioning and alpha
+  render_mystery_image(gl, program, quad_buffer, alien_layer, canvas) {
+    // Calculate mystery image TRS synchronized with alien layer
+    const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
+    const mystery_trs = this.calculate_mystery_TRS(alien_layer, region_rect, canvas.width, canvas.height);
+
+    // Create temporary mystery layer object for rendering
+    const mystery_layer = {
+      texture: this.alien_display_screen_current.texture,
+      trs: mystery_trs,
+      alpha: alien_layer.alpha, // Same alpha as alien layer
+    };
+
+    // Render mystery image first (background)
+    window.infinity_zoom_II.utils.render_layer(gl, program, quad_buffer, mystery_layer, canvas);
+  },
+
+  // Cycle to next mystery image in the sequence
+  cycle_to_next_image() {
+    const current_index = this.alien_display_screens.indexOf(this.alien_display_screen_current);
+    const next_index = (current_index + 1) % this.alien_display_screens.length;
+    this.alien_display_screen_current = this.alien_display_screens[next_index];
+  },
+
+  // Set specific mystery image by index
+  set_image_by_index(index) {
+    if (index >= 0 && index < this.alien_display_screens.length) {
+      this.alien_display_screen_current = this.alien_display_screens[index];
+    }
   },
 };

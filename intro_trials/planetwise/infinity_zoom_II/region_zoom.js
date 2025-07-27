@@ -94,25 +94,21 @@ window.infinity_zoom_II.region_zoom = {
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
     this.penultimate_layer = engine.layers.length > 1 ? engine.layers[engine.layers.length - 2] : null;
-    this.mystery_image_current = engine.alien_display_screen_current;
+    this.mystery_image_current = window.infinity_zoom_II.mystery_image_main_zoom.alien_display_screen_current;
     const gl = engine.gl_context;
 
-    // Create region zoom shader program and buffers
-    this.region_program = this.utils.create_region_shader_program(gl);
-    this.region_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
+    // Use pre-loaded GPU resources from engine
+    this.region_program = engine.region_zoom_resources.program;
+    this.u_matrix_location = engine.region_zoom_resources.uniform_locations.matrix;
+    this.u_texture_location = engine.region_zoom_resources.uniform_locations.texture;
 
+    // Create layer-specific quad buffers on-demand (these are lightweight)
+    this.region_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.final_layer.image.width, this.final_layer.image.height);
     this.penultimate_quad_buffer = this.utils.create_image_pixel_quad_buffer(gl, this.penultimate_layer.image.width, this.penultimate_layer.image.height);
 
-    // Pre-create ALL mystery quad buffers to avoid jitter during swapping
-    this.mystery_quad_buffers = this.engine.alien_display_screens.map((mystery_screen) => {
-      return this.utils.create_image_pixel_quad_buffer(gl, mystery_screen.image.width, mystery_screen.image.height);
-    });
-
+    // Use pre-loaded mystery quad buffers
+    this.mystery_quad_buffers = engine.region_zoom_resources.quad_buffers.mystery_images;
     this.mystery_quad_buffer_current = this.mystery_quad_buffers[0];
-
-    // Get shader uniform locations
-    this.u_matrix_location = gl.getUniformLocation(this.region_program, "u_matrix");
-    this.u_texture_location = gl.getUniformLocation(this.region_program, "u_texture");
 
     // Calculate starting transformation parameters
     this.start_params = {
@@ -128,7 +124,7 @@ window.infinity_zoom_II.region_zoom = {
     // Initialize mystery image module
     window.infinity_zoom_II.mystery_image_region_zoom.init_mystery_image(engine, this.target_params);
 
-    log("Region zoom initialized - orthographic projection approach");
+    log("Region zoom initialized - using pre-loaded GPU resources");
     log("Start params:", this.start_params);
     log("Target params:", this.target_params);
   },
@@ -238,7 +234,7 @@ window.infinity_zoom_II.region_zoom = {
   // Swap to different mystery image
   swap_mystery_image(new_index) {
     this.current_mystery_index = new_index;
-    this.mystery_image_current = this.engine.alien_display_screens[new_index];
+    this.mystery_image_current = window.infinity_zoom_II.mystery_image_main_zoom.alien_display_screens[new_index];
     this.mystery_quad_buffer_current = this.mystery_quad_buffers[new_index]; // Use pre-created buffer!
 
     // Update mystery module reference

@@ -10,14 +10,11 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
   // Initialization
   init_mystery_image(engine, target_params) {
     this.utils = window.infinity_zoom_II.region_zoom_utils;
-    this.display_image_layer_current = engine.alien_display_screen_current;
+    this.display_image_layer_current = window.infinity_zoom_II.mystery_image_main_zoom.alien_display_screen_current;
     this.target_params = target_params;
-    const gl = engine.gl_context;
-    this.mystery_quad_buffer_current = this.utils.create_image_pixel_quad_buffer(
-      gl,
-      this.display_image_layer_current.image.width,
-      this.display_image_layer_current.image.height
-    );
+
+    // Use pre-loaded quad buffer instead of creating a new one
+    this.mystery_quad_buffer_current = engine.region_zoom_resources.quad_buffers.mystery_images[0];
 
     // Calculate mystery base scale once during initialization
     this.mystery_base_scale = this.calculate_mystery_base_scale();

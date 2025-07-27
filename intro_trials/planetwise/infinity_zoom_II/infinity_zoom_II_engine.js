@@ -23,17 +23,15 @@ const engine = {
     this.pre_main_zoom_hold_duration = window.infinity_zoom_II.config.pre_main_zoom_hold_duration;
     this.minimum_render_size = window.infinity_zoom_II.config.minimum_render_size;
 
-    window.infinity_zoom_II.preloader.load_all_images((processed_images, mystery_images) => {
+    window.infinity_zoom_II.preloader.load_all_images((processed_images) => {
       log("All images loaded and processed, initializing engine");
-      this.init(processed_images, mystery_images);
+      this.init(processed_images);
     });
   },
 
   gl_context: null,
   canvas: null,
   layers: [],
-  alien_display_screens: null,
-  alien_display_screen_current: null,
   start_time: 0,
   animation_phase: "intro",
   global_rotation: 0,
@@ -42,7 +40,7 @@ const engine = {
   deepest_visible_layer_index: 0,
 
   // Initialize engine with preloaded images and canvas
-  init(images, mystery_images) {
+  init(images) {
     log("Engine init called");
 
     const layer_data = window.infinity_zoom_II.config.LAYERS_DATA;
@@ -84,25 +82,48 @@ const engine = {
       };
     });
 
-    this.alien_display_screens = mystery_images.map((mystery_image, i) => {
-      return {
-        image: mystery_image,
-        texture: this.utils.create_texture(this.gl_context, mystery_image),
-        loaded: true,
-      };
-    });
-
-    this.alien_display_screen_current = this.alien_display_screens[0];
-
     this.start_time = performance.now();
     this.animation_phase = "intro";
     this.global_rotation = this.start_rotation_angle;
     this._last_animate_time = this.start_time;
 
+    // Centralized GPU resource pre-loading
+    this.preload_all_gpu_resources();
+
     log("Engine initialized with " + this.layers.length + " layers");
 
     // Start animation loop
     requestAnimationFrame(this.animate.bind(this));
+  },
+
+  // Centralized GPU resource pre-loading to avoid stuttering
+  preload_all_gpu_resources() {
+    const gl = this.gl_context;
+
+    // 1. Pre-load mystery image module resources
+    window.infinity_zoom_II.mystery_image_main_zoom.init(gl);
+
+    // 2. Pre-create region zoom shader program and quad buffers
+    this.region_zoom_resources = {
+      program: window.infinity_zoom_II.region_zoom_utils.create_region_shader_program(gl),
+      quad_buffers: {
+        // Main layer quad buffers (created on-demand as layers become visible)
+        layers: new Map(),
+        // Mystery image quad buffers (all pre-created to avoid jitter)
+        mystery_images: window.infinity_zoom_II.MAIN_DISPLAY_IMAGES.map((mystery_image) =>
+          window.infinity_zoom_II.region_zoom_utils.create_image_pixel_quad_buffer(gl, mystery_image.width, mystery_image.height)
+        ),
+      },
+      uniform_locations: null, // Will be set when program is first used
+    };
+
+    // 3. Pre-create uniform locations for region zoom shader
+    this.region_zoom_resources.uniform_locations = {
+      matrix: gl.getUniformLocation(this.region_zoom_resources.program, "u_matrix"),
+      texture: gl.getUniformLocation(this.region_zoom_resources.program, "u_texture"),
+    };
+
+    log("All GPU resources pre-loaded successfully");
   },
 
   // Set canvas buffer size to exactly match viewport
@@ -383,19 +404,7 @@ const engine = {
       if (layer.alpha > 0) {
         // Render mystery image before final alien layer
         if (i === this.layers.length - 1) {
-          // Calculate mystery image TRS synchronized with alien layer
-          const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
-          const mystery_trs = window.infinity_zoom_II.mystery_image_main_zoom.calculate_mystery_TRS(layer, region_rect, this.canvas.width, this.canvas.height);
-
-          // Create temporary mystery layer object for rendering
-          const mystery_layer = {
-            texture: this.alien_display_screen_current.texture,
-            trs: mystery_trs,
-            alpha: layer.alpha, // Same alpha as alien layer
-          };
-
-          // Render mystery image first (background)
-          this.utils.render_layer(gl, this.program, this.quad_buffer, mystery_layer, this.canvas);
+          window.infinity_zoom_II.mystery_image_main_zoom.render_mystery_image(gl, this.program, this.quad_buffer, layer, this.canvas);
         }
         this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas);
       }
