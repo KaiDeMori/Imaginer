@@ -223,11 +223,24 @@ window.infinity_zoom_II.region_zoom = {
     return current_params;
   },
 
-  // Check for mystery image swap at animation midpoint
+  // Check for mystery image swap using progressive slot system
   check_mystery_image_swap() {
-    if (this.animation_t >= 0.5 && this.current_mystery_index === 0) {
-      this.swap_mystery_image(1); // Swap to second mystery image
-      log("🎭 MYSTERY IMAGE SWAPPED AT t=0.5! 🎭");
+    const total_mystery_images = this.engine.region_zoom_mystery_images.length;
+
+    if (total_mystery_images <= 1) {
+      return; // No swapping needed with only one image
+    }
+
+    // Distribute mystery images evenly across entire animation duration
+    const slot_size = 1.0 / total_mystery_images; // e.g., 0.33 for 3 images
+    const target_image_index = Math.min(
+      Math.floor(this.animation_t / slot_size),
+      total_mystery_images - 1 // Clamp to last image
+    );
+
+    // Only swap if the target index has changed
+    if (target_image_index !== this.current_mystery_index) {
+      this.swap_mystery_image(target_image_index);
     }
   },
 

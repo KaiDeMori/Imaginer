@@ -5,7 +5,7 @@ if (!window.infinity_zoom_II.region_zoom) window.infinity_zoom_II.region_zoom = 
 // Infinity Zoom II Configuration Module
 
 // Constants originally from HTML file
-window.infinity_zoom_II.config.version_code = "templar";
+window.infinity_zoom_II.config.version_code = "Vesuvius";
 window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH = "../zoom_images_planete/jpg";
 window.infinity_zoom_II.config.LAYERS_DATA = [
   { zoom: 25, image: "10_new_planete_fixed.jpg" },
@@ -66,9 +66,9 @@ window.infinity_zoom_II.config.rotation_speed = -0.2;
 window.infinity_zoom_II.config.zoom_speed = 1;
 
 // Animation phase durations (in seconds)
-window.infinity_zoom_II.config.intro_planet_zoom_duration = 0.2; // How long planet takes to grow from tiny to fitting
-window.infinity_zoom_II.config.visible_layers_fade_duration = 0.2; // How long additional layers take to fade in
-window.infinity_zoom_II.config.pre_main_zoom_hold_duration = 0.2; // How long to hold before starting main zoom
+window.infinity_zoom_II.config.intro_planet_zoom_duration = 1; // How long planet takes to grow from tiny to fitting
+window.infinity_zoom_II.config.visible_layers_fade_duration = 0.3; // How long additional layers take to fade in
+window.infinity_zoom_II.config.pre_main_zoom_hold_duration = 1.5; // How long to hold before starting main zoom
 
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
