@@ -10,7 +10,7 @@ window.infinity_zoom_II.mystery_image_region_zoom = {
   // Initialization
   init_mystery_image(engine, target_params) {
     this.utils = window.infinity_zoom_II.region_zoom_utils;
-    this.display_image_layer_current = window.infinity_zoom_II.mystery_image_main_zoom.alien_display_screen_current;
+    this.display_image_layer_current = engine.region_zoom_mystery_images[0];
     this.target_params = target_params;
 
     // Use pre-loaded quad buffer instead of creating a new one

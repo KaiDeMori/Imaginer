@@ -36,14 +36,15 @@ window.infinity_zoom_II.config.region_zoom = {
 
 // Display images for alien screen portal effect during region zoom
 window.infinity_zoom_II.config.REGION_DISPLAY_IMAGE_PATHS = [
-  "../zoom_images_planete/display_images/region_zoom/u1264212648_photo_of_of_a_traditional_French_mime_riding_a_bicy_bab8869e-91ed-4290-b766-63beb51c844d.png",
-  "../zoom_images_planete/display_images/region_zoom/u1264212648_a_blonde_little_girl_sitting_in_front_of_a_laptop_i_c6f87405-230c-468c-bca1-590f6fd9a9ce.png",
+  "../zoom_images_planete/display_images/region_zoom/u1264212648_photo_of_of_a_traditional_French_mime_riding_a_bicy_bab8869e-91ed-4290-b766-63beb51c844d.jpg",
+  "../zoom_images_planete/display_images/region_zoom/u1264212648_photo_of_a_panda_sitting_on_a_table_in_the_forest_a_6c82a065-dcbe-4937-8d45-8507648d2a5b.jpg",
+  "../zoom_images_planete/display_images/region_zoom/Final_recursion.jpg",
 ];
 
 // Display images for main zoom portal effect
 window.infinity_zoom_II.config.MAIN_DISPLAY_IMAGE_PATHS = [
-  "../zoom_images_planete/display_images/main_zoom/A_unicorn-dinosaur_1749938156.png",
-  "../zoom_images_planete/display_images/main_zoom/An_ancient_library_h_1749941586.png",
+  "../zoom_images_planete/display_images/main_zoom/A_unicorn-dinosaur_1749938156.jpg",
+  "../zoom_images_planete/display_images/main_zoom/An_ancient_library_h_1749941586.jpg",
 ];
 
 /*

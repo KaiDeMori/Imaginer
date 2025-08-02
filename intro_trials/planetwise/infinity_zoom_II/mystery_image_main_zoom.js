@@ -21,16 +21,9 @@ window.infinity_zoom_II.mystery_image_main_zoom = {
   cached_region_rect: null, // Cached region rectangle
   cached_region_orientation: null, // Cached region orientation angle
 
-  init(gl_context) {
-    this.gl_context = gl_context;
-    this.alien_display_screens = window.infinity_zoom_II.MAIN_DISPLAY_IMAGES.map((mystery_image, i) => {
-      return {
-        image: mystery_image,
-        texture: window.infinity_zoom_II.utils.create_texture(this.gl_context, mystery_image),
-        loaded: true,
-      };
-    });
-
+  init(engine) {
+    this.gl_context = engine.gl_context;
+    this.alien_display_screens = engine.main_zoom_mystery_images;
     this.alien_display_screen_current = this.alien_display_screens[0];
   },
 

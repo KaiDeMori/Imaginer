@@ -90,6 +90,9 @@ const engine = {
     // Centralized GPU resource pre-loading
     this.preload_all_gpu_resources();
 
+    // Initialize mystery image modules with pre-loaded resources
+    window.infinity_zoom_II.mystery_image_main_zoom.init(this);
+
     log("Engine initialized with " + this.layers.length + " layers");
 
     // Start animation loop
@@ -100,27 +103,41 @@ const engine = {
   preload_all_gpu_resources() {
     const gl = this.gl_context;
 
-    // 1. Pre-load mystery image module resources
-    window.infinity_zoom_II.mystery_image_main_zoom.init(gl);
+    // 1. Pre-load main zoom mystery image textures and data
+    this.main_zoom_mystery_images = window.infinity_zoom_II.MAIN_DISPLAY_IMAGES.map((mystery_image, i) => {
+      return {
+        image: mystery_image,
+        texture: window.infinity_zoom_II.utils.create_texture(gl, mystery_image),
+        loaded: true,
+      };
+    });
 
-    // 2. Pre-create region zoom shader program and quad buffers
+    // 2. Pre-load region zoom mystery image textures and data
+    this.region_zoom_mystery_images = window.infinity_zoom_II.REGION_DISPLAY_IMAGES.map((mystery_image, i) => {
+      return {
+        image: mystery_image,
+        texture: window.infinity_zoom_II.utils.create_texture(gl, mystery_image),
+        loaded: true,
+      };
+    });
+
+    // 3. Pre-create region zoom shader program and all resources
+    const region_program = window.infinity_zoom_II.region_zoom_utils.create_region_shader_program(gl);
+
     this.region_zoom_resources = {
-      program: window.infinity_zoom_II.region_zoom_utils.create_region_shader_program(gl),
+      program: region_program,
       quad_buffers: {
         // Main layer quad buffers (created on-demand as layers become visible)
         layers: new Map(),
         // Mystery image quad buffers (all pre-created to avoid jitter)
-        mystery_images: window.infinity_zoom_II.REGION_DISPLAY_IMAGES.map((mystery_image) =>
-          window.infinity_zoom_II.region_zoom_utils.create_image_pixel_quad_buffer(gl, mystery_image.width, mystery_image.height)
+        mystery_images: this.region_zoom_mystery_images.map((mystery_data) =>
+          window.infinity_zoom_II.region_zoom_utils.create_image_pixel_quad_buffer(gl, mystery_data.image.width, mystery_data.image.height)
         ),
       },
-      uniform_locations: null, // Will be set when program is first used
-    };
-
-    // 3. Pre-create uniform locations for region zoom shader
-    this.region_zoom_resources.uniform_locations = {
-      matrix: gl.getUniformLocation(this.region_zoom_resources.program, "u_matrix"),
-      texture: gl.getUniformLocation(this.region_zoom_resources.program, "u_texture"),
+      uniform_locations: {
+        matrix: gl.getUniformLocation(region_program, "u_matrix"),
+        texture: gl.getUniformLocation(region_program, "u_texture"),
+      },
     };
   },
 

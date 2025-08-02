@@ -94,7 +94,7 @@ window.infinity_zoom_II.region_zoom = {
     // Get both final and penultimate layers
     this.final_layer = engine.layers[engine.layers.length - 1];
     this.penultimate_layer = engine.layers.length > 1 ? engine.layers[engine.layers.length - 2] : null;
-    this.mystery_image_current = window.infinity_zoom_II.mystery_image_main_zoom.alien_display_screen_current;
+    this.mystery_image_current = engine.region_zoom_mystery_images[0];
     const gl = engine.gl_context;
 
     // Use pre-loaded GPU resources from engine
@@ -234,14 +234,12 @@ window.infinity_zoom_II.region_zoom = {
   // Swap to different mystery image
   swap_mystery_image(new_index) {
     this.current_mystery_index = new_index;
-    this.mystery_image_current = window.infinity_zoom_II.mystery_image_main_zoom.alien_display_screens[new_index];
-    this.mystery_quad_buffer_current = this.mystery_quad_buffers[new_index]; // Use pre-created buffer!
+    this.mystery_image_current = this.engine.region_zoom_mystery_images[new_index];
+    this.mystery_quad_buffer_current = this.mystery_quad_buffers[new_index];
 
     // Update mystery module reference
     window.infinity_zoom_II.mystery_image_region_zoom.display_image_layer_current = this.mystery_image_current;
     window.infinity_zoom_II.mystery_image_region_zoom.mystery_quad_buffer_current = this.mystery_quad_buffer_current;
-
-    log("Mystery image swapped to index:", new_index);
   },
 
   // === ORTHOGRAPHIC RENDERING ===
