@@ -110,7 +110,7 @@ const engine = {
         // Main layer quad buffers (created on-demand as layers become visible)
         layers: new Map(),
         // Mystery image quad buffers (all pre-created to avoid jitter)
-        mystery_images: window.infinity_zoom_II.MAIN_DISPLAY_IMAGES.map((mystery_image) =>
+        mystery_images: window.infinity_zoom_II.REGION_DISPLAY_IMAGES.map((mystery_image) =>
           window.infinity_zoom_II.region_zoom_utils.create_image_pixel_quad_buffer(gl, mystery_image.width, mystery_image.height)
         ),
       },
@@ -122,8 +122,6 @@ const engine = {
       matrix: gl.getUniformLocation(this.region_zoom_resources.program, "u_matrix"),
       texture: gl.getUniformLocation(this.region_zoom_resources.program, "u_texture"),
     };
-
-    log("All GPU resources pre-loaded successfully");
   },
 
   // Set canvas buffer size to exactly match viewport
@@ -267,6 +265,9 @@ const engine = {
     if (hold_elapsed >= this.pre_main_zoom_hold_duration) {
       this.animation_phase = "main_zoom";
       this.main_zoom_start_time = now; // Track main zoom timing
+
+      // Reset mystery image swap system for new main zoom sequence
+      window.infinity_zoom_II.mystery_image_main_zoom.reset_swap_system();
     }
   },
 
@@ -301,6 +302,9 @@ const engine = {
     // Update layer visibility and alphas using unified system
     this.update_layer_visibility(now);
     this.update_layer_alphas(now);
+
+    // Update mystery image swapping during main zoom
+    window.infinity_zoom_II.mystery_image_main_zoom.update_main_zoom_swapping(this);
   },
 
   // State: "final_rotation" - All layers stop scaling, only rotation continues
@@ -317,6 +321,9 @@ const engine = {
     // Update layer visibility and alphas (maintain current state)
     this.update_layer_visibility(now);
     this.update_layer_alphas(now);
+
+    // Continue mystery image swapping during final rotation
+    window.infinity_zoom_II.mystery_image_main_zoom.update_main_zoom_swapping(this);
 
     // Check exit condition: external flag set
     if (window.infinity_zoom_II.FLAG_initiate_final_reveal) {

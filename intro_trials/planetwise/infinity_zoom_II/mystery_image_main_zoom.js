@@ -2,7 +2,24 @@
 // Handles portal effect where mystery content appears through alien's transparent screen region
 
 window.infinity_zoom_II.mystery_image_main_zoom = {
+  // WebGL context
   gl_context: null,
+
+  // Mystery image data
+  alien_display_screens: null, // Array of {image, texture, loaded} objects
+  alien_display_screen_current: null, // Currently active mystery image
+
+  // Main zoom swap system
+  main_zoom_swap_config: {
+    enabled: true,
+    main_zoom_start_progress: 0.8, // When to start swapping (80% through zoom)
+  },
+  current_image_index: 0, // Current image index in the array
+  last_calculated_index: -1, // Prevent duplicate swaps
+
+  // Performance caching
+  cached_region_rect: null, // Cached region rectangle
+  cached_region_orientation: null, // Cached region orientation angle
 
   init(gl_context) {
     this.gl_context = gl_context;
@@ -130,5 +147,65 @@ window.infinity_zoom_II.mystery_image_main_zoom = {
     if (index >= 0 && index < this.alien_display_screens.length) {
       this.alien_display_screen_current = this.alien_display_screens[index];
     }
+  },
+
+  // Calculate zoom progress for in-flight swapping
+  calculate_zoom_progress(engine) {
+    if (engine.animation_phase !== "main_zoom" && engine.animation_phase !== "final_rotation") {
+      return 0; // Not in main zoom, no swapping
+    }
+
+    // Calculate progress based on final layer scale
+    const final_layer_index = engine.layers.length - 1;
+    const final_layer = engine.layers[final_layer_index];
+    const covering_scale = window.infinity_zoom_II.utils.calc_covering_scale(engine.canvas.width, engine.canvas.height, 1);
+
+    // Progress from fitting (1.0) to covering scale
+    const progress = Math.min((final_layer.trs.scale - 1.0) / (covering_scale - 1.0), 1.0);
+    return Math.max(0, progress); // Clamp to [0, 1]
+  },
+
+  // Main zoom in-flight swapping - elegant approach
+  update_main_zoom_swapping(engine) {
+    if (!this.main_zoom_swap_config.enabled) {
+      return; // Swapping disabled
+    }
+
+    const zoom_progress = this.calculate_zoom_progress(engine);
+    const start_progress = this.main_zoom_swap_config.main_zoom_start_progress;
+
+    let target_image_index;
+
+    if (zoom_progress < start_progress) {
+      // Before start progress: always show first image
+      target_image_index = 0;
+    } else {
+      // After start progress: calculate which image slot we're in
+      const remaining_progress = 1.0 - start_progress; // e.g., 0.2
+      const slot_size = remaining_progress / this.alien_display_screens.length; // e.g., 0.05
+      const relative_progress = zoom_progress - start_progress; // How far past start_progress
+      target_image_index = Math.min(
+        Math.floor(relative_progress / slot_size),
+        this.alien_display_screens.length - 1 // Clamp to last image
+      );
+    }
+
+    // Only swap if the target index has changed
+    if (target_image_index !== this.last_calculated_index) {
+      this.set_image_by_index(target_image_index);
+      this.current_image_index = target_image_index;
+      this.last_calculated_index = target_image_index;
+
+      log(`🎭 Mystery image swapped to index ${target_image_index} at progress ${zoom_progress.toFixed(3)} (${(zoom_progress * 100).toFixed(1)}%)`);
+    }
+  },
+
+  // Reset swap system (call when starting new zoom sequence)
+  reset_swap_system() {
+    this.current_image_index = 0;
+    this.last_calculated_index = -1;
+    this.set_image_by_index(0); // Reset to first image
+
+    log("Mystery image swap system reset");
   },
 };

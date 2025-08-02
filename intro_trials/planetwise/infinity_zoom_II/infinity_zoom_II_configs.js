@@ -6,17 +6,18 @@ if (!window.infinity_zoom_II.region_zoom) window.infinity_zoom_II.region_zoom = 
 
 // Constants originally from HTML file
 window.infinity_zoom_II.config.version_code = "templar";
-window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH = "../zoom_images_planete/debug";
+window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH = "../zoom_images_planete/jpg";
 window.infinity_zoom_II.config.LAYERS_DATA = [
-  //{ zoom: 25, image: "10_new_planete_fixed.jpg" },
-  //{ zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.jpg" },
-  //{ zoom: 25, image: "30_alien_island_II_tricky_transition.jpg" },
-  //{ zoom: 25, image: "40_alien_island_II_atoll_tiny_land.jpg" },
-  //{ zoom: 25, image: "50_alien_island_II_atoll.jpg" },
-  //{ zoom: 25, image: "60_alien_island_II.jpg" },
+  { zoom: 25, image: "10_new_planete_fixed.jpg" },
+  { zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.jpg" },
+  { zoom: 25, image: "30_alien_island_II_tricky_transition.jpg" },
+  { zoom: 25, image: "40_alien_island_II_atoll_tiny_land.jpg" },
+  { zoom: 25, image: "50_alien_island_II_atoll.jpg" },
+  { zoom: 25, image: "60_alien_island_II.jpg" },
   { zoom: 25, image: "70_alien_forest.jpg" },
   { zoom: 25, image: "80_alien_village.jpg" },
   { zoom: 25, image: "90_alien_hut.jpg" },
+  { zoom: 25, image: "100_alien_closeup_transparent_display.png" },
   //{ zoom: 25, image: "90_alien_hut_debug.jpg" },
   //{ zoom: 25, image: "alien_display_mystery_image_grid.png" },
   // { zoom: 25, image: "100_alien_closeup.jpg" },
@@ -24,8 +25,7 @@ window.infinity_zoom_II.config.LAYERS_DATA = [
   //{ zoom: 25, image: "100_alien_closeup_debug_display_square.png" },
   //{ zoom: 25, image: "100_alien_closeup_debug_display_extreme_AR.png" },
   //{ zoom: 25, image: "100_alien_closeup_transparent_display_empty.png" },
-  { zoom: 25, image: "100_alien_debug_grid_transparent.png" },
-  //{ zoom: 25, image: "100_alien_closeup_transparent_display.png" },
+  //{ zoom: 25, image: "100_alien_debug_grid_transparent.png" },
 ];
 
 // Add default configuration for region zoom
@@ -36,16 +36,14 @@ window.infinity_zoom_II.config.region_zoom = {
 
 // Display images for alien screen portal effect during region zoom
 window.infinity_zoom_II.config.REGION_DISPLAY_IMAGE_PATHS = [
-  "../zoom_images_planete/debug/alien_display_mystery_image_grid.png",
-  "../zoom_images_planete/alien_display_mystery_image_1.png",
-  "../zoom_images_planete/alien_display_mystery_image_2.png",
+  "../zoom_images_planete/display_images/region_zoom/u1264212648_photo_of_of_a_traditional_French_mime_riding_a_bicy_bab8869e-91ed-4290-b766-63beb51c844d.png",
+  "../zoom_images_planete/display_images/region_zoom/u1264212648_a_blonde_little_girl_sitting_in_front_of_a_laptop_i_c6f87405-230c-468c-bca1-590f6fd9a9ce.png",
 ];
 
 // Display images for main zoom portal effect
 window.infinity_zoom_II.config.MAIN_DISPLAY_IMAGE_PATHS = [
-  "../zoom_images_planete/debug/alien_display_mystery_image_grid.png",
-  "../zoom_images_planete/alien_display_mystery_image_1.png",
-  "../zoom_images_planete/alien_display_mystery_image_2.png",
+  "../zoom_images_planete/display_images/main_zoom/A_unicorn-dinosaur_1749938156.png",
+  "../zoom_images_planete/display_images/main_zoom/An_ancient_library_h_1749941586.png",
 ];
 
 /*
@@ -59,16 +57,12 @@ window.infinity_zoom_II.config.feather_size = 30;
 // Engine configuration settings
 // Minimum rendered layer size in pixels
 window.infinity_zoom_II.config.minimum_render_size = 3;
-// Edge feathering for all but first layer (fraction of edge).
-window.infinity_zoom_II.config.feather_value = 0.1;
-// Minimum feather width for edge alpha ramp in pixels.
-window.infinity_zoom_II.config.feather_min_px = 2;
 // Initial rotation angle in radians.
 window.infinity_zoom_II.config.start_rotation_angle = 0;
 // Global rotation speed in radians per second. Positive values rotate counter-clockwise (gl convention).
-window.infinity_zoom_II.config.rotation_speed = 0.2;
+window.infinity_zoom_II.config.rotation_speed = -0.2;
 // Exponential zoom rate (growth constant per second).
-window.infinity_zoom_II.config.zoom_speed = 6;
+window.infinity_zoom_II.config.zoom_speed = 1;
 
 // Animation phase durations (in seconds)
 window.infinity_zoom_II.config.intro_planet_zoom_duration = 0.2; // How long planet takes to grow from tiny to fitting
