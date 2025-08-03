@@ -130,7 +130,11 @@ window.infinity_zoom_II.utils = {
   // WebGL functions
   // Initialize WebGL context and shaders
   init_webgl(canvas) {
-    const gl = canvas.getContext("webgl");
+    //const gl = canvas.getContext("webgl");
+    const gl = canvas.getContext("webgl", {
+      premultipliedAlpha: true,
+      alpha: false,
+    });
     if (!gl) {
       alert("WebGL not supported");
       throw new Error("WebGL not supported");
