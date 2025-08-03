@@ -93,6 +93,9 @@ const engine = {
     // Initialize mystery image modules with pre-loaded resources
     window.infinity_zoom_II.mystery_image_main_zoom.init(this);
 
+    // Reset mystery image swap system for new main zoom sequence
+    window.infinity_zoom_II.mystery_image_main_zoom.reset_swap_system();
+
     log("Engine initialized with " + this.layers.length + " layers");
 
     // Start animation loop
@@ -172,8 +175,16 @@ const engine = {
     // Calculate elapsed time since start
     const elapsed_seconds = (now - this.start_time) / 1000;
 
-    // Update global rotation
+    // Update global rotation (simple)
     this.global_rotation = this.start_rotation_angle + this.rotation_speed * elapsed_seconds;
+
+    // Update global rotation using frame-to-frame delta time for perfect continuity
+    //  const old_rotation = this.global_rotation;
+    //  const frame_delta_time = (now - this._last_animate_time) / 1000;
+    //  this.global_rotation += this.rotation_speed * frame_delta_time;
+    //  const delta_rotation = this.global_rotation - old_rotation;
+    //  this._last_animate_time = now;
+    //  log(`Global rotation updated: ${this.global_rotation.toFixed(3)} (delta: ${delta_rotation.toFixed(4)})`);
 
     // State machine (pass `now` to all state functions)
     if (this.animation_phase === "intro") {
@@ -282,9 +293,6 @@ const engine = {
     if (hold_elapsed >= this.pre_main_zoom_hold_duration) {
       this.animation_phase = "main_zoom";
       this.main_zoom_start_time = now; // Track main zoom timing
-
-      // Reset mystery image swap system for new main zoom sequence
-      window.infinity_zoom_II.mystery_image_main_zoom.reset_swap_system();
     }
   },
 
