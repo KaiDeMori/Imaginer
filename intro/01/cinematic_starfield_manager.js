@@ -1,0 +1,335 @@
+// CinematicStarfieldManager encapsulates all starfield logic for dynamic control
+class CinematicStarfieldManager {
+  // Debug: log sequence timing and values only when step changes or every second
+  _debug_log_sequence_on_step_change(step_index, step, elapsed, star_count, zoom_speed) {
+    if (this._last_debug_step_index !== step_index) {
+      this._last_debug_step_index = step_index;
+      console.log(
+        `[Cinematic Sequence] Step ${step_index}: start=${step.start_time}s, duration=${step.duration}s | elapsed=${elapsed.toFixed(
+          2
+        )}s | star_count=${star_count} | zoom_speed=${zoom_speed}`
+      );
+    }
+  }
+
+  _debug_log_sequence_every_second(step_index, step, elapsed, star_count, zoom_speed) {
+    const now_sec = Math.floor(elapsed);
+    if (this._last_debug_second !== now_sec) {
+      this._last_debug_second = now_sec;
+      console.log(`[Cinematic Sequence][Every 1s] t=${elapsed.toFixed(2)}s | Step ${step_index}: star_count=${star_count} | zoom_speed=${zoom_speed}`);
+    }
+  }
+  constructor() {
+    this.starfield_canvas = document.getElementById("starfield_canvas");
+    this.starfield_context = this.starfield_canvas.getContext("2d", { willReadFrequently: false, alpha: false });
+    this.starfield_width = window.innerWidth;
+    this.starfield_height = window.innerHeight;
+    this.starfield_canvas.width = this.starfield_width;
+    this.starfield_canvas.height = this.starfield_height;
+
+    this.star_count = 0;
+    this.stars = [];
+    this.star_colors = ["#fff", "#aaf", "#ffa", "#aff", "#faf", "#ffd700"];
+
+    this.star_count_slider = document.getElementById("star_count_slider");
+    this.star_count_label = document.getElementById("star_count_label");
+    this.zoom_speed_slider = document.getElementById("zoom_speed_slider");
+    this.zoom_speed_label = document.getElementById("zoom_speed_label");
+
+    // Disable sliders for now, logic is controlled by animation sequence
+    this.star_count_slider.disabled = true;
+    this.zoom_speed_slider.disabled = true;
+
+    this.zoom_speed = 0.0002;
+    this.animation_frame_id = null;
+    this.is_running = false;
+
+    // Keep event binding for future re-enabling
+    this._bind_events();
+    this._init_stars();
+    window.addEventListener("resize", () => this._on_resize());
+  }
+
+  _bind_events() {
+    this.star_count_slider.addEventListener("input", () => {
+      const new_count = parseInt(this.star_count_slider.value, 10);
+      this.star_count = new_count;
+      this.star_count_label.textContent = "Stars: " + new_count;
+      // Adjust stars array
+      if (this.stars.length < new_count) {
+        for (let i = this.stars.length; i < new_count; i++) {
+          this.stars.push(this._create_star());
+        }
+      } else if (this.stars.length > new_count) {
+        this.stars.length = new_count;
+      }
+    });
+    this.zoom_speed_slider.addEventListener("input", () => {
+      this.zoom_speed = parseFloat(this.zoom_speed_slider.value);
+      this.zoom_speed_label.textContent = "Zoom: " + this.zoom_speed.toFixed(5);
+    });
+  }
+
+  _init_stars() {
+    this.stars = [];
+    for (let i = 0; i < this.star_count; i++) {
+      this.stars.push(this._create_star());
+    }
+  }
+
+  _random_between(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  _random_star_color() {
+    return this.star_colors[Math.floor(Math.random() * this.star_colors.length)];
+  }
+
+  _create_star() {
+    const now = performance.now();
+    const lifetime = this._random_between(2200, 5200); // ms
+    return {
+      x: this._random_between(0, this.starfield_width),
+      y: this._random_between(0, this.starfield_height),
+      z: this._random_between(0.2, 1),
+      radius: this._random_between(0.5, 1.8),
+      twinkle_phase: this._random_between(0, Math.PI * 2),
+      twinkle_speed: this._random_between(0.002, 0.008),
+      twinkle_amplitude: this._random_between(0.2, 0.4),
+      color: this._random_star_color(),
+      born_time: now,
+      lifetime: lifetime,
+      fade_duration: 600,
+      fading_out: false,
+      fading_in: true,
+      fade_progress: 0,
+      fade_start_time: now,
+    };
+  }
+
+  _draw_star_optimized(star, time) {
+    let alpha = 1;
+    const now = time;
+    if (star.fading_out) {
+      star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
+      alpha = 1 - Math.min(star.fade_progress, 1);
+      if (star.fade_progress >= 1) {
+        const new_star = this._create_star();
+        Object.assign(star, new_star);
+        star.fading_out = false;
+        star.fading_in = true;
+        star.fade_start_time = now;
+        star.fade_progress = 0;
+        alpha = 0;
+      }
+    } else if (star.fading_in) {
+      star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
+      alpha = Math.min(star.fade_progress, 1);
+      if (star.fade_progress >= 1) {
+        star.fading_in = false;
+        star.fade_progress = 0;
+      }
+    }
+    const twinkle = 0.7 + star.twinkle_amplitude * Math.sin((time / 1000) * star.twinkle_speed * 1000 + star.twinkle_phase);
+
+    // Ultra-optimized drawing for Firefox performance
+    const final_alpha = twinkle * star.z * alpha;
+    this.starfield_context.globalAlpha = final_alpha;
+
+    // Draw main star
+    this.starfield_context.beginPath();
+    this.starfield_context.arc(star.x, star.y, star.radius * star.z, 0, Math.PI * 2);
+    this.starfield_context.fill();
+
+    // Add subtle glow only for brighter stars to maintain visual quality
+    if (final_alpha > 0.6 && star.z > 0.7) {
+      this.starfield_context.globalAlpha = final_alpha * 0.3;
+      this.starfield_context.beginPath();
+      this.starfield_context.arc(star.x, star.y, star.radius * star.z * 2, 0, Math.PI * 2);
+      this.starfield_context.fill();
+    }
+  }
+
+  _draw_star(star, time) {
+    let alpha = 1;
+    const now = time;
+    if (star.fading_out) {
+      star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
+      alpha = 1 - Math.min(star.fade_progress, 1);
+      if (star.fade_progress >= 1) {
+        const new_star = this._create_star();
+        Object.assign(star, new_star);
+        star.fading_out = false;
+        star.fading_in = true;
+        star.fade_start_time = now;
+        star.fade_progress = 0;
+        alpha = 0;
+      }
+    } else if (star.fading_in) {
+      star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
+      alpha = Math.min(star.fade_progress, 1);
+      if (star.fade_progress >= 1) {
+        star.fading_in = false;
+        star.fade_progress = 0;
+      }
+    }
+    const twinkle = 0.7 + star.twinkle_amplitude * Math.sin((time / 1000) * star.twinkle_speed * 1000 + star.twinkle_phase);
+
+    // Optimized drawing - remove expensive shadow operations for better Firefox performance
+    const final_alpha = twinkle * star.z * alpha;
+    this.starfield_context.globalAlpha = final_alpha;
+    this.starfield_context.fillStyle = star.color;
+
+    // Draw main star
+    this.starfield_context.beginPath();
+    this.starfield_context.arc(star.x, star.y, star.radius * star.z, 0, Math.PI * 2);
+    this.starfield_context.fill();
+
+    // Add subtle glow only for brighter stars to maintain visual quality
+    if (final_alpha > 0.6 && star.z > 0.7) {
+      this.starfield_context.globalAlpha = final_alpha * 0.3;
+      this.starfield_context.beginPath();
+      this.starfield_context.arc(star.x, star.y, star.radius * star.z * 2, 0, Math.PI * 2);
+      this.starfield_context.fill();
+    }
+  }
+
+  _animate_starfield = (time) => {
+    this.starfield_context.clearRect(0, 0, this.starfield_width, this.starfield_height);
+
+    // --- Cinematic sequence timing debug output (only on step change) ---
+    if (typeof cinematic_starfield_timing_sequence !== "undefined") {
+      const now = performance.now() / 1000;
+      const sequence_time = now - (this._cinematic_sequence_start_time || (this._cinematic_sequence_start_time = now));
+      let step_index = -1;
+      let step = null;
+      let time_cursor = 0;
+      for (let i = 0; i < active_cinematic_starfield_timing_sequence.length; i++) {
+        const s = active_cinematic_starfield_timing_sequence[i];
+        time_cursor += s.duration;
+        if (sequence_time < time_cursor) {
+          step_index = i;
+          step = s;
+          break;
+        }
+      }
+      if (step) {
+        // Interpolate star_count and zoom_speed if needed
+        let star_count = step.star_count;
+        let zoom_speed = step.zoom_speed;
+        const local_elapsed = sequence_time - (time_cursor - step.duration);
+        if (Array.isArray(star_count)) {
+          star_count = Math.round(star_count[0] + (star_count[1] - star_count[0]) * (local_elapsed / step.duration));
+        }
+        if (Array.isArray(zoom_speed)) {
+          zoom_speed = zoom_speed[0] + (zoom_speed[1] - zoom_speed[0]) * (local_elapsed / step.duration);
+        }
+        // Dynamically update stars array to match cinematic star_count
+        if (this.star_count !== star_count) {
+          if (this.stars.length < star_count) {
+            for (let i = this.stars.length; i < star_count; i++) {
+              this.stars.push(this._create_star());
+            }
+          } else if (this.stars.length > star_count) {
+            this.stars.length = star_count;
+          }
+          this.star_count = star_count;
+          // Also update slider and label for visual feedback
+          if (this.star_count_slider) {
+            this.star_count_slider.value = star_count;
+          }
+          if (this.star_count_label) {
+            this.star_count_label.textContent = "Stars: " + star_count;
+          }
+        }
+        // Update zoom speed and sync slider visually (even if disabled)
+        this.zoom_speed = zoom_speed;
+        if (this.zoom_speed_slider) {
+          const was_disabled = this.zoom_speed_slider.disabled;
+          this.zoom_speed_slider.disabled = false;
+          this.zoom_speed_slider.value = zoom_speed;
+          this.zoom_speed_slider.disabled = was_disabled;
+        }
+        if (this.zoom_speed_label) {
+          this.zoom_speed_label.textContent = "Zoom: " + zoom_speed.toFixed(5);
+        }
+        this._debug_log_sequence_on_step_change(step_index, step, sequence_time, star_count, zoom_speed);
+        this._debug_log_sequence_every_second(step_index, step, sequence_time, star_count, zoom_speed);
+      }
+    }
+
+    // Performance optimization: group stars by color to reduce context state changes
+    const stars_by_color = {};
+
+    // Update star positions and group by color
+    for (let i = 0; i < this.stars.length; i++) {
+      let star = this.stars[i];
+      if (!star.fading_out && !star.fading_in && time - star.born_time > star.lifetime) {
+        star.fading_out = true;
+        star.fade_start_time = time;
+        star.fade_progress = 0;
+      }
+      star.x += (star.x - this.starfield_width / 2) * this.zoom_speed * star.z;
+      star.y += (star.y - this.starfield_height / 2) * this.zoom_speed * star.z;
+      // If star goes out of bounds, respawn it as a new star
+      if (star.x < 0 || star.x > this.starfield_width || star.y < 0 || star.y > this.starfield_height) {
+        this.stars[i] = this._create_star();
+        star = this.stars[i];
+      }
+
+      // Group stars by color for batch rendering
+      if (!stars_by_color[star.color]) {
+        stars_by_color[star.color] = [];
+      }
+      stars_by_color[star.color].push(star);
+    }
+
+    // Batch render stars by color to minimize context state changes
+    for (const color in stars_by_color) {
+      this.starfield_context.fillStyle = color;
+      for (const star of stars_by_color[color]) {
+        this._draw_star_optimized(star, time);
+      }
+    }
+
+    if (this.is_running) {
+      this.animation_frame_id = requestAnimationFrame(this._animate_starfield);
+    }
+  };
+
+  _on_resize() {
+    this.starfield_width = window.innerWidth;
+    this.starfield_height = window.innerHeight;
+    this.starfield_canvas.width = this.starfield_width;
+    this.starfield_canvas.height = this.starfield_height;
+  }
+
+  start_cinematic_sequence() {
+    if (!this.is_running) {
+      this.is_running = true;
+      this.animation_frame_id = requestAnimationFrame(this._animate_starfield);
+    }
+  }
+
+  stop_cinematic_sequence() {
+    if (this.is_running) {
+      this.is_running = false;
+      if (this.animation_frame_id) {
+        cancelAnimationFrame(this.animation_frame_id);
+        this.animation_frame_id = null;
+      }
+    }
+  }
+
+  reset_cinematic_sequence() {
+    this.stop_cinematic_sequence();
+    this._init_stars();
+  }
+
+  set_debug_controls_visible(is_visible) {
+    const debug_controls = document.getElementById("debug_controls");
+    if (debug_controls) {
+      debug_controls.style.display = is_visible ? "block" : "none";
+    }
+  }
+}
