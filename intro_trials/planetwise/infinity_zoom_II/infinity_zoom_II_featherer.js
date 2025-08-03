@@ -58,8 +58,10 @@ function process_images_with_feathering(images, feather_size, callback) {
           alpha = smoothstep(0.0, feather, edge_dist);
         }
         
-        float out_alpha = color.a * alpha;
-        gl_FragColor = vec4(color.rgb * out_alpha, out_alpha);
+        // Debug: feather to pure green instead of transparency
+        vec3 debug_green = vec3(0.0, 1.0, 0.0);
+        vec3 final_color = mix(debug_green, color.rgb, alpha);
+        gl_FragColor = vec4(final_color, color.a);
       }
     `;
 
