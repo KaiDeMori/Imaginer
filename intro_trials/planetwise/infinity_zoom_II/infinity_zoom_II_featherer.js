@@ -1,4 +1,7 @@
 function process_images_with_feathering(images, feather_size, callback) {
+  log(`Processing ${images.length} images with feathering size ${feather_size}`);
+  const feathering_start_time = performance.now();
+
   const feathered_images = new Array(images.length);
   const shared_canvas = document.createElement("canvas");
   let shared_gl = null;
@@ -9,9 +12,17 @@ function process_images_with_feathering(images, feather_size, callback) {
   let u_image = null;
   let u_feather = null;
 
-  function init_shared_gl(width, height) {
-    shared_canvas.width = width;
-    shared_canvas.height = height;
+  // Find max dimensions to initialize WebGL context once
+  let max_width = 0;
+  let max_height = 0;
+  for (const img of images) {
+    max_width = Math.max(max_width, img.width);
+    max_height = Math.max(max_height, img.height);
+  }
+
+  function init_shared_gl_once() {
+    shared_canvas.width = max_width;
+    shared_canvas.height = max_height;
     shared_gl = shared_canvas.getContext("webgl");
 
     const vert_src = `
@@ -99,20 +110,32 @@ function process_images_with_feathering(images, feather_size, callback) {
     u_feather = shared_gl.getUniformLocation(shared_prog, "u_feather");
   }
 
+  // Reusable output canvas
+  const out_canvas = document.createElement("canvas");
+  const out_ctx = out_canvas.getContext("2d");
+
+  // Initialize WebGL once
+  init_shared_gl_once();
+
+  // Create reusable texture
+  const reused_tex = shared_gl.createTexture();
+  shared_gl.bindTexture(shared_gl.TEXTURE_2D, reused_tex);
+  shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, true);
+  shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MIN_FILTER, shared_gl.LINEAR);
+  shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MAG_FILTER, shared_gl.LINEAR);
+  shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_S, shared_gl.CLAMP_TO_EDGE);
+  shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_T, shared_gl.CLAMP_TO_EDGE);
+
   for (let i = 0; i < images.length; i++) {
     const img = images[i];
     const this_feather = i === 0 ? 0 : feather_size;
 
-    init_shared_gl(img.width, img.height);
+    // Resize output canvas to current image size
+    out_canvas.width = img.width;
+    out_canvas.height = img.height;
 
-    const tex = shared_gl.createTexture();
-    shared_gl.bindTexture(shared_gl.TEXTURE_2D, tex);
-    shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, true);
+    // Upload new image data to the existing texture
     shared_gl.texImage2D(shared_gl.TEXTURE_2D, 0, shared_gl.RGBA, shared_gl.RGBA, shared_gl.UNSIGNED_BYTE, img);
-    shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MIN_FILTER, shared_gl.LINEAR);
-    shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MAG_FILTER, shared_gl.LINEAR);
-    shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_S, shared_gl.CLAMP_TO_EDGE);
-    shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_T, shared_gl.CLAMP_TO_EDGE);
 
     shared_gl.uniform1i(u_image, 0);
     shared_gl.uniform1f(u_feather, this_feather / Math.max(img.width, img.height));
@@ -120,15 +143,23 @@ function process_images_with_feathering(images, feather_size, callback) {
     shared_gl.clear(shared_gl.COLOR_BUFFER_BIT);
     shared_gl.drawArrays(shared_gl.TRIANGLE_STRIP, 0, 4);
 
-    const out_canvas = document.createElement("canvas");
-    out_canvas.width = img.width;
-    out_canvas.height = img.height;
-    const out_ctx = out_canvas.getContext("2d");
-    out_ctx.drawImage(shared_canvas, 0, 0);
-    feathered_images[i] = out_canvas;
+    // Copy result to output canvas
+    out_ctx.clearRect(0, 0, img.width, img.height);
+    out_ctx.drawImage(shared_canvas, 0, 0, img.width, img.height, 0, 0, img.width, img.height);
 
-    shared_gl.deleteTexture(tex);
+    // Clone the canvas for the result
+    const result_canvas = document.createElement("canvas");
+    result_canvas.width = img.width;
+    result_canvas.height = img.height;
+    const result_ctx = result_canvas.getContext("2d");
+    result_ctx.drawImage(out_canvas, 0, 0);
+    feathered_images[i] = result_canvas;
   }
+
+  // Clean up the reusable texture
+  shared_gl.deleteTexture(reused_tex);
+
+  log(`Feathering completed in ${performance.now() - feathering_start_time} ms`);
 
   callback(feathered_images);
 }

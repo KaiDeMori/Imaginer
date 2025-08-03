@@ -29,6 +29,7 @@ function load_all_images(callback) {
   layers_data.forEach((layer, i) => {
     const img = new Image();
     img.onload = () => {
+      log(`${layer.image} loaded.`);
       loaded_count++;
       if (loaded_count === total_count) {
         on_all_loaded();
@@ -43,6 +44,7 @@ function load_all_images(callback) {
   region_display_image_paths.forEach((display_path, i) => {
     const display_img = new Image();
     display_img.onload = () => {
+      log(`${display_path} loaded.`);
       loaded_count++;
       if (loaded_count === total_count) {
         on_all_loaded();
@@ -55,6 +57,7 @@ function load_all_images(callback) {
   main_display_image_paths.forEach((display_path, i) => {
     const display_img = new Image();
     display_img.onload = () => {
+      log(`${display_path} loaded.`);
       loaded_count++;
       if (loaded_count === total_count) {
         on_all_loaded();
