@@ -5,7 +5,6 @@ if (!window.infinity_zoom_II.region_zoom) window.infinity_zoom_II.region_zoom = 
 // Infinity Zoom II Configuration Module
 
 // Constants originally from HTML file
-window.infinity_zoom_II.config.version_code = "Vesuvius";
 window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH = "../zoom_images_planete/jpg";
 window.infinity_zoom_II.config.LAYERS_DATA = [
   { zoom: 25, image: "10_new_planete_fixed.jpg" },
@@ -54,7 +53,7 @@ window.infinity_zoom_II.config.feather_size = 300;
 // Example: without feathering
 window.infinity_zoom_II.config.feather_size = undefined;
 */
-window.infinity_zoom_II.config.feather_size = 30;
+window.infinity_zoom_II.config.feather_size = 300;
 
 // Engine configuration settings
 // Minimum rendered layer size in pixels
