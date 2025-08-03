@@ -43,11 +43,11 @@ function apply_persisted_debug_values() {
     config.rotation_speed = global_rotation_enabled ? config.rotation_speed : 0;
   }
 
-  // Check if feather enabled value is persisted
-  const feather_enabled = window.infinity_zoom_II.debug.recall_value("feather_enabled");
-  if (feather_enabled !== null) {
-    // If feather is disabled, set feather_size to undefined
-    config.feather_size = feather_enabled ? 300 : undefined;
+  // Check if feather size value is persisted
+  const feather_size = window.infinity_zoom_II.debug.recall_value("feather_size");
+  if (feather_size !== null) {
+    // If feather size is 0, set to undefined; otherwise use the numeric value
+    config.feather_size = feather_size === 0 ? undefined : feather_size;
   }
 
   // Check if region selection is persisted
@@ -59,7 +59,7 @@ function apply_persisted_debug_values() {
 
 function setup_debug_controls() {
   const rotation_checkbox = document.getElementById("global_rotation_enabled");
-  const feather_checkbox = document.getElementById("feather_enabled");
+  const feather_size_input = document.getElementById("feather_size");
   const region_select = document.getElementById("region_select");
 
   // Restore rotation checkbox state
@@ -71,13 +71,20 @@ function setup_debug_controls() {
     persist_debug_value("global_rotation_enabled", rotation_checkbox.checked);
   });
 
-  // Restore feather checkbox state
-  const saved_feather_state = recall_debug_value("feather_enabled", true);
-  feather_checkbox.checked = saved_feather_state;
+  // Restore feather size input state
+  const saved_feather_size = recall_debug_value("feather_size", 30);
+  // Display 0 if undefined, otherwise show the actual value
+  feather_size_input.value = saved_feather_size === undefined ? "0" : saved_feather_size.toString();
 
-  // Add event listener to persist feather changes
-  feather_checkbox.addEventListener("change", function () {
-    persist_debug_value("feather_enabled", feather_checkbox.checked);
+  // Add event listener to persist feather size changes
+  feather_size_input.addEventListener("input", function () {
+    const value = parseInt(feather_size_input.value);
+    if (!isNaN(value) && value >= 0) {
+      // Store 0 as 0, other values as numbers
+      persist_debug_value("feather_size", value);
+      // Update config immediately: 0 becomes undefined, others stay as numbers
+      window.infinity_zoom_II.config.feather_size = value === 0 ? undefined : value;
+    }
   });
 
   // Populate region dropdown dynamically
