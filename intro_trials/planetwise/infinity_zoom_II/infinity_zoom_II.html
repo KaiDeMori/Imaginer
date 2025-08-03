@@ -38,6 +38,11 @@
             console.log("Triggering region zoom...");
             window.infinity_zoom_II.FLAG_initiate_final_reveal = true;
           }
+          // Add keyboard shortcut for pausing animation (press 'P' key)
+          if (event.key === "p" || event.key === "P") {
+            console.log("Pausing animation...");
+            window.infinity_zoom_II.engine.pause();
+          }
         });
       }
     </script>

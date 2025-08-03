@@ -9,7 +9,8 @@ window.infinity_zoom_II.config.version_code = "Vesuvius";
 window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH = "../zoom_images_planete/jpg";
 window.infinity_zoom_II.config.LAYERS_DATA = [
   { zoom: 25, image: "10_new_planete_fixed.jpg" },
-  { zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.jpg" },
+  //{ zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B.jpg" },
+  { zoom: 25, image: "20_alien_island_II_tricky_transition_continental_B_color_corrected_water.jpg" },
   { zoom: 25, image: "30_alien_island_II_tricky_transition.jpg" },
   { zoom: 25, image: "40_alien_island_II_atoll_tiny_land.jpg" },
   { zoom: 25, image: "50_alien_island_II_atoll.jpg" },
@@ -63,7 +64,7 @@ window.infinity_zoom_II.config.start_rotation_angle = 0;
 // Global rotation speed in radians per second. Positive values rotate counter-clockwise (gl convention).
 window.infinity_zoom_II.config.rotation_speed = -0.2;
 // Exponential zoom rate (growth constant per second).
-window.infinity_zoom_II.config.zoom_speed = 1;
+window.infinity_zoom_II.config.zoom_speed = 0.25;
 
 // Animation phase durations (in seconds)
 window.infinity_zoom_II.config.intro_planet_zoom_duration = 1; // How long planet takes to grow from tiny to fitting

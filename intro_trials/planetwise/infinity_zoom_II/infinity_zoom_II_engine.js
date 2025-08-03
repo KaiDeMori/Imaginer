@@ -38,6 +38,7 @@ const engine = {
   utils: null,
   first_visible_layer_index: 0,
   deepest_visible_layer_index: 0,
+  paused: false,
 
   // Initialize engine with preloaded images and canvas
   init(images) {
@@ -166,6 +167,11 @@ const engine = {
 
   // Main animation loop
   animate(now) {
+    // Check if paused - if so, stop the animation loop
+    if (this.paused) {
+      return;
+    }
+
     // Track animation phase changes for debugging
     if (this._last_animation_phase !== this.animation_phase) {
       log("Animation phase changed to: " + this.animation_phase);
@@ -221,8 +227,10 @@ const engine = {
       this.render();
     }
 
-    // Continue animation loop
-    requestAnimationFrame(this.animate.bind(this));
+    // Continue animation loop only if not paused
+    if (!this.paused) {
+      requestAnimationFrame(this.animate.bind(this));
+    }
   },
 
   // State: "intro" - the first layer grows from tiny to fitting size
@@ -441,6 +449,12 @@ const engine = {
         this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas);
       }
     }
+  },
+
+  // Pause the animation (stops the animation loop)
+  pause() {
+    this.paused = true;
+    log("Animation paused");
   },
 };
 
