@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Full Feather Pipeline Test</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #222;
+        color: white;
+        font-family: monospace;
+      }
+      canvas {
+        border: 1px solid #555;
+        margin: 10px;
+      }
+      .test-section {
+        margin: 20px 0;
+      }
+      .controls {
+        margin: 10px 0;
+      }
+      .comparison {
+        display: flex;
+        gap: 20px;
+      }
+      .browser-result {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Full Feather Pipeline Test</h1>
+
+    <div class="controls">
+      <label>Feather Size (pixels): <input type="range" id="feather_slider" min="1" max="200" value="30" /></label>
+      <span id="feather_value">30</span>
+      <button onclick="run_full_test()">Run Full Pipeline Test</button>
+      <button onclick="create_test_image()">Create New Test Image</button>
+    </div>
+
+    <div class="test-section">
+      <h3>Original Test Image (2048x2048)</h3>
+      <canvas id="original_canvas" width="300" height="300"></canvas>
+
+      <h3>Feathered Result</h3>
+      <div class="comparison">
+        <div class="browser-result">
+          <canvas id="result_canvas" width="300" height="300"></canvas>
+          <div>Normalized feather: <span id="normalized_value">0.0</span></div>
+          <div>Browser: <span id="browser_name">Unknown</span></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const feather_slider = document.getElementById("feather_slider");
+      const feather_value_display = document.getElementById("feather_value");
+      const normalized_display = document.getElementById("normalized_value");
+      const browser_display = document.getElementById("browser_name");
+      const original_canvas = document.getElementById("original_canvas");
+      const result_canvas = document.getElementById("result_canvas");
+
+      let test_image = null;
+
+      // Detect browser
+      const user_agent = navigator.userAgent;
+      let browser_name = "Unknown";
+      if (user_agent.indexOf("Firefox") > -1) browser_name = "Firefox";
+      else if (user_agent.indexOf("Chrome") > -1) browser_name = "Chrome";
+      else if (user_agent.indexOf("Safari") > -1) browser_name = "Safari";
+      browser_display.textContent = browser_name;
+
+      function create_test_image() {
+        // Create a test image with some content to make feathering visible
+        const canvas = document.createElement("canvas");
+        canvas.width = 2048;
+        canvas.height = 2048;
+        const ctx = canvas.getContext("2d");
+
+        // Create a gradient background
+        const gradient = ctx.createRadialGradient(1024, 1024, 0, 1024, 1024, 1024);
+        gradient.addColorStop(0, "#ff6b6b");
+        gradient.addColorStop(0.5, "#4ecdc4");
+        gradient.addColorStop(1, "#45b7d1");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 2048, 2048);
+
+        // Add some text to make the effect visible
+        ctx.fillStyle = "white";
+        ctx.font = "120px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("FEATHER TEST", 1024, 900);
+        ctx.fillText("2048x2048", 1024, 1100);
+        ctx.fillText(browser_name, 1024, 1300);
+
+        // Convert to image
+        test_image = new Image();
+        test_image.onload = function () {
+          // Show preview of original
+          const preview_ctx = original_canvas.getContext("2d");
+          preview_ctx.drawImage(test_image, 0, 0, 300, 300);
+          console.log("Test image created:", test_image.width, "x", test_image.height);
+        };
+        test_image.src = canvas.toDataURL();
+      }
+
+      // EXACT COPY of your feathering function, but for single image
+      function process_single_image_with_feathering(image, feather_size, callback) {
+        const shared_canvas = document.createElement("canvas");
+
+        function init_shared_gl(width, height) {
+          shared_canvas.width = width;
+          shared_canvas.height = height;
+          const shared_gl = shared_canvas.getContext("webgl");
+
+          const vert_src = `
+                  attribute vec2 a_pos;
+                  attribute vec2 a_tex;
+                  varying vec2 v_tex;
+                  void main() {
+                    v_tex = a_tex;
+                    gl_Position = vec4(a_pos, 0, 1);
+                  }
+                `;
+
+          const frag_src = `
+                  precision mediump float;
+                  varying vec2 v_tex;
+                  uniform sampler2D u_image;
+                  uniform float u_feather;
+                  void main() {
+                    vec4 color = texture2D(u_image, v_tex);
+                    float feather = u_feather;
+                    float edge_dist = min(min(v_tex.x, 1.0 - v_tex.x), min(v_tex.y, 1.0 - v_tex.y));
+                    float corner_radius = feather;
+                    float alpha = 1.0;
+                    bool in_corner = false;
+                    float d_corner = 0.0;
+                    
+                    if (v_tex.x < corner_radius && v_tex.y < corner_radius) {
+                      in_corner = true;
+                      d_corner = length(v_tex - vec2(corner_radius, corner_radius));
+                    } else if (v_tex.x > 1.0 - corner_radius && v_tex.y < corner_radius) {
+                      in_corner = true;
+                      d_corner = length(v_tex - vec2(1.0 - corner_radius, corner_radius));
+                    } else if (v_tex.x < corner_radius && v_tex.y > 1.0 - corner_radius) {
+                      in_corner = true;
+                      d_corner = length(v_tex - vec2(corner_radius, 1.0 - corner_radius));
+                    } else if (v_tex.x > 1.0 - corner_radius && v_tex.y > 1.0 - corner_radius) {
+                      in_corner = true;
+                      d_corner = length(v_tex - vec2(1.0 - corner_radius, 1.0 - corner_radius));
+                    }
+                    
+                    if (in_corner) {
+                      alpha = smoothstep(feather, 0.0, d_corner);
+                    } else {
+                      alpha = smoothstep(0.0, feather, edge_dist);
+                    }
+                    
+                    // Debug: feather to pure green instead of transparency
+                    vec3 debug_green = vec3(0.0, 1.0, 0.0);
+                    vec3 final_color = mix(debug_green, color.rgb, alpha);
+                    gl_FragColor = vec4(final_color, color.a);
+                  }
+                `;
+
+          function compile(type, src) {
+            const s = shared_gl.createShader(type);
+            shared_gl.shaderSource(s, src);
+            shared_gl.compileShader(s);
+            if (!shared_gl.getShaderParameter(s, shared_gl.COMPILE_STATUS)) {
+              console.error("Shader error:", shared_gl.getShaderInfoLog(s));
+            }
+            return s;
+          }
+
+          const shared_vs = compile(shared_gl.VERTEX_SHADER, vert_src);
+          const shared_fs = compile(shared_gl.FRAGMENT_SHADER, frag_src);
+          const shared_prog = shared_gl.createProgram();
+          shared_gl.attachShader(shared_prog, shared_vs);
+          shared_gl.attachShader(shared_prog, shared_fs);
+          shared_gl.linkProgram(shared_prog);
+          shared_gl.useProgram(shared_prog);
+
+          const pos = new Float32Array([-1, -1, 0, 0, 1, -1, 1, 0, -1, 1, 0, 1, 1, 1, 1, 1]);
+          const shared_buf = shared_gl.createBuffer();
+          shared_gl.bindBuffer(shared_gl.ARRAY_BUFFER, shared_buf);
+          shared_gl.bufferData(shared_gl.ARRAY_BUFFER, pos, shared_gl.STATIC_DRAW);
+
+          const a_pos = shared_gl.getAttribLocation(shared_prog, "a_pos");
+          const a_tex = shared_gl.getAttribLocation(shared_prog, "a_tex");
+          shared_gl.enableVertexAttribArray(a_pos);
+          shared_gl.vertexAttribPointer(a_pos, 2, shared_gl.FLOAT, false, 16, 0);
+          shared_gl.enableVertexAttribArray(a_tex);
+          shared_gl.vertexAttribPointer(a_tex, 2, shared_gl.FLOAT, false, 16, 8);
+
+          const u_image = shared_gl.getUniformLocation(shared_prog, "u_image");
+          const u_feather = shared_gl.getUniformLocation(shared_prog, "u_feather");
+
+          return { shared_gl, u_image, u_feather };
+        }
+
+        const { shared_gl, u_image, u_feather } = init_shared_gl(image.width, image.height);
+
+        // Create texture from image (EXACT same process as your module)
+        const tex = shared_gl.createTexture();
+        shared_gl.bindTexture(shared_gl.TEXTURE_2D, tex);
+        shared_gl.pixelStorei(shared_gl.UNPACK_FLIP_Y_WEBGL, true);
+        shared_gl.texImage2D(shared_gl.TEXTURE_2D, 0, shared_gl.RGBA, shared_gl.RGBA, shared_gl.UNSIGNED_BYTE, image);
+        shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MIN_FILTER, shared_gl.LINEAR);
+        shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_MAG_FILTER, shared_gl.LINEAR);
+        shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_S, shared_gl.CLAMP_TO_EDGE);
+        shared_gl.texParameteri(shared_gl.TEXTURE_2D, shared_gl.TEXTURE_WRAP_T, shared_gl.CLAMP_TO_EDGE);
+
+        // Set uniforms and render (EXACT same process)
+        shared_gl.uniform1i(u_image, 0);
+        const normalized_feather = feather_size / Math.max(image.width, image.height);
+        shared_gl.uniform1f(u_feather, normalized_feather);
+        shared_gl.viewport(0, 0, image.width, image.height);
+        shared_gl.clear(shared_gl.COLOR_BUFFER_BIT);
+        shared_gl.drawArrays(shared_gl.TRIANGLE_STRIP, 0, 4);
+
+        // Copy to output canvas (EXACT same process as your module)
+        const out_canvas = document.createElement("canvas");
+        out_canvas.width = image.width;
+        out_canvas.height = image.height;
+        const out_ctx = out_canvas.getContext("2d");
+        out_ctx.drawImage(shared_canvas, 0, 0);
+
+        shared_gl.deleteTexture(tex);
+
+        callback(out_canvas, normalized_feather);
+      }
+
+      function run_full_test() {
+        if (!test_image) {
+          alert("Please create a test image first!");
+          return;
+        }
+
+        const feather_pixels = parseInt(feather_slider.value);
+        feather_value_display.textContent = feather_pixels;
+
+        process_single_image_with_feathering(test_image, feather_pixels, function (result_canvas_data, normalized_feather) {
+          // Show result
+          const result_ctx = result_canvas.getContext("2d");
+          result_ctx.drawImage(result_canvas_data, 0, 0, 300, 300);
+
+          normalized_display.textContent = normalized_feather.toFixed(6);
+
+          console.log(`${browser_name}: Feather ${feather_pixels}px = ${normalized_feather} normalized`);
+        });
+      }
+
+      feather_slider.addEventListener("input", run_full_test);
+
+      // Create initial test image
+      create_test_image();
+    </script>
+  </body>
+</html>
