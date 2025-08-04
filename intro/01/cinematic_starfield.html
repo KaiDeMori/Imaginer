@@ -10,23 +10,7 @@
   <body>
     <canvas id="starfield_canvas" aria-label="Animated starfield background"></canvas>
     <!-- Cinematic fade-in text overlay -->
-    <div
-      id="imagine_fade_text"
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        pointer-events: none;
-        z-index: 2000;
-        opacity: 0;
-        transition: opacity 2.5s cubic-bezier(0.4, 0, 0.2, 1);
-      "
-    >
+    <div id="imagine_fade_text">
       <span class="imagine_bloom_text">Imagine…</span>
     </div>
     <script src="cinematic_starfield_manager.js"></script>
