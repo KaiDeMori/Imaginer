@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Starfield Captain - Interactive Flight</title>
+    <link rel="stylesheet" href="cinematic_starfield.css" />
+  </head>
+  <body>
+    <canvas id="starfield_canvas" aria-label="Interactive starfield for manual flight"></canvas>
+
+    <!-- Debug controls container (always visible and enabled for captain mode) -->
+    <div id="debug_controls" style="display: block">
+      <div id="zoom_slider_container">
+        <input type="range" id="zoom_speed_slider" min="0" max="0.1" step="0.00005" value="0.0002" />
+        <label for="zoom_speed_slider" id="zoom_speed_label">Zoom: 0.00020</label>
+      </div>
+      <div id="star_count_slider_container">
+        <input type="range" id="star_count_slider" min="20" max="1000" step="1" value="200" />
+        <label for="star_count_slider" id="star_count_label">Stars: 200</label>
+      </div>
+    </div>
+
+    <script src="cinematic_starfield_manager.js"></script>
+    <script>
+      // Captain mode: Simple interactive starfield with enabled controls
+      // Define a minimal sequence for captain mode (static values, no animation)
+      const active_cinematic_starfield_timing_sequence = [{ duration: 0, star_count: { from: 200, to: 200 }, zoom_speed: { from: 0.0002, to: 0.0002 } }];
+
+      window.addEventListener("DOMContentLoaded", function () {
+        const starfield_manager = new CinematicStarfieldManager();
+        window.cinematic_starfield_manager = starfield_manager;
+
+        // Force enable the sliders and wire up their event handlers manually
+        starfield_manager.star_count_slider.disabled = false;
+        starfield_manager.zoom_speed_slider.disabled = false;
+
+        // Set initial values
+        starfield_manager.star_count = 200;
+        starfield_manager.zoom_speed = 0.0002;
+
+        // Wire up the slider events to actually control the starfield
+        starfield_manager.star_count_slider.addEventListener("input", function () {
+          const new_count = parseInt(this.value);
+          starfield_manager.star_count = new_count;
+          starfield_manager.star_count_label.textContent = `Stars: ${new_count}`;
+        });
+
+        starfield_manager.zoom_speed_slider.addEventListener("input", function () {
+          const new_speed = parseFloat(this.value);
+          starfield_manager.zoom_speed = new_speed;
+          starfield_manager.zoom_speed_label.textContent = `Zoom: ${new_speed.toFixed(5)}`;
+        });
+
+        // Start the animation loop
+        starfield_manager.is_running = true;
+        starfield_manager._animate_starfield(performance.now());
+
+        console.log("Starfield Captain mode activated - controls enabled for manual flight!");
+      });
+    </script>
+  </body>
+</html>
