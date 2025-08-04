@@ -26,9 +26,10 @@ class CinematicStarfieldManager {
     this.is_running = false;
 
     // Staggered update system for static stars performance optimization
-    this.stagger_update_interval = 13;
+    this.stagger_update_interval = 1;
     this.stagger_frame_offset = 0;
     this.stagger_enabled = false;
+    this.stagger_system_disabled = true; // Flag to disable staggering entirely
     this.clear_canvas = true;
 
     // State-based sequence tracking for O(1) performance
@@ -105,6 +106,7 @@ class CinematicStarfieldManager {
       fade_progress: 0,
       fade_start_time: now,
       is_static: is_high_density_star, // Mark stars beyond 20k as static
+      has_reached_peak: false,
     };
   }
 
@@ -138,8 +140,15 @@ class CinematicStarfieldManager {
 
     const twinkle = 0.7 + star.twinkle_amplitude * Math.sin((time / 1000) * star.twinkle_speed * 1000 + star.twinkle_phase);
 
-    // Ultra-optimized drawing for Firefox performance
     const final_alpha = twinkle * star.z * alpha;
+
+    // Peak detection for diminishing stars (only for 20k+ stars)
+    if (star.is_static && this.star_count >= 20000 && !star.has_reached_peak) {
+      if (final_alpha >= 0.9) {
+        star.has_reached_peak = true;
+      }
+    }
+
     this.starfield_context.globalAlpha = final_alpha;
 
     // Draw main star
@@ -195,10 +204,12 @@ class CinematicStarfieldManager {
 
       // Convert all stars to static behavior once we reach 20k+ stars
       if (star_count >= 20000) {
-        // Enable staggered updates for performance
-        if (!this.stagger_enabled) {
+        // Disable canvas clearing for accumulation effect
+        this.clear_canvas = false;
+
+        // Enable staggered updates for performance (only if not disabled)
+        if (!this.stagger_enabled && !this.stagger_system_disabled) {
           this.stagger_enabled = true;
-          this.clear_canvas = false;
           console.log("[Performance] Enabling selective clearing and staggered updates for static stars");
         }
 
@@ -232,17 +243,21 @@ class CinematicStarfieldManager {
       this.zoom_speed_label.textContent = "Zoom: " + zoom_speed.toFixed(5);
     }
     this._debug_log_sequence_on_step_change(step_index, step, sequence_time, star_count, zoom_speed);
-    this._debug_log_sequence_every_second(step_index, step, sequence_time, star_count, zoom_speed);
 
     // Performance optimization: group stars by color to reduce context state changes
     const stars_by_color = {};
-
     // Update star positions and group by color
     for (let i = 0; i < this.stars.length; i++) {
       let star = this.stars[i];
 
+      // Skip peaked stars (diminishing stars optimization)
+      if (star.has_reached_peak) {
+        continue;
+      }
+
       // For static stars with staggered updates, only update position if it's their turn this frame
-      const should_update_position = !star.is_static || !this.stagger_enabled || i % this.stagger_update_interval === this.stagger_frame_offset;
+      const should_update_position =
+        !star.is_static || !this.stagger_enabled || this.stagger_system_disabled || i % this.stagger_update_interval === this.stagger_frame_offset;
 
       if (should_update_position) {
         // Skip lifecycle management for static stars (beyond 20k) to improve performance
@@ -272,15 +287,18 @@ class CinematicStarfieldManager {
     }
 
     // Batch render stars by color to minimize context state changes
+    let stars_rendered_per_frame = 0;
     for (const color in stars_by_color) {
       this.starfield_context.fillStyle = color;
       for (const star of stars_by_color[color]) {
         this._draw_star_optimized(star, time);
+        stars_rendered_per_frame++;
       }
     }
+    console.log(`[Performance] Rendered ${stars_rendered_per_frame} stars in this frame`);
 
     // Advance stagger frame offset for next frame (cycles 0, 1, 2, 0, 1, 2...)
-    if (this.stagger_enabled) {
+    if (this.stagger_enabled && !this.stagger_system_disabled) {
       this.stagger_frame_offset = (this.stagger_frame_offset + 1) % this.stagger_update_interval;
     }
 
@@ -340,14 +358,6 @@ class CinematicStarfieldManager {
           2
         )}s | star_count=${star_count} | zoom_speed=${zoom_speed}`
       );
-    }
-  }
-
-  _debug_log_sequence_every_second(step_index, step, elapsed, star_count, zoom_speed) {
-    const now_sec = Math.floor(elapsed);
-    if (this._last_debug_second !== now_sec) {
-      this._last_debug_second = now_sec;
-      console.log(`[Cinematic Sequence][Every 1s] t=${elapsed.toFixed(2)}s | Step ${step_index}: star_count=${star_count} | zoom_speed=${zoom_speed}`);
     }
   }
 
