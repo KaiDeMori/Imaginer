@@ -1,24 +1,5 @@
 // CinematicStarfieldManager encapsulates all starfield logic for dynamic control
 class CinematicStarfieldManager {
-  // Debug: log sequence timing and values only when step changes or every second
-  _debug_log_sequence_on_step_change(step_index, step, elapsed, star_count, zoom_speed) {
-    if (this._last_debug_step_index !== step_index) {
-      this._last_debug_step_index = step_index;
-      console.log(
-        `[Cinematic Sequence] Step ${step_index}: start=${step.start_time}s, duration=${step.duration}s | elapsed=${elapsed.toFixed(
-          2
-        )}s | star_count=${star_count} | zoom_speed=${zoom_speed}`
-      );
-    }
-  }
-
-  _debug_log_sequence_every_second(step_index, step, elapsed, star_count, zoom_speed) {
-    const now_sec = Math.floor(elapsed);
-    if (this._last_debug_second !== now_sec) {
-      this._last_debug_second = now_sec;
-      console.log(`[Cinematic Sequence][Every 1s] t=${elapsed.toFixed(2)}s | Step ${step_index}: star_count=${star_count} | zoom_speed=${zoom_speed}`);
-    }
-  }
   constructor() {
     this.starfield_canvas = document.getElementById("starfield_canvas");
     this.starfield_context = this.starfield_canvas.getContext("2d", { willReadFrequently: false, alpha: false });
@@ -48,6 +29,13 @@ class CinematicStarfieldManager {
     this.stagger_update_interval = 3; // Update every 3rd star per frame
     this.stagger_frame_offset = 0; // Current frame offset (0, 1, 2, then repeat)
     this.stagger_enabled = false; // Enable when stars become static
+    this.clear_canvas = true;
+
+    // State-based sequence tracking for O(1) performance
+    this.current_step_index = 0;
+    this.current_step_start_time = 0; // When current step began (absolute sequence time)
+    this.current_step_end_time = 0; // When current step ends (absolute sequence time)
+    this.sequence_completed = false; // Flag for when we reach a duration-0 final step
 
     // Keep event binding for future re-enabling
     this._bind_events();
@@ -169,41 +157,26 @@ class CinematicStarfieldManager {
   }
 
   _animate_starfield = (time) => {
-    this.starfield_context.clearRect(0, 0, this.starfield_width, this.starfield_height);
+    // No canvas clearing after 20k stars - let static stars accumulate for performance
+    if (this.clear_canvas) {
+      this.starfield_context.clearRect(0, 0, this.starfield_width, this.starfield_height);
+    }
 
     const now = performance.now() / 1000;
     const sequence_time = now - (this._cinematic_sequence_start_time || (this._cinematic_sequence_start_time = now));
 
-    // Find current step in the sequence
-    let step_index = 0;
-    let time_cursor = 0;
-
-    for (let i = 0; i < active_cinematic_starfield_timing_sequence.length; i++) {
-      const s = active_cinematic_starfield_timing_sequence[i];
-      if (sequence_time < time_cursor + s.duration) {
-        step_index = i;
-        break;
-      }
-      time_cursor += s.duration;
-    }
-
-    // Clamp to last step if we've exceeded the sequence duration
-    if (step_index >= active_cinematic_starfield_timing_sequence.length) {
-      step_index = active_cinematic_starfield_timing_sequence.length - 1;
-    }
-
-    const step = active_cinematic_starfield_timing_sequence[step_index];
+    // Get current step using O(1) state-based tracking
+    const { step_index, step, local_elapsed } = this._get_current_sequence_step(sequence_time);
 
     // Interpolate star_count and zoom_speed if needed
     let star_count = step.star_count;
     let zoom_speed = step.zoom_speed;
-    const local_elapsed = sequence_time - time_cursor;
 
-    if (Array.isArray(star_count)) {
+    if (Array.isArray(star_count) && step.duration > 0) {
       const progress = Math.min(local_elapsed / step.duration, 1);
       star_count = Math.round(star_count[0] + (star_count[1] - star_count[0]) * progress);
     }
-    if (Array.isArray(zoom_speed)) {
+    if (Array.isArray(zoom_speed) && step.duration > 0) {
       const progress = Math.min(local_elapsed / step.duration, 1);
       zoom_speed = zoom_speed[0] + (zoom_speed[1] - zoom_speed[0]) * progress;
     }
@@ -223,7 +196,8 @@ class CinematicStarfieldManager {
         // Enable staggered updates for performance
         if (!this.stagger_enabled) {
           this.stagger_enabled = true;
-          console.log("[Performance] Enabling staggered updates for static stars");
+          this.clear_canvas = false;
+          console.log("[Performance] Enabling selective clearing and staggered updates for static stars");
         }
 
         for (let i = 0; i < this.stars.length; i++) {
@@ -320,8 +294,64 @@ class CinematicStarfieldManager {
     this.starfield_canvas.height = this.starfield_height;
   }
 
+  _initialize_sequence_state() {
+    this.current_step_index = 0;
+    this.current_step_start_time = 0;
+    this.current_step_end_time = active_cinematic_starfield_timing_sequence[0].duration;
+    this.sequence_completed = false;
+  }
+
+  _get_current_sequence_step(sequence_time) {
+    // Check if we need to advance to next step
+    if (
+      !this.sequence_completed &&
+      sequence_time >= this.current_step_end_time &&
+      this.current_step_index < active_cinematic_starfield_timing_sequence.length - 1
+    ) {
+      // Advance to next step
+      this.current_step_index++;
+      this.current_step_start_time = this.current_step_end_time;
+
+      const next_step = active_cinematic_starfield_timing_sequence[this.current_step_index];
+      if (next_step.duration === 0) {
+        // Final step with "forever" duration
+        this.sequence_completed = true;
+        this.current_step_end_time = Infinity;
+      } else {
+        this.current_step_end_time = this.current_step_start_time + next_step.duration;
+      }
+    }
+
+    return {
+      step_index: this.current_step_index,
+      step: active_cinematic_starfield_timing_sequence[this.current_step_index],
+      local_elapsed: sequence_time - this.current_step_start_time,
+    };
+  }
+
+  // Debug: log sequence timing and values only when step changes or every second
+  _debug_log_sequence_on_step_change(step_index, step, elapsed, star_count, zoom_speed) {
+    if (this._last_debug_step_index !== step_index) {
+      this._last_debug_step_index = step_index;
+      console.log(
+        `[Cinematic Sequence] Step ${step_index}: start=${step.start_time}s, duration=${step.duration}s | elapsed=${elapsed.toFixed(
+          2
+        )}s | star_count=${star_count} | zoom_speed=${zoom_speed}`
+      );
+    }
+  }
+
+  _debug_log_sequence_every_second(step_index, step, elapsed, star_count, zoom_speed) {
+    const now_sec = Math.floor(elapsed);
+    if (this._last_debug_second !== now_sec) {
+      this._last_debug_second = now_sec;
+      console.log(`[Cinematic Sequence][Every 1s] t=${elapsed.toFixed(2)}s | Step ${step_index}: star_count=${star_count} | zoom_speed=${zoom_speed}`);
+    }
+  }
+
   start_cinematic_sequence() {
     if (!this.is_running) {
+      this._initialize_sequence_state();
       this.is_running = true;
       this.animation_frame_id = requestAnimationFrame(this._animate_starfield);
     }
@@ -339,6 +369,7 @@ class CinematicStarfieldManager {
 
   reset_cinematic_sequence() {
     this.stop_cinematic_sequence();
+    this._initialize_sequence_state();
     this._init_stars();
   }
 
