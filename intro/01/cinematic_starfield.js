@@ -1,16 +1,16 @@
 // Timing sequence definition for the cinematic starfield (simplified, no start_time)
-// Each step: { duration: seconds, star_count: value, zoom_speed: value }
+// Each step: { duration: seconds, star_count: { from, to }, zoom_speed: { from, to } }
 const cinematic_starfield_timing_sequence = [
-  { duration: 2, star_count: [0, 10000], zoom_speed: 0.1 }, // Ramp up stars
-  { duration: 1, star_count: 10000, zoom_speed: 0.1 }, // Hold
-  { duration: 2, star_count: 10000, zoom_speed: [0.1, 0] }, // Reduce zoom
-  { duration: 1, star_count: 10000, zoom_speed: 0 }, // Hold
-  { duration: 2, star_count: [10000, 50000], zoom_speed: 0 }, // Ramp up stars again
-  { duration: 0, star_count: 50000, zoom_speed: 0 }, // Hold 50k static stars forever
+  { duration: 2, star_count: { from: 0, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Ramp up stars
+  { duration: 1, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Hold
+  { duration: 2, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0.1, to: 0 } }, // Reduce zoom
+  { duration: 1, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0, to: 0 } }, // Hold
+  { duration: 2, star_count: { from: 10000, to: 50000 }, zoom_speed: { from: 0, to: 0 } }, // Ramp up stars again
+  { duration: 0, star_count: { from: 50000, to: 50000 }, zoom_speed: { from: 0, to: 0 } }, // Hold 50k static stars forever
 ];
 
 const cinematic_starfield_timing_sequence_TESTING = [
-  { duration: 5, star_count: [0, 10000], zoom_speed: [0, 0.01] }, // Ramp up stars
+  { duration: 5, star_count: { from: 0, to: 10000 }, zoom_speed: { from: 0, to: 0.01 } }, // Ramp up stars
 ];
 
 const active_cinematic_starfield_timing_sequence = cinematic_starfield_timing_sequence;

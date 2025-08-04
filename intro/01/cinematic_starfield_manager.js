@@ -26,9 +26,9 @@ class CinematicStarfieldManager {
     this.is_running = false;
 
     // Staggered update system for static stars performance optimization
-    this.stagger_update_interval = 3; // Update every 3rd star per frame
-    this.stagger_frame_offset = 0; // Current frame offset (0, 1, 2, then repeat)
-    this.stagger_enabled = false; // Enable when stars become static
+    this.stagger_update_interval = 13;
+    this.stagger_frame_offset = 0;
+    this.stagger_enabled = false;
     this.clear_canvas = true;
 
     // State-based sequence tracking for O(1) performance
@@ -158,11 +158,9 @@ class CinematicStarfieldManager {
 
   _animate_starfield = (time) => {
     // No canvas clearing after 20k stars - let static stars accumulate for performance
-    if (this.clear_canvas) {
-      this.starfield_context.clearRect(0, 0, this.starfield_width, this.starfield_height);
-    }
+    if (this.clear_canvas) this.starfield_context.clearRect(0, 0, this.starfield_width, this.starfield_height);
 
-    const now = performance.now() / 1000;
+    const now = time / 1000;
     const sequence_time = now - (this._cinematic_sequence_start_time || (this._cinematic_sequence_start_time = now));
 
     // Get current step using O(1) state-based tracking
@@ -172,13 +170,17 @@ class CinematicStarfieldManager {
     let star_count = step.star_count;
     let zoom_speed = step.zoom_speed;
 
-    if (Array.isArray(star_count) && step.duration > 0) {
+    if (step.duration > 0 && star_count.from !== star_count.to) {
       const progress = Math.min(local_elapsed / step.duration, 1);
-      star_count = Math.round(star_count[0] + (star_count[1] - star_count[0]) * progress);
+      star_count = Math.round(star_count.from + (star_count.to - star_count.from) * progress);
+    } else {
+      star_count = star_count.from;
     }
-    if (Array.isArray(zoom_speed) && step.duration > 0) {
+    if (step.duration > 0 && zoom_speed.from !== zoom_speed.to) {
       const progress = Math.min(local_elapsed / step.duration, 1);
-      zoom_speed = zoom_speed[0] + (zoom_speed[1] - zoom_speed[0]) * progress;
+      zoom_speed = zoom_speed.from + (zoom_speed.to - zoom_speed.from) * progress;
+    } else {
+      zoom_speed = zoom_speed.from;
     }
     // Dynamically update stars array to match cinematic star_count
     if (this.star_count !== star_count) {
