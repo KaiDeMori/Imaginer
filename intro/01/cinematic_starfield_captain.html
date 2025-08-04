@@ -22,15 +22,12 @@
 
     <script src="cinematic_starfield_manager.js"></script>
     <script>
-      // Captain mode: Simple interactive starfield with enabled controls
-      // Define a minimal sequence for captain mode (static values, no animation)
-      const active_cinematic_starfield_timing_sequence = [{ duration: 0, star_count: { from: 200, to: 200 }, zoom_speed: { from: 0.0002, to: 0.0002 } }];
-
+      // Captain mode: Override the animation method to bypass cinematic sequence
       window.addEventListener("DOMContentLoaded", function () {
         const starfield_manager = new CinematicStarfieldManager();
         window.cinematic_starfield_manager = starfield_manager;
 
-        // Force enable the sliders and wire up their event handlers manually
+        // Enable the sliders
         starfield_manager.star_count_slider.disabled = false;
         starfield_manager.zoom_speed_slider.disabled = false;
 
@@ -38,24 +35,101 @@
         starfield_manager.star_count = 200;
         starfield_manager.zoom_speed = 0.0002;
 
-        // Wire up the slider events to actually control the starfield
-        starfield_manager.star_count_slider.addEventListener("input", function () {
-          const new_count = parseInt(this.value);
-          starfield_manager.star_count = new_count;
-          starfield_manager.star_count_label.textContent = `Stars: ${new_count}`;
-        });
+        // Override the animation method to skip cinematic sequence logic
+        const original_animate = starfield_manager._animate_starfield;
+        starfield_manager._animate_starfield = function (time) {
+          // ALWAYS clear the canvas for zoom effect
+          this.starfield_context.clearRect(0, 0, this.starfield_width, this.starfield_height);
 
-        starfield_manager.zoom_speed_slider.addEventListener("input", function () {
-          const new_speed = parseFloat(this.value);
-          starfield_manager.zoom_speed = new_speed;
-          starfield_manager.zoom_speed_label.textContent = `Zoom: ${new_speed.toFixed(5)}`;
-        });
+          // Use current slider values directly (no cinematic overrides)
+          const star_count = parseInt(this.star_count_slider.value);
+          const zoom_speed = parseFloat(this.zoom_speed_slider.value);
 
-        // Start the animation loop
+          // Update internal values
+          this.star_count = star_count;
+          this.zoom_speed = zoom_speed;
+
+          // Update labels
+          this.star_count_label.textContent = `Stars: ${star_count}`;
+          this.zoom_speed_label.textContent = `Zoom: ${zoom_speed.toFixed(5)}`;
+
+          // Adjust stars array to match current count
+          if (this.stars.length < star_count) {
+            for (let i = this.stars.length; i < star_count; i++) {
+              this.stars.push(this._create_star());
+            }
+          } else if (this.stars.length > star_count) {
+            this.stars.length = star_count;
+          }
+
+          // Center of screen for zoom effect
+          const center_x = this.starfield_width / 2;
+          const center_y = this.starfield_height / 2;
+
+          // Update star positions with PROPER zoom effect
+          for (let i = 0; i < this.stars.length; i++) {
+            const star = this.stars[i];
+
+            // Move star closer (increase z)
+            star.z += zoom_speed;
+
+            // If star gets too close, reset it far away
+            if (star.z > 1) {
+              star.z = 0.1;
+              star.x = this._random_between(0, this.starfield_width);
+              star.y = this._random_between(0, this.starfield_height);
+            }
+
+            // Calculate screen position based on 3D perspective
+            const scale = star.z;
+            const dx = star.x - center_x;
+            const dy = star.y - center_y;
+
+            // Project 3D position to 2D screen with zoom effect
+            star.screen_x = center_x + dx * scale;
+            star.screen_y = center_y + dy * scale;
+          }
+
+          // Render stars
+          const stars_by_color = {};
+          for (let i = 0; i < this.stars.length; i++) {
+            const star = this.stars[i];
+
+            // Only draw stars that are on screen
+            if (star.screen_x >= 0 && star.screen_x <= this.starfield_width && star.screen_y >= 0 && star.screen_y <= this.starfield_height) {
+              if (!stars_by_color[star.color]) {
+                stars_by_color[star.color] = [];
+              }
+              stars_by_color[star.color].push(star);
+            }
+          }
+
+          // Draw stars by color groups
+          for (const color in stars_by_color) {
+            this.starfield_context.fillStyle = color;
+            const color_stars = stars_by_color[color];
+            for (let i = 0; i < color_stars.length; i++) {
+              const star = color_stars[i];
+              const twinkle = 0.7 + 0.3 * Math.sin((time / 1000) * star.twinkle_speed * 1000 + star.twinkle_phase);
+              const alpha = twinkle * star.z;
+
+              this.starfield_context.globalAlpha = alpha;
+              this.starfield_context.beginPath();
+              this.starfield_context.arc(star.screen_x, star.screen_y, star.radius * star.z, 0, Math.PI * 2);
+              this.starfield_context.fill();
+            }
+          }
+
+          if (this.is_running) {
+            this.animation_frame_id = requestAnimationFrame(this._animate_starfield);
+          }
+        }.bind(starfield_manager);
+
+        // Start the animation
         starfield_manager.is_running = true;
         starfield_manager._animate_starfield(performance.now());
 
-        console.log("Starfield Captain mode activated - controls enabled for manual flight!");
+        console.log("Starfield Captain mode activated - controls working!");
       });
     </script>
   </body>
