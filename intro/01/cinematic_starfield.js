@@ -6,6 +6,7 @@ const cinematic_starfield_timing_sequence = [
   { duration: 2, star_count: 10000, zoom_speed: [0.1, 0] }, // Reduce zoom
   { duration: 1, star_count: 10000, zoom_speed: 0 }, // Hold
   { duration: 2, star_count: [10000, 50000], zoom_speed: 0 }, // Ramp up stars again
+  { duration: 999, star_count: 50000, zoom_speed: 0 }, // Hold 50k static stars forever
 ];
 
 const cinematic_starfield_timing_sequence_TESTING = [
@@ -21,13 +22,13 @@ window.addEventListener("DOMContentLoaded", function () {
   starfield_manager.start_cinematic_sequence();
 
   const fade_text = document.getElementById("imagine_fade_text");
-  // Calculate total duration of the cinematic sequence
-  let total_duration = 0;
-  for (const step of active_cinematic_starfield_timing_sequence || []) {
-    total_duration += step.duration;
+  // Calculate duration only from meaningful sequence steps (exclude infinite holds)
+  let meaningful_duration = 0;
+  for (let i = 0; i < Math.min(5, active_cinematic_starfield_timing_sequence.length); i++) {
+    meaningful_duration += active_cinematic_starfield_timing_sequence[i].duration;
   }
-  console.log(`Total cinematic duration: ${total_duration} seconds`);
-  // Show the text only after the animation sequence is truly finished
+  console.log(`Meaningful cinematic duration: ${meaningful_duration} seconds`);
+  // Show the text only after the meaningful animation sequence is finished
   setTimeout(() => {
     if (fade_text) {
       fade_text.style.opacity = "1";
@@ -71,5 +72,5 @@ window.addEventListener("DOMContentLoaded", function () {
         }, 600); // Wait for fade out to finish (0.5s + buffer)
       }, 5000);
     }
-  }, Math.ceil(total_duration * 1000));
+  }, Math.ceil(meaningful_duration * 1000));
 });

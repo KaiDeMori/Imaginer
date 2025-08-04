@@ -44,6 +44,11 @@ class CinematicStarfieldManager {
     this.animation_frame_id = null;
     this.is_running = false;
 
+    // Staggered update system for static stars performance optimization
+    this.stagger_update_interval = 3; // Update every 3rd star per frame
+    this.stagger_frame_offset = 0; // Current frame offset (0, 1, 2, then repeat)
+    this.stagger_enabled = false; // Enable when stars become static
+
     // Keep event binding for future re-enabling
     this._bind_events();
     this._init_stars();
@@ -58,7 +63,7 @@ class CinematicStarfieldManager {
       // Adjust stars array
       if (this.stars.length < new_count) {
         for (let i = this.stars.length; i < new_count; i++) {
-          this.stars.push(this._create_star());
+          this.stars.push(this._create_star(i));
         }
       } else if (this.stars.length > new_count) {
         this.stars.length = new_count;
@@ -73,7 +78,7 @@ class CinematicStarfieldManager {
   _init_stars() {
     this.stars = [];
     for (let i = 0; i < this.star_count; i++) {
-      this.stars.push(this._create_star());
+      this.stars.push(this._create_star(i));
     }
   }
 
@@ -85,16 +90,23 @@ class CinematicStarfieldManager {
     return this.star_colors[Math.floor(Math.random() * this.star_colors.length)];
   }
 
-  _create_star() {
+  _create_star(star_index) {
     const now = performance.now();
     const lifetime = this._random_between(2200, 5200); // ms
+
+    // Performance optimization: slower twinkling for stars beyond 20k
+    const is_high_density_star = star_index >= 20000;
+    const twinkle_speed = is_high_density_star
+      ? this._random_between(0.0005, 0.002) // Much slower twinkling for 20k+ stars
+      : this._random_between(0.002, 0.008); // Normal twinkling for first 20k stars
+
     return {
       x: this._random_between(0, this.starfield_width),
       y: this._random_between(0, this.starfield_height),
       z: this._random_between(0.2, 1),
       radius: this._random_between(0.5, 1.8),
       twinkle_phase: this._random_between(0, Math.PI * 2),
-      twinkle_speed: this._random_between(0.002, 0.008),
+      twinkle_speed: twinkle_speed,
       twinkle_amplitude: this._random_between(0.2, 0.4),
       color: this._random_star_color(),
       born_time: now,
@@ -104,32 +116,38 @@ class CinematicStarfieldManager {
       fading_in: true,
       fade_progress: 0,
       fade_start_time: now,
+      is_static: is_high_density_star, // Mark stars beyond 20k as static
     };
   }
 
   _draw_star_optimized(star, time) {
     let alpha = 1;
     const now = time;
-    if (star.fading_out) {
-      star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
-      alpha = 1 - Math.min(star.fade_progress, 1);
-      if (star.fade_progress >= 1) {
-        const new_star = this._create_star();
-        Object.assign(star, new_star);
-        star.fading_out = false;
-        star.fading_in = true;
-        star.fade_start_time = now;
-        star.fade_progress = 0;
-        alpha = 0;
-      }
-    } else if (star.fading_in) {
-      star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
-      alpha = Math.min(star.fade_progress, 1);
-      if (star.fade_progress >= 1) {
-        star.fading_in = false;
-        star.fade_progress = 0;
+
+    // Skip fade lifecycle for static stars (performance optimization)
+    if (!star.is_static) {
+      if (star.fading_out) {
+        star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
+        alpha = 1 - Math.min(star.fade_progress, 1);
+        if (star.fade_progress >= 1) {
+          const new_star = this._create_star(0); // Pass 0 for dynamic stars (respawn as dynamic)
+          Object.assign(star, new_star);
+          star.fading_out = false;
+          star.fading_in = true;
+          star.fade_start_time = now;
+          star.fade_progress = 0;
+          alpha = 0;
+        }
+      } else if (star.fading_in) {
+        star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
+        alpha = Math.min(star.fade_progress, 1);
+        if (star.fade_progress >= 1) {
+          star.fading_in = false;
+          star.fade_progress = 0;
+        }
       }
     }
+
     const twinkle = 0.7 + star.twinkle_amplitude * Math.sin((time / 1000) * star.twinkle_speed * 1000 + star.twinkle_phase);
 
     // Ultra-optimized drawing for Firefox performance
@@ -150,113 +168,95 @@ class CinematicStarfieldManager {
     }
   }
 
-  _draw_star(star, time) {
-    let alpha = 1;
-    const now = time;
-    if (star.fading_out) {
-      star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
-      alpha = 1 - Math.min(star.fade_progress, 1);
-      if (star.fade_progress >= 1) {
-        const new_star = this._create_star();
-        Object.assign(star, new_star);
-        star.fading_out = false;
-        star.fading_in = true;
-        star.fade_start_time = now;
-        star.fade_progress = 0;
-        alpha = 0;
-      }
-    } else if (star.fading_in) {
-      star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
-      alpha = Math.min(star.fade_progress, 1);
-      if (star.fade_progress >= 1) {
-        star.fading_in = false;
-        star.fade_progress = 0;
-      }
-    }
-    const twinkle = 0.7 + star.twinkle_amplitude * Math.sin((time / 1000) * star.twinkle_speed * 1000 + star.twinkle_phase);
-
-    // Optimized drawing - remove expensive shadow operations for better Firefox performance
-    const final_alpha = twinkle * star.z * alpha;
-    this.starfield_context.globalAlpha = final_alpha;
-    this.starfield_context.fillStyle = star.color;
-
-    // Draw main star
-    this.starfield_context.beginPath();
-    this.starfield_context.arc(star.x, star.y, star.radius * star.z, 0, Math.PI * 2);
-    this.starfield_context.fill();
-
-    // Add subtle glow only for brighter stars to maintain visual quality
-    if (final_alpha > 0.6 && star.z > 0.7) {
-      this.starfield_context.globalAlpha = final_alpha * 0.3;
-      this.starfield_context.beginPath();
-      this.starfield_context.arc(star.x, star.y, star.radius * star.z * 2, 0, Math.PI * 2);
-      this.starfield_context.fill();
-    }
-  }
-
   _animate_starfield = (time) => {
     this.starfield_context.clearRect(0, 0, this.starfield_width, this.starfield_height);
 
-    // --- Cinematic sequence timing debug output (only on step change) ---
-    if (typeof cinematic_starfield_timing_sequence !== "undefined") {
-      const now = performance.now() / 1000;
-      const sequence_time = now - (this._cinematic_sequence_start_time || (this._cinematic_sequence_start_time = now));
-      let step_index = -1;
-      let step = null;
-      let time_cursor = 0;
-      for (let i = 0; i < active_cinematic_starfield_timing_sequence.length; i++) {
-        const s = active_cinematic_starfield_timing_sequence[i];
-        time_cursor += s.duration;
-        if (sequence_time < time_cursor) {
-          step_index = i;
-          step = s;
-          break;
+    const now = performance.now() / 1000;
+    const sequence_time = now - (this._cinematic_sequence_start_time || (this._cinematic_sequence_start_time = now));
+
+    // Find current step in the sequence
+    let step_index = 0;
+    let time_cursor = 0;
+
+    for (let i = 0; i < active_cinematic_starfield_timing_sequence.length; i++) {
+      const s = active_cinematic_starfield_timing_sequence[i];
+      if (sequence_time < time_cursor + s.duration) {
+        step_index = i;
+        break;
+      }
+      time_cursor += s.duration;
+    }
+
+    // Clamp to last step if we've exceeded the sequence duration
+    if (step_index >= active_cinematic_starfield_timing_sequence.length) {
+      step_index = active_cinematic_starfield_timing_sequence.length - 1;
+    }
+
+    const step = active_cinematic_starfield_timing_sequence[step_index];
+
+    // Interpolate star_count and zoom_speed if needed
+    let star_count = step.star_count;
+    let zoom_speed = step.zoom_speed;
+    const local_elapsed = sequence_time - time_cursor;
+
+    if (Array.isArray(star_count)) {
+      const progress = Math.min(local_elapsed / step.duration, 1);
+      star_count = Math.round(star_count[0] + (star_count[1] - star_count[0]) * progress);
+    }
+    if (Array.isArray(zoom_speed)) {
+      const progress = Math.min(local_elapsed / step.duration, 1);
+      zoom_speed = zoom_speed[0] + (zoom_speed[1] - zoom_speed[0]) * progress;
+    }
+    // Dynamically update stars array to match cinematic star_count
+    if (this.star_count !== star_count) {
+      if (this.stars.length < star_count) {
+        for (let i = this.stars.length; i < star_count; i++) {
+          this.stars.push(this._create_star(i));
+        }
+      } else if (this.stars.length > star_count) {
+        this.stars.length = star_count;
+      }
+      this.star_count = star_count;
+
+      // Convert all stars to static behavior once we reach 20k+ stars
+      if (star_count >= 20000) {
+        // Enable staggered updates for performance
+        if (!this.stagger_enabled) {
+          this.stagger_enabled = true;
+          console.log("[Performance] Enabling staggered updates for static stars");
+        }
+
+        for (let i = 0; i < this.stars.length; i++) {
+          const star = this.stars[i];
+          if (!star.is_static) {
+            star.is_static = true;
+            star.twinkle_speed = this._random_between(0.0005, 0.002); // Convert to slow twinkling
+            star.fading_out = false; // Stop any fade-out process
+            star.fading_in = false; // Stop any fade-in process
+          }
         }
       }
-      if (step) {
-        // Interpolate star_count and zoom_speed if needed
-        let star_count = step.star_count;
-        let zoom_speed = step.zoom_speed;
-        const local_elapsed = sequence_time - (time_cursor - step.duration);
-        if (Array.isArray(star_count)) {
-          star_count = Math.round(star_count[0] + (star_count[1] - star_count[0]) * (local_elapsed / step.duration));
-        }
-        if (Array.isArray(zoom_speed)) {
-          zoom_speed = zoom_speed[0] + (zoom_speed[1] - zoom_speed[0]) * (local_elapsed / step.duration);
-        }
-        // Dynamically update stars array to match cinematic star_count
-        if (this.star_count !== star_count) {
-          if (this.stars.length < star_count) {
-            for (let i = this.stars.length; i < star_count; i++) {
-              this.stars.push(this._create_star());
-            }
-          } else if (this.stars.length > star_count) {
-            this.stars.length = star_count;
-          }
-          this.star_count = star_count;
-          // Also update slider and label for visual feedback
-          if (this.star_count_slider) {
-            this.star_count_slider.value = star_count;
-          }
-          if (this.star_count_label) {
-            this.star_count_label.textContent = "Stars: " + star_count;
-          }
-        }
-        // Update zoom speed and sync slider visually (even if disabled)
-        this.zoom_speed = zoom_speed;
-        if (this.zoom_speed_slider) {
-          const was_disabled = this.zoom_speed_slider.disabled;
-          this.zoom_speed_slider.disabled = false;
-          this.zoom_speed_slider.value = zoom_speed;
-          this.zoom_speed_slider.disabled = was_disabled;
-        }
-        if (this.zoom_speed_label) {
-          this.zoom_speed_label.textContent = "Zoom: " + zoom_speed.toFixed(5);
-        }
-        this._debug_log_sequence_on_step_change(step_index, step, sequence_time, star_count, zoom_speed);
-        this._debug_log_sequence_every_second(step_index, step, sequence_time, star_count, zoom_speed);
+      // Also update slider and label for visual feedback
+      if (this.star_count_slider) {
+        this.star_count_slider.value = star_count;
+      }
+      if (this.star_count_label) {
+        this.star_count_label.textContent = "Stars: " + star_count;
       }
     }
+    // Update zoom speed and sync slider visually (even if disabled)
+    this.zoom_speed = zoom_speed;
+    if (this.zoom_speed_slider) {
+      const was_disabled = this.zoom_speed_slider.disabled;
+      this.zoom_speed_slider.disabled = false;
+      this.zoom_speed_slider.value = zoom_speed;
+      this.zoom_speed_slider.disabled = was_disabled;
+    }
+    if (this.zoom_speed_label) {
+      this.zoom_speed_label.textContent = "Zoom: " + zoom_speed.toFixed(5);
+    }
+    this._debug_log_sequence_on_step_change(step_index, step, sequence_time, star_count, zoom_speed);
+    this._debug_log_sequence_every_second(step_index, step, sequence_time, star_count, zoom_speed);
 
     // Performance optimization: group stars by color to reduce context state changes
     const stars_by_color = {};
@@ -264,17 +264,28 @@ class CinematicStarfieldManager {
     // Update star positions and group by color
     for (let i = 0; i < this.stars.length; i++) {
       let star = this.stars[i];
-      if (!star.fading_out && !star.fading_in && time - star.born_time > star.lifetime) {
-        star.fading_out = true;
-        star.fade_start_time = time;
-        star.fade_progress = 0;
-      }
-      star.x += (star.x - this.starfield_width / 2) * this.zoom_speed * star.z;
-      star.y += (star.y - this.starfield_height / 2) * this.zoom_speed * star.z;
-      // If star goes out of bounds, respawn it as a new star
-      if (star.x < 0 || star.x > this.starfield_width || star.y < 0 || star.y > this.starfield_height) {
-        this.stars[i] = this._create_star();
-        star = this.stars[i];
+
+      // For static stars with staggered updates, only update position if it's their turn this frame
+      const should_update_position = !star.is_static || !this.stagger_enabled || i % this.stagger_update_interval === this.stagger_frame_offset;
+
+      if (should_update_position) {
+        // Skip lifecycle management for static stars (beyond 20k) to improve performance
+        if (!star.is_static) {
+          if (!star.fading_out && !star.fading_in && time - star.born_time > star.lifetime) {
+            star.fading_out = true;
+            star.fade_start_time = time;
+            star.fade_progress = 0;
+          }
+        }
+
+        star.x += (star.x - this.starfield_width / 2) * this.zoom_speed * star.z;
+        star.y += (star.y - this.starfield_height / 2) * this.zoom_speed * star.z;
+
+        // If star goes out of bounds, respawn it as a new star
+        if (star.x < 0 || star.x > this.starfield_width || star.y < 0 || star.y > this.starfield_height) {
+          this.stars[i] = this._create_star(i);
+          star = this.stars[i];
+        }
       }
 
       // Group stars by color for batch rendering
@@ -290,6 +301,11 @@ class CinematicStarfieldManager {
       for (const star of stars_by_color[color]) {
         this._draw_star_optimized(star, time);
       }
+    }
+
+    // Advance stagger frame offset for next frame (cycles 0, 1, 2, 0, 1, 2...)
+    if (this.stagger_enabled) {
+      this.stagger_frame_offset = (this.stagger_frame_offset + 1) % this.stagger_update_interval;
     }
 
     if (this.is_running) {
