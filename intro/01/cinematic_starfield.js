@@ -63,6 +63,6 @@ window.addEventListener("DOMContentLoaded", function () {
           starfield_canvas.style.display = "none";
         }, 500);
       }, 600); // Wait for fade out to finish (0.5s + buffer)
-    }, 5000);
+    }, 9000);
   }, Math.ceil(meaningful_duration * 1000));
 });
