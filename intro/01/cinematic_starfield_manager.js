@@ -31,7 +31,7 @@ class CinematicStarfieldManager {
     this.stagger_enabled = false;
     this.stagger_system_disabled = true; // Flag to disable staggering entirely
     this.clear_canvas = true;
-    this.static_conversion_done = false;
+    this.static_phase = false;
 
     // State-based sequence tracking for O(1) performance
     this.current_step_index = 0;
@@ -48,6 +48,7 @@ class CinematicStarfieldManager {
   _create_star() {
     const now = performance.now();
     const lifetime = this._random_between(2200, 5200); // ms
+    const is_static = this.static_phase;
 
     return {
       x: this._random_between(0, this.starfield_width),
@@ -71,7 +72,7 @@ class CinematicStarfieldManager {
   }
 
   _calculate_twinkle_speed(is_static) {
-    return is_static ? 1 : this._random_between(0.002, 0.008);
+    return is_static ? 0.1 : this._random_between(0.002, 0.008);
   }
 
   _draw_star_optimized(star, time) {
@@ -168,8 +169,8 @@ class CinematicStarfieldManager {
       this.star_count = star_count;
 
       // Convert all stars to static behavior once we reach 20k+ stars
-      if (!this.static_conversion_done && star_count >= 20000) {
-        this.static_conversion_done = true;
+      if (!this.static_phase && star_count >= 20000) {
+        this.static_phase = true;
 
         // Disable canvas clearing for accumulation effect
         this.clear_canvas = false;

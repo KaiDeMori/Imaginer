@@ -46,10 +46,8 @@ window.addEventListener("DOMContentLoaded", function () {
         snapshot_img.src = data_url;
         snapshot_img.id = "starfield_snapshot_img";
         snapshot_img.style.position = "absolute";
-        snapshot_img.style.left = starfield_canvas.offsetLeft + "px";
-        snapshot_img.style.top = starfield_canvas.offsetTop + "px";
-        snapshot_img.style.width = starfield_canvas.width + "px";
-        snapshot_img.style.height = starfield_canvas.height + "px";
+        snapshot_img.style.width = "100vw";
+        snapshot_img.style.height = "100vh";
         snapshot_img.style.zIndex = "1000";
         // Add the image to the same parent
         starfield_canvas.parentNode.appendChild(snapshot_img);
