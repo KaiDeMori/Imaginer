@@ -6,60 +6,14 @@ html, body {
   background: black;
   overflow: hidden;
 }
+
 #starfield_canvas {
   display: block;
   width: 100vw;
   height: 100vh;
   background: black;
 }
-#debug_controls {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 1100;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-#zoom_slider_container, #star_count_slider_container {
-  background: rgba(20, 20, 20, 0.92);
-  border-radius: 10px;
-  padding: 10px 16px 8px 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 170px;
-  z-index: 1000;
-}
-#zoom_slider_container {
-  margin-bottom: 0px;
-}
-#star_count_slider_container {
-  margin-top: 0px;
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-#star_count_slider {
-  width: 120px;
-}
-#star_count_label {
-  color: #fff;
-  font-size: 0.95em;
-  margin-top: 2px;
-  font-family: sans-serif;
-  user-select: none;
-}
-#zoom_speed_slider {
-  width: 120px;
-}
-#zoom_speed_label {
-  color: #fff;
-  font-size: 0.95em;
-  margin-top: 2px;
-  font-family: sans-serif;
-  user-select: none;
-}
+
 body { position: relative; }
 
 .imagine_bloom_text {
