@@ -1,5 +1,7 @@
 // CinematicStarfieldManager encapsulates all starfield logic for dynamic control
 class CinematicStarfieldManager {
+  static STATIC_STAR_TWINKLE_ACCELERATION = 100;
+
   constructor() {
     this.starfield_canvas = document.getElementById("starfield_canvas");
     this.starfield_context = this.starfield_canvas.getContext("2d", { willReadFrequently: false, alpha: false });
@@ -31,6 +33,7 @@ class CinematicStarfieldManager {
     this.stagger_enabled = false;
     this.stagger_system_disabled = true; // Flag to disable staggering entirely
     this.clear_canvas = true;
+    this.static_conversion_done = false;
 
     // State-based sequence tracking for O(1) performance
     this.current_step_index = 0;
@@ -85,9 +88,14 @@ class CinematicStarfieldManager {
 
     // Performance optimization: slower twinkling for stars beyond 20k
     const is_high_density_star = star_index >= 20000;
-    const twinkle_speed = is_high_density_star
-      ? this._random_between(0.0005, 0.002) // Much slower twinkling for 20k+ stars
+    let twinkle_speed = is_high_density_star
+      ? this._random_between(0.002, 0.009) // Base slow twinkling for 20k+ stars
       : this._random_between(0.002, 0.008); // Normal twinkling for first 20k stars
+
+    // Apply acceleration if this will be a static star and static conversion is already done
+    if (is_high_density_star && this.static_conversion_done) {
+      twinkle_speed *= CinematicStarfieldManager.STATIC_STAR_TWINKLE_ACCELERATION;
+    }
 
     return {
       x: this._random_between(0, this.starfield_width),
@@ -144,7 +152,8 @@ class CinematicStarfieldManager {
 
     // Peak detection for diminishing stars (only for 20k+ stars)
     if (star.is_static && this.star_count >= 20000 && !star.has_reached_peak) {
-      if (final_alpha >= 0.9) {
+      const star_max_twinkle = 0.7 + star.twinkle_amplitude;
+      if (twinkle >= star_max_twinkle * 0.98) {
         star.has_reached_peak = true;
       }
     }
@@ -203,7 +212,9 @@ class CinematicStarfieldManager {
       this.star_count = star_count;
 
       // Convert all stars to static behavior once we reach 20k+ stars
-      if (star_count >= 20000) {
+      if (!this.static_conversion_done && star_count >= 20000) {
+        this.static_conversion_done = true;
+
         // Disable canvas clearing for accumulation effect
         this.clear_canvas = false;
 
@@ -217,9 +228,9 @@ class CinematicStarfieldManager {
           const star = this.stars[i];
           if (!star.is_static) {
             star.is_static = true;
-            star.twinkle_speed = this._random_between(0.0005, 0.002); // Convert to slow twinkling
-            star.fading_out = false; // Stop any fade-out process
-            star.fading_in = false; // Stop any fade-in process
+            star.twinkle_speed = this._random_between(0.0005, 0.002) * CinematicStarfieldManager.STATIC_STAR_TWINKLE_ACCELERATION;
+            star.fading_out = false;
+            star.fading_in = false;
           }
         }
       }
