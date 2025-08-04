@@ -14,15 +14,6 @@ class CinematicStarfieldManager {
     this.stars = [];
     this.star_colors = ["#fff", "#aaf", "#ffa", "#aff", "#faf", "#ffd700"];
 
-    this.star_count_slider = document.getElementById("star_count_slider");
-    this.star_count_label = document.getElementById("star_count_label");
-    this.zoom_speed_slider = document.getElementById("zoom_speed_slider");
-    this.zoom_speed_label = document.getElementById("zoom_speed_label");
-
-    // Disable sliders for now, logic is controlled by animation sequence
-    this.star_count_slider.disabled = true;
-    this.zoom_speed_slider.disabled = true;
-
     this.zoom_speed = 0.0002;
     this.animation_frame_id = null;
     this.is_running = false;
@@ -41,8 +32,6 @@ class CinematicStarfieldManager {
     this.current_step_end_time = 0; // When current step ends (absolute sequence time)
     this.sequence_completed = false; // Flag for when we reach a duration-0 final step
 
-    // Keep event binding for future re-enabling
-    this._bind_events();
     this._init_stars();
     window.addEventListener("resize", () => this._on_resize());
   }
@@ -180,7 +169,6 @@ class CinematicStarfieldManager {
         // Enable staggered updates for performance (only if not disabled)
         if (!this.stagger_enabled && !this.stagger_system_disabled) {
           this.stagger_enabled = true;
-          console.log("[Performance] Enabling selective clearing and staggered updates for static stars");
         }
 
         for (let i = 0; i < this.stars.length; i++) {
@@ -193,25 +181,8 @@ class CinematicStarfieldManager {
           }
         }
       }
-      // Also update slider and label for visual feedback
-      if (this.star_count_slider) {
-        this.star_count_slider.value = star_count;
-      }
-      if (this.star_count_label) {
-        this.star_count_label.textContent = "Stars: " + star_count;
-      }
     }
-    // Update zoom speed and sync slider visually (even if disabled)
     this.zoom_speed = zoom_speed;
-    if (this.zoom_speed_slider) {
-      const was_disabled = this.zoom_speed_slider.disabled;
-      this.zoom_speed_slider.disabled = false;
-      this.zoom_speed_slider.value = zoom_speed;
-      this.zoom_speed_slider.disabled = was_disabled;
-    }
-    if (this.zoom_speed_label) {
-      this.zoom_speed_label.textContent = "Zoom: " + zoom_speed.toFixed(5);
-    }
     this._debug_log_sequence_on_step_change(step_index, step, sequence_time, star_count, zoom_speed);
 
     // Performance optimization: group stars by color to reduce context state changes
@@ -257,15 +228,12 @@ class CinematicStarfieldManager {
     }
 
     // Batch render stars by color to minimize context state changes
-    let stars_rendered_per_frame = 0;
     for (const color in stars_by_color) {
       this.starfield_context.fillStyle = color;
       for (const star of stars_by_color[color]) {
         this._draw_star_optimized(star, time);
-        stars_rendered_per_frame++;
       }
     }
-    console.log(`[Performance] Rendered ${stars_rendered_per_frame} stars in this frame`);
 
     // Advance stagger frame offset for next frame (cycles 0, 1, 2, 0, 1, 2...)
     if (this.stagger_enabled && !this.stagger_system_disabled) {
@@ -353,33 +321,6 @@ class CinematicStarfieldManager {
     this.stop_cinematic_sequence();
     this._initialize_sequence_state();
     this._init_stars();
-  }
-
-  set_debug_controls_visible(is_visible) {
-    const debug_controls = document.getElementById("debug_controls");
-    if (debug_controls) {
-      debug_controls.style.display = is_visible ? "block" : "none";
-    }
-  }
-
-  _bind_events() {
-    this.star_count_slider.addEventListener("input", () => {
-      const new_count = parseInt(this.star_count_slider.value, 10);
-      this.star_count = new_count;
-      this.star_count_label.textContent = "Stars: " + new_count;
-      // Adjust stars array
-      if (this.stars.length < new_count) {
-        for (let i = this.stars.length; i < new_count; i++) {
-          this.stars.push(this._create_star());
-        }
-      } else if (this.stars.length > new_count) {
-        this.stars.length = new_count;
-      }
-    });
-    this.zoom_speed_slider.addEventListener("input", () => {
-      this.zoom_speed = parseFloat(this.zoom_speed_slider.value);
-      this.zoom_speed_label.textContent = "Zoom: " + this.zoom_speed.toFixed(5);
-    });
   }
 
   _init_stars() {

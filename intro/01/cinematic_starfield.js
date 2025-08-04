@@ -27,7 +27,6 @@ window.addEventListener("DOMContentLoaded", function () {
   for (let i = 0; i < active_cinematic_starfield_timing_sequence.length; i++) {
     meaningful_duration += active_cinematic_starfield_timing_sequence[i].duration;
   }
-  console.log(`Meaningful cinematic duration: ${meaningful_duration} seconds`);
   // Show the text only after the meaningful animation sequence is finished
   setTimeout(() => {
     fade_text.style.opacity = "1";
