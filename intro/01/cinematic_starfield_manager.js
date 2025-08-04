@@ -8,6 +8,8 @@ class CinematicStarfieldManager {
     this.starfield_canvas.width = this.starfield_width;
     this.starfield_canvas.height = this.starfield_height;
 
+    this.SWITCH_TO_STATIC_THRESHOLD = 20000; // Switch to static stars behavior at this count
+
     this.star_count = 0;
     this.stars = [];
     this.star_colors = ["#fff", "#aaf", "#ffa", "#aff", "#faf", "#ffd700"];
@@ -108,7 +110,7 @@ class CinematicStarfieldManager {
     const final_alpha = twinkle * star.z * alpha;
 
     // Peak detection for diminishing stars (only for 20k+ stars)
-    if (star.is_static && this.star_count >= 20000 && !star.has_reached_peak) {
+    if (star.is_static && this.star_count >= this.SWITCH_TO_STATIC_THRESHOLD && !star.has_reached_peak) {
       const star_max_twinkle = 0.7 + star.twinkle_amplitude;
       if (twinkle >= star_max_twinkle * 0.98) {
         star.has_reached_peak = true;
@@ -169,7 +171,7 @@ class CinematicStarfieldManager {
       this.star_count = star_count;
 
       // Convert all stars to static behavior once we reach 20k+ stars
-      if (!this.static_phase && star_count >= 20000) {
+      if (!this.static_phase && star_count >= this.SWITCH_TO_STATIC_THRESHOLD) {
         this.static_phase = true;
 
         // Disable canvas clearing for accumulation effect
