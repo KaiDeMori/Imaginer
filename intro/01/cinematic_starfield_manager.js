@@ -1,7 +1,5 @@
 // CinematicStarfieldManager encapsulates all starfield logic for dynamic control
 class CinematicStarfieldManager {
-  static STATIC_STAR_TWINKLE_ACCELERATION = 100;
-
   constructor() {
     this.starfield_canvas = document.getElementById("starfield_canvas");
     this.starfield_context = this.starfield_canvas.getContext("2d", { willReadFrequently: false, alpha: false });
@@ -47,55 +45,9 @@ class CinematicStarfieldManager {
     window.addEventListener("resize", () => this._on_resize());
   }
 
-  _bind_events() {
-    this.star_count_slider.addEventListener("input", () => {
-      const new_count = parseInt(this.star_count_slider.value, 10);
-      this.star_count = new_count;
-      this.star_count_label.textContent = "Stars: " + new_count;
-      // Adjust stars array
-      if (this.stars.length < new_count) {
-        for (let i = this.stars.length; i < new_count; i++) {
-          this.stars.push(this._create_star(i));
-        }
-      } else if (this.stars.length > new_count) {
-        this.stars.length = new_count;
-      }
-    });
-    this.zoom_speed_slider.addEventListener("input", () => {
-      this.zoom_speed = parseFloat(this.zoom_speed_slider.value);
-      this.zoom_speed_label.textContent = "Zoom: " + this.zoom_speed.toFixed(5);
-    });
-  }
-
-  _init_stars() {
-    this.stars = [];
-    for (let i = 0; i < this.star_count; i++) {
-      this.stars.push(this._create_star(i));
-    }
-  }
-
-  _random_between(min, max) {
-    return Math.random() * (max - min) + min;
-  }
-
-  _random_star_color() {
-    return this.star_colors[Math.floor(Math.random() * this.star_colors.length)];
-  }
-
-  _create_star(star_index) {
+  _create_star() {
     const now = performance.now();
     const lifetime = this._random_between(2200, 5200); // ms
-
-    // Performance optimization: slower twinkling for stars beyond 20k
-    const is_high_density_star = star_index >= 20000;
-    let twinkle_speed = is_high_density_star
-      ? this._random_between(0.002, 0.009) // Base slow twinkling for 20k+ stars
-      : this._random_between(0.002, 0.008); // Normal twinkling for first 20k stars
-
-    // Apply acceleration if this will be a static star and static conversion is already done
-    if (is_high_density_star && this.static_conversion_done) {
-      twinkle_speed *= CinematicStarfieldManager.STATIC_STAR_TWINKLE_ACCELERATION;
-    }
 
     return {
       x: this._random_between(0, this.starfield_width),
@@ -103,7 +55,7 @@ class CinematicStarfieldManager {
       z: this._random_between(0.2, 1),
       radius: this._random_between(0.5, 1.8),
       twinkle_phase: this._random_between(0, Math.PI * 2),
-      twinkle_speed: twinkle_speed,
+      twinkle_speed: this._calculate_twinkle_speed(is_static),
       twinkle_amplitude: this._random_between(0.2, 0.4),
       color: this._random_star_color(),
       born_time: now,
@@ -113,9 +65,13 @@ class CinematicStarfieldManager {
       fading_in: true,
       fade_progress: 0,
       fade_start_time: now,
-      is_static: is_high_density_star, // Mark stars beyond 20k as static
+      is_static: is_static, // Mark stars beyond 20k as static
       has_reached_peak: false,
     };
+  }
+
+  _calculate_twinkle_speed(is_static) {
+    return is_static ? 1 : this._random_between(0.002, 0.008);
   }
 
   _draw_star_optimized(star, time) {
@@ -128,7 +84,7 @@ class CinematicStarfieldManager {
         star.fade_progress = (now - star.fade_start_time) / star.fade_duration;
         alpha = 1 - Math.min(star.fade_progress, 1);
         if (star.fade_progress >= 1) {
-          const new_star = this._create_star(0); // Pass 0 for dynamic stars (respawn as dynamic)
+          const new_star = this._create_star();
           Object.assign(star, new_star);
           star.fading_out = false;
           star.fading_in = true;
@@ -204,7 +160,7 @@ class CinematicStarfieldManager {
     if (this.star_count !== star_count) {
       if (this.stars.length < star_count) {
         for (let i = this.stars.length; i < star_count; i++) {
-          this.stars.push(this._create_star(i));
+          this.stars.push(this._create_star());
         }
       } else if (this.stars.length > star_count) {
         this.stars.length = star_count;
@@ -228,7 +184,7 @@ class CinematicStarfieldManager {
           const star = this.stars[i];
           if (!star.is_static) {
             star.is_static = true;
-            star.twinkle_speed = this._random_between(0.0005, 0.002) * CinematicStarfieldManager.STATIC_STAR_TWINKLE_ACCELERATION;
+            star.twinkle_speed = this._calculate_twinkle_speed(true);
             star.fading_out = false;
             star.fading_in = false;
           }
@@ -285,7 +241,7 @@ class CinematicStarfieldManager {
 
         // If star goes out of bounds, respawn it as a new star
         if (star.x < 0 || star.x > this.starfield_width || star.y < 0 || star.y > this.starfield_height) {
-          this.stars[i] = this._create_star(i);
+          this.stars[i] = this._create_star();
           star = this.stars[i];
         }
       }
@@ -401,5 +357,40 @@ class CinematicStarfieldManager {
     if (debug_controls) {
       debug_controls.style.display = is_visible ? "block" : "none";
     }
+  }
+
+  _bind_events() {
+    this.star_count_slider.addEventListener("input", () => {
+      const new_count = parseInt(this.star_count_slider.value, 10);
+      this.star_count = new_count;
+      this.star_count_label.textContent = "Stars: " + new_count;
+      // Adjust stars array
+      if (this.stars.length < new_count) {
+        for (let i = this.stars.length; i < new_count; i++) {
+          this.stars.push(this._create_star());
+        }
+      } else if (this.stars.length > new_count) {
+        this.stars.length = new_count;
+      }
+    });
+    this.zoom_speed_slider.addEventListener("input", () => {
+      this.zoom_speed = parseFloat(this.zoom_speed_slider.value);
+      this.zoom_speed_label.textContent = "Zoom: " + this.zoom_speed.toFixed(5);
+    });
+  }
+
+  _init_stars() {
+    this.stars = [];
+    for (let i = 0; i < this.star_count; i++) {
+      this.stars.push(this._create_star());
+    }
+  }
+
+  _random_between(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  _random_star_color() {
+    return this.star_colors[Math.floor(Math.random() * this.star_colors.length)];
   }
 }
