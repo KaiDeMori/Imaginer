@@ -30,47 +30,41 @@ window.addEventListener("DOMContentLoaded", function () {
   console.log(`Meaningful cinematic duration: ${meaningful_duration} seconds`);
   // Show the text only after the meaningful animation sequence is finished
   setTimeout(() => {
-    if (fade_text) {
-      fade_text.style.opacity = "1";
-      // Hold for 5 seconds, then fade out quickly
+    fade_text.style.opacity = "1";
+    // Hold for 5 seconds, then fade out quickly
+    setTimeout(() => {
+      fade_text.style.transition = "opacity 0.5s cubic-bezier(0.4,0,0.2,1)";
+      fade_text.style.opacity = "0";
+      // After fade out, show static snapshot
       setTimeout(() => {
-        fade_text.style.transition = "opacity 0.5s cubic-bezier(0.4,0,0.2,1)";
-        fade_text.style.opacity = "0";
-        // After fade out, show static snapshot
+        const starfield_canvas = document.getElementById("starfield_canvas");
+        // Stop animation if possible
+        window.cinematic_starfield_manager.stop_cinematic_sequence();
+        // Create image snapshot
+        const snapshot_img = document.createElement("img");
+        const data_url = starfield_canvas.toDataURL("image/png");
+        snapshot_img.src = data_url;
+        snapshot_img.id = "starfield_snapshot_img";
+        snapshot_img.style.position = "absolute";
+        snapshot_img.style.left = starfield_canvas.offsetLeft + "px";
+        snapshot_img.style.top = starfield_canvas.offsetTop + "px";
+        snapshot_img.style.width = starfield_canvas.width + "px";
+        snapshot_img.style.height = starfield_canvas.height + "px";
+        snapshot_img.style.zIndex = "1000";
+        // Add the image to the same parent
+        starfield_canvas.parentNode.appendChild(snapshot_img);
+        // Persist the image data URL in localStorage for the next step
+        try {
+          localStorage.setItem("starfield_snapshot_data_url", data_url);
+        } catch (e) {
+          // Ignore storage errors (e.g., quota exceeded)
+        }
+        // Hide the canvas
         setTimeout(() => {
-          const starfield_canvas = document.getElementById("starfield_canvas");
-          if (starfield_canvas) {
-            // Stop animation if possible
-            if (window.cinematic_starfield_manager && typeof window.cinematic_starfield_manager.stop_cinematic_sequence === "function") {
-              window.cinematic_starfield_manager.stop_cinematic_sequence();
-            }
-            // Create image snapshot
-            const snapshot_img = document.createElement("img");
-            const data_url = starfield_canvas.toDataURL("image/png");
-            snapshot_img.src = data_url;
-            snapshot_img.id = "starfield_snapshot_img";
-            snapshot_img.style.position = "absolute";
-            snapshot_img.style.left = starfield_canvas.offsetLeft + "px";
-            snapshot_img.style.top = starfield_canvas.offsetTop + "px";
-            snapshot_img.style.width = starfield_canvas.width + "px";
-            snapshot_img.style.height = starfield_canvas.height + "px";
-            snapshot_img.style.zIndex = "1000";
-            // Add the image to the same parent
-            starfield_canvas.parentNode.appendChild(snapshot_img);
-            // Persist the image data URL in localStorage for the next step
-            try {
-              localStorage.setItem("starfield_snapshot_data_url", data_url);
-            } catch (e) {
-              // Ignore storage errors (e.g., quota exceeded)
-            }
-            // Hide the canvas
-            setTimeout(() => {
-              starfield_canvas.style.opacity = "0";
-              starfield_canvas.style.display = "none";
-            }, 500);
-          }
-        }, 600); // Wait for fade out to finish (0.5s + buffer)
-      }, 5000);
-    }
+          starfield_canvas.style.opacity = "0";
+          starfield_canvas.style.display = "none";
+        }, 500);
+      }, 600); // Wait for fade out to finish (0.5s + buffer)
+    }, 5000);
   }, Math.ceil(meaningful_duration * 1000));
 });
