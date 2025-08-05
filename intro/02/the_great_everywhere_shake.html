@@ -1,29 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>The Great Everywhere Shake</title>
-    <link rel="stylesheet" href="the_great_everywhere_shake.css">
+    <link rel="stylesheet" href="the_great_everywhere_shake.css" />
     <!-- Add Google Fonts for a dynamic, energetic font -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
-</head>
-<body>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
     <!-- Cinematic explosion and shake effects will be rendered here -->
     <canvas id="explosion_canvas" aria-label="Cinematic explosion and shake background"></canvas>
     <!-- Cinematic text overlay -->
-    <div id="everything_fade_text" style="
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      z-index: 2000;
-      opacity: 0;
-      transition: opacity 2.5s cubic-bezier(0.4,0,0.2,1);">
+    <div id="everything_fade_text">
       <span class="everything_bloom_text">Everything!</span>
     </div>
     <!-- JS and CSS will be added in next steps -->
     <script src="the_great_everywhere_shake.js"></script>
-</body>
+  </body>
 </html>
