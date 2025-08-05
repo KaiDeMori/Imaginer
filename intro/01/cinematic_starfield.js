@@ -60,6 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
         setTimeout(() => {
           starfield_canvas.style.opacity = "0";
           starfield_canvas.style.display = "none";
+          window.location.href = "../02/the_great_everywhere_shake.html";
         }, 500);
       }, 600); // Wait for fade out to finish (0.5s + buffer)
     }, 9000);
