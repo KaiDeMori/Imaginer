@@ -1,12 +1,10 @@
 // CinematicStarfieldManager encapsulates all starfield logic for dynamic control
 class CinematicStarfieldManager {
   constructor() {
-    this.starfield_canvas = document.getElementById("starfield_canvas");
-    this.starfield_context = this.starfield_canvas.getContext("2d", { willReadFrequently: false, alpha: false });
-    this.starfield_width = window.innerWidth;
-    this.starfield_height = window.innerHeight;
-    this.starfield_canvas.width = this.starfield_width;
-    this.starfield_canvas.height = this.starfield_height;
+    this.starfield_canvas = null;
+    this.starfield_context = null;
+    this.starfield_width = null;
+    this.starfield_height = null;
 
     this.SWITCH_TO_STATIC_THRESHOLD = 20000; // Switch to static stars behavior at this count
 
@@ -35,6 +33,15 @@ class CinematicStarfieldManager {
     this.sequence_completed = false; // Flag for when we reach a duration-0 final step
 
     this._init_stars();
+  }
+
+  initialize_canvas() {
+    this.starfield_canvas = document.getElementById("starfield_canvas");
+    this.starfield_context = this.starfield_canvas.getContext("2d", { willReadFrequently: false, alpha: false });
+    this.starfield_width = window.innerWidth;
+    this.starfield_height = window.innerHeight;
+    this.starfield_canvas.width = this.starfield_width;
+    this.starfield_canvas.height = this.starfield_height;
     window.addEventListener("resize", () => this._on_resize());
   }
 

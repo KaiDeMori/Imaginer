@@ -8,6 +8,27 @@
     <link rel="stylesheet" href="02/the_great_everywhere_shake.css" />
     <!-- Google Fonts for dynamic typography -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+
+    <!-- Load JS files in dependency order -->
+    <script src="audio.js"></script>
+    <script src="01/cinematic_starfield_manager.js"></script>
+    <script src="01/cinematic_starfield.js"></script>
+    <script src="02/the_great_everywhere_shake.js"></script>
+    <script>
+      // Single orchestrator - waits for everything to load (CSS, fonts, etc)
+      window.addEventListener("load", function () {
+        // Initialize audio system
+        window.audio_manager.initialize_audio();
+
+        // Start the cinematic sequence
+        start_cinematic_starfield_sequence();
+
+        // Listen for phase 1 completion and start phase 2
+        window.addEventListener("phase_01_finished", function () {
+          start_great_everywhere_shake();
+        });
+      });
+    </script>
   </head>
   <body>
     <!-- Audio for cinematic sequence -->
@@ -28,11 +49,5 @@
     <div id="everything_fade_text" style="display: none">
       <span class="everything_bloom_text">Everything!</span>
     </div>
-
-    <!-- Load JS files in dependency order -->
-    <script src="audio.js"></script>
-    <script src="01/cinematic_starfield_manager.js"></script>
-    <script src="01/cinematic_starfield.js"></script>
-    <script src="02/the_great_everywhere_shake.js"></script>
   </body>
 </html>

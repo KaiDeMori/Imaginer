@@ -26,7 +26,7 @@ const SPARK_MAX_RADIUS_START = 2;
 const SPARK_MAX_RADIUS_END = 60;
 let spark_max_radius = SPARK_MAX_RADIUS_START;
 
-window.addEventListener("phase_01_finished", function () {
+function start_great_everywhere_shake() {
   // Hide phase 1 elements
   document.getElementById("starfield_canvas").style.display = "none";
   document.getElementById("imagine_fade_text").style.display = "none";
@@ -352,4 +352,4 @@ window.addEventListener("phase_01_finished", function () {
     }
     requestAnimationFrame(animate);
   }
-});
+}
