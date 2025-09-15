@@ -1,8 +1,8 @@
 // Timing sequence definition for the cinematic starfield (simplified, no start_time)
 // Each step: { duration: seconds, star_count: { from, to }, zoom_speed: { from, to } }
 const cinematic_starfield_timing_sequence = [
-  { duration: 2, star_count: { from: 0, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Ramp up stars
-  { duration: 1, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Hold
+  { duration: 18, star_count: { from: 0, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Ramp up stars
+  { duration: 2, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Hold
   { duration: 2, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0.1, to: 0 } }, // Reduce zoom
   { duration: 1, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0, to: 0 } }, // Hold
   { duration: 2, star_count: { from: 10000, to: 50000 }, zoom_speed: { from: 0, to: 0 } }, // Ramp up stars again
@@ -21,7 +21,12 @@ const FINISH_EVENT_NAME = "phase_01_finished";
 window.addEventListener("DOMContentLoaded", function () {
   const starfield_manager = new CinematicStarfieldManager();
   window.cinematic_starfield_manager = starfield_manager; // Expose for later control
-  starfield_manager.start_cinematic_sequence();
+
+  // Initialize audio system
+  window.audio_manager.initialize_audio();
+
+  // Mark starfield manager as ready
+  window.audio_manager.mark_starfield_ready();
 
   const fade_text = document.getElementById("imagine_fade_text");
   // Calculate duration only from meaningful sequence steps (exclude infinite holds)

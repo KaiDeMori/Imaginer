@@ -10,6 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <!-- Audio for cinematic sequence -->
+    <audio id="cinematic_audio" preload="auto">
+      <source src="audio/Also_sprach_Zarathustra.opus" type="audio/opus" />
+      <!-- Fallback message -->
+      Your browser does not support the audio element.
+    </audio>
+
     <!-- Phase 1 elements -->
     <canvas id="starfield_canvas" aria-label="Animated starfield background"></canvas>
     <div id="imagine_fade_text">
@@ -23,6 +30,7 @@
     </div>
 
     <!-- Load JS files in dependency order -->
+    <script src="audio.js"></script>
     <script src="01/cinematic_starfield_manager.js"></script>
     <script src="01/cinematic_starfield.js"></script>
     <script src="02/the_great_everywhere_shake.js"></script>
