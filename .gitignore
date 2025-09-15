@@ -51,6 +51,7 @@ project_status.md
 png metadata.md
 assets/image_sizes.png
 api_trials/
+audio/
 png_exif/add_exif_chunk_to_png.js
 png_exif/add_EXIF_UserComment_to_png.js
 png_exif/exif_usercomment.js
