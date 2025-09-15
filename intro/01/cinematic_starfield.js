@@ -15,6 +15,8 @@ const cinematic_starfield_timing_sequence_TESTING = [
 
 const active_cinematic_starfield_timing_sequence = cinematic_starfield_timing_sequence;
 
+const FINISH_EVENT_NAME = "phase_01_finished";
+
 // Start cinematic starfield on page load
 window.addEventListener("DOMContentLoaded", function () {
   const starfield_manager = new CinematicStarfieldManager();
@@ -50,17 +52,14 @@ window.addEventListener("DOMContentLoaded", function () {
         snapshot_img.style.zIndex = "1000";
         // Add the image to the same parent
         starfield_canvas.parentNode.appendChild(snapshot_img);
-        // Persist the image data URL in localStorage for the next step
-        try {
-          localStorage.setItem("starfield_snapshot_data_url", data_url);
-        } catch (e) {
-          // Ignore storage errors (e.g., quota exceeded)
-        }
         // Hide the canvas
         setTimeout(() => {
           starfield_canvas.style.opacity = "0";
           starfield_canvas.style.display = "none";
-          window.location.href = "../02/the_great_everywhere_shake.html";
+          starfield_manager.starfield_snapshot = snapshot_img;
+          // call custom event to indicate snapshot is ready
+          window.dispatchEvent(new CustomEvent(FINISH_EVENT_NAME));
+          //window.location.href = "../02/the_great_everywhere_shake.html";
         }, 500);
       }, 600); // Wait for fade out to finish (0.5s + buffer)
     }, 9000);

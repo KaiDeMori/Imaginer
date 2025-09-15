@@ -10,6 +10,8 @@ class CinematicStarfieldManager {
 
     this.SWITCH_TO_STATIC_THRESHOLD = 20000; // Switch to static stars behavior at this count
 
+    this.starfield_snapshot = null; // Will hold the final snapshot image
+
     this.star_count = 0;
     this.stars = [];
     this.star_colors = ["#fff", "#aaf", "#ffa", "#aff", "#faf", "#ffd700"];
