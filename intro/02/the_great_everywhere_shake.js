@@ -33,8 +33,7 @@ window.addEventListener("phase_01_finished", function () {
 
   // Show phase 2 elements
   document.getElementById("explosion_canvas").style.display = "block";
-  document.getElementById("everything_fade_text").style.display = "block";
-
+  document.getElementById("everything_fade_text").style.display = "flex";
   const explosion_canvas = document.getElementById("explosion_canvas");
   const ctx = explosion_canvas.getContext("2d");
   explosion_canvas.width = window.innerWidth;
