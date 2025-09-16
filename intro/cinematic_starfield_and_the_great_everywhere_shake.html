@@ -3,36 +3,80 @@
   <head>
     <meta charset="UTF-8" />
     <title>Cinematic Universe Creation</title>
-    <!-- Include both CSS files -->
     <link rel="stylesheet" href="01/cinematic_starfield.css" />
     <link rel="stylesheet" href="02/the_great_everywhere_shake.css" />
-    <!-- Google Fonts for dynamic typography -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <!-- Audio for cinematic sequence -->
-    <audio id="cinematic_audio" preload="auto">
-      <source src="audio/Also_sprach_Zarathustra.opus" type="audio/opus" />
-      <!-- Fallback message -->
-      Your browser does not support the audio element.
-    </audio>
-
-    <!-- Phase 1 elements -->
-    <canvas id="starfield_canvas" aria-label="Animated starfield background"></canvas>
-    <div id="imagine_fade_text">
-      <span class="imagine_bloom_text">Imagine…</span>
-    </div>
-
-    <!-- Phase 2 elements (initially hidden) -->
-    <canvas id="explosion_canvas" aria-label="Cinematic explosion and shake background" style="display: none"></canvas>
-    <div id="everything_fade_text" style="display: none">
-      <span class="everything_bloom_text">Everything!</span>
-    </div>
-
-    <!-- Load JS files in dependency order -->
+    <style>
+      #audio_setup_interface {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+      }
+      .setup_container {
+        text-align: center;
+        color: #fff;
+        font-family: "Orbitron", monospace;
+      }
+      .setup_button {
+        background: #333;
+        color: #fff;
+        border: 2px solid #666;
+        padding: 12px 24px;
+        margin: 10px;
+        font-family: "Orbitron", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
+      .setup_button:hover {
+        background: #555;
+        border-color: #888;
+      }
+      .start_button {
+        background: #004400;
+        border-color: #006600;
+      }
+      .start_button:hover {
+        background: #006600;
+        border-color: #008800;
+      }
+      .volume_info {
+        margin: 20px 0;
+        font-size: 14px;
+        color: #aaa;
+      }
+    </style>
     <script src="audio.js"></script>
     <script src="01/cinematic_starfield_manager.js"></script>
     <script src="01/cinematic_starfield.js"></script>
     <script src="02/the_great_everywhere_shake.js"></script>
+  </head>
+  <body>
+    <audio id="cinematic_audio" preload="auto">
+      <source src="audio/Also_sprach_Zarathustra.webm" type="audio/webm" />
+      Your browser does not support the audio element.
+    </audio>
+
+    <audio id="blip_audio" preload="auto">
+      <source src="audio/blip.wav" type="audio/wav" />
+    </audio>
+
+    <div id="audio_setup_interface">
+      <div class="setup_container">
+        <button id="test_audio_button" class="setup_button">Test Audio</button>
+        <p class="volume_info">↑ ↓ adjust volume</p>
+        <button id="start_button" class="setup_button start_button">Start</button>
+      </div>
+    </div>
+
+    <canvas id="cinematic_canvas"></canvas>
   </body>
 </html>

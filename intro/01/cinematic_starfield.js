@@ -15,38 +15,29 @@ const cinematic_starfield_timing_sequence_TESTING = [
 
 const active_cinematic_starfield_timing_sequence = cinematic_starfield_timing_sequence;
 
-const FINISH_EVENT_NAME = "phase_01_finished";
-
-// Start cinematic starfield on page load
-window.addEventListener("DOMContentLoaded", function () {
+function initialize_starfield() {
   const starfield_manager = new CinematicStarfieldManager();
-  window.cinematic_starfield_manager = starfield_manager; // Expose for later control
+  window.cinematic_starfield_manager = starfield_manager;
 
-  // Initialize audio system
-  window.audio_manager.initialize_audio();
+  // Create and inject the text element
+  const fade_text = document.createElement("div");
+  fade_text.id = "imagine_fade_text";
+  fade_text.innerHTML = '<span class="imagine_bloom_text">Imagine…</span>';
+  document.body.appendChild(fade_text);
 
-  // Mark starfield manager as ready
-  window.audio_manager.mark_starfield_ready();
-
-  const fade_text = document.getElementById("imagine_fade_text");
-  // Calculate duration only from meaningful sequence steps (exclude infinite holds)
   let meaningful_duration = 0;
   for (let i = 0; i < active_cinematic_starfield_timing_sequence.length; i++) {
     meaningful_duration += active_cinematic_starfield_timing_sequence[i].duration;
   }
-  // Show the text only after the meaningful animation sequence is finished
+
   setTimeout(() => {
     fade_text.style.opacity = "1";
-    // Hold for 5 seconds, then fade out quickly
     setTimeout(() => {
       fade_text.style.transition = "opacity 0.5s cubic-bezier(0.4,0,0.2,1)";
       fade_text.style.opacity = "0";
-      // After fade out, show static snapshot
       setTimeout(() => {
-        const starfield_canvas = document.getElementById("starfield_canvas");
-        // Stop animation if possible
+        const starfield_canvas = document.getElementById("cinematic_canvas");
         window.cinematic_starfield_manager.stop_cinematic_sequence();
-        // Create image snapshot
         const snapshot_img = document.createElement("img");
         const data_url = starfield_canvas.toDataURL("image/png");
         snapshot_img.src = data_url;
@@ -55,18 +46,14 @@ window.addEventListener("DOMContentLoaded", function () {
         snapshot_img.style.width = "100vw";
         snapshot_img.style.height = "100vh";
         snapshot_img.style.zIndex = "1000";
-        // Add the image to the same parent
         starfield_canvas.parentNode.appendChild(snapshot_img);
-        // Hide the canvas
         setTimeout(() => {
           starfield_canvas.style.opacity = "0";
           starfield_canvas.style.display = "none";
           starfield_manager.starfield_snapshot = snapshot_img;
-          // call custom event to indicate snapshot is ready
-          window.dispatchEvent(new CustomEvent(FINISH_EVENT_NAME));
-          //window.location.href = "../02/the_great_everywhere_shake.html";
+          window.initialize_shake();
         }, 500);
-      }, 600); // Wait for fade out to finish (0.5s + buffer)
+      }, 600);
     }, 9000);
   }, Math.ceil(meaningful_duration * 1000));
-});
+}

@@ -1,7 +1,7 @@
 // CinematicStarfieldManager encapsulates all starfield logic for dynamic control
 class CinematicStarfieldManager {
   constructor() {
-    this.starfield_canvas = document.getElementById("starfield_canvas");
+    this.starfield_canvas = document.getElementById("cinematic_canvas");
     this.starfield_context = this.starfield_canvas.getContext("2d", { willReadFrequently: false, alpha: false });
     this.starfield_width = window.innerWidth;
     this.starfield_height = window.innerHeight;

@@ -26,22 +26,22 @@ const SPARK_MAX_RADIUS_START = 2;
 const SPARK_MAX_RADIUS_END = 60;
 let spark_max_radius = SPARK_MAX_RADIUS_START;
 
-window.addEventListener("phase_01_finished", function () {
-  // Hide phase 1 elements
-  document.getElementById("starfield_canvas").style.display = "none";
-  document.getElementById("imagine_fade_text").style.display = "none";
+function initialize_shake() {
+  // Create and inject the text element
+  const everything_fade_text = document.createElement("div");
+  everything_fade_text.id = "everything_fade_text";
+  everything_fade_text.style.display = "none";
+  everything_fade_text.innerHTML = '<span class="everything_bloom_text">Everything!</span>';
+  document.body.appendChild(everything_fade_text);
 
-  // Show phase 2 elements
-  document.getElementById("explosion_canvas").style.display = "block";
-  document.getElementById("everything_fade_text").style.display = "flex";
-  const explosion_canvas = document.getElementById("explosion_canvas");
+  const explosion_canvas = document.getElementById("cinematic_canvas");
   const ctx = explosion_canvas.getContext("2d");
   explosion_canvas.width = window.innerWidth;
   explosion_canvas.height = window.innerHeight;
 
   // Reactivate everything_fade_text after 3 seconds
-  const everything_fade_text = document.getElementById("everything_fade_text");
   setTimeout(function () {
+    everything_fade_text.style.display = "flex";
     everything_fade_text.style.opacity = "1";
   }, 3000);
 
@@ -352,4 +352,4 @@ window.addEventListener("phase_01_finished", function () {
     }
     requestAnimationFrame(animate);
   }
-});
+}
