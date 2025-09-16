@@ -353,3 +353,6 @@ function initialize_shake() {
     requestAnimationFrame(animate);
   }
 }
+
+// Make the function globally accessible
+window.initialize_shake = initialize_shake;

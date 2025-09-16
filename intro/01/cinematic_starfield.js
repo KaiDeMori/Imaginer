@@ -1,7 +1,7 @@
 // Timing sequence definition for the cinematic starfield (simplified, no start_time)
 // Each step: { duration: seconds, star_count: { from, to }, zoom_speed: { from, to } }
 const cinematic_starfield_timing_sequence = [
-  { duration: 18, star_count: { from: 0, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Ramp up stars
+  { duration: 1, star_count: { from: 0, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Ramp up stars
   { duration: 2, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0.1, to: 0.1 } }, // Hold
   { duration: 2, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0.1, to: 0 } }, // Reduce zoom
   { duration: 1, star_count: { from: 10000, to: 10000 }, zoom_speed: { from: 0, to: 0 } }, // Hold
@@ -48,8 +48,6 @@ function initialize_starfield() {
         snapshot_img.style.zIndex = "1000";
         starfield_canvas.parentNode.appendChild(snapshot_img);
         setTimeout(() => {
-          starfield_canvas.style.opacity = "0";
-          starfield_canvas.style.display = "none";
           starfield_manager.starfield_snapshot = snapshot_img;
           window.initialize_shake();
         }, 500);
