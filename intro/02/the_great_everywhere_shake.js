@@ -39,11 +39,11 @@ function initialize_shake() {
   explosion_canvas.width = window.innerWidth;
   explosion_canvas.height = window.innerHeight;
 
-  // Reactivate everything_fade_text after 3 seconds
+  // Reactivate everything_fade_text after 8 seconds
   setTimeout(function () {
     everything_fade_text.style.display = "flex";
     everything_fade_text.style.opacity = "1";
-  }, 3000);
+  }, 8000);
 
   // Starfield background
   const starfield_snapshot = window.cinematic_starfield_manager.starfield_snapshot;
@@ -167,7 +167,7 @@ function initialize_shake() {
   // Trigger whiteout after "Everything!" is visible for a moment
   setTimeout(function () {
     trigger_whiteout();
-  }, 4200); // 3s for fade-in + 1.2s visible, tweak as needed
+  }, 9200); // 8s for fade-in + 1.2s visible, tweak as needed
 
   function draw_whiteout(now) {
     if (whiteout_complete) {
@@ -229,7 +229,7 @@ function initialize_shake() {
   }
 
   function start_zoom_and_explosion_animation() {
-    const zoom_duration_ms = 5000;
+    const zoom_duration_ms = 10000;
     const zoom_amplitude = 0.08;
     const zoom_base = 1.0;
     const shake_amplitude_px = 12;
