@@ -23,6 +23,7 @@ function setup_audio_interface() {
   const modal_close = document.getElementById("modal_close");
   const language_buttons = document.querySelectorAll(".language_button");
   const trigger_texts = document.querySelectorAll(".trigger_text");
+  const skip_button = document.getElementById("skip_button");
 
   let blip_enabled = true;
   function play_blip() {
@@ -91,6 +92,11 @@ function setup_audio_interface() {
     });
   });
 
+  function skip_intro() {
+    window.location.href = "about:blank";
+  }
+
+  skip_button.addEventListener("click", skip_intro);
   warning_help.addEventListener("click", show_standard_warning);
   modal_close.addEventListener("click", hide_standard_warning);
 
