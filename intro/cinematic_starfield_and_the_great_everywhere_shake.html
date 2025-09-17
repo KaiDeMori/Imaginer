@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Cinematic Universe Creation</title>
-    <link rel="stylesheet" href="01/cinematic_starfield.css" />
-    <link rel="stylesheet" href="02/the_great_everywhere_shake.css" />
+    <link rel="preload" href="fonts/Orbitron/Orbitron-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
     <style>
       /* Local Orbitron font */
       @font-face {
@@ -74,7 +73,6 @@
         margin: 15px auto 0 auto;
         font-size: 12px;
         color: #888;
-        max-width: 350px;
         line-height: 1.4;
         position: relative;
         text-align: center;
@@ -209,13 +207,10 @@
         cursor: none !important;
       }
     </style>
-    <script src="audio.js"></script>
-    <script src="01/cinematic_starfield_manager.js"></script>
-    <script src="01/cinematic_starfield.js"></script>
-    <script src="02/the_great_everywhere_shake.js"></script>
+    <script src="pre_intro_ui.js"></script>
   </head>
   <body>
-    <audio id="cinematic_audio" preload="auto">
+    <audio id="cinematic_audio" preload="none">
       <source src="audio/Also_sprach_Zarathustra.webm" type="audio/webm" />
       Your browser does not support the audio element.
     </audio>
@@ -229,7 +224,7 @@
         <button id="fullscreen_button" class="setup_button fullscreen_button">Fullscreen</button>
         <button id="test_audio_button" class="setup_button">Test Audio</button>
         <p class="volume_info">↑ ↓ adjust volume</p>
-        <button id="start_button" class="setup_button start_button">Start</button>
+        <button id="start_button" class="setup_button" disabled>Loading...</button>
         <div class="language_selector">
           <span class="language_button active" data-lang="en" lang="en">Hello</span>
           <span class="language_button" data-lang="es" lang="es">Hola</span>

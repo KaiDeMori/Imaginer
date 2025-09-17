@@ -1,15 +1,18 @@
-let cinematic_audio;
+// Global volume storage for both audio elements
+let global_audio_volume = 1.0;
 
-function start_sequence() {
-  cinematic_audio.currentTime = 0;
-  cinematic_audio.play();
-  initialize_starfield();
-  window.cinematic_starfield_manager.start_cinematic_sequence();
-}
+// Asset loading completion callback
+let on_assets_loaded = null;
 
-function initialize_cinematic() {
-  cinematic_audio = document.getElementById("cinematic_audio");
-  audio_manager.start_sequence();
+async function initialize_pre_intro() {
+  // Wait for font before showing UI
+  await document.fonts.load("16px Orbitron");
+
+  // Font is ready, setup the UI
+  setup_audio_interface();
+
+  // Start background asset loading
+  start_asset_loading();
 }
 
 function setup_audio_interface() {
@@ -26,6 +29,7 @@ function setup_audio_interface() {
   const skip_button = document.getElementById("skip_button");
 
   let blip_enabled = true;
+
   function play_blip() {
     if (blip_enabled) {
       blip_audio.currentTime = 0;
@@ -34,8 +38,10 @@ function setup_audio_interface() {
   }
 
   function adjust_volume(delta) {
-    blip_audio.volume = Math.max(0, Math.min(1, blip_audio.volume + delta));
-    cinematic_audio.volume = blip_audio.volume;
+    global_audio_volume = Math.max(0, Math.min(1, global_audio_volume + delta));
+    blip_audio.volume = global_audio_volume;
+    // Update global reference for cinematic bridge
+    window.global_audio_volume = global_audio_volume;
     play_blip();
   }
 
@@ -47,7 +53,6 @@ function setup_audio_interface() {
           fullscreen_button.textContent = "Exit Fullscreen";
         })
         .catch(() => {
-          // Fullscreen not supported, just play blip
           play_blip();
         });
     } else {
@@ -56,10 +61,6 @@ function setup_audio_interface() {
       });
     }
   }
-
-  test_button.addEventListener("click", play_blip);
-
-  fullscreen_button.addEventListener("click", toggle_fullscreen);
 
   function show_standard_warning() {
     standard_warning_modal.style.display = "flex";
@@ -70,11 +71,9 @@ function setup_audio_interface() {
   }
 
   function switch_language(lang) {
-    // Remove active class from all language buttons and texts
     language_buttons.forEach((button) => button.classList.remove("active"));
     trigger_texts.forEach((text) => text.classList.remove("active"));
 
-    // Add active class to selected language button and text
     const selected_button = document.querySelector(`.language_button[data-lang="${lang}"]`);
     const selected_text = document.querySelector(`.trigger_text[data-lang="${lang}"]`);
 
@@ -84,7 +83,18 @@ function setup_audio_interface() {
     }
   }
 
-  // Add event listeners to language buttons
+  function skip_intro() {
+    window.location.href = "about:blank";
+  }
+
+  // Event listeners
+  test_button.addEventListener("click", play_blip);
+  fullscreen_button.addEventListener("click", toggle_fullscreen);
+  warning_help.addEventListener("click", show_standard_warning);
+  modal_close.addEventListener("click", hide_standard_warning);
+  skip_button.addEventListener("click", skip_intro);
+
+  // Language switching
   language_buttons.forEach((button) => {
     button.addEventListener("click", function () {
       const lang = this.getAttribute("data-lang");
@@ -92,29 +102,14 @@ function setup_audio_interface() {
     });
   });
 
-  function skip_intro() {
-    window.location.href = "about:blank";
-  }
-
-  skip_button.addEventListener("click", skip_intro);
-  warning_help.addEventListener("click", show_standard_warning);
-  modal_close.addEventListener("click", hide_standard_warning);
-
-  // Close modal when clicking outside of it
+  // Modal click outside to close
   standard_warning_modal.addEventListener("click", function (event) {
     if (event.target === standard_warning_modal) {
       hide_standard_warning();
     }
   });
 
-  start_button.addEventListener("click", function () {
-    blip_enabled = false;
-    interface_div.style.display = "none";
-    // Hide cursor during animation
-    document.body.classList.add("hide_cursor");
-    initialize_cinematic();
-  });
-
+  // Volume control via keyboard
   document.addEventListener("keydown", function (event) {
     if (event.key === "ArrowUp") {
       event.preventDefault();
@@ -124,16 +119,47 @@ function setup_audio_interface() {
       adjust_volume(-0.1);
     }
   });
+
+  // Start button - immediately set to loading state
+  start_button.textContent = "Loading...";
+  start_button.disabled = true;
+  start_button.classList.remove("start_button");
+
+  start_button.addEventListener("click", function () {
+    if (!window.cinematic_bridge) {
+      console.error("Cinematic bridge not loaded!");
+      return;
+    }
+
+    blip_enabled = false;
+    interface_div.style.display = "none";
+    document.body.classList.add("hide_cursor");
+
+    // Call the dynamically loaded cinematic bridge
+    window.cinematic_bridge.initialize_cinematic();
+  });
 }
 
-window.addEventListener("load", function () {
-  cinematic_audio = document.getElementById("cinematic_audio");
-  setup_audio_interface();
-});
+function start_asset_loading() {
+  // This will be called by asset_loader.js when complete
+  on_assets_loaded = function () {
+    const start_button = document.getElementById("start_button");
+    start_button.textContent = "Start";
+    start_button.disabled = false;
+    start_button.classList.add("start_button");
+  };
 
-window.audio_manager = {
-  start_sequence,
-  get_audio: () => cinematic_audio,
-  initialize_cinematic,
-  restore_cursor: () => document.body.classList.remove("hide_cursor"),
-};
+  // Load the asset loader and start loading
+  const script = document.createElement("script");
+  script.src = "asset_loader.js";
+  script.onload = function () {
+    window.asset_loader.start_loading(on_assets_loaded);
+  };
+  document.head.appendChild(script);
+}
+
+// Start everything when page loads
+window.addEventListener("load", initialize_pre_intro);
+
+// Expose global volume for cinematic bridge
+window.global_audio_volume = global_audio_volume;
