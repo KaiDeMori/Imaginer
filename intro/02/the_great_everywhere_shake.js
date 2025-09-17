@@ -8,7 +8,7 @@
 // You can tweak these to control the feel of the effect
 const EXPLOSION_MIN_RATE = 0.1; // Minimum explosions per frame at start
 const EXPLOSION_MAX_RATE = 10; // Maximum explosions per frame at peak
-const EXPLOSION_RAMP_CONSTANT = 0.3; // How quickly the rate ramps up (0 = slow, 1 = instant)
+const EXPLOSION_RAMP_CONSTANT = 0.1; // How quickly the rate ramps up (0 = slow, 1 = instant)
 const EXPLOSION_INITIAL_LIMIT = 3; // Max explosions for first EXPLOSION_INITIAL_LIMIT_DURATION milliseconds
 const EXPLOSION_INITIAL_LIMIT_DURATION = 400; // ms for initial limit
 const EXPLOSION_RANDOM_CHANCE = 0.9; // Chance to spawn each explosion per frame
@@ -229,7 +229,7 @@ function initialize_shake() {
   }
 
   function start_zoom_and_explosion_animation() {
-    const zoom_duration_ms = 10000;
+    const zoom_duration_ms = 12000;
     const zoom_amplitude = 0.08;
     const zoom_base = 1.0;
     const shake_amplitude_px = 12;
@@ -287,12 +287,15 @@ function initialize_shake() {
       if (elapsed < zoom_duration_ms) {
         // Normal animation phase
         const scale = zoom_base + zoom_amplitude * Math.sin(Math.PI * t);
-        const shake_fade = Math.sin(Math.PI * t);
+        // Custom shake timing: no shake for first 7 seconds, then ramp to peak at 12 seconds
+        let shake_fade = 0;
+        if (elapsed > 7000) {
+          const shake_t = (elapsed - 7000) / (zoom_duration_ms - 7000); // 0 to 1 over last 5 seconds
+          shake_fade = shake_t; // Linear ramp from 0 to 1
+        }
         const shake_x = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
         const shake_y = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
-        draw_scaled_and_shaken(scale, shake_x, shake_y);
-
-        // --- Explosion spawn rate ramps up as t approaches 1 ---
+        draw_scaled_and_shaken(scale, shake_x, shake_y); // --- Explosion spawn rate ramps up as t approaches 1 ---
         // Interpolate spawn rate from min to max, quartic ramp
         const ramp = EXPLOSION_RAMP_CONSTANT + (1 - EXPLOSION_RAMP_CONSTANT) * Math.pow(t, 4);
         const explosion_spawn_rate = EXPLOSION_MIN_RATE + (EXPLOSION_MAX_RATE - EXPLOSION_MIN_RATE) * ramp;
@@ -317,8 +320,10 @@ function initialize_shake() {
         draw_explosions(now_time);
         do_animate = true;
       } else {
-        // After main animation, keep drawing static background
-        draw_scaled_and_shaken(zoom_base, 0, 0);
+        // After main animation, keep drawing static background with maximum shake
+        const shake_x = shake_amplitude_px * (2 * Math.random() - 1);
+        const shake_y = shake_amplitude_px * (2 * Math.random() - 1);
+        draw_scaled_and_shaken(zoom_base, shake_x, shake_y);
         draw_explosions(performance.now());
       }
 
