@@ -90,7 +90,13 @@ function setup_audio_interface() {
   }
 
   function skip_intro() {
-    window.location.href = "about:blank";
+    // Fade out before skipping
+    interface_div.classList.add("fade_out");
+
+    // Wait for fade-out to complete before navigating
+    setTimeout(() => {
+      window.location.href = "about:blank";
+    }, 1000); // Wait 1s for fade-out transition
   }
 
   // Event listeners
@@ -138,12 +144,24 @@ function setup_audio_interface() {
     }
 
     blip_enabled = false;
-    interface_div.style.display = "none";
-    document.body.classList.add("hide_cursor");
 
-    // Call the dynamically loaded cinematic bridge
-    window.cinematic_bridge.initialize_cinematic();
+    // Fade out before hiding
+    interface_div.classList.add("fade_out");
+
+    // Wait for fade-out to complete before hiding and starting cinematic
+    setTimeout(() => {
+      interface_div.style.display = "none";
+      document.body.classList.add("hide_cursor");
+
+      // Call the dynamically loaded cinematic bridge
+      window.cinematic_bridge.initialize_cinematic();
+    }, 1000); // Wait 1s for fade-out transition
   });
+
+  // Trigger fade-in now that setup is complete
+  setTimeout(() => {
+    interface_div.classList.add("fade_in");
+  }, 100); // Small delay to ensure CSS is applied
 }
 
 function start_asset_loading() {

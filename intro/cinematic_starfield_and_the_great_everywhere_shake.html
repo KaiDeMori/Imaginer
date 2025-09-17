@@ -23,6 +23,14 @@
         align-items: center;
         justify-content: center;
         z-index: 10000;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+      }
+      #audio_setup_interface.fade_in {
+        opacity: 1;
+      }
+      #audio_setup_interface.fade_out {
+        opacity: 0;
       }
       .setup_container {
         text-align: center;
