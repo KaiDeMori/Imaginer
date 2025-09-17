@@ -80,6 +80,8 @@ function setup_audio_interface() {
   start_button.addEventListener("click", function () {
     blip_enabled = false;
     interface_div.style.display = "none";
+    // Hide cursor during animation
+    document.body.classList.add("hide_cursor");
     initialize_cinematic();
   });
 
@@ -103,4 +105,5 @@ window.audio_manager = {
   start_sequence,
   get_audio: () => cinematic_audio,
   initialize_cinematic,
+  restore_cursor: () => document.body.classList.remove("hide_cursor"),
 };

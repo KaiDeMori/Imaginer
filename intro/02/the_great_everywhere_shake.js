@@ -276,6 +276,10 @@ function initialize_shake() {
         everything_fade_text.style.display = "none";
         text_span.style.filter = "none";
         text_span.style.textShadow = "none";
+        // Restore cursor after animation completes
+        if (window.audio_manager && window.audio_manager.restore_cursor) {
+          window.audio_manager.restore_cursor();
+        }
       }
     }
 
