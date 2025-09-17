@@ -40,6 +40,12 @@ function setup_audio_interface() {
   function adjust_volume(delta) {
     global_audio_volume = Math.max(0, Math.min(1, global_audio_volume + delta));
     blip_audio.volume = global_audio_volume;
+
+    // If we're in cinematic mode, update the cinematic audio too
+    if (!blip_enabled) {
+      window.audio_manager.get_audio().volume = global_audio_volume;
+    }
+
     // Update global reference for cinematic bridge
     window.global_audio_volume = global_audio_volume;
     play_blip();
