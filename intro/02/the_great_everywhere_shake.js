@@ -167,7 +167,7 @@ function initialize_shake() {
   // Trigger whiteout after "Everything!" is visible for a moment
   setTimeout(function () {
     trigger_whiteout();
-  }, 9200); // 8s for fade-in + 1.2s visible, tweak as needed
+  }, 12000); // 8s for fade-in + 4s visible, tweak as needed
 
   function draw_whiteout(now) {
     if (whiteout_complete) {
