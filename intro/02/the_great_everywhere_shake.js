@@ -284,47 +284,50 @@ function initialize_shake() {
       let t = Math.min(elapsed / zoom_duration_ms, 1);
       let do_animate = false;
 
-      if (elapsed < zoom_duration_ms) {
-        // Normal animation phase
-        const scale = zoom_base + zoom_amplitude * Math.sin(Math.PI * t);
-        // Custom shake timing: no shake for first 7 seconds, then ramp to peak at 12 seconds
-        let shake_fade = 0;
-        if (elapsed > 7000) {
-          const shake_t = (elapsed - 7000) / (zoom_duration_ms - 7000); // 0 to 1 over last 5 seconds
-          shake_fade = shake_t; // Linear ramp from 0 to 1
-        }
-        const shake_x = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
-        const shake_y = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
-        draw_scaled_and_shaken(scale, shake_x, shake_y); // --- Explosion spawn rate ramps up as t approaches 1 ---
-        // Interpolate spawn rate from min to max, quartic ramp
-        const ramp = EXPLOSION_RAMP_CONSTANT + (1 - EXPLOSION_RAMP_CONSTANT) * Math.pow(t, 4);
-        const explosion_spawn_rate = EXPLOSION_MIN_RATE + (EXPLOSION_MAX_RATE - EXPLOSION_MIN_RATE) * ramp;
-
-        // For the first N ms, cap the total number of explosions
-        // Dynamically ramp up spark_max_radius from SPARK_MAX_RADIUS_START to SPARK_MAX_RADIUS_END as t goes from 0 to 1
-        spark_max_radius = SPARK_MAX_RADIUS_START + (SPARK_MAX_RADIUS_END - SPARK_MAX_RADIUS_START) * t;
-        if (elapsed < EXPLOSION_INITIAL_LIMIT_DURATION) {
-          while (explosions.length < EXPLOSION_INITIAL_LIMIT) {
-            explosions.push(create_explosion(t));
+      // Only do animation calculations if whiteout is not yet complete
+      if (!whiteout_complete) {
+        if (elapsed < zoom_duration_ms) {
+          // Normal animation phase
+          const scale = zoom_base + zoom_amplitude * Math.sin(Math.PI * t);
+          // Custom shake timing: no shake for first 7 seconds, then ramp to peak at 12 seconds
+          let shake_fade = 0;
+          if (elapsed > 7000) {
+            const shake_t = (elapsed - 7000) / (zoom_duration_ms - 7000); // 0 to 1 over last 5 seconds
+            shake_fade = shake_t; // Linear ramp from 0 to 1
           }
-        } else {
-          for (let i = 0; i < Math.floor(explosion_spawn_rate); ++i) {
-            if (explosions.length < MAX_EXPLOSIONS && Math.random() < EXPLOSION_RANDOM_CHANCE) {
+          const shake_x = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
+          const shake_y = shake_fade * shake_amplitude_px * (2 * Math.random() - 1);
+          draw_scaled_and_shaken(scale, shake_x, shake_y); // --- Explosion spawn rate ramps up as t approaches 1 ---
+          // Interpolate spawn rate from min to max, quartic ramp
+          const ramp = EXPLOSION_RAMP_CONSTANT + (1 - EXPLOSION_RAMP_CONSTANT) * Math.pow(t, 4);
+          const explosion_spawn_rate = EXPLOSION_MIN_RATE + (EXPLOSION_MAX_RATE - EXPLOSION_MIN_RATE) * ramp;
+
+          // For the first N ms, cap the total number of explosions
+          // Dynamically ramp up spark_max_radius from SPARK_MAX_RADIUS_START to SPARK_MAX_RADIUS_END as t goes from 0 to 1
+          spark_max_radius = SPARK_MAX_RADIUS_START + (SPARK_MAX_RADIUS_END - SPARK_MAX_RADIUS_START) * t;
+          if (elapsed < EXPLOSION_INITIAL_LIMIT_DURATION) {
+            while (explosions.length < EXPLOSION_INITIAL_LIMIT) {
               explosions.push(create_explosion(t));
             }
+          } else {
+            for (let i = 0; i < Math.floor(explosion_spawn_rate); ++i) {
+              if (explosions.length < MAX_EXPLOSIONS && Math.random() < EXPLOSION_RANDOM_CHANCE) {
+                explosions.push(create_explosion(t));
+              }
+            }
           }
+          // Remove finished explosions
+          const now_time = performance.now();
+          explosions = explosions.filter((exp) => now_time - exp.start_time < exp.duration);
+          draw_explosions(now_time);
+          do_animate = true;
+        } else {
+          // After main animation, keep drawing static background with maximum shake
+          const shake_x = shake_amplitude_px * (2 * Math.random() - 1);
+          const shake_y = shake_amplitude_px * (2 * Math.random() - 1);
+          draw_scaled_and_shaken(zoom_base, shake_x, shake_y);
+          draw_explosions(performance.now());
         }
-        // Remove finished explosions
-        const now_time = performance.now();
-        explosions = explosions.filter((exp) => now_time - exp.start_time < exp.duration);
-        draw_explosions(now_time);
-        do_animate = true;
-      } else {
-        // After main animation, keep drawing static background with maximum shake
-        const shake_x = shake_amplitude_px * (2 * Math.random() - 1);
-        const shake_y = shake_amplitude_px * (2 * Math.random() - 1);
-        draw_scaled_and_shaken(zoom_base, shake_x, shake_y);
-        draw_explosions(performance.now());
       }
 
       // Draw whiteout overlay if triggered
