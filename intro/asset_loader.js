@@ -9,7 +9,7 @@ const ASSET_URLS_ORDERED = [
 ];
 
 const ASSET_URLS_BULK = [
-  // Add image URLs here that can load in parallel
+  // Add URLs here that can load in parallel
 ];
 
 const asset_loader = {
