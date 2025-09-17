@@ -77,26 +77,30 @@
         margin-top: 8px;
         text-align: center;
       }
-      .language_flags {
+      .language_selector {
         margin-top: 10px;
         text-align: center;
       }
-      .flag_button {
+      .language_button {
         display: inline-block;
-        font-size: 20px;
+        font-size: 14px;
         margin: 0 8px;
         cursor: pointer;
-        padding: 4px;
+        padding: 6px 12px;
         border-radius: 4px;
         transition: all 0.2s;
         border: 2px solid transparent;
+        font-family: "Orbitron", monospace;
+        color: #aaa;
       }
-      .flag_button:hover {
+      .language_button:hover {
         background: rgba(255, 255, 255, 0.1);
+        color: #ccc;
       }
-      .flag_button.active {
+      .language_button.active {
         border-color: #666;
         background: rgba(255, 255, 255, 0.05);
+        color: #fff;
       }
       .trigger_text {
         display: none;
@@ -184,11 +188,11 @@
         <button id="test_audio_button" class="setup_button">Test Audio</button>
         <p class="volume_info">↑ ↓ adjust volume</p>
         <button id="start_button" class="setup_button start_button">Start</button>
-        <div class="language_flags">
-          <span class="flag_button active" data-lang="en">🇺🇸</span>
-          <span class="flag_button" data-lang="es">🇪🇸</span>
-          <span class="flag_button" data-lang="fr">🇫🇷</span>
-          <span class="flag_button" data-lang="de">🇩🇪</span>
+        <div class="language_selector">
+          <span class="language_button active" data-lang="en" lang="en">Hello</span>
+          <span class="language_button" data-lang="es" lang="es">Hola</span>
+          <span class="language_button" data-lang="fr" lang="fr">Bonjour</span>
+          <span class="language_button" data-lang="de" lang="de">Hallo</span>
         </div>
 
         <div class="trigger_warning">

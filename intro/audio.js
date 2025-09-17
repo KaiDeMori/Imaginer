@@ -21,7 +21,7 @@ function setup_audio_interface() {
   const warning_help = document.getElementById("warning_help");
   const standard_warning_modal = document.getElementById("standard_warning_modal");
   const modal_close = document.getElementById("modal_close");
-  const flag_buttons = document.querySelectorAll(".flag_button");
+  const language_buttons = document.querySelectorAll(".language_button");
   const trigger_texts = document.querySelectorAll(".trigger_text");
 
   let blip_enabled = true;
@@ -69,23 +69,23 @@ function setup_audio_interface() {
   }
 
   function switch_language(lang) {
-    // Remove active class from all flags and texts
-    flag_buttons.forEach((flag) => flag.classList.remove("active"));
+    // Remove active class from all language buttons and texts
+    language_buttons.forEach((button) => button.classList.remove("active"));
     trigger_texts.forEach((text) => text.classList.remove("active"));
 
-    // Add active class to selected flag and text
-    const selected_flag = document.querySelector(`[data-lang="${lang}"]`);
+    // Add active class to selected language button and text
+    const selected_button = document.querySelector(`.language_button[data-lang="${lang}"]`);
     const selected_text = document.querySelector(`.trigger_text[data-lang="${lang}"]`);
 
-    if (selected_flag && selected_text) {
-      selected_flag.classList.add("active");
+    if (selected_button && selected_text) {
+      selected_button.classList.add("active");
       selected_text.classList.add("active");
     }
   }
 
-  // Add event listeners to flag buttons
-  flag_buttons.forEach((flag) => {
-    flag.addEventListener("click", function () {
+  // Add event listeners to language buttons
+  language_buttons.forEach((button) => {
+    button.addEventListener("click", function () {
       const lang = this.getAttribute("data-lang");
       switch_language(lang);
     });
