@@ -35,6 +35,9 @@
         cursor: pointer;
         border-radius: 4px;
         transition: all 0.2s;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
       }
       .setup_button:hover {
         background: #555;
@@ -62,12 +65,17 @@
         border-color: #886600;
       }
       .trigger_warning {
-        margin-top: 15px;
+        margin: 15px auto 0 auto;
         font-size: 12px;
         color: #888;
         max-width: 280px;
         line-height: 1.4;
         position: relative;
+        text-align: center;
+      }
+      .warning_help_row {
+        margin-top: 8px;
+        text-align: center;
       }
       .warning_help {
         display: inline-block;
@@ -148,8 +156,10 @@
         <p class="trigger_warning">
           Heads up: Things are about to get flashy and wiggly!<br />
           If bright lights or shaky visuals make you feel dizzy, maybe skip this one.
-          <span id="warning_help" class="warning_help">?</span>
         </p>
+        <div class="warning_help_row">
+          <span id="warning_help" class="warning_help">?</span>
+        </div>
       </div>
     </div>
 

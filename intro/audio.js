@@ -22,9 +22,13 @@ function setup_audio_interface() {
   const standard_warning_modal = document.getElementById("standard_warning_modal");
   const modal_close = document.getElementById("modal_close");
 
+  let blip_enabled = true;
+
   function play_blip() {
-    blip_audio.currentTime = 0;
-    blip_audio.play();
+    if (blip_enabled) {
+      blip_audio.currentTime = 0;
+      blip_audio.play();
+    }
   }
 
   function adjust_volume(delta) {
@@ -74,6 +78,7 @@ function setup_audio_interface() {
   });
 
   start_button.addEventListener("click", function () {
+    blip_enabled = false;
     interface_div.style.display = "none";
     initialize_cinematic();
   });
