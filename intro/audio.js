@@ -21,9 +21,10 @@ function setup_audio_interface() {
   const warning_help = document.getElementById("warning_help");
   const standard_warning_modal = document.getElementById("standard_warning_modal");
   const modal_close = document.getElementById("modal_close");
+  const flag_buttons = document.querySelectorAll(".flag_button");
+  const trigger_texts = document.querySelectorAll(".trigger_text");
 
   let blip_enabled = true;
-
   function play_blip() {
     if (blip_enabled) {
       blip_audio.currentTime = 0;
@@ -66,6 +67,29 @@ function setup_audio_interface() {
   function hide_standard_warning() {
     standard_warning_modal.style.display = "none";
   }
+
+  function switch_language(lang) {
+    // Remove active class from all flags and texts
+    flag_buttons.forEach((flag) => flag.classList.remove("active"));
+    trigger_texts.forEach((text) => text.classList.remove("active"));
+
+    // Add active class to selected flag and text
+    const selected_flag = document.querySelector(`[data-lang="${lang}"]`);
+    const selected_text = document.querySelector(`.trigger_text[data-lang="${lang}"]`);
+
+    if (selected_flag && selected_text) {
+      selected_flag.classList.add("active");
+      selected_text.classList.add("active");
+    }
+  }
+
+  // Add event listeners to flag buttons
+  flag_buttons.forEach((flag) => {
+    flag.addEventListener("click", function () {
+      const lang = this.getAttribute("data-lang");
+      switch_language(lang);
+    });
+  });
 
   warning_help.addEventListener("click", show_standard_warning);
   modal_close.addEventListener("click", hide_standard_warning);
