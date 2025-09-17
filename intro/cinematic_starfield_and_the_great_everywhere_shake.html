@@ -53,6 +53,76 @@
         font-size: 14px;
         color: #aaa;
       }
+      .fullscreen_button {
+        background: #442200;
+        border-color: #664400;
+      }
+      .fullscreen_button:hover {
+        background: #664400;
+        border-color: #886600;
+      }
+      .trigger_warning {
+        margin-top: 15px;
+        font-size: 12px;
+        color: #888;
+        max-width: 280px;
+        line-height: 1.4;
+        position: relative;
+      }
+      .warning_help {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #666;
+        color: #fff;
+        font-size: 11px;
+        line-height: 16px;
+        text-align: center;
+        cursor: pointer;
+        margin-left: 5px;
+        border: 1px solid #888;
+        transition: all 0.2s;
+      }
+      .warning_help:hover {
+        background: #888;
+        border-color: #aaa;
+      }
+      .standard_warning_modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 20000;
+      }
+      .modal_content {
+        background: #222;
+        color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 400px;
+        text-align: center;
+        font-family: "Orbitron", monospace;
+        border: 2px solid #666;
+      }
+      .modal_close {
+        background: #444;
+        color: #fff;
+        border: 1px solid #666;
+        padding: 8px 16px;
+        margin-top: 15px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-family: "Orbitron", monospace;
+      }
+      .modal_close:hover {
+        background: #666;
+      }
     </style>
     <script src="audio.js"></script>
     <script src="01/cinematic_starfield_manager.js"></script>
@@ -71,9 +141,26 @@
 
     <div id="audio_setup_interface">
       <div class="setup_container">
+        <button id="fullscreen_button" class="setup_button fullscreen_button">Fullscreen</button>
         <button id="test_audio_button" class="setup_button">Test Audio</button>
         <p class="volume_info">↑ ↓ adjust volume</p>
         <button id="start_button" class="setup_button start_button">Start</button>
+        <p class="trigger_warning">
+          Heads up: Things are about to get flashy and wiggly!<br />
+          If bright lights or shaky visuals make you feel dizzy, maybe skip this one.
+          <span id="warning_help" class="warning_help">?</span>
+        </p>
+      </div>
+    </div>
+
+    <div id="standard_warning_modal" class="standard_warning_modal">
+      <div class="modal_content">
+        <h3>Photosensitive epilepsy seizure warning</h3>
+        <p>
+          Warning: This content contains flashing lights and rapid visual effects that may cause seizures or discomfort for individuals with photosensitive
+          epilepsy.
+        </p>
+        <button id="modal_close" class="modal_close">Got it</button>
       </div>
     </div>
 

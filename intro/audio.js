@@ -15,8 +15,12 @@ function initialize_cinematic() {
 function setup_audio_interface() {
   const blip_audio = document.getElementById("blip_audio");
   const test_button = document.getElementById("test_audio_button");
+  const fullscreen_button = document.getElementById("fullscreen_button");
   const start_button = document.getElementById("start_button");
   const interface_div = document.getElementById("audio_setup_interface");
+  const warning_help = document.getElementById("warning_help");
+  const standard_warning_modal = document.getElementById("standard_warning_modal");
+  const modal_close = document.getElementById("modal_close");
 
   function play_blip() {
     blip_audio.currentTime = 0;
@@ -29,7 +33,45 @@ function setup_audio_interface() {
     play_blip();
   }
 
+  function toggle_fullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement
+        .requestFullscreen()
+        .then(() => {
+          fullscreen_button.textContent = "Exit Fullscreen";
+        })
+        .catch(() => {
+          // Fullscreen not supported, just play blip
+          play_blip();
+        });
+    } else {
+      document.exitFullscreen().then(() => {
+        fullscreen_button.textContent = "Fullscreen";
+      });
+    }
+  }
+
   test_button.addEventListener("click", play_blip);
+
+  fullscreen_button.addEventListener("click", toggle_fullscreen);
+
+  function show_standard_warning() {
+    standard_warning_modal.style.display = "flex";
+  }
+
+  function hide_standard_warning() {
+    standard_warning_modal.style.display = "none";
+  }
+
+  warning_help.addEventListener("click", show_standard_warning);
+  modal_close.addEventListener("click", hide_standard_warning);
+
+  // Close modal when clicking outside of it
+  standard_warning_modal.addEventListener("click", function (event) {
+    if (event.target === standard_warning_modal) {
+      hide_standard_warning();
+    }
+  });
 
   start_button.addEventListener("click", function () {
     interface_div.style.display = "none";
