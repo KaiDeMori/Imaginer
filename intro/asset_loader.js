@@ -20,10 +20,23 @@ const asset_loader = {
       await this.load_asset(url);
     }
 
-    // Load bulk assets in parallel
-    await Promise.all(ASSET_URLS_BULK.map((url) => this.load_asset(url)));
+    // Load bulk assets in parallel (including phase 2 images)
+    const bulk_promises = ASSET_URLS_BULK.map((url) => this.load_asset(url));
+
+    // Also load phase 2 images in parallel
+    const phase_2_promise = this.load_phase_2_images();
+
+    await Promise.all([...bulk_promises, phase_2_promise]);
 
     callback();
+  },
+
+  async load_phase_2_images() {
+    // Import phase 2 preloader module and use it directly
+    const { load_and_decode_images } = await import("../intro_trials/early_universe_formation_V2/preloader_module.js");
+
+    // Load all phase 2 images - they'll be cached for instant access during transition
+    await load_and_decode_images();
   },
 
   load_asset(url) {
