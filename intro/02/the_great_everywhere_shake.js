@@ -26,9 +26,6 @@ const SPARK_MAX_RADIUS_START = 2;
 const SPARK_MAX_RADIUS_END = 60;
 let spark_max_radius = SPARK_MAX_RADIUS_START;
 
-// Global flag to stop shake animation
-let shake_animation_stopped = false;
-
 function initialize_shake() {
   // Create and inject the text element
   const everything_fade_text = document.createElement("div");
@@ -296,11 +293,6 @@ function initialize_shake() {
     }
 
     function animate(now) {
-      // Stop animation if flag is set
-      if (shake_animation_stopped) {
-        return;
-      }
-
       const elapsed = now - start_time;
       let t = Math.min(elapsed / zoom_duration_ms, 1);
       let do_animate = false;
@@ -383,11 +375,5 @@ function initialize_shake() {
   }
 }
 
-// Stop function for shake animation
-function stop_shake_animation() {
-  shake_animation_stopped = true;
-}
-
-// Make the functions globally accessible
+// Make the function globally accessible
 window.initialize_shake = initialize_shake;
-window.stop_shake_animation = stop_shake_animation;

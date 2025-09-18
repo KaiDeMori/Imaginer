@@ -20,9 +20,6 @@ async function transition_to_phase_2() {
   if (window.cinematic_starfield_manager) {
     window.cinematic_starfield_manager.stop_cinematic_sequence();
   }
-  if (window.stop_shake_animation) {
-    window.stop_shake_animation();
-  }
 
   // Clean up phase 1 DOM elements (keep audio and canvas)
   const elements_to_remove = Array.from(document.body.children).filter((el) => el.id !== "cinematic_audio" && el.id !== "cinematic_canvas");
