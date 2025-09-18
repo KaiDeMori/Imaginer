@@ -33,12 +33,11 @@ const asset_loader = {
 
   async load_phase_2_images() {
     // Import phase 2 preloader module and use it directly
-    const { load_and_decode_images } = await import("../intro_trials/early_universe_formation_V2/preloader_module.js");
+    const { load_and_decode_images } = await import("./03/preloader_module.js");
 
     // Load all phase 2 images - they'll be cached for instant access during transition
     await load_and_decode_images();
   },
-
   load_asset(url) {
     const extension = url.split(".").pop().toLowerCase();
 
