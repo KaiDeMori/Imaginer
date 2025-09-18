@@ -30,6 +30,9 @@ const engine = {
     this.pre_main_zoom_hold_duration = config.pre_main_zoom_hold_duration;
     this.minimum_render_size = config.minimum_render_size;
 
+    // Pre-calculate ramp integration factor for smooth zoom start
+    this.ramp_integration_factor = this.target_zoom_speed / (2 * this.zoom_speed_ramp_duration);
+
     window.infinity_zoom_II.preloader.load_all_images((processed_images) => {
       log("All images loaded and processed, initializing engine");
       this.init(processed_images);
@@ -89,6 +92,16 @@ const engine = {
         loaded: true,
       };
     });
+
+    // Cache canvas dimensions and derived values for performance
+    this.update_cached_canvas_values();
+
+    // Cache final layer index for performance
+    this.final_layer_index = this.layers.length - 1;
+
+    // Pre-calculate intro growth rate (expensive Math.log operation)
+    const tiny_start_scale = 1.0 / this.min_canvas_dimension;
+    this.intro_growth_rate = Math.log(FITTING_SCALE / tiny_start_scale) / this.intro_planet_zoom_duration;
 
     this.start_time = performance.now();
     this.animation_phase = "intro";
@@ -169,7 +182,17 @@ const engine = {
       this.gl_context.viewport(0, 0, viewport_width, viewport_height);
     }
 
+    // Update cached canvas values for performance
+    this.update_cached_canvas_values();
+
     log(`Canvas resized to: ${viewport_width}x${viewport_height}`);
+  },
+
+  // Update cached canvas values (called on resize and init)
+  update_cached_canvas_values() {
+    this.canvas_width = this.canvas.width;
+    this.canvas_height = this.canvas.height;
+    this.min_canvas_dimension = Math.min(this.canvas_width, this.canvas_height);
   },
 
   // Main animation loop
@@ -243,16 +266,12 @@ const engine = {
   // State: "intro" - the first layer grows from tiny to fitting size
   update_intro_state(now) {
     const elapsed_seconds = (now - this.start_time) / 1000;
-    // Use pure viewport-relative scales - no image size dependencies
-    const tiny_start_scale = 1.0 / Math.min(this.canvas.width, this.canvas.height); // 1px as viewport ratio
+    // Use cached canvas dimensions and pre-calculated growth rate
+    const tiny_start_scale = 1.0 / this.min_canvas_dimension;
 
-    // Exponential growth over intro duration
+    // Exponential growth over intro duration using cached growth rate
     const growth_progress = Math.min(elapsed_seconds / this.intro_planet_zoom_duration, 1.0);
-    const raw_scale = this.utils.apply_exponential_growth(
-      tiny_start_scale,
-      Math.log(FITTING_SCALE / tiny_start_scale) / this.intro_planet_zoom_duration,
-      elapsed_seconds
-    );
+    const raw_scale = this.utils.apply_exponential_growth(tiny_start_scale, this.intro_growth_rate, elapsed_seconds);
     const current_scale = Math.min(raw_scale, FITTING_SCALE); // Cap at fitting scale
 
     // Update all layer TRS (the first layer gets current_scale, others get relative scales)
@@ -311,16 +330,14 @@ const engine = {
     // Calculate time since main zoom started
     const main_zoom_elapsed = (now - this.main_zoom_start_time) / 1000;
 
-    // Calculate covering scale for stop condition
-    const final_layer_index = this.layers.length - 1;
-    const covering_scale = this.utils.calc_covering_scale(this.canvas.width, this.canvas.height, 1);
+    // Calculate covering scale for stop condition using cached values
+    const covering_scale = this.utils.calc_covering_scale(this.canvas_width, this.canvas_height, 1);
 
-    // Calculate integrated zoom amount for smooth ramping (not just current speed * time)
+    // Calculate integrated zoom amount for smooth ramping using pre-calculated factor
     let integrated_zoom_amount;
     if (main_zoom_elapsed < this.zoom_speed_ramp_duration) {
-      // During ramp: integrate linear speed ramp from 0 to target_zoom_speed
-      // Integral of (target_zoom_speed * t / ramp_duration) from 0 to t = target_zoom_speed * t² / (2 * ramp_duration)
-      integrated_zoom_amount = (this.target_zoom_speed * (main_zoom_elapsed * main_zoom_elapsed)) / (2 * this.zoom_speed_ramp_duration);
+      // During ramp: use pre-calculated integration factor
+      integrated_zoom_amount = this.ramp_integration_factor * (main_zoom_elapsed * main_zoom_elapsed);
     } else {
       // After ramp: ramp integral + constant speed integral
       // Ramp contribution: target_zoom_speed * ramp_duration / 2
@@ -335,7 +352,7 @@ const engine = {
     let current_base_scale = FITTING_SCALE * exponential_growth_factor;
 
     // Clamp to prevent overshoot: if final layer would exceed covering, stop exactly at covering
-    const final_layer_relative_scale = this.utils.calc_layer_relative_scale(this.layers, final_layer_index);
+    const final_layer_relative_scale = this.utils.calc_layer_relative_scale(this.layers, this.final_layer_index);
     const final_layer_target_scale = current_base_scale * final_layer_relative_scale;
 
     if (final_layer_target_scale > covering_scale) {
@@ -358,10 +375,9 @@ const engine = {
 
   // State: "final_rotation" - All layers stop scaling, only rotation continues
   update_final_rotation_state(now) {
-    // Maintain current scale relationships (no further scaling)
-    const final_layer_index = this.layers.length - 1;
-    const covering_scale = this.utils.calc_covering_scale(this.canvas.width, this.canvas.height, 1);
-    const final_layer_relative_scale = this.utils.calc_layer_relative_scale(this.layers, final_layer_index);
+    // Maintain current scale relationships (no further scaling) using cached values
+    const covering_scale = this.utils.calc_covering_scale(this.canvas_width, this.canvas_height, 1);
+    const final_layer_relative_scale = this.utils.calc_layer_relative_scale(this.layers, this.final_layer_index);
     const current_base_scale = covering_scale / final_layer_relative_scale;
 
     // Update all layer TRS (maintain covering scale, continue rotation)
@@ -388,7 +404,7 @@ const engine = {
 
     if (next_candidate_index < this.layers.length) {
       const next_layer = this.layers[next_candidate_index];
-      if (this.utils.is_layer_visible(next_layer.trs, this.canvas.width, this.canvas.height, this.minimum_render_size)) {
+      if (this.utils.is_layer_visible(next_layer.trs, this.canvas_width, this.canvas_height, this.minimum_render_size)) {
         this.deepest_visible_layer_index = next_candidate_index;
 
         // Only fade during intro_visible_layers_fade_in state, pop in immediately during other states
@@ -407,7 +423,7 @@ const engine = {
 
     if (check_index < this.layers.length) {
       const covering_layer = this.layers[check_index];
-      const covering_scale = this.utils.calc_covering_scale(this.canvas.width, this.canvas.height, 1);
+      const covering_scale = this.utils.calc_covering_scale(this.canvas_width, this.canvas_height, 1);
 
       if (covering_layer.trs.scale >= covering_scale) {
         const old_index = this.first_visible_layer_index;
