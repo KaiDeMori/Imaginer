@@ -23,7 +23,10 @@ function pad(num, len = 2) {
 // --- Assets Loading Reloaded: programmatically generate asset_manifest ---
 // See assets/ai_universe/assets_loading_reloaded.md for approach summary.
 
-// Max number of PNGs in each asset folder (update as needed)
+// Format configuration - switch between development and production formats
+const ASSET_FORMAT = "png"; // "png" for development, "webm" for production
+
+// Max number of files in each asset folder (update as needed)
 const asset_max_numbers = {
   cosmic_fog: 9,
   galaxy_streams: 10,
@@ -33,15 +36,15 @@ const asset_max_numbers = {
 };
 
 const asset_manifest = [];
-const base = "../assets/ai_universe";
+const base = "../../assets/ai_universe";
 
 for (const [folder, max_num] of Object.entries(asset_max_numbers)) {
   for (let i = 1; i <= max_num; i++) {
     if (folder === "alien_planet") {
-      asset_manifest.push(`${base}/alien_planet/planet_totale.png`);
+      asset_manifest.push(`${base}/alien_planet/planet_totale.${ASSET_FORMAT}`);
       break;
     }
-    asset_manifest.push(`${base}/${folder}/${pad(i)}.png`);
+    asset_manifest.push(`${base}/${folder}/${pad(i)}.${ASSET_FORMAT}`);
   }
 }
 Object.freeze(asset_manifest);
