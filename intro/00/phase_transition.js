@@ -38,7 +38,7 @@ async function transition_to_phase_2() {
   // Load phase 2 CSS
   const css_link = document.createElement("link");
   css_link.rel = "stylesheet";
-  css_link.href = "03/early_universe_formation_V2.css";
+  css_link.href = "../03/early_universe_formation_V2.css";
   document.head.appendChild(css_link);
 
   // Wait for CSS to load
@@ -47,7 +47,7 @@ async function transition_to_phase_2() {
   });
 
   // Load and initialize phase 2 JS modules
-  const { initialize_early_universe_v2 } = await import("./03/early_universe_formation_V2.js");
+  const { initialize_early_universe_v2 } = await import("../03/early_universe_formation_V2.js");
 
   // Initialize phase 2 with existing canvas and white overlay for fade
   initialize_early_universe_v2(canvas_element, white_overlay);

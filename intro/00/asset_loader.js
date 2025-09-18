@@ -1,12 +1,12 @@
 const ASSET_URLS_ORDERED = [
-  "01/cinematic_starfield.css",
-  "02/the_great_everywhere_shake.css",
-  "01/cinematic_starfield_manager.js",
-  "01/cinematic_starfield.js",
-  "02/the_great_everywhere_shake.js",
+  "../01/cinematic_starfield.css",
+  "../02/the_great_everywhere_shake.css",
+  "../01/cinematic_starfield_manager.js",
+  "../01/cinematic_starfield.js",
+  "../02/the_great_everywhere_shake.js",
   "cinematic_bridge.js",
   "phase_transition.js",
-  "audio/Also_sprach_Zarathustra.webm",
+  "../audio/Also_sprach_Zarathustra.webm",
 ];
 
 const ASSET_URLS_BULK = [
@@ -33,7 +33,7 @@ const asset_loader = {
 
   async load_phase_2_images() {
     // Import phase 2 preloader module and use it directly
-    const { load_and_decode_images } = await import("./03/preloader_module.js");
+    const { load_and_decode_images } = await import("../03/preloader_module.js");
 
     // Load all phase 2 images - they'll be cached for instant access during transition
     await load_and_decode_images();

@@ -217,6 +217,11 @@ function initialize_shake() {
         }, 2000);
         // Trigger phase 2 transition after text cleanup completes
         setTimeout(() => {
+          // Log current audio time for phase 2 standalone testing
+          const audio = document.getElementById("cinematic_audio");
+          if (audio) {
+            console.info(`[Phase Transition] Audio time at transition: ${audio.currentTime.toFixed(2)}s - Use ?t=${Math.round(audio.currentTime)} for standalone phase 2`);
+          }
           window.transition_to_phase_2();
         }, 2000);
       } else if (whiteout_progress > 0) {
