@@ -32,11 +32,11 @@ import { layers_config } from "./layers_model.js";
 // ---------------------------------------------------------------------------
 // Number of sprite instances we want per layer.
 const SPRITE_COUNT_PER_LAYER = Object.freeze({
-  cosmic_fog:     8,
+  cosmic_fog: 8,
   galaxy_streams: 7,
-  nebulae:        10,
-  star_clusters:  6,
-  planet:         1, // single hero sprite
+  nebulae: 10,
+  star_clusters: 6,
+  alien_planet: 1, // single hero sprite
 });
 
 // ---------------------------------------------------------------------------
@@ -48,31 +48,31 @@ const SPRITE_COUNT_PER_LAYER = Object.freeze({
 
 // Radius of the annulus on which sprites initially spawn (world-space).
 const SPAWN_RADIUS = Object.freeze({
-  cosmic_fog:     0.5, // furthest out – should feel enveloping
+  cosmic_fog: 0.5, // furthest out – should feel enveloping
   galaxy_streams: 2.0,
-  nebulae:        0.8,
-  star_clusters:  0.6,
-  planet:         0.0, // planet stays dead-centre
+  nebulae: 0.8,
+  star_clusters: 0.6,
+  alien_planet: 0.0, // planet stays dead-centre
 });
 
 // Constant radial speed (world-units s⁻¹) – tuned coarsely for now.
 const RADIAL_SPEED = Object.freeze({
-  cosmic_fog:     0.12,
+  cosmic_fog: 0.12,
   galaxy_streams: 0.18,
-  nebulae:        0.25,
-  star_clusters:  0.30,
-  planet:         0.00, // planet does not drift
+  nebulae: 0.25,
+  star_clusters: 0.3,
+  alien_planet: 0.0, // planet does not drift
 });
 
 // Jitter ranges --------------------------------------------------------------
-const MAX_Z_JITTER        = 0.8;   // pseudo-Z units (sym. around 0)
-const TWO_PI              = Math.PI * 2;
+const MAX_Z_JITTER = 0.8; // pseudo-Z units (sym. around 0)
+const TWO_PI = Math.PI * 2;
 
 // Planet specific ------------------------------------------------------------
 // NOTE: These values are *not* generated via rand() so they stay fully under
 // developer control and are independent of the deterministic RNG sequence.
-const PLANET_BASE_ROTATION_RAD = 0;     // tweak as desired (rad)
-const PLANET_ROT_SPEED_RAD_S   = 0.02;  // ≈ 1.1° per second
+const PLANET_BASE_ROTATION_RAD = 0; // tweak as desired (rad)
+const PLANET_ROT_SPEED_RAD_S = 0.02; // ≈ 1.1° per second
 
 // Non-planet rotation dynamics ----------------------------------------------
 const NON_PLANET_MAX_ROT_SPEED_RAD_S = 0.06; // ≈ 3.4° s⁻¹ – tweak as desired
@@ -125,8 +125,8 @@ function generate_sprite_instances(bitmaps_map) {
   const instances = [];
 
   for (const layer_cfg of layers_config) {
-    const layer_name  = layer_cfg.name;
-    const files       = layer_cfg.files;
+    const layer_name = layer_cfg.name;
+    const files = layer_cfg.files;
     const desired_cnt = SPRITE_COUNT_PER_LAYER[layer_name] ?? 0;
 
     // Deterministically shuffle files for this layer
@@ -135,7 +135,7 @@ function generate_sprite_instances(bitmaps_map) {
 
     for (let i = 0; i < sprite_cnt; i++) {
       const img_url = shuffled_files[i];
-      const bmp     = bitmaps_map.get(img_url);
+      const bmp = bitmaps_map.get(img_url);
 
       if (!bmp) {
         console.warn(`[sprite_instance_manager] Missing ImageBitmap for URL '${img_url}' – sprite skipped.`);
@@ -143,7 +143,7 @@ function generate_sprite_instances(bitmaps_map) {
       }
 
       const id = `${layer_name}#${i}`;
-      const is_planet = layer_name === "planet";
+      const is_planet = layer_name === "alien_planet";
 
       // -------------------------------------------------------------------
       // Drift angle – uniform in [0, 2π) ----------------------------------
@@ -155,13 +155,10 @@ function generate_sprite_instances(bitmaps_map) {
       // -------------------------------------------------------------------
       // 1 world-unit ≈ 1 px at z = 0, therefore multiply the logical radius by the
       // viewport’s shorter edge so that far-layer sprites start visibly off-centre.
-      const VIEWPORT_MIN_PX =
-        typeof window !== "undefined"
-          ? Math.min(window.innerWidth, window.innerHeight)
-          : 800;                    // fallback for SSR / tests
+      const VIEWPORT_MIN_PX = typeof window !== "undefined" ? Math.min(window.innerWidth, window.innerHeight) : 800; // fallback for SSR / tests
 
       const r_spawn = (SPAWN_RADIUS[layer_name] ?? 0) * VIEWPORT_MIN_PX;
-      const v_r     = RADIAL_SPEED[layer_name] ?? 0; // constant outward speed
+      const v_r = RADIAL_SPEED[layer_name] ?? 0; // constant outward speed
 
       const x = Math.cos(angle) * r_spawn;
       const y = Math.sin(angle) * r_spawn;
@@ -178,7 +175,7 @@ function generate_sprite_instances(bitmaps_map) {
         angle,
         z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER,
         base_rotation: is_planet ? PLANET_BASE_ROTATION_RAD : rand() * TWO_PI,
-        rot_speed:     is_planet ? PLANET_ROT_SPEED_RAD_S   : (rand() * 2 - 1) * NON_PLANET_MAX_ROT_SPEED_RAD_S,
+        rot_speed: is_planet ? PLANET_ROT_SPEED_RAD_S : (rand() * 2 - 1) * NON_PLANET_MAX_ROT_SPEED_RAD_S,
 
         // World-space props -----------------------------------------------
         x,

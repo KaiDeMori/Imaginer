@@ -18,24 +18,37 @@ Full-physics refactor (Universe Fix · Phase 3)
 import { generate_sprite_instances } from "./sprite_instance_manager.js";
 import { get_layer_states } from "./timeline_engine.js";
 
+// Import LAYER_TIMELINE to access planet timing configuration
+import { LAYER_TIMELINE } from "./timeline_engine.js";
+
 // ---------------------------------------------------------------------------
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 const TOTAL_DURATION_MS = 25_000; // storyboard length (§5)
 
 // Camera Z curve (Task 5 – already in place) ---------------------------------
-const CAM_Z_START = -1;   // at t = 0 (closest to layers)
-const CAM_Z_END   = -20;  // at t = 1 (camera has moved "forward" by 19 units)
+const CAM_Z_START = -1; // at t = 0 (closest to layers)
+const CAM_Z_END = -20; // at t = 1 (camera has moved "forward" by 19 units)
 
 // --- Final-planet reveal tuning --------------------------------------------
-const PLANET_FADE_IN_START   = 0.72;
-const PLANET_FADE_IN_END     = 0.80;
-const PLANET_MIN_PX          = 0.5;   // spawn at 0.5 px wide (== flicker-free)
-const PLANET_STOP_COVER_MORE = 1.05;  // 5 % leeway before we halt the loop
+// Planet timing now comes from LAYER_TIMELINE instead of hardcoded constants
+const PLANET_TIMELINE_CONFIG = LAYER_TIMELINE.find((layer) => layer.name === "alien_planet");
+if (!PLANET_TIMELINE_CONFIG) {
+  throw new Error("[canvas_animation] alien_planet layer not found in LAYER_TIMELINE");
+}
+const PLANET_FADE_IN_START = PLANET_TIMELINE_CONFIG.p_in;
+const PLANET_FADE_IN_END = PLANET_TIMELINE_CONFIG.p_out;
+
+const PLANET_MIN_PX = 0.5; // spawn at 0.5 px wide (== flicker-free)
+const PLANET_STOP_COVER_MORE = 1.05; // 5 % leeway before we halt the loop
 
 // Simple helpers -------------------------------------------------------------
-function lerp(a, b, t) { return a + (b - a) * t; }
-function clamp(x, lo = 0, hi = 1) { return x < lo ? lo : (x > hi ? hi : x); }
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+function clamp(x, lo = 0, hi = 1) {
+  return x < lo ? lo : x > hi ? hi : x;
+}
 
 // ---------------------------------------------------------------------------
 // UniverseAnimator -----------------------------------------------------------
@@ -47,7 +60,7 @@ export class UniverseAnimator {
    */
   constructor(canvas_el, bitmaps_map) {
     this.canvas = canvas_el;
-    this.ctx    = /** @type {CanvasRenderingContext2D} */ (this.canvas.getContext("2d"));
+    this.ctx = /** @type {CanvasRenderingContext2D} */ (this.canvas.getContext("2d"));
     if (!this.ctx) throw new Error("2D context unavailable");
 
     // -----------------------------------------------------------------------
@@ -57,30 +70,30 @@ export class UniverseAnimator {
     console.log(`[UniverseAnimator] Generated ${this.sprite_instances.length} sprite instances.`);
 
     // Animation state --------------------------------------------------------
-    this._start_time   = /** @type {number | null} */ (null);
-    this._last_ts      = /** @type {number | null} */ (null); // for per-frame dt
+    this._start_time = /** @type {number | null} */ (null);
+    this._last_ts = /** @type {number | null} */ (null); // for per-frame dt
     this._paused_time_accum = 0; // keeps total paused duration so progress doesn’t jump
 
     // FPS sampling -----------------------------------------------------------
-    this._fps_sample_window_ms = 2_000;   // 2-second rolling window
-    this._fps_frames_accum     = 0;
-    this._fps_window_start_ts  = /** @type {number | null} */ (null);
+    this._fps_sample_window_ms = 2_000; // 2-second rolling window
+    this._fps_frames_accum = 0;
+    this._fps_window_start_ts = /** @type {number | null} */ (null);
 
     // Hi-DPI / resize bookkeeping -------------------------------------------
-    this._validation_logged     = false;
-    this._hi_dpi_validation_id  = 0;
+    this._validation_logged = false;
+    this._hi_dpi_validation_id = 0;
     this._dpr = window.devicePixelRatio || 1;
     this._dpr_mql = /** @type {MediaQueryList | null} */ (null);
 
     // rAF control ------------------------------------------------------------
     this._running = false;
-    this._raf_id  = /** @type {number | null} */ (null);
+    this._raf_id = /** @type {number | null} */ (null);
 
     // NEW: final-reveal halt flag -------------------------------------------
     this._loop_halted = false;
 
     // Bindings ---------------------------------------------------------------
-    this._update    = this._update.bind(this);
+    this._update = this._update.bind(this);
     this._on_resize = this._on_resize.bind(this);
 
     // Resize once and add listener.
@@ -124,8 +137,12 @@ export class UniverseAnimator {
     console.log("[UniverseAnimator] Animation resumed.");
   }
 
-  toggle() { return this._running ? (this.pause(), false) : (this.resume(), true); }
-  is_running() { return this._running; }
+  toggle() {
+    return this._running ? (this.pause(), false) : (this.resume(), true);
+  }
+  is_running() {
+    return this._running;
+  }
 
   // -------------------------------------------------------------------------
   // Hi-DPI helpers (unchanged) ----------------------------------------------
@@ -164,16 +181,16 @@ export class UniverseAnimator {
 
   _on_resize() {
     const dpr = window.devicePixelRatio || 1;
-    const w   = window.innerWidth;
-    const h   = window.innerHeight;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
 
-    if (dpr === this._dpr && w === (this.canvas.width / this._dpr) && h === (this.canvas.height / this._dpr)) return;
+    if (dpr === this._dpr && w === this.canvas.width / this._dpr && h === this.canvas.height / this._dpr) return;
 
     this._dpr = dpr;
 
-    this.canvas.width  = w * dpr;
+    this.canvas.width = w * dpr;
     this.canvas.height = h * dpr;
-    this.canvas.style.width  = w + "px";
+    this.canvas.style.width = w + "px";
     this.canvas.style.height = h + "px";
 
     if (typeof this.ctx.resetTransform === "function") this.ctx.resetTransform();
@@ -205,18 +222,14 @@ export class UniverseAnimator {
     const cam_z = lerp(CAM_Z_START, CAM_Z_END, global_progress);
 
     // Planet ease factor within its fade-in window ---------------------------
-    const planet_t = clamp(
-      (global_progress - PLANET_FADE_IN_START) /
-      (PLANET_FADE_IN_END   - PLANET_FADE_IN_START),
-      0, 1
-    );
+    const planet_t = clamp((global_progress - PLANET_FADE_IN_START) / (PLANET_FADE_IN_END - PLANET_FADE_IN_START), 0, 1);
 
     // -----------------------------------------------------------------------
     // Advance physics (new) --------------------------------------------------
     // -----------------------------------------------------------------------
     if (dt_sec > 0) {
       for (const sp of this.sprite_instances) {
-        if (sp.layer === "planet") continue; // planet stays fixed
+        if (sp.layer === "alien_planet") continue; // planet stays fixed
         sp.x += Math.cos(sp.angle) * sp.v_r * dt_sec;
         sp.y += Math.sin(sp.angle) * sp.v_r * dt_sec;
       }
@@ -227,16 +240,17 @@ export class UniverseAnimator {
     // -----------------------------------------------------------------------
     if (this._fps_window_start_ts === null) {
       this._fps_window_start_ts = ts;
-      this._fps_frames_accum    = 0;
+      this._fps_frames_accum = 0;
     }
     this._fps_frames_accum++;
     const fps_window_elapsed = ts - this._fps_window_start_ts;
     if (fps_window_elapsed >= this._fps_sample_window_ms) {
       const fps = this._fps_frames_accum / (fps_window_elapsed / 1000);
-      const fps_msg = `[UniverseAnimator] Average FPS (last ${(fps_window_elapsed/1000).toFixed(1)} s): ${fps.toFixed(1)}`;
-      if (fps < 55) console.warn(fps_msg); else console.log(fps_msg);
+      const fps_msg = `[UniverseAnimator] Average FPS (last ${(fps_window_elapsed / 1000).toFixed(1)} s): ${fps.toFixed(1)}`;
+      if (fps < 55) console.warn(fps_msg);
+      else console.log(fps_msg);
       this._fps_window_start_ts = ts;
-      this._fps_frames_accum    = 0;
+      this._fps_frames_accum = 0;
     }
 
     // -----------------------------------------------------------------------
@@ -253,7 +267,7 @@ export class UniverseAnimator {
     /** @type<Array<{ bmp: ImageBitmap, alpha: number, center_x: number, center_y: number, draw_w: number, draw_h: number, z: number, rotation: number }>> */
     const drawables = [];
 
-    const cx = this.canvas.width  / (2 * this._dpr);
+    const cx = this.canvas.width / (2 * this._dpr);
     const cy = this.canvas.height / (2 * this._dpr);
 
     const elapsed_sec = elapsed_total / 1000; // for rotation only
@@ -278,10 +292,10 @@ export class UniverseAnimator {
       // --- scale computation ----------------------------------------------
       let scale = cam_z / (cam_z - final_z); // perspective incl. moving cam
 
-      const is_planet = sp.layer === "planet";
+      const is_planet = sp.layer === "alien_planet";
       if (is_planet) {
         const min_scale = PLANET_MIN_PX / sp.bitmap.width; // ≈ 0.5 px wide
-        const extra     = lerp(min_scale, 1, planet_t);    // ease to full size
+        const extra = lerp(min_scale, 1, planet_t); // ease to full size
         scale *= extra;
       }
 
@@ -289,7 +303,7 @@ export class UniverseAnimator {
       const center_x = cx + sp.x * scale;
       const center_y = cy + sp.y * scale;
 
-      let draw_w = sp.bitmap.width  * scale;
+      let draw_w = sp.bitmap.width * scale;
       let draw_h = sp.bitmap.height * scale;
 
       // Clamp planet size to viewport (with leeway)
@@ -345,8 +359,7 @@ export class UniverseAnimator {
     // -----------------------------------------------------------------------
     // Planet viewport-fill halt ---------------------------------------------
     // -----------------------------------------------------------------------
-    if (!this._loop_halted &&
-        (planet_draw_w_screen >= max_planet_w || planet_draw_h_screen >= max_planet_h)) {
+    if (!this._loop_halted && (planet_draw_w_screen >= max_planet_w || planet_draw_h_screen >= max_planet_h)) {
       this._loop_halted = true;
       console.log("[UniverseAnimator] Planet fills viewport – animation halted, planet will keep rotating.");
     }
@@ -355,7 +368,11 @@ export class UniverseAnimator {
     // One-time validation log ------------------------------------------------
     // -----------------------------------------------------------------------
     if (!this._validation_logged) {
-      console.log(`[UniverseAnimator] Validation ✔︎  Physics refactor active. Progress=${global_progress.toFixed(2)} camZ=${cam_z.toFixed(1)} Sprites=${drawables.length}. DPR ${this._dpr}`);
+      console.log(
+        `[UniverseAnimator] Validation ✔︎  Physics refactor active. Progress=${global_progress.toFixed(2)} camZ=${cam_z.toFixed(1)} Sprites=${
+          drawables.length
+        }. DPR ${this._dpr}`
+      );
       this._validation_logged = true;
     }
 

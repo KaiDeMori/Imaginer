@@ -235,4 +235,4 @@ if (typeof window !== "undefined" && window.location?.hash?.includes("dev")) {
 // ---------------------------------------------------------------------------
 // Module exports -------------------------------------------------------------
 // ---------------------------------------------------------------------------
-export { get_layer_states, linear_ease, MAX_Z_POS };
+export { get_layer_states, linear_ease, MAX_Z_POS, LAYER_TIMELINE };
