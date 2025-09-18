@@ -1,5 +1,8 @@
 // Infinity Zoom II Engine - Skeleton
 
+// Constants
+const FITTING_SCALE = 1.0; // Scale when image fits viewport perfectly
+
 // Exposed flag for triggering final reveal from  ALWAYS FALSE UNTIL SET EXTERNALLY.
 window.infinity_zoom_II.FLAG_initiate_final_reveal = false;
 
@@ -13,16 +16,19 @@ const engine = {
   create(canvas) {
     log("Engine create called.");
 
+    // Cache config object to reduce property access
+    const config = window.infinity_zoom_II.config;
+
     // Store important configuration values locally
     this.canvas = canvas;
-    this.rotation_speed = window.infinity_zoom_II.config.rotation_speed;
-    this.target_zoom_speed = window.infinity_zoom_II.config.target_zoom_speed;
-    this.zoom_speed_ramp_duration = window.infinity_zoom_II.config.zoom_speed_ramp_duration;
-    this.start_rotation_angle = window.infinity_zoom_II.config.start_rotation_angle;
-    this.intro_planet_zoom_duration = window.infinity_zoom_II.config.intro_planet_zoom_duration;
-    this.visible_layers_fade_duration = window.infinity_zoom_II.config.visible_layers_fade_duration;
-    this.pre_main_zoom_hold_duration = window.infinity_zoom_II.config.pre_main_zoom_hold_duration;
-    this.minimum_render_size = window.infinity_zoom_II.config.minimum_render_size;
+    this.rotation_speed = config.rotation_speed;
+    this.target_zoom_speed = config.target_zoom_speed;
+    this.zoom_speed_ramp_duration = config.zoom_speed_ramp_duration;
+    this.start_rotation_angle = config.start_rotation_angle;
+    this.intro_planet_zoom_duration = config.intro_planet_zoom_duration;
+    this.visible_layers_fade_duration = config.visible_layers_fade_duration;
+    this.pre_main_zoom_hold_duration = config.pre_main_zoom_hold_duration;
+    this.minimum_render_size = config.minimum_render_size;
 
     window.infinity_zoom_II.preloader.load_all_images((processed_images) => {
       log("All images loaded and processed, initializing engine");
@@ -239,16 +245,15 @@ const engine = {
     const elapsed_seconds = (now - this.start_time) / 1000;
     // Use pure viewport-relative scales - no image size dependencies
     const tiny_start_scale = 1.0 / Math.min(this.canvas.width, this.canvas.height); // 1px as viewport ratio
-    const fitting_scale = 1.0; // Fitting is always 1.0
 
     // Exponential growth over intro duration
     const growth_progress = Math.min(elapsed_seconds / this.intro_planet_zoom_duration, 1.0);
     const raw_scale = this.utils.apply_exponential_growth(
       tiny_start_scale,
-      Math.log(fitting_scale / tiny_start_scale) / this.intro_planet_zoom_duration,
+      Math.log(FITTING_SCALE / tiny_start_scale) / this.intro_planet_zoom_duration,
       elapsed_seconds
     );
-    const current_scale = Math.min(raw_scale, fitting_scale); // Cap at fitting scale
+    const current_scale = Math.min(raw_scale, FITTING_SCALE); // Cap at fitting scale
 
     // Update all layer TRS (the first layer gets current_scale, others get relative scales)
     this.utils.update_all_layer_TRS(this.layers, current_scale, this.global_rotation);
@@ -263,10 +268,8 @@ const engine = {
   // State: "intro_visible_layers_fade_in" - Fade in layers that are big enough to be visible
   update_intro_visible_layers_fade_in_state(now) {
     // Keep the first layer at fitting size (no further scaling)
-    const fitting_scale = 1.0;
-
     // Update all layer TRS (the first layer stays at fitting, others get relative scales)
-    this.utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
+    this.utils.update_all_layer_TRS(this.layers, FITTING_SCALE, this.global_rotation);
 
     // Calculate fade progress since fade started
     const fade_elapsed = (now - this.fade_start_time) / 1000;
@@ -286,10 +289,8 @@ const engine = {
   // State: "hold" - All visible layers hold their sizes, only rotation continues
   update_hold_state(now) {
     // Keep the first layer at fitting size
-    const fitting_scale = 1.0;
-
     // Update all layer TRS (maintain current scales and relationships)
-    this.utils.update_all_layer_TRS(this.layers, fitting_scale, this.global_rotation);
+    this.utils.update_all_layer_TRS(this.layers, FITTING_SCALE, this.global_rotation);
 
     // Update layer visibility and alphas using unified system
     this.update_layer_visibility(now);
@@ -330,9 +331,8 @@ const engine = {
     }
 
     // Apply exponential growth to all layers simultaneously
-    const fitting_scale = 1.0;
     const exponential_growth_factor = Math.exp(integrated_zoom_amount);
-    let current_base_scale = fitting_scale * exponential_growth_factor;
+    let current_base_scale = FITTING_SCALE * exponential_growth_factor;
 
     // Clamp to prevent overshoot: if final layer would exceed covering, stop exactly at covering
     const final_layer_relative_scale = this.utils.calc_layer_relative_scale(this.layers, final_layer_index);
