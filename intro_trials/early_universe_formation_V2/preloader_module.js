@@ -20,7 +20,6 @@ function pad(num, len = 2) {
   return String(num).padStart(len, "0");
 }
 
-
 // --- Assets Loading Reloaded: programmatically generate asset_manifest ---
 // See assets/ai_universe/assets_loading_reloaded.md for approach summary.
 
@@ -30,11 +29,11 @@ const asset_max_numbers = {
   galaxy_streams: 10,
   nebulae: 13,
   star_clusters: 3,
-  alien_planet: 1
+  alien_planet: 1,
 };
 
 const asset_manifest = [];
-const base = "../../assets/ai_universe";
+const base = "../assets/ai_universe";
 
 for (const [folder, max_num] of Object.entries(asset_max_numbers)) {
   for (let i = 1; i <= max_num; i++) {
@@ -59,7 +58,11 @@ let _progress_callback = null; // (loadedCount, totalCount) => void
 
 function _fire_progress(loaded, total) {
   if (typeof _progress_callback === "function") {
-    try { _progress_callback(loaded, total); } catch (_) { /* swallow */ }
+    try {
+      _progress_callback(loaded, total);
+    } catch (_) {
+      /* swallow */
+    }
   }
 }
 
@@ -82,43 +85,45 @@ function load_and_decode_images(onProgress) {
   const total = asset_manifest.length;
   let loaded = 0;
 
-  const loaders = asset_manifest.map(src => new Promise((resolve, reject) => {
-    const img = new Image();
+  const loaders = asset_manifest.map(
+    (src) =>
+      new Promise((resolve, reject) => {
+        const img = new Image();
 
-    // CORS note: if the assets are served with proper CORS headers, you may
-    // uncomment the following line. For same-origin setups it is unnecessary.
-    // img.crossOrigin = "anonymous";
+        // CORS note: if the assets are served with proper CORS headers, you may
+        // uncomment the following line. For same-origin setups it is unnecessary.
+        // img.crossOrigin = "anonymous";
 
-    img.src = src;
+        img.src = src;
 
-    // Generic error listener ------------------------------------------------------
-    function _on_error(err) {
-      console.error(`[Preloader] Failed to load: ${src}`, err);
-      // We keep the reference to avoid memory leaks.
-      img.remove();
-      reject(err || new Error(`Image failed to load: ${src}`));
-    }
+        // Generic error listener ------------------------------------------------------
+        function _on_error(err) {
+          console.error(`[Preloader] Failed to load: ${src}`, err);
+          // We keep the reference to avoid memory leaks.
+          img.remove();
+          reject(err || new Error(`Image failed to load: ${src}`));
+        }
 
-    img.onerror = _on_error;
+        img.onerror = _on_error;
 
-    // Start the decode pipeline ---------------------------------------------------
-    // Some browsers require explicit wait on load event before decode(); others
-    // resolve immediately. We guard with a catch.
-    const decode_promise = (img.decode ? img.decode() : Promise.resolve())
-      .catch(() => new Promise(res => img.addEventListener("load", res)));
+        // Start the decode pipeline ---------------------------------------------------
+        // Some browsers require explicit wait on load event before decode(); others
+        // resolve immediately. We guard with a catch.
+        const decode_promise = (img.decode ? img.decode() : Promise.resolve()).catch(() => new Promise((res) => img.addEventListener("load", res)));
 
-    decode_promise
-      .then(() => createImageBitmap(img))
-      .then(bitmap => {
-        preloaded_bitmaps.set(src, bitmap);
-        // Keep memory usage low – the <img> element isn't needed post-decode.
-        img.remove();
-        loaded += 1;
-        _fire_progress(loaded, total);
-        resolve(bitmap);
+        decode_promise
+          .then(() => createImageBitmap(img))
+          .then((bitmap) => {
+            preloaded_bitmaps.set(src, bitmap);
+            // Keep memory usage low – the <img> element isn't needed post-decode.
+            img.remove();
+            loaded += 1;
+            _fire_progress(loaded, total);
+            resolve(bitmap);
+          })
+          .catch(_on_error);
       })
-      .catch(_on_error);
-  }));
+  );
 
   return Promise.all(loaders).then(() => preloaded_bitmaps);
 }
@@ -144,11 +149,11 @@ function debug_preloader() {
   }
 
   let total_pixels = 0;
-  preloaded_bitmaps.forEach(bmp => {
+  preloaded_bitmaps.forEach((bmp) => {
     total_pixels += bmp.width * bmp.height;
   });
   const total_bytes = total_pixels * 4; // RGBA8 → 4 bytes per pixel
-  const total_mib   = total_bytes / (1024 * 1024);
+  const total_mib = total_bytes / (1024 * 1024);
 
   console.groupCollapsed(`[debug_preloader] ${count} ImageBitmaps – ≈ ${total_mib.toFixed(1)} MiB VRAM`);
   preloaded_bitmaps.forEach((bmp, src) => {
@@ -161,7 +166,7 @@ function debug_preloader() {
   // ---------------------------------------------------------------------------
   if (typeof window !== "undefined" && window.universe_animator) {
     const ua = window.universe_animator;
-    const running = (typeof ua.is_running === "function") ? ua.is_running() : false;
+    const running = typeof ua.is_running === "function" ? ua.is_running() : false;
     console.info(`[debug_preloader] UniverseAnimator is currently ${running ? "running" : "paused"}.`);
   } else if (typeof window !== "undefined") {
     console.info("[debug_preloader] UniverseAnimator has not been initialised yet.");

@@ -215,6 +215,10 @@ function initialize_shake() {
           text_span.style.filter = "none";
           text_span.style.textShadow = "none";
         }, 2000);
+        // Trigger phase 2 transition after text cleanup completes
+        setTimeout(() => {
+          window.transition_to_phase_2();
+        }, 2000);
       } else if (whiteout_progress > 0) {
         ctx.save();
         ctx.globalAlpha = whiteout_progress;

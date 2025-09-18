@@ -140,7 +140,7 @@ assets/ (pngs)
 ```
 
 **early_universe_formation_V2.html**  
-• Minimal markup: `<canvas id="universeCanvas"></canvas>` + overlay divs.  
+• Minimal markup: `<canvas id="cinematic_canvas"></canvas>` + overlay divs.  
 • `<script defer src="early_universe_formation_V2.js"></script>`.
 
 **early_universe_formation_V2.css**  

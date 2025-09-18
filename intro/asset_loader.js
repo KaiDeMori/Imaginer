@@ -5,6 +5,7 @@ const ASSET_URLS_ORDERED = [
   "01/cinematic_starfield.js",
   "02/the_great_everywhere_shake.js",
   "cinematic_bridge.js",
+  "phase_transition.js",
   "audio/Also_sprach_Zarathustra.webm",
 ];
 
