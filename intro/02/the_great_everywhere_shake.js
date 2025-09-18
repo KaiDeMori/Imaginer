@@ -27,6 +27,9 @@ const SPARK_MAX_RADIUS_END = 60;
 let spark_max_radius = SPARK_MAX_RADIUS_START;
 
 function initialize_shake() {
+  // Prevents animation from continuing after phase transition begins
+  let animation_stopped = false;
+
   // Create and inject the text element
   const everything_fade_text = document.createElement("div");
   everything_fade_text.id = "everything_fade_text";
@@ -182,6 +185,8 @@ function initialize_shake() {
       // Remove all effects from the text overlay after a 2 second delay
       setTimeout(function () {
         const everything_fade_text = document.getElementById("everything_fade_text");
+        // Guard against DOM cleanup happening before setTimeout fires
+        if (!everything_fade_text) return;
         everything_fade_text.style.opacity = "0";
         everything_fade_text.style.filter = "none";
         everything_fade_text.style.textShadow = "none";
@@ -293,6 +298,9 @@ function initialize_shake() {
     }
 
     function animate(now) {
+      // Stop immediately if transition has begun to avoid performance drain
+      if (animation_stopped) return;
+
       const elapsed = now - start_time;
       let t = Math.min(elapsed / zoom_duration_ms, 1);
       let do_animate = false;
@@ -373,6 +381,11 @@ function initialize_shake() {
     }
     requestAnimationFrame(animate);
   }
+
+  // Allow external stopping to prevent resource waste during transitions
+  window.stop_shake_animation = function () {
+    animation_stopped = true;
+  };
 }
 
 // Make the function globally accessible
