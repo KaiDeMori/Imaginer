@@ -53,11 +53,11 @@ function shuffle_deterministically(src) {
 // Logical layer → manifest path signature pairs. This table allows us to
 // maintain the mapping in one single, obvious location.
 const LAYERS_DECL = [
-  { name: "cosmic_fog",     path_sub: "/cosmic_fog/" },
+  { name: "cosmic_fog", path_sub: "/cosmic_fog/" },
   { name: "galaxy_streams", path_sub: "/galaxy_streams/" },
-  { name: "nebulae",        path_sub: "/nebulae/" },
-  { name: "star_clusters",  path_sub: "/star_clusters/" },
-  { name: "planet",         path_sub: "/alien_planet/" },
+  { name: "nebulae", path_sub: "/nebulae/" },
+  { name: "star_clusters", path_sub: "/star_clusters/" },
+  { name: "alien_planet", path_sub: "/alien_planet/" },
 ];
 
 /**
