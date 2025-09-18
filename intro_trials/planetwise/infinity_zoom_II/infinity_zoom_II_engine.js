@@ -16,7 +16,8 @@ const engine = {
     // Store important configuration values locally
     this.canvas = canvas;
     this.rotation_speed = window.infinity_zoom_II.config.rotation_speed;
-    this.zoom_speed = window.infinity_zoom_II.config.zoom_speed;
+    this.target_zoom_speed = window.infinity_zoom_II.config.zoom_speed;
+    this.zoom_speed_ramp_duration = 2.0; // seconds to ramp up zoom speed
     this.start_rotation_angle = window.infinity_zoom_II.config.start_rotation_angle;
     this.intro_planet_zoom_duration = window.infinity_zoom_II.config.intro_planet_zoom_duration;
     this.visible_layers_fade_duration = window.infinity_zoom_II.config.visible_layers_fade_duration;
@@ -313,9 +314,24 @@ const engine = {
     const final_layer_index = this.layers.length - 1;
     const covering_scale = this.utils.calc_covering_scale(this.canvas.width, this.canvas.height, 1);
 
+    // Calculate integrated zoom amount for smooth ramping (not just current speed * time)
+    let integrated_zoom_amount;
+    if (main_zoom_elapsed < this.zoom_speed_ramp_duration) {
+      // During ramp: integrate linear speed ramp from 0 to target_zoom_speed
+      // Integral of (target_zoom_speed * t / ramp_duration) from 0 to t = target_zoom_speed * t² / (2 * ramp_duration)
+      integrated_zoom_amount = (this.target_zoom_speed * (main_zoom_elapsed * main_zoom_elapsed)) / (2 * this.zoom_speed_ramp_duration);
+    } else {
+      // After ramp: ramp integral + constant speed integral
+      // Ramp contribution: target_zoom_speed * ramp_duration / 2
+      // Constant contribution: target_zoom_speed * (elapsed - ramp_duration)
+      const ramp_contribution = (this.target_zoom_speed * this.zoom_speed_ramp_duration) / 2;
+      const constant_contribution = this.target_zoom_speed * (main_zoom_elapsed - this.zoom_speed_ramp_duration);
+      integrated_zoom_amount = ramp_contribution + constant_contribution;
+    }
+
     // Apply exponential growth to all layers simultaneously
     const fitting_scale = 1.0;
-    const exponential_growth_factor = Math.exp(this.zoom_speed * main_zoom_elapsed);
+    const exponential_growth_factor = Math.exp(integrated_zoom_amount);
     let current_base_scale = fitting_scale * exponential_growth_factor;
 
     // Clamp to prevent overshoot: if final layer would exceed covering, stop exactly at covering
