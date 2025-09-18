@@ -99,6 +99,11 @@ const engine = {
     // Cache final layer index for performance
     this.final_layer_index = this.layers.length - 1;
 
+    // Pre-calculate layer relative scales for performance (eliminates nested loops per frame)
+    this.layer_relative_scales = this.layers.map((_, index) => {
+      return this.utils.calc_layer_relative_scale(this.layers, index);
+    });
+
     // Pre-calculate intro growth rate (expensive Math.log operation)
     const tiny_start_scale = 1.0 / this.min_canvas_dimension;
     this.intro_growth_rate = Math.log(FITTING_SCALE / tiny_start_scale) / this.intro_planet_zoom_duration;
@@ -275,7 +280,7 @@ const engine = {
     const current_scale = Math.min(raw_scale, FITTING_SCALE); // Cap at fitting scale
 
     // Update all layer TRS (the first layer gets current_scale, others get relative scales)
-    this.utils.update_all_layer_TRS(this.layers, current_scale, this.global_rotation);
+    this.utils.update_all_layer_TRS(this.layers, current_scale, this.global_rotation, this.layer_relative_scales);
 
     // Check transition condition: the first layer reaches fitting scale
     if (growth_progress >= 1.0) {
@@ -288,7 +293,7 @@ const engine = {
   update_intro_visible_layers_fade_in_state(now) {
     // Keep the first layer at fitting size (no further scaling)
     // Update all layer TRS (the first layer stays at fitting, others get relative scales)
-    this.utils.update_all_layer_TRS(this.layers, FITTING_SCALE, this.global_rotation);
+    this.utils.update_all_layer_TRS(this.layers, FITTING_SCALE, this.global_rotation, this.layer_relative_scales);
 
     // Calculate fade progress since fade started
     const fade_elapsed = (now - this.fade_start_time) / 1000;
@@ -309,7 +314,7 @@ const engine = {
   update_hold_state(now) {
     // Keep the first layer at fitting size
     // Update all layer TRS (maintain current scales and relationships)
-    this.utils.update_all_layer_TRS(this.layers, FITTING_SCALE, this.global_rotation);
+    this.utils.update_all_layer_TRS(this.layers, FITTING_SCALE, this.global_rotation, this.layer_relative_scales);
 
     // Update layer visibility and alphas using unified system
     this.update_layer_visibility(now);
@@ -363,7 +368,7 @@ const engine = {
     }
 
     // Update all layer TRS with synchronized scaling
-    this.utils.update_all_layer_TRS(this.layers, current_base_scale, this.global_rotation);
+    this.utils.update_all_layer_TRS(this.layers, current_base_scale, this.global_rotation, this.layer_relative_scales);
 
     // Update layer visibility and alphas using unified system
     this.update_layer_visibility(now);
@@ -381,7 +386,7 @@ const engine = {
     const current_base_scale = covering_scale / final_layer_relative_scale;
 
     // Update all layer TRS (maintain covering scale, continue rotation)
-    this.utils.update_all_layer_TRS(this.layers, current_base_scale, this.global_rotation);
+    this.utils.update_all_layer_TRS(this.layers, current_base_scale, this.global_rotation, this.layer_relative_scales);
 
     // Update layer visibility and alphas (maintain current state)
     this.update_layer_visibility(now);

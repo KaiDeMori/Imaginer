@@ -115,9 +115,16 @@ window.infinity_zoom_II.utils = {
     });
   },
 
+  // Optimized version using pre-calculated relative scales
+  calc_all_layer_scales_fast(layer_0_scale, cached_relative_scales) {
+    return cached_relative_scales.map((relative_scale) => layer_0_scale * relative_scale);
+  },
+
   // Update all layer TRS objects with synchronized scaling and rotation
-  update_all_layer_TRS(layers, first_layer_scale, global_rotation) {
-    const all_scales = this.calc_all_layer_scales(first_layer_scale, layers);
+  update_all_layer_TRS(layers, first_layer_scale, global_rotation, cached_relative_scales) {
+    const all_scales = cached_relative_scales
+      ? this.calc_all_layer_scales_fast(first_layer_scale, cached_relative_scales)
+      : this.calc_all_layer_scales(first_layer_scale, layers);
 
     layers.forEach((layer, index) => {
       layer.trs.center_x = 0; // All layers centered
