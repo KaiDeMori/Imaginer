@@ -5,7 +5,7 @@
 
 import { load_and_decode_images } from "./preloader_module.js";
 import { rand, eu_seed } from "./deterministic_rng.js";
-import { UniverseAnimator } from "./canvas_animation.js"; // NEW: animation engine
+import { UniverseAnimator } from "./canvas_animation.js";
 import "./seed_ui_panel.js"; // renders the seed information UI
 
 // Log the deterministic seed for debugging / reproducibility.

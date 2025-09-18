@@ -41,7 +41,7 @@ const base = "../../assets/ai_universe";
 for (const [folder, max_num] of Object.entries(asset_max_numbers)) {
   for (let i = 1; i <= max_num; i++) {
     if (folder === "alien_planet") {
-      asset_manifest.push(`${base}/alien_planet/planet_totale.${ASSET_FORMAT}`);
+      asset_manifest.push(`${base}/zoom_images_planete/jpg/10_new_planete_fixed.jpg`);
       break;
     }
     asset_manifest.push(`${base}/${folder}/${pad(i)}.${ASSET_FORMAT}`);

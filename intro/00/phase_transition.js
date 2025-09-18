@@ -17,6 +17,9 @@ async function transition_to_phase_2() {
   const canvas_element = document.getElementById("cinematic_canvas");
 
   // Stop phase 1 animations before cleaning up DOM
+  // This is an exception to the "no defensive code" rule!
+  // We need these checks since the code could also be called from the
+  // standalone version, that wouldn't have these set.
   if (window.cinematic_starfield_manager) {
     window.cinematic_starfield_manager.stop_cinematic_sequence();
   }
