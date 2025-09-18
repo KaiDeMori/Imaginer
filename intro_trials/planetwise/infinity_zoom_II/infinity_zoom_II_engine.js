@@ -16,8 +16,8 @@ const engine = {
     // Store important configuration values locally
     this.canvas = canvas;
     this.rotation_speed = window.infinity_zoom_II.config.rotation_speed;
-    this.target_zoom_speed = window.infinity_zoom_II.config.zoom_speed;
-    this.zoom_speed_ramp_duration = 2.0; // seconds to ramp up zoom speed
+    this.target_zoom_speed = window.infinity_zoom_II.config.target_zoom_speed;
+    this.zoom_speed_ramp_duration = window.infinity_zoom_II.config.zoom_speed_ramp_duration;
     this.start_rotation_angle = window.infinity_zoom_II.config.start_rotation_angle;
     this.intro_planet_zoom_duration = window.infinity_zoom_II.config.intro_planet_zoom_duration;
     this.visible_layers_fade_duration = window.infinity_zoom_II.config.visible_layers_fade_duration;
