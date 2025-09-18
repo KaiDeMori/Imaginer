@@ -74,6 +74,15 @@ const engine = {
     // Create shader program
     this.program = this.utils.create_program(this.gl_context, this.utils.get_vertex_shader_source(), this.utils.get_fragment_shader_source());
 
+    // Cache WebGL uniform and attribute locations for performance
+    this.shader_locations = {
+      position: this.gl_context.getAttribLocation(this.program, "a_position"),
+      texcoord: this.gl_context.getAttribLocation(this.program, "a_texcoord"),
+      transform: this.gl_context.getUniformLocation(this.program, "u_transform"),
+      alpha: this.gl_context.getUniformLocation(this.program, "u_alpha"),
+      texture: this.gl_context.getUniformLocation(this.program, "u_texture"),
+    };
+
     // Create quad buffer for rendering
     this.quad_buffer = this.utils.create_quad_buffer(this.gl_context);
 
@@ -481,9 +490,9 @@ const engine = {
       if (layer.alpha > 0) {
         // Render mystery image before final alien layer
         if (i === this.layers.length - 1) {
-          window.infinity_zoom_II.mystery_image_main_zoom.render_mystery_image(gl, this.program, this.quad_buffer, layer, this.canvas);
+          window.infinity_zoom_II.mystery_image_main_zoom.render_mystery_image(gl, this.program, this.quad_buffer, layer, this.canvas, this.shader_locations);
         }
-        this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas);
+        this.utils.render_layer(gl, this.program, this.quad_buffer, layer, this.canvas, this.shader_locations);
       }
     }
   },

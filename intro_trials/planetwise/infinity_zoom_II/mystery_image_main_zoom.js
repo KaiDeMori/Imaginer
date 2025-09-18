@@ -112,7 +112,7 @@ window.infinity_zoom_II.mystery_image_main_zoom = {
   },
 
   // Render mystery image with proper positioning and alpha
-  render_mystery_image(gl, program, quad_buffer, alien_layer, canvas) {
+  render_mystery_image(gl, program, quad_buffer, alien_layer, canvas, shader_locations) {
     // Calculate mystery image TRS synchronized with alien layer
     const region_rect = window.infinity_zoom_II.config.region_zoom.region_rect;
     const mystery_trs = this.calculate_mystery_TRS(alien_layer, region_rect, canvas.width, canvas.height);
@@ -125,7 +125,7 @@ window.infinity_zoom_II.mystery_image_main_zoom = {
     };
 
     // Render mystery image first (background)
-    window.infinity_zoom_II.utils.render_layer(gl, program, quad_buffer, mystery_layer, canvas);
+    window.infinity_zoom_II.utils.render_layer(gl, program, quad_buffer, mystery_layer, canvas, shader_locations);
   },
 
   // Cycle to next mystery image in the sequence

@@ -272,36 +272,29 @@ window.infinity_zoom_II.utils = {
   },
 
   // Render a single layer
-  render_layer(gl, program, quad_buffer, layer, canvas) {
-    const viewport_width = canvas.width;
-    const viewport_height = canvas.height;
+  render_layer(gl, program, quad_buffer, layer, canvas, shader_locations) {
     gl.useProgram(program);
 
     // Bind quad geometry
     gl.bindBuffer(gl.ARRAY_BUFFER, quad_buffer);
 
-    const position_location = gl.getAttribLocation(program, "a_position");
-    const texcoord_location = gl.getAttribLocation(program, "a_texcoord");
+    // Use cached attribute locations (eliminates GPU queries)
+    gl.enableVertexAttribArray(shader_locations.position);
+    gl.enableVertexAttribArray(shader_locations.texcoord);
 
-    gl.enableVertexAttribArray(position_location);
-    gl.enableVertexAttribArray(texcoord_location);
+    gl.vertexAttribPointer(shader_locations.position, 2, gl.FLOAT, false, 16, 0);
+    gl.vertexAttribPointer(shader_locations.texcoord, 2, gl.FLOAT, false, 16, 8);
 
-    gl.vertexAttribPointer(position_location, 2, gl.FLOAT, false, 16, 0);
-    gl.vertexAttribPointer(texcoord_location, 2, gl.FLOAT, false, 16, 8);
-
-    // Set uniforms
+    // Set uniforms using cached locations (eliminates GPU queries)
     const transform_matrix = this.TRS_to_matrix(layer.trs, canvas);
-    const transform_location = gl.getUniformLocation(program, "u_transform");
-    gl.uniformMatrix4fv(transform_location, false, transform_matrix);
+    gl.uniformMatrix4fv(shader_locations.transform, false, transform_matrix);
 
-    const alpha_location = gl.getUniformLocation(program, "u_alpha");
-    gl.uniform1f(alpha_location, layer.alpha);
+    gl.uniform1f(shader_locations.alpha, layer.alpha);
 
     // Bind texture
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, layer.texture);
-    const texture_location = gl.getUniformLocation(program, "u_texture");
-    gl.uniform1i(texture_location, 0);
+    gl.uniform1i(shader_locations.texture, 0);
 
     // Draw quad
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
