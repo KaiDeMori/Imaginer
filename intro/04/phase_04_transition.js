@@ -40,28 +40,23 @@ class Phase4Transition {
     console.log("[Phase4Transition] Starting transition from phase 3 to phase 4");
     this.transition_in_progress = true;
 
-    try {
-      // Step 1: Load Phase 4 dependencies while keeping black screen
-      console.log("[Phase4Transition] Loading Phase 4 dependencies...");
-      await this.load_phase_04_dependencies();
+    // Step 1: Load Phase 4 dependencies while keeping black screen
+    console.log("[Phase4Transition] Loading Phase 4 dependencies...");
+    await this.load_phase_04_dependencies();
 
-      // Step 2: Canvas switchover (2D -> WebGL)
-      console.log("[Phase4Transition] Performing canvas switchover...");
-      const new_canvas = this.perform_canvas_switchover(current_canvas);
+    // Step 2: Canvas switchover (2D -> WebGL)
+    console.log("[Phase4Transition] Performing canvas switchover...");
+    const new_canvas = this.perform_canvas_switchover(current_canvas);
 
-      // Step 3: Initialize Phase 4 (planet intro begins immediately)
-      console.log("[Phase4Transition] Initializing Phase 4...");
-      await this.initialize_phase_4(new_canvas);
+    // Step 3: Initialize Phase 4 (planet intro begins immediately)
+    console.log("[Phase4Transition] Initializing Phase 4...");
+    await this.initialize_phase_4(new_canvas);
 
-      // Step 4: Setup music transition logic
-      console.log("[Phase4Transition] Setting up music transition...");
-      this.setup_music_transition();
+    // Step 4: Setup music transition logic
+    console.log("[Phase4Transition] Setting up music transition...");
+    this.setup_music_transition();
 
-      console.log("[Phase4Transition] Transition complete - Phase 4 running with planet intro");
-    } catch (error) {
-      console.error("[Phase4Transition] Transition failed:", error);
-      alert("Failed to transition to Phase 4. Please reload the page.");
-    }
+    console.log("[Phase4Transition] Transition complete - Phase 4 running with planet intro");
 
     this.transition_in_progress = false;
   }

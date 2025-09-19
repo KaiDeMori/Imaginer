@@ -32,21 +32,16 @@ export async function initialize_early_universe_v2(canvas_element, white_screen_
 
   const preload_start_time = performance.now();
 
-  try {
-    const bitmaps_map = await load_and_decode_images();
-    const load_time_ms = performance.now() - preload_start_time;
+  const bitmaps_map = await load_and_decode_images();
+  const load_time_ms = performance.now() - preload_start_time;
 
-    console.log(`[EUF] Preload complete in ${load_time_ms.toFixed(0)} ms – starting immediately (no white hold needed)`);
+  console.log(`[EUF] Preload complete in ${load_time_ms.toFixed(0)} ms – starting immediately (no white hold needed)`);
 
-    // Fade out white screen only if provided (for standalone testing)
-    if (white_screen_element) {
-      _fade_out_white_overlay(white_screen_element);
-    }
-    _on_ready(bitmaps_map, canvas_el);
-  } catch (err) {
-    console.error("[EUF] Preloader encountered an error:", err);
-    alert("Failed to load required assets. Please reload the page.");
+  // Fade out white screen only if provided (for standalone testing)
+  if (white_screen_element) {
+    _fade_out_white_overlay(white_screen_element);
   }
+  _on_ready(bitmaps_map, canvas_el);
 
   function _on_ready(bitmaps_map, canvas_el) {
     console.log(`[EUF] All systems go. ${bitmaps_map.size} ImageBitmaps ready for use.`);
