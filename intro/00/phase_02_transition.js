@@ -5,12 +5,9 @@
 let transition_in_progress = false;
 
 async function transition_to_phase_2() {
-  console.info("transition_to_phase_2");
-  if (transition_in_progress) {
-    return;
-  }
-
+  if (transition_in_progress) throw new Error("Transition already in progress");
   transition_in_progress = true;
+  console.info("transition_to_phase_2");
 
   // Get elements that must survive the transition
   const audio_element = document.getElementById("cinematic_audio");
@@ -38,7 +35,7 @@ async function transition_to_phase_2() {
   white_overlay.style.inset = "0";
   white_overlay.style.background = "#ffffff";
   white_overlay.style.transition = "opacity 2s ease-in-out";
-  white_overlay.style.zIndex = "9999";
+  white_overlay.style.zIndex = "100";
   document.body.appendChild(white_overlay);
 
   // Load phase 2 CSS
