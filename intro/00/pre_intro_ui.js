@@ -113,17 +113,32 @@ function setup_audio_interface() {
     }
   }
 
-  function skip_intro() {
+  function disable_all_action_buttons() {
+    start_button.disabled = true;
+    skip_button.disabled = true;
+    start_button.removeEventListener("click", handle_start_click);
+    skip_button.removeEventListener("click", handle_skip_click);
+  }
+
+  function fade_out_and_then(callback) {
+    interface_div.addEventListener("transitionend", function handleTransition() {
+      if (getComputedStyle(interface_div).opacity === "0") {
+        interface_div.removeEventListener("transitionend", handleTransition);
+        callback();
+      }
+    });
+    interface_div.classList.add("fade_out");
+  }
+
+  function handle_skip_click() {
+    disable_all_action_buttons();
+
     // Restore cursor if user skips
     document.body.classList.remove("hide_cursor");
 
-    // Fade out before skipping
-    interface_div.classList.add("fade_out");
-
-    // Wait for fade-out to complete before navigating
-    setTimeout(() => {
+    fade_out_and_then(() => {
       window.location.href = "about:blank";
-    }, 1000); // Wait 1s for fade-out transition
+    });
   }
 
   // Event listeners
@@ -131,7 +146,7 @@ function setup_audio_interface() {
   fullscreen_button.addEventListener("click", toggle_fullscreen);
   warning_help.addEventListener("click", show_standard_warning);
   modal_close.addEventListener("click", hide_standard_warning);
-  skip_button.addEventListener("click", skip_intro);
+  skip_button.addEventListener("click", handle_skip_click);
 
   // Language switching
   language_buttons.forEach((button) => {
@@ -166,31 +181,27 @@ function setup_audio_interface() {
   start_button.disabled = true;
   start_button.classList.remove("start_button");
 
-  start_button.addEventListener("click", function () {
+  function handle_start_click() {
     if (!window.cinematic_bridge) {
       console.error("Cinematic bridge not loaded!");
       return;
     }
 
+    disable_all_action_buttons();
     blip_enabled = false;
 
     // Hide cursor for the entire cinematic sequence
     document.body.classList.add("hide_cursor");
 
-    // Add listener BEFORE starting transition
-    interface_div.addEventListener("transitionend", function handleFadeOut() {
-      if (getComputedStyle(interface_div).opacity === "0") {
-        interface_div.removeEventListener("transitionend", handleFadeOut);
-        interface_div.remove();
-      }
+    fade_out_and_then(() => {
+      interface_div.remove();
     });
-
-    // Fade out before hiding
-    interface_div.classList.add("fade_out");
 
     // Start the cinematic immediately
     window.cinematic_bridge.initialize_cinematic();
-  });
+  }
+
+  start_button.addEventListener("click", handle_start_click);
 
   // Don't fade in here - wait for font loading to complete
 }
