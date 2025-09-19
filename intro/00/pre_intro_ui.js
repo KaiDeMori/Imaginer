@@ -8,14 +8,23 @@ if (localStorage.getItem(window.AUDIO_VOLUME_KEY) === null) {
 let on_assets_loaded = null;
 
 async function initialize_pre_intro() {
-  // Wait for font before showing UI
-  await document.fonts.load("16px Orbitron");
-
-  // Font is ready, setup the UI
+  // Setup the UI immediately but keep it transparent
   setup_audio_interface();
 
   // Start background asset loading
   start_asset_loading();
+
+  // Wait for font to load, then show UI
+  await wait_for_font_and_show_ui();
+}
+
+async function wait_for_font_and_show_ui() {
+  // Wait for the Orbitron font to actually load
+  await document.fonts.load("16px Orbitron");
+
+  // Now fade in the interface
+  const interface_div = document.getElementById("audio_setup_interface");
+  interface_div.classList.add("fade_in");
 }
 
 function setup_audio_interface() {
@@ -168,10 +177,7 @@ function setup_audio_interface() {
     }, 1000); // Wait 1s for fade-out transition
   });
 
-  // Trigger fade-in now that setup is complete
-  setTimeout(() => {
-    interface_div.classList.add("fade_in");
-  }, 100); // Small delay to ensure CSS is applied
+  // Don't fade in here - wait for font loading to complete
 }
 
 function start_asset_loading() {

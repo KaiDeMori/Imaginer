@@ -3,8 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <title>Cinematic Universe Creation</title>
-    <link rel="preload" href="../fonts/Orbitron/Orbitron-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="../fonts/Orbitron/Orbitron-VariableFont_wght.ttf" as="font" type="font/ttf" />
     <style>
+      /* Ensure black background from the very start */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+      }
+
       /* Local Orbitron font */
       @font-face {
         font-family: "Orbitron";
@@ -213,6 +222,18 @@
       /* Hide cursor during animation */
       .hide_cursor {
         cursor: none !important;
+      }
+
+      /* Ensure canvas starts black and invisible */
+      #cinematic_canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        display: none;
+        z-index: 9999;
       }
     </style>
     <script src="pre_intro_ui.js"></script>
