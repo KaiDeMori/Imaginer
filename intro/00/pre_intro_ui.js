@@ -70,6 +70,8 @@ function setup_audio_interface() {
       cinematic_audio.volume = new_audio_volume;
     }
 
+    console.log(`Audio volume set to ${new_audio_volume}`);
+
     play_blip();
   }
 
@@ -172,14 +174,14 @@ function setup_audio_interface() {
     // Fade out before hiding
     interface_div.classList.add("fade_out");
 
-    // Wait for fade-out to complete before hiding and starting cinematic
-    setTimeout(() => {
-      interface_div.style.display = "none";
-      document.body.classList.add("hide_cursor");
+    // Start the cinematic immediately
+    window.cinematic_bridge.initialize_cinematic();
 
-      // Call the dynamically loaded cinematic bridge
-      window.cinematic_bridge.initialize_cinematic();
-    }, 1000); // Wait 1s for fade-out transition
+    // Remove the interface from the DOM after fade-out completes
+    interface_div.addEventListener("transitionend", function handleFadeOut() {
+      interface_div.removeEventListener("transitionend", handleFadeOut);
+      interface_div.remove();
+    });
   });
 
   // Don't fade in here - wait for font loading to complete

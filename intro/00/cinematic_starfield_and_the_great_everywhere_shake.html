@@ -31,15 +31,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10000;
+        z-index: 20;
         opacity: 0;
         transition: opacity 1s ease-in-out;
       }
       #audio_setup_interface.fade_in {
         opacity: 1;
+        transition: opacity 1s ease-in;
       }
       #audio_setup_interface.fade_out {
         opacity: 0;
+        transition: opacity 3s ease-out;
       }
       .setup_container {
         text-align: center;
@@ -194,7 +196,7 @@
         display: none;
         align-items: center;
         justify-content: center;
-        z-index: 20000;
+        z-index: 30;
       }
       .modal_content {
         background: #222;
@@ -233,7 +235,7 @@
         height: 100vh;
         background: #000;
         /* display: none; */
-        z-index: 9999;
+        z-index: 10;
       }
     </style>
     <script src="pre_intro_ui.js"></script>

@@ -21,6 +21,7 @@ function execute_timing_sequence(sequence) {
 
   sequence.forEach(([delay_ms, action]) => {
     cumulative_time += delay_ms;
+    console.log(`Scheduling action in ${cumulative_time} ms`);
     setTimeout(action, cumulative_time);
   });
 }
@@ -30,24 +31,24 @@ function initialize_starfield() {
   window.cinematic_starfield_manager = starfield_manager;
 
   // Create and inject the text element
-  const fade_text = document.createElement("div");
-  fade_text.id = "imagine_fade_text";
-  fade_text.innerHTML = '<span class="imagine_bloom_text">Imagine…</span>';
-  document.body.appendChild(fade_text);
+  const imagine_text_element = document.createElement("div");
+  imagine_text_element.id = "imagine_text_element";
+  imagine_text_element.innerHTML = '<span class="imagine_bloom_text">Imagine…</span>';
+  document.body.appendChild(imagine_text_element);
 
   // Calculate when starfield animation ends
   let meaningful_duration = 0;
   for (let i = 0; i < active_cinematic_starfield_timing_sequence.length; i++) {
     meaningful_duration += active_cinematic_starfield_timing_sequence[i].duration;
   }
+  console.log(`Total meaningful duration: ${meaningful_duration} seconds`);
 
   // Timing sequence for text and transition effects
   const text_timing_sequence = [
     [
       meaningful_duration * 1000,
       () => {
-        // Show "Imagine..." text
-        fade_text.style.opacity = "1";
+        imagine_text_element.style.opacity = "1";
       },
     ],
 
@@ -55,8 +56,8 @@ function initialize_starfield() {
       6000,
       () => {
         // Start fading out the text
-        fade_text.style.transition = "opacity 0.5s cubic-bezier(0.4,0,0.2,1)";
-        fade_text.style.opacity = "0";
+        imagine_text_element.style.transition = "opacity 0.5s cubic-bezier(0.4,0,0.2,1)";
+        imagine_text_element.style.opacity = "0";
       },
     ],
 
