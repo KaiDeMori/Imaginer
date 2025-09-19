@@ -57,7 +57,83 @@ function apply_persisted_debug_values() {
   }
 }
 
+function create_debug_elements() {
+  // Check if debug div already exists
+  if (document.getElementById("debug_div")) {
+    return; // Already created
+  }
+
+  // Create the debug div with inline styles
+  const debug_div = document.createElement("div");
+  debug_div.id = "debug_div";
+  debug_div.style.cssText = `
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    border: 2px solid green;
+    background-color: wheat;
+    padding: 10px;
+    z-index: 1000;
+  `;
+
+  // Create reload button
+  const reload_button = document.createElement("button");
+  reload_button.textContent = "Reload";
+  reload_button.onclick = () => location.reload(true);
+  debug_div.appendChild(reload_button);
+
+  // Create trigger final reveal button
+  const trigger_button = document.createElement("button");
+  trigger_button.textContent = "trigger final reveal";
+  trigger_button.onclick = () => (window.infinity_zoom_II.FLAG_initiate_final_reveal = true);
+  debug_div.appendChild(trigger_button);
+
+  // Add line break
+  debug_div.appendChild(document.createElement("br"));
+
+  // Create global rotation checkbox with label
+  const rotation_label = document.createElement("label");
+  const rotation_checkbox = document.createElement("input");
+  rotation_checkbox.type = "checkbox";
+  rotation_checkbox.id = "global_rotation_enabled";
+  rotation_label.appendChild(rotation_checkbox);
+  rotation_label.appendChild(document.createTextNode(" Global rotation enabled"));
+  debug_div.appendChild(rotation_label);
+
+  // Add line break
+  debug_div.appendChild(document.createElement("br"));
+
+  // Create feather size input with label
+  const feather_label = document.createElement("label");
+  feather_label.appendChild(document.createTextNode("Feather Size: "));
+  const feather_input = document.createElement("input");
+  feather_input.type = "number";
+  feather_input.id = "feather_size";
+  feather_input.min = "0";
+  feather_input.step = "1";
+  feather_input.style.width = "60px";
+  feather_label.appendChild(feather_input);
+  debug_div.appendChild(feather_label);
+
+  // Add line break
+  debug_div.appendChild(document.createElement("br"));
+
+  // Create region select with label
+  const region_label = document.createElement("label");
+  region_label.appendChild(document.createTextNode("Region: "));
+  const region_select = document.createElement("select");
+  region_select.id = "region_select";
+  region_label.appendChild(region_select);
+  debug_div.appendChild(region_label);
+
+  // Append to body
+  document.body.appendChild(debug_div);
+}
+
 function setup_debug_controls() {
+  // Inject debug elements dynamically
+  create_debug_elements();
+
   const rotation_checkbox = document.getElementById("global_rotation_enabled");
   const feather_size_input = document.getElementById("feather_size");
   const region_select = document.getElementById("region_select");
