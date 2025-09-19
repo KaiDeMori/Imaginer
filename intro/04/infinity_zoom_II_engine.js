@@ -332,10 +332,17 @@ const engine = {
     // Calculate hold duration
     const hold_elapsed = (now - this.hold_start_time) / 1000;
 
-    // Check transition condition: hold duration completed
-    if (hold_elapsed >= this.pre_main_zoom_hold_duration) {
+    // Check transition condition:
+    // In integrated mode, wait for external music cue (Phase 4 transition will set animation_phase directly)
+    // In standalone mode, use timer as before
+    const music_cue_ready = window.phase_4_music_ready === true;
+    const timer_ready = hold_elapsed >= this.pre_main_zoom_hold_duration;
+    const integrated_mode = typeof window.transition_to_phase_4 === "function";
+
+    if ((integrated_mode && music_cue_ready) || (!integrated_mode && timer_ready)) {
       this.animation_phase = "main_zoom";
       this.main_zoom_start_time = now; // Track main zoom timing
+      console.log(`[Engine] Transitioning to main_zoom - integrated: ${integrated_mode}, music_ready: ${music_cue_ready}, timer: ${timer_ready}`);
     }
   },
 

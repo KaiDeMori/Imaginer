@@ -215,15 +215,34 @@ export class UniverseAnimator {
     // Check if animation should terminate ------------------------------------
     if (!this._animation_complete && global_progress >= 1.0) {
       this._animation_complete = true;
-      console.log(`[UniverseAnimator] Animation complete at full duration – clearing to black and halting.`);
-      // Clear to black and stop the animation loop
+
+      // Clear to black
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this._running = false;
-      if (this._raf_id !== null) {
-        cancelAnimationFrame(this._raf_id);
-        this._raf_id = null;
+
+      // Check if we're in integrated mode (Phase 4 transition available)
+      if (typeof window.transition_to_phase_4 === "function") {
+        console.log(`[UniverseAnimator] Animation complete - transitioning to Phase 4`);
+
+        // Stop our animation but keep canvas for transition
+        this._running = false;
+        if (this._raf_id !== null) {
+          cancelAnimationFrame(this._raf_id);
+          this._raf_id = null;
+        }
+
+        // Trigger Phase 4 transition with our canvas
+        window.transition_to_phase_4(this.canvas);
+        return;
+      } else {
+        // Standalone mode - just stop as before
+        console.log(`[UniverseAnimator] Animation complete at full duration – clearing to black and halting.`);
+        this._running = false;
+        if (this._raf_id !== null) {
+          cancelAnimationFrame(this._raf_id);
+          this._raf_id = null;
+        }
+        return; // Exit the update loop
       }
-      return; // Exit the update loop
     }
 
     // -----------------------------------------------------------------------
