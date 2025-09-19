@@ -171,17 +171,19 @@ function setup_audio_interface() {
 
     blip_enabled = false;
 
+    // Add listener BEFORE starting transition
+    interface_div.addEventListener("transitionend", function handleFadeOut() {
+      if (getComputedStyle(interface_div).opacity === "0") {
+        interface_div.removeEventListener("transitionend", handleFadeOut);
+        interface_div.remove();
+      }
+    });
+
     // Fade out before hiding
     interface_div.classList.add("fade_out");
 
     // Start the cinematic immediately
     window.cinematic_bridge.initialize_cinematic();
-
-    // Remove the interface from the DOM after fade-out completes
-    interface_div.addEventListener("transitionend", function handleFadeOut() {
-      interface_div.removeEventListener("transitionend", handleFadeOut);
-      interface_div.remove();
-    });
   });
 
   // Don't fade in here - wait for font loading to complete
