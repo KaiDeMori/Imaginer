@@ -1,5 +1,8 @@
+// Constants
+const AUDIO_VOLUME_KEY = "imaginer_audio_volume";
+
 // Global volume storage for both audio elements
-let global_audio_volume = 1.0;
+let global_audio_volume = parseFloat(localStorage.getItem(AUDIO_VOLUME_KEY)) || 1.0;
 
 // Asset loading completion callback
 let on_assets_loaded = null;
@@ -30,6 +33,9 @@ function setup_audio_interface() {
 
   let blip_enabled = true;
 
+  // Apply saved volume to audio element
+  blip_audio.volume = global_audio_volume;
+
   function play_blip() {
     if (blip_enabled) {
       blip_audio.currentTime = 0;
@@ -40,6 +46,9 @@ function setup_audio_interface() {
   function adjust_volume(delta) {
     global_audio_volume = Math.max(0, Math.min(1, global_audio_volume + delta));
     blip_audio.volume = global_audio_volume;
+
+    // Save to localStorage
+    localStorage.setItem(AUDIO_VOLUME_KEY, global_audio_volume.toString());
 
     // If we're in cinematic mode, update the cinematic audio too
     if (!blip_enabled) {
