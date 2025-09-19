@@ -4,8 +4,7 @@ if (!window.infinity_zoom_II.region_zoom) window.infinity_zoom_II.region_zoom = 
 
 // Infinity Zoom II Configuration Module
 
-// Constants originally from HTML file - Updated for dynamic loading context
-window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH = "/Imaginer/assets/ai_universe/zoom_images_planete/webp";
+window.infinity_zoom_II.config.ABSOLUTE_BASE_DIRECTORY = "/Imaginer/assets/ai_universe/zoom_images_planete/webp";
 
 window.infinity_zoom_II.config.LAYERS_DATA = [
   { zoom: 25, image: "10_new_planete_fixed.webp" },

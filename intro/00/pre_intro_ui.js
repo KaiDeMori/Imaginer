@@ -1,8 +1,8 @@
-// Constants
-const AUDIO_VOLUME_KEY = "imaginer_audio_volume";
+window.AUDIO_VOLUME_KEY = "imaginer_audio_volume";
 
-// Global volume storage for both audio elements
-let global_audio_volume = parseFloat(localStorage.getItem(AUDIO_VOLUME_KEY)) || 1.0;
+if (localStorage.getItem(window.AUDIO_VOLUME_KEY) === null) {
+  localStorage.setItem(window.AUDIO_VOLUME_KEY, "1.0");
+}
 
 // Asset loading completion callback
 let on_assets_loaded = null;
@@ -34,7 +34,7 @@ function setup_audio_interface() {
   let blip_enabled = true;
 
   // Apply saved volume to audio element
-  blip_audio.volume = global_audio_volume;
+  blip_audio.volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
 
   function play_blip() {
     if (blip_enabled) {
@@ -44,19 +44,20 @@ function setup_audio_interface() {
   }
 
   function adjust_volume(delta) {
-    global_audio_volume = Math.max(0, Math.min(1, global_audio_volume + delta));
-    blip_audio.volume = global_audio_volume;
-
+    // get from localStorage, adjust, clamp to [0, 1]
+    const current_audio_volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
+    const new_audio_volume = Math.max(0, Math.min(1, current_audio_volume + delta));
     // Save to localStorage
-    localStorage.setItem(AUDIO_VOLUME_KEY, global_audio_volume.toString());
+    localStorage.setItem(window.AUDIO_VOLUME_KEY, new_audio_volume.toString());
 
+    // Apply to audio
+    blip_audio.volume = new_audio_volume;
     // If we're in cinematic mode, update the cinematic audio too
-    if (!blip_enabled) {
-      window.audio_manager.get_audio().volume = global_audio_volume;
+    const cinematic_audio = document.getElementById("cinematic_audio");
+    if (cinematic_audio) {
+      cinematic_audio.volume = new_audio_volume;
     }
 
-    // Update global reference for cinematic bridge
-    window.global_audio_volume = global_audio_volume;
     play_blip();
   }
 
@@ -193,6 +194,3 @@ function start_asset_loading() {
 
 // Start everything when page loads
 window.addEventListener("load", initialize_pre_intro);
-
-// Expose global volume for cinematic bridge
-window.global_audio_volume = global_audio_volume;

@@ -8,11 +8,11 @@ import { rand, eu_seed } from "./deterministic_rng.js";
 import { UniverseAnimator } from "./canvas_animation.js";
 import "./seed_ui_panel.js"; // renders the seed information UI
 
-// Constants
-const AUDIO_VOLUME_KEY = "imaginer_audio_volume";
-
-// Load saved audio volume from localStorage
-const saved_audio_volume = parseFloat(localStorage.getItem(AUDIO_VOLUME_KEY)) || 1.0;
+// for standalone testing
+window.AUDIO_VOLUME_KEY = "imaginer_audio_volume";
+if (localStorage.getItem(window.AUDIO_VOLUME_KEY) === null) {
+  localStorage.setItem(window.AUDIO_VOLUME_KEY, "1.0");
+}
 
 // Log the deterministic seed for debugging / reproducibility.
 console.log(`[EUF] Using deterministic seed: ${eu_seed}`);
@@ -107,8 +107,10 @@ if (document.getElementById("whiteScreen") && document.getElementById("cinematic
 
       setTimeout(() => {
         // Apply saved volume and start audio if URL parameter provided
-        const audio = document.getElementById("cinematic_audio");
-        if (audio) {
+        if (url_params.has("t")) {
+          console.log("[EUF] URL parameter 't' detected – starting audio at time", start_time);
+          const audio = document.getElementById("cinematic_audio");
+          const saved_audio_volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
           audio.volume = saved_audio_volume;
           console.log(`[EUF] Applied saved audio volume: ${saved_audio_volume}`);
 

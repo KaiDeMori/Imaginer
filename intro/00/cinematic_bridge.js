@@ -12,7 +12,7 @@ function initialize_cinematic() {
   cinematic_audio = document.getElementById("cinematic_audio");
 
   // Apply the volume set during pre-intro
-  cinematic_audio.volume = window.global_audio_volume || 1.0;
+  cinematic_audio.volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
 
   // Start the cinematic sequence
   audio_manager.start_sequence();

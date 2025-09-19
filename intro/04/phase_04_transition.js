@@ -1,26 +1,25 @@
-// Phase 4 Transition Manager
+// Phase 4 Transition
 // Seamlessly transitions from phase 3 (early universe formation) to phase 4 (infinity zoom)
 // while preserving music continuity and managing canvas switchover
 
 console.log("[Phase4Transition] Module loaded");
 
-// Phase 4 dependency loading order (critical - some files depend on others)
-const PHASE_4_DEPENDENCIES = [
-  "04/regions.js",
-  "04/infinity_zoom_II_configs.js",
-  "04/infinity_zoom_debug.js",
-  "04/infinity_zoom_II_utils.js",
-  "04/infinity_zoom_II_preloader.js",
-  "04/infinity_zoom_II_featherer.js",
-  "04/region_zoom_utils.js",
-  "04/mystery_image_region_zoom.js",
-  "04/region_zoom.js",
-  "04/mystery_image_main_zoom.js",
-  "04/infinity_zoom_II_engine.js", // MUST be last - depends on all others
-];
+const ABSOLUTE_BASE_DIRECTORY_PHASE4 = "/Imaginer/intro/04";
 
-// Audio volume key for persistence (declared in pre_intro_ui.js)
-// const AUDIO_VOLUME_KEY = "imaginer_audio_volume"; // Already declared globally
+// Phase 4 dependency loading order (critical - some files depend on others)
+const PHASE_04_DEPENDENCIES = [
+  "regions.js",
+  "infinity_zoom_II_configs.js",
+  "infinity_zoom_debug.js",
+  "infinity_zoom_II_utils.js",
+  "infinity_zoom_II_preloader.js",
+  "infinity_zoom_II_featherer.js",
+  "region_zoom_utils.js",
+  "mystery_image_region_zoom.js",
+  "region_zoom.js",
+  "mystery_image_main_zoom.js",
+  "infinity_zoom_II_engine.js", // MUST be last - depends on all others
+];
 
 class Phase4Transition {
   constructor() {
@@ -42,22 +41,19 @@ class Phase4Transition {
     this.transition_in_progress = true;
 
     try {
-      // Step 1: Preserve current audio state
-      this.preserve_audio_state();
-
-      // Step 2: Load Phase 4 dependencies while keeping black screen
+      // Step 1: Load Phase 4 dependencies while keeping black screen
       console.log("[Phase4Transition] Loading Phase 4 dependencies...");
-      await this.load_phase_4_dependencies();
+      await this.load_phase_04_dependencies();
 
-      // Step 3: Canvas switchover (2D -> WebGL)
+      // Step 2: Canvas switchover (2D -> WebGL)
       console.log("[Phase4Transition] Performing canvas switchover...");
       const new_canvas = this.perform_canvas_switchover(current_canvas);
 
-      // Step 4: Initialize Phase 4 (planet intro begins immediately)
+      // Step 3: Initialize Phase 4 (planet intro begins immediately)
       console.log("[Phase4Transition] Initializing Phase 4...");
       await this.initialize_phase_4(new_canvas);
 
-      // Step 5: Setup music transition logic
+      // Step 4: Setup music transition logic
       console.log("[Phase4Transition] Setting up music transition...");
       this.setup_music_transition();
 
@@ -70,28 +66,12 @@ class Phase4Transition {
     this.transition_in_progress = false;
   }
 
-  preserve_audio_state() {
-    // Get reference to current Zarathustra audio
-    this.zarathustra_audio = document.getElementById("cinematic_audio");
-
-    if (this.zarathustra_audio) {
-      // Save current volume for Bach audio later
-      this.saved_volume = this.zarathustra_audio.volume;
-      localStorage.setItem("imaginer_audio_volume", this.saved_volume.toString());
-      console.log(`[Phase4Transition] Preserved audio volume: ${this.saved_volume}`);
-    } else {
-      // Fallback to saved volume
-      this.saved_volume = parseFloat(localStorage.getItem("imaginer_audio_volume")) || 1.0;
-      console.warn("[Phase4Transition] No audio element found, using saved volume:", this.saved_volume);
-    }
-  }
-
-  async load_phase_4_dependencies() {
+  async load_phase_04_dependencies() {
     const load_promises = [];
 
     // Load all dependencies in order (sequential for dependencies, parallel where safe)
-    for (const dependency of PHASE_4_DEPENDENCIES) {
-      const script_url = `${dependency}`;
+    for (const dependency of PHASE_04_DEPENDENCIES) {
+      const script_url = `${ABSOLUTE_BASE_DIRECTORY_PHASE4}/${dependency}`;
       load_promises.push(this.load_script(script_url));
     }
 
@@ -191,7 +171,7 @@ class Phase4Transition {
     this.bach_audio = document.createElement("audio");
     this.bach_audio.id = "bach_audio";
     this.bach_audio.preload = "auto";
-    this.bach_audio.volume = this.saved_volume;
+    this.bach_audio.volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
 
     // Add source for Bach Air
     const source = document.createElement("source");

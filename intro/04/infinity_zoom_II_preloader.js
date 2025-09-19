@@ -1,6 +1,6 @@
 function load_all_images(callback) {
   const layers_data = window.infinity_zoom_II.config.LAYERS_DATA;
-  const image_path = window.infinity_zoom_II.config.RELATIVE_IMAGE_PATH;
+  const image_path = window.infinity_zoom_II.config.ABSOLUTE_BASE_DIRECTORY;
   const region_display_image_paths = window.infinity_zoom_II.config.REGION_DISPLAY_IMAGE_PATHS;
   const main_display_image_paths = window.infinity_zoom_II.config.MAIN_DISPLAY_IMAGE_PATHS;
 

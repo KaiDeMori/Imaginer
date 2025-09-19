@@ -1,13 +1,15 @@
+const ABSOLUTE_BASE_DIRECTORY_INTRO = "/Imaginer/intro";
+
 const ASSET_URLS_ORDERED = [
-  "../01/cinematic_starfield.css",
-  "../02/the_great_everywhere_shake.css",
-  "../01/cinematic_starfield_manager.js",
-  "../01/cinematic_starfield.js",
-  "../02/the_great_everywhere_shake.js",
-  "cinematic_bridge.js",
-  "phase_transition.js",
-  "../phase_4_transition.js",
-  "../audio/Also_sprach_Zarathustra.webm",
+  "01/cinematic_starfield.css",
+  "02/the_great_everywhere_shake.css",
+  "01/cinematic_starfield_manager.js",
+  "01/cinematic_starfield.js",
+  "02/the_great_everywhere_shake.js",
+  "00/cinematic_bridge.js",
+  "00/phase_02_transition.js",
+  "04/phase_04_transition.js",
+  "audio/Also_sprach_Zarathustra.webm",
 ];
 
 const ASSET_URLS_BULK = [
@@ -17,12 +19,16 @@ const ASSET_URLS_BULK = [
 const asset_loader = {
   async start_loading(callback) {
     // Load ordered assets sequentially
-    for (const url of ASSET_URLS_ORDERED) {
+    for (const relative_url of ASSET_URLS_ORDERED) {
+      const url = `${ABSOLUTE_BASE_DIRECTORY_INTRO}/${relative_url}`;
       await this.load_asset(url);
     }
 
     // Load bulk assets in parallel (including phase 2 images)
-    const bulk_promises = ASSET_URLS_BULK.map((url) => this.load_asset(url));
+    const bulk_promises = ASSET_URLS_BULK.map((relative_url) => {
+      const url = `${ABSOLUTE_BASE_DIRECTORY_INTRO}/${relative_url}`;
+      return this.load_asset(url);
+    });
 
     // Also load phase 2 images in parallel
     const phase_2_promise = this.load_phase_2_images();
