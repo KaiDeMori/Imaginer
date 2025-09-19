@@ -28,7 +28,6 @@ const SPRITE_COUNT_PER_LAYER = Object.freeze({
   galaxy_streams: 7,
   nebulae: 10,
   star_clusters: 6,
-  alien_planet: 1, // single hero sprite
 });
 
 // ---------------------------------------------------------------------------
@@ -44,7 +43,6 @@ const SPAWN_RADIUS = Object.freeze({
   galaxy_streams: 2.0,
   nebulae: 0.8,
   star_clusters: 0.6,
-  alien_planet: 0.0, // planet stays dead-centre
 });
 
 // Constant radial speed (world-units s⁻¹) – tuned coarsely for now.
@@ -53,21 +51,14 @@ const RADIAL_SPEED = Object.freeze({
   galaxy_streams: 0.18,
   nebulae: 0.25,
   star_clusters: 0.3,
-  alien_planet: 0.0, // planet does not drift
 });
 
 // Jitter ranges --------------------------------------------------------------
 const MAX_Z_JITTER = 0.8; // pseudo-Z units (sym. around 0)
 const TWO_PI = Math.PI * 2;
 
-// Planet specific ------------------------------------------------------------
-// NOTE: These values are *not* generated via rand() so they stay fully under
-// developer control and are independent of the deterministic RNG sequence.
-const PLANET_BASE_ROTATION_RAD = 0; // tweak as desired (rad)
-const PLANET_ROT_SPEED_RAD_S = 0.02; // ≈ 1.1° per second
-
-// Non-planet rotation dynamics ----------------------------------------------
-const NON_PLANET_MAX_ROT_SPEED_RAD_S = 0.06; // ≈ 3.4° s⁻¹ – tweak as desired
+// Rotation dynamics ---------------------------------------------------------
+const MAX_ROT_SPEED_RAD_S = 0.06; // ≈ 3.4° s⁻¹ – tweak as desired
 
 // ---------------------------------------------------------------------------
 // Types (JSDoc) --------------------------------------------------------------
@@ -135,7 +126,6 @@ function generate_sprite_instances(bitmaps_map) {
       }
 
       const id = `${layer_name}#${i}`;
-      const is_planet = layer_name === "alien_planet";
 
       // -------------------------------------------------------------------
       // Drift angle – uniform in [0, 2π) ----------------------------------
@@ -166,8 +156,8 @@ function generate_sprite_instances(bitmaps_map) {
         // Orientation / jitter -------------------------------------------
         angle,
         z_jitter: (rand() * 2 - 1) * MAX_Z_JITTER,
-        base_rotation: is_planet ? PLANET_BASE_ROTATION_RAD : rand() * TWO_PI,
-        rot_speed: is_planet ? PLANET_ROT_SPEED_RAD_S : (rand() * 2 - 1) * NON_PLANET_MAX_ROT_SPEED_RAD_S,
+        base_rotation: rand() * TWO_PI,
+        rot_speed: (rand() * 2 - 1) * MAX_ROT_SPEED_RAD_S,
 
         // World-space props -----------------------------------------------
         x,
@@ -193,9 +183,7 @@ if (typeof window !== "undefined") {
 
 export {
   generate_sprite_instances,
-  PLANET_BASE_ROTATION_RAD,
-  PLANET_ROT_SPEED_RAD_S,
-  NON_PLANET_MAX_ROT_SPEED_RAD_S,
+  MAX_ROT_SPEED_RAD_S,
   // Export the new tables so they can be consumed by the upcoming refactor.
   SPAWN_RADIUS,
   RADIAL_SPEED,

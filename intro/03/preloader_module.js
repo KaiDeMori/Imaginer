@@ -32,7 +32,6 @@ const asset_max_numbers = {
   galaxy_streams: 10,
   nebulae: 13,
   star_clusters: 3,
-  alien_planet: 1,
 };
 
 const asset_manifest = [];

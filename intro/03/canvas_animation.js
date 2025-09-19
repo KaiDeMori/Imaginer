@@ -18,7 +18,7 @@ Full-physics refactor (Universe Fix · Phase 3)
 import { generate_sprite_instances } from "./sprite_instance_manager.js";
 import { get_layer_states } from "./timeline_engine.js";
 
-// Import LAYER_TIMELINE to access planet timing configuration
+// Import LAYER_TIMELINE to access final layer timing
 import { LAYER_TIMELINE } from "./timeline_engine.js";
 
 // ---------------------------------------------------------------------------
@@ -30,17 +30,8 @@ const TOTAL_DURATION_MS = 25_000; // storyboard length (§5)
 const CAM_Z_START = -1; // at t = 0 (closest to layers)
 const CAM_Z_END = -20; // at t = 1 (camera has moved "forward" by 19 units)
 
-// --- Final-planet reveal tuning --------------------------------------------
-// Planet timing now comes from LAYER_TIMELINE instead of hardcoded constants
-const PLANET_TIMELINE_CONFIG = LAYER_TIMELINE.find((layer) => layer.name === "alien_planet");
-if (!PLANET_TIMELINE_CONFIG) {
-  throw new Error("[canvas_animation] alien_planet layer not found in LAYER_TIMELINE");
-}
-const PLANET_FADE_IN_START = PLANET_TIMELINE_CONFIG.p_in;
-const PLANET_FADE_IN_END = PLANET_TIMELINE_CONFIG.p_out;
-
-const PLANET_MIN_PX = 0.5; // spawn at 0.5 px wide (== flicker-free)
-const PLANET_STOP_COVER_MORE = 1.05; // 5 % leeway before we halt the loop
+// --- Timeline-based termination --------------------------------------------
+// Wait for full timeline completion to preserve music synchronization
 
 // Simple helpers -------------------------------------------------------------
 function lerp(a, b, t) {
@@ -89,8 +80,8 @@ export class UniverseAnimator {
     this._running = false;
     this._raf_id = /** @type {number | null} */ (null);
 
-    // NEW: final-reveal halt flag -------------------------------------------
-    this._loop_halted = false;
+    // Timeline-based termination flag ---------------------------------------
+    this._animation_complete = false;
 
     // Bindings ---------------------------------------------------------------
     this._update = this._update.bind(this);
@@ -221,15 +212,25 @@ export class UniverseAnimator {
     // Current camera Z position (Task 5) ------------------------------------
     const cam_z = lerp(CAM_Z_START, CAM_Z_END, global_progress);
 
-    // Planet ease factor within its fade-in window ---------------------------
-    const planet_t = clamp((global_progress - PLANET_FADE_IN_START) / (PLANET_FADE_IN_END - PLANET_FADE_IN_START), 0, 1);
+    // Check if animation should terminate ------------------------------------
+    if (!this._animation_complete && global_progress >= 1.0) {
+      this._animation_complete = true;
+      console.log(`[UniverseAnimator] Animation complete at full duration – clearing to black and halting.`);
+      // Clear to black and stop the animation loop
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this._running = false;
+      if (this._raf_id !== null) {
+        cancelAnimationFrame(this._raf_id);
+        this._raf_id = null;
+      }
+      return; // Exit the update loop
+    }
 
     // -----------------------------------------------------------------------
     // Advance physics (new) --------------------------------------------------
     // -----------------------------------------------------------------------
     if (dt_sec > 0) {
       for (const sp of this.sprite_instances) {
-        if (sp.layer === "alien_planet") continue; // planet stays fixed
         sp.x += Math.cos(sp.angle) * sp.v_r * dt_sec;
         sp.y += Math.sin(sp.angle) * sp.v_r * dt_sec;
       }
@@ -272,13 +273,6 @@ export class UniverseAnimator {
 
     const elapsed_sec = elapsed_total / 1000; // for rotation only
 
-    let planet_draw_w_screen = 0; // will store current width of planet in CSS px
-    let planet_draw_h_screen = 0;
-
-    // Calculate max allowed planet size (viewport fill, with leeway)
-    const max_planet_w = (this.canvas.width / this._dpr) * PLANET_STOP_COVER_MORE;
-    const max_planet_h = (this.canvas.height / this._dpr) * PLANET_STOP_COVER_MORE;
-
     for (const sp of this.sprite_instances) {
       const ls = layer_states[sp.layer];
       if (!ls) continue; // layer disabled?
@@ -292,31 +286,12 @@ export class UniverseAnimator {
       // --- scale computation ----------------------------------------------
       let scale = cam_z / (cam_z - final_z); // perspective incl. moving cam
 
-      const is_planet = sp.layer === "alien_planet";
-      if (is_planet) {
-        const min_scale = PLANET_MIN_PX / sp.bitmap.width; // ≈ 0.5 px wide
-        const extra = lerp(min_scale, 1, planet_t); // ease to full size
-        scale *= extra;
-      }
-
       // --- Screen position -------------------------------------------------
       const center_x = cx + sp.x * scale;
       const center_y = cy + sp.y * scale;
 
-      let draw_w = sp.bitmap.width * scale;
-      let draw_h = sp.bitmap.height * scale;
-
-      // Clamp planet size to viewport (with leeway)
-      if (is_planet) {
-        if (draw_w > max_planet_w || draw_h > max_planet_h) {
-          const clamp_scale = Math.min(max_planet_w / sp.bitmap.width, max_planet_h / sp.bitmap.height);
-          draw_w = sp.bitmap.width * clamp_scale;
-          draw_h = sp.bitmap.height * clamp_scale;
-          // Optionally, you could also clamp scale here if you want to halt growth
-        }
-        planet_draw_w_screen = draw_w;
-        planet_draw_h_screen = draw_h;
-      }
+      const draw_w = sp.bitmap.width * scale;
+      const draw_h = sp.bitmap.height * scale;
 
       const rotation = sp.base_rotation + sp.rot_speed * elapsed_sec;
 
@@ -355,14 +330,6 @@ export class UniverseAnimator {
       }
     }
     this.ctx.globalAlpha = 1; // reset
-
-    // -----------------------------------------------------------------------
-    // Planet viewport-fill halt ---------------------------------------------
-    // -----------------------------------------------------------------------
-    if (!this._loop_halted && (planet_draw_w_screen >= max_planet_w || planet_draw_h_screen >= max_planet_h)) {
-      this._loop_halted = true;
-      console.log("[UniverseAnimator] Planet fills viewport – animation halted, planet will keep rotating.");
-    }
 
     // -----------------------------------------------------------------------
     // One-time validation log ------------------------------------------------

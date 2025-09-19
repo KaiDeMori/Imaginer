@@ -81,16 +81,6 @@ const LAYER_TIMELINE = Object.freeze([
     distance_fade_end_z: -40,
     distance_fade_start_z: 8 + -146.49 * 0.32,
   },
-  {
-    name: "alien_planet",
-    p_in: 0.75, // delayed appearance
-    p_out: 0.83, // keep same duration
-    z_start: 4,
-    z_end: 4 + -183.11 * 0.08,
-    base_opacity: 1,
-    fade_easing: "linear",
-    distance_fade_end_z: -20,
-  },
 ]);
 
 // Maximum layer Z-start (furthest positive Z) – useful for helper formulas
@@ -197,14 +187,6 @@ function get_layer_states(global_progress) {
         }
       }
       opacity = base_opacity * fade * distance_factor;
-      if (name === "alien_planet" && fade === 1) {
-        // Planet stays fully opaque after fade-in
-        opacity = 1;
-      }
-    } else if (p > p_out && name === "alien_planet") {
-      // Planet stays fully opaque after its fade-in window.
-      opacity = 1;
-      local_t = 1;
     }
 
     // Pseudo-Z – interpolate regardless of opacity so that sorting works.
