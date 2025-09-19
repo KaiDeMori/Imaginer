@@ -144,14 +144,15 @@ function setup_audio_interface() {
   });
 
   // Volume control via keyboard
+  const volume_step = 0.02;
   document.addEventListener("keydown", function (event) {
     if (!blip_audio.ended) return;
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      adjust_volume(0.02);
+      adjust_volume(volume_step);
     } else if (event.key === "ArrowDown") {
       event.preventDefault();
-      adjust_volume(-0.02);
+      adjust_volume(-volume_step);
     }
   });
 

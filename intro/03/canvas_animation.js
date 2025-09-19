@@ -21,7 +21,7 @@ import { get_layer_states } from "./timeline_engine.js";
 // ---------------------------------------------------------------------------
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-const TOTAL_DURATION_MS = 2_000; //was 25_000;
+const TOTAL_DURATION_MS = 25_000; //was 25_000;
 
 // Camera Z curve (Task 5 – already in place) ---------------------------------
 const CAM_Z_START = -1; // at t = 0 (closest to layers)
