@@ -5,14 +5,6 @@ Sprite Instance Manager – Early Universe Formation V2
 Creates the **deterministic, per-layer sprite instance list** that will be
 consumed by the renderer (UniverseAnimator).
 
-CHANGE LOG – “Space-flight” Update
-––––––––––––––––––––––––––––––––––
-• All **non-planet** sprites now travel **away from the viewport centre**.  We
-  therefore pick a deterministic **polar angle** uniformly in [0, 2π) and
-  spawn the sprite on the corresponding point of its layer-specific annulus.
-• The planet logic remains unchanged – it stays centred and its rotation is
-  still driven by the dedicated constants.
-
 NOTE (Universe Fix – Phase 2 · World-space Props)
 -----------------------------------------------
 Each `SpriteInstance` carries *deterministic* **world-space initial
