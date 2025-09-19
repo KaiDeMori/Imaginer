@@ -328,18 +328,19 @@ function initialize_shake() {
           spark_max_radius = SPARK_MAX_RADIUS_START + (SPARK_MAX_RADIUS_END - SPARK_MAX_RADIUS_START) * t;
           if (elapsed < EXPLOSION_INITIAL_LIMIT_DURATION) {
             while (explosions.length < EXPLOSION_INITIAL_LIMIT) {
-              explosions.push(create_explosion(t));
+              explosions.push(create_explosion());
             }
           } else {
             for (let i = 0; i < Math.floor(explosion_spawn_rate); ++i) {
               if (explosions.length < MAX_EXPLOSIONS && Math.random() < EXPLOSION_RANDOM_CHANCE) {
-                explosions.push(create_explosion(t));
+                explosions.push(create_explosion());
               }
             }
           }
           // Remove finished explosions
           const now_time = performance.now();
           explosions = explosions.filter((exp) => now_time - exp.start_time < exp.duration);
+          // Draw explosions AFTER background so they appear on top
           draw_explosions(now_time);
           do_animate = true;
         } else {
@@ -347,6 +348,7 @@ function initialize_shake() {
           const shake_x = shake_amplitude_px * (2 * Math.random() - 1);
           const shake_y = shake_amplitude_px * (2 * Math.random() - 1);
           draw_scaled_and_shaken(zoom_base, shake_x, shake_y);
+          // Draw explosions AFTER background so they appear on top
           draw_explosions(performance.now());
         }
       }

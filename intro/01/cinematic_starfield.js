@@ -74,7 +74,7 @@ function initialize_starfield() {
         snapshot_img.style.position = "absolute";
         snapshot_img.style.width = "100vw";
         snapshot_img.style.height = "100vh";
-        snapshot_img.style.zIndex = "50";
+        snapshot_img.style.zIndex = "0";
         starfield_canvas.parentNode.appendChild(snapshot_img);
       },
     ],
