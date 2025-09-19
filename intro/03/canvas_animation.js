@@ -21,7 +21,7 @@ import { get_layer_states } from "./timeline_engine.js";
 // ---------------------------------------------------------------------------
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-const TOTAL_DURATION_MS = 25_000;
+const TOTAL_DURATION_MS = 2_000; //was 25_000;
 
 // Camera Z curve (Task 5 – already in place) ---------------------------------
 const CAM_Z_START = -1; // at t = 0 (closest to layers)
@@ -217,6 +217,13 @@ export class UniverseAnimator {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
       console.log(`[UniverseAnimator] Animation complete - transitioning to Phase 4`);
+
+      // Clean up Phase 3 UI elements
+      const seed_ui_panel = document.getElementById("seedUIPanel");
+      if (seed_ui_panel) {
+        seed_ui_panel.remove();
+        console.log(`[UniverseAnimator] Seed UI panel cleaned up`);
+      }
 
       // Stop our animation but keep canvas for transition
       this._running = false;
