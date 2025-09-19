@@ -29,6 +29,7 @@ class Phase4Transition {
     this.bach_audio = null;
     this.saved_volume = 1.0;
     this.music_transition_complete = false;
+    this.zarathustra_end_timestamp = null;
   }
 
   async start_transition(current_canvas) {
@@ -39,6 +40,10 @@ class Phase4Transition {
 
     console.log("[Phase4Transition] Starting transition from phase 3 to phase 4");
     this.transition_in_progress = true;
+
+    // Connect to existing Zarathustra audio element
+    this.zarathustra_audio = document.getElementById("cinematic_audio");
+    console.log("[Phase4Transition] Connected to Zarathustra audio:", this.zarathustra_audio.currentTime, "/", this.zarathustra_audio.duration);
 
     // Step 1: Load Phase 4 dependencies while keeping black screen
     console.log("[Phase4Transition] Loading Phase 4 dependencies...");
@@ -191,100 +196,68 @@ class Phase4Transition {
     const music_promise = this.wait_for_zarathustra_end_plus_silence();
     const phase_promise = this.wait_for_phase_4_hold_state();
 
-    Promise.all([music_promise, phase_promise])
-      .then(() => {
-        this.start_bach_and_main_zoom();
-      })
-      .catch((error) => {
-        console.error("[Phase4Transition] Music transition error:", error);
-        // Fail-safe: start anyway after timeout
-        setTimeout(() => {
-          console.log("[Phase4Transition] Fail-safe: starting Bach and main zoom");
-          this.start_bach_and_main_zoom();
-        }, 3000);
-      });
+    Promise.all([music_promise, phase_promise]).then(() => {
+      this.start_bach_and_main_zoom();
+    });
   }
 
   wait_for_zarathustra_end_plus_silence() {
     return new Promise((resolve) => {
-      if (!this.zarathustra_audio) {
-        console.log("[Phase4Transition] No Zarathustra audio - resolving immediately");
-        setTimeout(resolve, 2000); // 2s silence
-        return;
-      }
-
       // Check if already ended
       if (this.zarathustra_audio.ended || this.zarathustra_audio.currentTime >= this.zarathustra_audio.duration) {
-        console.log("[Phase4Transition] Zarathustra already ended - starting 2s silence");
+        this.zarathustra_end_timestamp = performance.now();
+        console.log("[Phase4Transition] Zarathustra already ended - starting 2s silence from now");
         setTimeout(resolve, 2000);
         return;
       }
 
       // Wait for end event
       const on_ended = () => {
-        console.log("[Phase4Transition] Zarathustra ended - starting 2s silence");
+        this.zarathustra_end_timestamp = performance.now();
+        console.log("[Phase4Transition] Zarathustra ended at timestamp:", this.zarathustra_end_timestamp);
         this.zarathustra_audio.removeEventListener("ended", on_ended);
         setTimeout(resolve, 2000);
       };
 
       this.zarathustra_audio.addEventListener("ended", on_ended);
 
-      // Fail-safe: don't wait forever
-      setTimeout(() => {
-        console.log("[Phase4Transition] Fail-safe timeout - proceeding with music transition");
-        this.zarathustra_audio.removeEventListener("ended", on_ended);
-        resolve();
-      }, 10000); // 10s max wait
+      console.log("[Phase4Transition] Waiting for Zarathustra to end. Current time:", this.zarathustra_audio.currentTime, "/", this.zarathustra_audio.duration);
     });
   }
 
   wait_for_phase_4_hold_state() {
     return new Promise((resolve) => {
       const check_phase_state = () => {
-        if (window.infinity_zoom_II && window.infinity_zoom_II.engine && window.infinity_zoom_II.engine.animation_phase === "hold") {
+        if (window.infinity_zoom_II.engine.animation_phase === "hold") {
           console.log("[Phase4Transition] Phase 4 reached hold state - ready for main zoom");
           resolve();
         } else {
-          // Check again in 100ms
           setTimeout(check_phase_state, 100);
         }
       };
 
       check_phase_state();
-
-      // Fail-safe: don't wait forever
-      setTimeout(() => {
-        console.log("[Phase4Transition] Fail-safe: proceeding regardless of phase state");
-        resolve();
-      }, 15000); // 15s max wait
     });
   }
 
   start_bach_and_main_zoom() {
+    const current_time = performance.now();
+    const silence_duration = current_time - this.zarathustra_end_timestamp;
     console.log("[Phase4Transition] 🎵 Starting Bach Air and main zoom sequence! 🎵");
+    console.log("[Phase4Transition] Silence duration achieved:", silence_duration.toFixed(0), "ms (required: 2000ms)");
 
     // Start Bach Air
-    if (this.bach_audio) {
-      this.bach_audio.currentTime = 0;
-      this.bach_audio
-        .play()
-        .then(() => {
-          console.log("[Phase4Transition] Bach Air started successfully");
-        })
-        .catch((error) => {
-          console.error("[Phase4Transition] Failed to play Bach Air:", error);
-        });
-    }
+    this.bach_audio.currentTime = 0;
+    this.bach_audio.play();
+    console.log("[Phase4Transition] Bach Air started");
 
     // Signal that music is ready for main zoom
     window.phase_4_music_ready = true;
 
-    // Also directly set engine state for immediate transition
-    if (window.infinity_zoom_II && window.infinity_zoom_II.engine) {
-      window.infinity_zoom_II.engine.animation_phase = "main_zoom";
-      window.infinity_zoom_II.engine.main_zoom_start_time = performance.now();
-      console.log("[Phase4Transition] Main zoom sequence initiated");
-    }
+    // Set engine state for immediate transition
+    window.infinity_zoom_II.engine.animation_phase = "main_zoom";
+    window.infinity_zoom_II.engine.main_zoom_start_time = performance.now();
+    console.log("[Phase4Transition] Main zoom sequence initiated");
 
     this.music_transition_complete = true;
   }
