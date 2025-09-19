@@ -19,10 +19,13 @@ async function initialize_pre_intro() {
 }
 
 async function wait_for_font_and_show_ui() {
+  console.log("Waiting for font to load...");
   // Wait for the Orbitron font to actually load
   await document.fonts.load("16px Orbitron");
+  console.log("Font loaded.");
 
   // Now fade in the interface
+  console.log("Fading in interface.");
   const interface_div = document.getElementById("audio_setup_interface");
   interface_div.classList.add("fade_in");
 }
@@ -142,12 +145,13 @@ function setup_audio_interface() {
 
   // Volume control via keyboard
   document.addEventListener("keydown", function (event) {
+    if (!blip_audio.ended) return;
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      adjust_volume(0.1);
+      adjust_volume(0.02);
     } else if (event.key === "ArrowDown") {
       event.preventDefault();
-      adjust_volume(-0.1);
+      adjust_volume(-0.02);
     }
   });
 
