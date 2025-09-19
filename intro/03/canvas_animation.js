@@ -1,15 +1,6 @@
 "use strict";
 /*
 Canvas Animation Engine – Early Universe Formation V2 – Multi-Layer Edition
----------------------------------------------------------------------------
-Full-physics refactor (Universe Fix · Phase 3)
-–––––––––––––––––––––––––––––––––––––––––––––
-• Implements true world-space integration per sprite (Task C·2).
-• Removes the legacy spawn_offset / drift heuristics – motion is now derived
-  from (x, y, v_r, angle) that were baked deterministically at creation time.
-• Screen projection is performed via single perspective formula
-      screen_xy = cam_xy + sprite_xy * scale
-  completing Task C·3.
 */
 
 // ---------------------------------------------------------------------------
@@ -23,7 +14,7 @@ import { get_layer_states } from "./timeline_engine.js";
 // ---------------------------------------------------------------------------
 const TOTAL_DURATION_MS = 25_000; //was 25_000;
 
-// Camera Z curve (Task 5 – already in place) ---------------------------------
+// Camera Z curve ---------------------------------
 const CAM_Z_START = -1; // at t = 0 (closest to layers)
 const CAM_Z_END = -20; // at t = 1 (camera has moved "forward" by 19 units)
 
@@ -133,7 +124,7 @@ export class UniverseAnimator {
   }
 
   // -------------------------------------------------------------------------
-  // Hi-DPI helpers (unchanged) ----------------------------------------------
+  // Hi-DPI helpers ----------------------------------------------
   // -------------------------------------------------------------------------
   _register_dpr_listener() {
     if (this._dpr_mql) {
@@ -146,8 +137,7 @@ export class UniverseAnimator {
     try {
       this._dpr_mql = window.matchMedia(query);
       const mql = this._dpr_mql;
-      if (typeof mql.addEventListener === "function") mql.addEventListener("change", this._on_resize);
-      else if (typeof mql.addListener === "function") mql.addListener(this._on_resize);
+      mql.addEventListener("change", this._on_resize);
     } catch (_) {
       this._dpr_mql = null;
     }
@@ -238,7 +228,7 @@ export class UniverseAnimator {
     }
 
     // -----------------------------------------------------------------------
-    // Advance physics (new) --------------------------------------------------
+    // Advance physics --------------------------------------------------
     // -----------------------------------------------------------------------
     if (dt_sec > 0) {
       for (const sp of this.sprite_instances) {
@@ -248,7 +238,7 @@ export class UniverseAnimator {
     }
 
     // -----------------------------------------------------------------------
-    // FPS sampling (unchanged) ----------------------------------------------
+    // FPS sampling ----------------------------------------------
     // -----------------------------------------------------------------------
     if (this._fps_window_start_ts === null) {
       this._fps_window_start_ts = ts;
