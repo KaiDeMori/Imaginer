@@ -357,6 +357,10 @@ window.infinity_zoom_II.region_zoom = {
     // Check if animation is complete using stored animation_t
     if (this.animation_t >= 1.0) {
       log("Region zoom animation complete - transitioning to next phase");
+
+      // Restore cursor - cinematic sequence is now truly complete
+      document.body.classList.remove("hide_cursor");
+
       // Animation complete - engine will handle phase transition
       return true; // Signal completion
     }

@@ -114,6 +114,9 @@ function setup_audio_interface() {
   }
 
   function skip_intro() {
+    // Restore cursor if user skips
+    document.body.classList.remove("hide_cursor");
+
     // Fade out before skipping
     interface_div.classList.add("fade_out");
 
@@ -170,6 +173,9 @@ function setup_audio_interface() {
     }
 
     blip_enabled = false;
+
+    // Hide cursor for the entire cinematic sequence
+    document.body.classList.add("hide_cursor");
 
     // Add listener BEFORE starting transition
     interface_div.addEventListener("transitionend", function handleFadeOut() {
