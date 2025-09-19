@@ -7,12 +7,6 @@ Maps a **global progress value** (0 → 1) to per-layer animation state:
   • pseudo-Z  (linear interpolation layerZStart → layerZEnd)
   • scale     (derived from pseudo-Z using a simple perspective formula)
 
-This file fulfils **Task 2 · Timeline Engine** of `multi_layer_animation_progress.md`:
-  ✓ Create helper that maps global progress to per-layer state.
-  ✓ Integrate cubic-in-out easing for smoother opacity ramps.
-  ✓ Provide a minimal built-in "unit-test" that prints a sample table for
-    synthetic timestamps (development builds only).
-
 The engine is intentionally *render-backend-agnostic* – it performs no drawing
 and has zero dependencies on Canvas.  Consumers (e.g. `UniverseAnimator`) just
 call `get_layer_states(progress)` once per frame.
@@ -33,7 +27,7 @@ may be tweaked later when visual fine-tuning starts.
 
 All times use the *normalised* master progress (0 → 1).  Using relative numbers
 instead of absolute seconds means the engine works irrespective of the final
-chosen total duration (e.g. 25 s).
+chosen total duration.
 */
 const LAYER_TIMELINE = Object.freeze([
   // name, p_in, p_out, z_start, z_end, base_opacity, fade_easing, distance_fade_end_z, (optional) distance_fade_start_z

@@ -18,13 +18,10 @@ Full-physics refactor (Universe Fix · Phase 3)
 import { generate_sprite_instances } from "./sprite_instance_manager.js";
 import { get_layer_states } from "./timeline_engine.js";
 
-// Import LAYER_TIMELINE to access final layer timing
-import { LAYER_TIMELINE } from "./timeline_engine.js";
-
 // ---------------------------------------------------------------------------
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-const TOTAL_DURATION_MS = 25_000; // storyboard length (§5)
+const TOTAL_DURATION_MS = 25_000;
 
 // Camera Z curve (Task 5 – already in place) ---------------------------------
 const CAM_Z_START = -1; // at t = 0 (closest to layers)

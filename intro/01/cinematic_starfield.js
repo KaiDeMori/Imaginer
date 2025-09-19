@@ -10,10 +10,10 @@ const cinematic_starfield_timing_sequence = [
 ];
 
 const cinematic_starfield_timing_sequence_TESTING = [
-  { duration: 5, star_count: { from: 0, to: 10000 }, zoom_speed: { from: 0, to: 0.01 } }, // Ramp up stars
+  { duration: 2, star_count: { from: 0, to: 10000 }, zoom_speed: { from: 0, to: 0.01 } }, // Ramp up stars
 ];
 
-const active_cinematic_starfield_timing_sequence = cinematic_starfield_timing_sequence;
+const active_cinematic_starfield_timing_sequence = cinematic_starfield_timing_sequence_TESTING;
 
 // Simple timing sequencer - array of [delay_ms, function] pairs
 function execute_timing_sequence(sequence) {
