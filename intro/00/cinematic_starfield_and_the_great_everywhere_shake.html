@@ -1,9 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<htm      @font-face {
+        font-family: "Quicksand";
+        src: url("../fonts/Quicksand/Quicksand-VariableFont_wght.ttf") format("truetype");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
+      /* ==========================================================================
+         FONT SWITCHING CLASSES
+         ========================================================================== */
+
+      /* Font hotkey classes - apply to body for global switching */
+      .font-1 * {
+        font-family: "Andika", monospace !important;
+      }
+
+      .font-2 * {
+        font-family: "Comic Neue", monospace !important;
+      }
+
+      .font-3 * {
+        font-family: "Noto Sans", monospace !important;
+      }
+
+      .font-4 * {
+        font-family: "Orbitron", monospace !important;
+      }
+
+      .font-5 * {
+        font-family: "Quicksand", monospace !important;
+      }
+
+      /* ==========================================================================
+         MAIN LAYOUT COMPONENTS
+         ========================================================================== */">
   <head>
     <meta charset="UTF-8" />
     <title>Cinematic Universe Creation</title>
+    <link href="../fonts/Andika/Andika-Regular.ttf" as="font" type="font/ttf" />
+    <link href="../fonts/Comic_Neue/ComicNeue-Bold.ttf" as="font" type="font/ttf" />
+    <link href="../fonts/Noto_Sans/NotoSans-VariableFont_wdth,wght.ttf" as="font" type="font/ttf" />
     <link href="../fonts/Orbitron/Orbitron-VariableFont_wght.ttf" as="font" type="font/ttf" />
+    <link href="../fonts/Quicksand/Quicksand-VariableFont_wght.ttf" as="font" type="font/ttf" />
     <style>
       /* ==========================================================================
          BASE STYLES & TYPOGRAPHY
@@ -18,10 +56,38 @@
         overflow: hidden;
       }
 
-      /* Custom font definition */
+      /* Custom font definitions */
+      @font-face {
+        font-family: "Andika";
+        src: url("../fonts/Andika/Andika-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Comic Neue";
+        src: url("../fonts/Comic_Neue/ComicNeue-Bold.ttf") format("truetype");
+        font-weight: bold;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Noto Sans";
+        src: url("../fonts/Noto_Sans/NotoSans-VariableFont_wdth,wght.ttf") format("truetype");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
       @font-face {
         font-family: "Orbitron";
         src: url("../fonts/Orbitron/Orbitron-VariableFont_wght.ttf") format("truetype");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Quicksand";
+        src: url("../fonts/Quicksand/Quicksand-VariableFont_wght.ttf") format("truetype");
         font-weight: 100 900;
         font-display: swap;
       }
@@ -444,5 +510,23 @@
     </a>
 
     <canvas id="cinematic_canvas"></canvas>
+    
+    <script>
+      // Font hotkey system
+      document.addEventListener("keydown", function(event) {
+        const key = event.key;
+        
+        // Check if it's a number key 1-5
+        if (key >= "1" && key <= "5") {
+          // Remove any existing font classes
+          document.body.classList.remove("font-1", "font-2", "font-3", "font-4", "font-5");
+          
+          // Add the new font class
+          document.body.classList.add(`font-${key}`);
+          
+          console.log(`Switched to font ${key}`);
+        }
+      });
+    </script>
   </body>
 </html>

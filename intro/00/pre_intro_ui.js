@@ -22,10 +22,22 @@ async function initialize_pre_intro() {
 }
 
 async function wait_for_font_and_show_ui() {
-  console.log("Waiting for font to load...");
-  // Wait for the Orbitron font to actually load
-  await document.fonts.load("16px Orbitron");
-  console.log("Font loaded.");
+  console.log("Waiting for fonts to load...");
+
+  // Wait for all fonts to load
+  const font_promises = [
+    document.fonts.load("16px Andika"),
+    document.fonts.load("16px 'Comic Neue'"),
+    document.fonts.load("16px 'Noto Sans'"),
+    document.fonts.load("16px Orbitron"),
+    document.fonts.load("16px Quicksand"),
+  ];
+
+  await Promise.all(font_promises);
+  console.log("All fonts loaded.");
+
+  // Set default font (Orbitron - font 4)
+  document.body.classList.add("font-4");
 
   // Now fade in the interface
   console.log("Fading in interface.");
