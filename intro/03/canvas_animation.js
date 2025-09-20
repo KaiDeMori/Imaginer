@@ -208,14 +208,15 @@ export class UniverseAnimator {
 
       console.log(`[UniverseAnimator] Animation complete - transitioning to Phase 4`);
 
+      // Ensure cursor stays hidden during transition
+      document.body.classList.add("hide_cursor");
+
       // Clean up Phase 3 UI elements
       const seed_ui_panel = document.getElementById("seedUIPanel");
       if (seed_ui_panel) {
         seed_ui_panel.remove();
         console.log(`[UniverseAnimator] Seed UI panel cleaned up`);
-      }
-
-      // Stop our animation but keep canvas for transition
+      } // Stop our animation but keep canvas for transition
       this._running = false;
       if (this._raf_id !== null) {
         cancelAnimationFrame(this._raf_id);

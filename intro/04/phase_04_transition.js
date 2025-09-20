@@ -27,7 +27,6 @@ class Phase4Transition {
     this.phase_4_loaded = false;
     this.zarathustra_audio = null;
     this.bach_audio = null;
-    this.saved_volume = 1.0;
     this.music_transition_complete = false;
     this.zarathustra_end_timestamp = null;
   }
@@ -246,10 +245,11 @@ class Phase4Transition {
     console.log("[Phase4Transition] 🎵 Starting Bach Air and main zoom sequence! 🎵");
     console.log("[Phase4Transition] Silence duration achieved:", silence_duration.toFixed(0), "ms (required: 2000ms)");
 
-    // Start Bach Air
+    // Start Bach Air with current volume from localStorage
+    this.bach_audio.volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
     this.bach_audio.currentTime = 0;
     this.bach_audio.play();
-    console.log("[Phase4Transition] Bach Air started");
+    console.log("[Phase4Transition] Bach Air started with volume:", this.bach_audio.volume);
 
     // Signal that music is ready for main zoom
     window.phase_4_music_ready = true;

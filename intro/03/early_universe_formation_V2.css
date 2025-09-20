@@ -72,3 +72,7 @@ html, body {
 #seedUIPanel button:active {
   background: #dddddd;
 }
+
+.hide_cursor {
+  cursor: none !important;
+}
