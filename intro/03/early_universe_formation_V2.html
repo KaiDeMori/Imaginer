@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!-- Early Universe Formation V2 – Standalone Debug Version -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Early Universe Formation V2 - Standalone</title>
+
+    <!-- Main styles -->
+    <link rel="stylesheet" href="early_universe_formation_V2.css" />
+  </head>
+  <body>
+    <!-- Audio for standalone testing -->
+    <audio id="cinematic_audio" preload="auto">
+      <source src="../audio/Also_sprach_Zarathustra.webm" type="audio/webm" />
+      Your browser does not support the audio element.
+    </audio>
+
+    <!-- Full-screen white overlay – stays up until assets + minimum time -->
+    <div id="whiteScreen"></div>
+
+    <!-- Main rendering surface -->
+    <canvas id="cinematic_canvas"></canvas>
+
+    <!-- Seed UI Panel (will be created by seed_ui_panel.js) -->
+
+    <!-- Pre-load critical Phase 04 dependencies to avoid race conditions -->
+    <script src="../04/regions.js"></script>
+
+    <!-- Load phase 04 transition for complete experience -->
+    <script src="../04/phase_04_transition.js"></script>
+
+    <!-- Entry point (ES module) -->
+    <script type="module">
+      // Setup volume control system (extracted from pre_intro_ui.js)
+      window.AUDIO_VOLUME_KEY = "imaginer_audio_volume";
+
+      if (localStorage.getItem(window.AUDIO_VOLUME_KEY) === null) {
+        localStorage.setItem(window.AUDIO_VOLUME_KEY, "1.0");
+      }
+
+      // Volume control via keyboard
+      const volume_step = 0.02;
+
+      function adjust_volume(delta) {
+        const current_audio_volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
+        const new_audio_volume = Math.max(0, Math.min(1, current_audio_volume + delta));
+        localStorage.setItem(window.AUDIO_VOLUME_KEY, new_audio_volume.toString());
+
+        // Apply to cinematic audio
+        const cinematic_audio = document.getElementById("cinematic_audio");
+        if (cinematic_audio) cinematic_audio.volume = new_audio_volume;
+
+        console.log(`Audio volume set to ${new_audio_volume}`);
+      }
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowUp") {
+          event.preventDefault();
+          adjust_volume(volume_step);
+        } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          adjust_volume(-volume_step);
+        }
+      });
+
+      // Load main module
+      import("./early_universe_formation_V2.js");
+    </script>
+  </body>
+</html>
