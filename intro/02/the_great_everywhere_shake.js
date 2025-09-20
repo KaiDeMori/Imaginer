@@ -18,12 +18,12 @@ let MAX_EXPLOSIONS = 10; // Reduced for less final explosion density
 // Adjust these to control the look and behavior of sparks
 const SPARK_MIN_COUNT = 3; // Minimum number of sparks per explosion
 const SPARK_MAX_COUNT = 6; // Maximum number of sparks per explosion
-const SPARK_MIN_SPEED = 1.5; // Minimum speed of sparks
-const SPARK_MAX_SPEED = 4.0; // Maximum speed of sparks
-const SPARK_MIN_RADIUS = 2; // Minimum radius of a spark
+let SPARK_MIN_SPEED = 1.5; // Minimum speed of sparks
+let SPARK_MAX_SPEED = 4.0; // Maximum speed of sparks
+let SPARK_MIN_RADIUS = 2; // Minimum radius of a spark
 // SPARK_MAX_RADIUS will be dynamic, ramping from 2 to SPARK_MAX_RADIUS_END
-const SPARK_MAX_RADIUS_START = 2;
-const SPARK_MAX_RADIUS_END = 60;
+let SPARK_MAX_RADIUS_START = 2;
+let SPARK_MAX_RADIUS_END = 60;
 let spark_max_radius = SPARK_MAX_RADIUS_START;
 
 function initialize_shake() {
@@ -39,6 +39,11 @@ function initialize_shake() {
     MAX_EXPLOSIONS = 3; // Fewer simultaneous explosions
     EXPLOSION_INITIAL_LIMIT = 1; // Even gentler start
     EXPLOSION_RANDOM_CHANCE = 0.7; // Lower chance of spawning
+    SPARK_MIN_SPEED = 0.5; // Minimum speed of sparks
+    SPARK_MAX_SPEED = 2.0; // Maximum speed of sparks
+    SPARK_MIN_RADIUS = 2; // Minimum radius of a spark
+    SPARK_MAX_RADIUS_START = 2;
+    SPARK_MAX_RADIUS_END = 15;
   }
 
   // Create and inject the text element
