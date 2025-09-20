@@ -11,6 +11,9 @@ async function initialize_pre_intro() {
   // Setup the UI immediately but keep it transparent
   setup_audio_interface();
 
+  // Check if Firefox and show warning if not
+  setup_firefox_detection();
+
   // Start background asset loading
   start_asset_loading();
 
@@ -28,6 +31,47 @@ async function wait_for_font_and_show_ui() {
   console.log("Fading in interface.");
   const interface_div = document.getElementById("audio_setup_interface");
   interface_div.classList.add("fade_in");
+}
+
+function setup_firefox_detection() {
+  const firefox_warning_modal = document.getElementById("firefox_warning_modal");
+  const firefox_download = document.getElementById("firefox_download");
+  const firefox_continue = document.getElementById("firefox_continue");
+  const firefox_icon = document.getElementById("firefox_icon");
+
+  function show_firefox_warning() {
+    firefox_warning_modal.style.display = "flex";
+  }
+
+  function hide_firefox_warning() {
+    firefox_warning_modal.style.display = "none";
+  }
+
+  function open_firefox_download() {
+    window.open("https://www.mozilla.org/firefox/", "_blank");
+  }
+
+  // Setup event listeners
+  firefox_download.addEventListener("click", function () {
+    open_firefox_download();
+    hide_firefox_warning();
+  });
+
+  firefox_continue.addEventListener("click", hide_firefox_warning);
+  firefox_icon.addEventListener("click", open_firefox_download);
+
+  // Modal click outside to close
+  firefox_warning_modal.addEventListener("click", function (event) {
+    if (event.target === firefox_warning_modal) {
+      hide_firefox_warning();
+    }
+  });
+
+  // Check browser and show warning if not Firefox
+  if (!window.browser_detection.is_firefox()) {
+    // Show warning after a brief delay to let the page settle
+    setTimeout(show_firefox_warning, 1500);
+  }
 }
 
 function setup_audio_interface() {
