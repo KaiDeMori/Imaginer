@@ -8,8 +8,11 @@ function start_sequence() {
   window.cinematic_starfield_manager.start_cinematic_sequence();
 }
 
-function initialize_cinematic() {
+function initialize_cinematic(gentle_mode = false) {
   cinematic_audio = document.getElementById("cinematic_audio");
+
+  // Store gentle mode for shake animation access
+  window.gentle_mode = gentle_mode;
 
   // Apply the volume set during pre-intro
   cinematic_audio.volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
@@ -22,14 +25,14 @@ function initialize_cinematic() {
 const audio_manager = {
   start_sequence,
   get_audio: () => cinematic_audio,
-  initialize_cinematic,
+  initialize_cinematic: (gentle_mode) => initialize_cinematic(gentle_mode),
   restore_cursor: () => document.body.classList.remove("hide_cursor"),
 };
 
 // Expose to global scope
 window.cinematic_bridge = {
   start_sequence,
-  initialize_cinematic,
+  initialize_cinematic: (gentle_mode) => initialize_cinematic(gentle_mode),
 };
 
 window.audio_manager = audio_manager;

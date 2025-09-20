@@ -41,7 +41,7 @@ function setup_audio_interface() {
   const modal_close = document.getElementById("modal_close");
   const language_buttons = document.querySelectorAll(".language_button");
   const trigger_texts = document.querySelectorAll(".trigger_text");
-  const skip_button = document.getElementById("skip_button");
+  const gentle_button = document.getElementById("gentle_button");
 
   let blip_enabled = true;
 
@@ -115,9 +115,9 @@ function setup_audio_interface() {
 
   function disable_all_action_buttons() {
     start_button.disabled = true;
-    skip_button.disabled = true;
+    gentle_button.disabled = true;
     start_button.removeEventListener("click", handle_start_click);
-    skip_button.removeEventListener("click", handle_skip_click);
+    gentle_button.removeEventListener("click", handle_gentle_click);
   }
 
   function fade_out_and_then(callback) {
@@ -130,15 +130,18 @@ function setup_audio_interface() {
     interface_div.classList.add("fade_out");
   }
 
-  function handle_skip_click() {
+  function handle_gentle_click() {
     disable_all_action_buttons();
 
-    // Restore cursor if user skips
-    document.body.classList.remove("hide_cursor");
+    // Hide cursor for the gentle cinematic sequence
+    document.body.classList.add("hide_cursor");
 
     fade_out_and_then(() => {
-      window.location.href = "about:blank";
+      interface_div.remove();
     });
+
+    // Start the gentle cinematic immediately
+    window.cinematic_bridge.initialize_cinematic(true); // true = gentle mode
   }
 
   // Event listeners
@@ -146,7 +149,7 @@ function setup_audio_interface() {
   fullscreen_button.addEventListener("click", toggle_fullscreen);
   warning_help.addEventListener("click", show_standard_warning);
   modal_close.addEventListener("click", hide_standard_warning);
-  skip_button.addEventListener("click", handle_skip_click);
+  gentle_button.addEventListener("click", handle_gentle_click);
 
   // Language switching
   language_buttons.forEach((button) => {
@@ -198,7 +201,7 @@ function setup_audio_interface() {
     });
 
     // Start the cinematic immediately
-    window.cinematic_bridge.initialize_cinematic();
+    window.cinematic_bridge.initialize_cinematic(false); // false = normal mode
   }
 
   start_button.addEventListener("click", handle_start_click);

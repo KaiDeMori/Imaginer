@@ -6,13 +6,13 @@
 
 // === Cinematic Explosion & Shake Timing Constants ===
 // You can tweak these to control the feel of the effect
-const EXPLOSION_MIN_RATE = 0.1; // Minimum explosions per frame at start
-const EXPLOSION_MAX_RATE = 10; // Maximum explosions per frame at peak
+let EXPLOSION_MIN_RATE = 0.1; // Minimum explosions per frame at start
+let EXPLOSION_MAX_RATE = 10; // Maximum explosions per frame at peak
 const EXPLOSION_RAMP_CONSTANT = 0.1; // How quickly the rate ramps up (0 = slow, 1 = instant)
-const EXPLOSION_INITIAL_LIMIT = 3; // Max explosions for first EXPLOSION_INITIAL_LIMIT_DURATION milliseconds
+let EXPLOSION_INITIAL_LIMIT = 3; // Max explosions for first EXPLOSION_INITIAL_LIMIT_DURATION milliseconds
 const EXPLOSION_INITIAL_LIMIT_DURATION = 400; // ms for initial limit
-const EXPLOSION_RANDOM_CHANCE = 0.9; // Chance to spawn each explosion per frame
-const MAX_EXPLOSIONS = 10; // Reduced for less final explosion density
+let EXPLOSION_RANDOM_CHANCE = 0.9; // Chance to spawn each explosion per frame
+let MAX_EXPLOSIONS = 10; // Reduced for less final explosion density
 
 // === Spark Parameters (for explosion sparks) ===
 // Adjust these to control the look and behavior of sparks
@@ -29,6 +29,17 @@ let spark_max_radius = SPARK_MAX_RADIUS_START;
 function initialize_shake() {
   // Prevents animation from continuing after phase transition begins
   let animation_stopped = false;
+
+  // Check if gentle mode is active
+  const gentle_mode = window.gentle_mode || false;
+
+  // Override parameters for gentle mode
+  if (gentle_mode) {
+    EXPLOSION_MAX_RATE = 2; // Much fewer explosions
+    MAX_EXPLOSIONS = 3; // Fewer simultaneous explosions
+    EXPLOSION_INITIAL_LIMIT = 1; // Even gentler start
+    EXPLOSION_RANDOM_CHANCE = 0.7; // Lower chance of spawning
+  }
 
   // Create and inject the text element
   const everything_fade_text = document.createElement("div");
@@ -57,7 +68,10 @@ function initialize_shake() {
     const cx = Math.random() * explosion_canvas.width;
     const cy = Math.random() * explosion_canvas.height;
     const max_radius = 40 + Math.random() * 60; // px
-    const color_palette = ["#ffec00", "#ff0080", "#00ffe7", "#ff5e00", "#00ff6a", "#a800ff", "#fff", "#00bfff", "#ff00c8"];
+    // Use softer colors in gentle mode
+    const normal_palette = ["#ffec00", "#ff0080", "#00ffe7", "#ff5e00", "#00ff6a", "#a800ff", "#fff", "#00bfff", "#ff00c8"];
+    const gentle_palette = ["#ffec88", "#ffaa88", "#88eeff", "#ffbb66", "#aaffaa", "#ccaaff", "#eeeeff", "#aaddff", "#ffaacc"];
+    const color_palette = gentle_mode ? gentle_palette : normal_palette;
     const color = color_palette[Math.floor(Math.random() * color_palette.length)];
     const duration = 500 + Math.random() * 400; // ms
     const start_time = performance.now();
@@ -119,7 +133,7 @@ function initialize_shake() {
       grad.addColorStop(0.5, `rgba(${r},${g},${b},0.8)`);
       grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
       ctx.save();
-      ctx.globalAlpha = opacity * 0.85;
+      ctx.globalAlpha = opacity * (gentle_mode ? 0.4 : 0.85); // Much softer in gentle mode
       ctx.globalCompositeOperation = "lighter";
       ctx.beginPath();
       ctx.arc(exp.cx, exp.cy, radius, 0, 2 * Math.PI);
@@ -142,7 +156,7 @@ function initialize_shake() {
         ctx.arc(spark_x, spark_y, spark_radius, 0, 2 * Math.PI);
         ctx.closePath();
         ctx.fillStyle = spark.color;
-        ctx.globalAlpha = opacity * 0.7;
+        ctx.globalAlpha = opacity * (gentle_mode ? 0.3 : 0.7); // Softer sparks in gentle mode
         ctx.shadowColor = spark.color;
         ctx.shadowBlur = 8;
         ctx.fill();
@@ -246,7 +260,7 @@ function initialize_shake() {
     const zoom_duration_ms = 12000;
     const zoom_amplitude = 0.08;
     const zoom_base = 1.0;
-    const shake_amplitude_px = 12;
+    const shake_amplitude_px = gentle_mode ? 0 : 12; // NO shaking in gentle mode
     const start_time = performance.now();
 
     let whiteout_frame_drawn = false;
