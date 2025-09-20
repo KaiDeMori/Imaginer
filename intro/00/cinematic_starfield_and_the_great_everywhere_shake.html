@@ -5,7 +5,11 @@
     <title>Cinematic Universe Creation</title>
     <link href="../fonts/Orbitron/Orbitron-VariableFont_wght.ttf" as="font" type="font/ttf" />
     <style>
-      /* Ensure black background from the very start */
+      /* ==========================================================================
+         BASE STYLES & TYPOGRAPHY
+         ========================================================================== */
+
+      /* Global reset and base styles */
       html,
       body {
         margin: 0;
@@ -14,13 +18,19 @@
         overflow: hidden;
       }
 
-      /* Local Orbitron font */
+      /* Custom font definition */
       @font-face {
         font-family: "Orbitron";
         src: url("../fonts/Orbitron/Orbitron-VariableFont_wght.ttf") format("truetype");
         font-weight: 100 900;
         font-display: swap;
       }
+
+      /* ==========================================================================
+         MAIN LAYOUT COMPONENTS
+         ========================================================================== */
+
+      /* Audio setup overlay interface */
       #audio_setup_interface {
         position: fixed;
         top: 0;
@@ -34,19 +44,41 @@
         z-index: 20;
         opacity: 0;
       }
-      #audio_setup_interface.fade_in {
-        opacity: 1;
-        transition: opacity 1s ease-in;
+
+      /* Main cinematic canvas */
+      #cinematic_canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        z-index: 10;
       }
-      #audio_setup_interface.fade_out {
-        opacity: 0;
-        transition: opacity 3s ease-out;
-      }
+
+      /* ==========================================================================
+         SETUP INTERFACE COMPONENTS
+         ========================================================================== */
+
+      /* Setup container wrapper */
       .setup_container {
         text-align: center;
         color: #fff;
         font-family: "Orbitron", monospace;
       }
+
+      /* Volume information text */
+      .volume_info {
+        margin: 20px 0;
+        font-size: 14px;
+        color: #aaa;
+      }
+
+      /* ==========================================================================
+         BUTTON STYLES
+         ========================================================================== */
+
+      /* Base button style for setup interface */
       .setup_button {
         background: #333;
         color: #fff;
@@ -55,50 +87,26 @@
         margin: 10px;
         font-family: "Orbitron", monospace;
         font-size: 16px;
-        cursor: pointer;
         border-radius: 4px;
         transition: all 0.2s;
         display: block;
         margin-left: auto;
         margin-right: auto;
       }
-      .setup_button:hover {
-        background: #555;
-        border-color: #888;
-      }
+
+      /* Start button variant */
       .start_button {
         background: #004400;
         border-color: #006600;
       }
-      .start_button:hover {
-        background: #006600;
-        border-color: #008800;
-      }
-      .volume_info {
-        margin: 20px 0;
-        font-size: 14px;
-        color: #aaa;
-      }
+
+      /* Fullscreen button variant */
       .fullscreen_button {
         background: #442200;
         border-color: #664400;
       }
-      .fullscreen_button:hover {
-        background: #664400;
-        border-color: #886600;
-      }
-      .trigger_warning {
-        margin: 15px auto 0 auto;
-        font-size: 12px;
-        color: #888;
-        line-height: 1.4;
-        position: relative;
-        text-align: center;
-      }
-      .warning_help_row {
-        margin-top: 8px;
-        text-align: center;
-      }
+
+      /* Gentle version button */
       .gentle_button {
         background: #003322;
         color: #66aa88;
@@ -107,38 +115,12 @@
         margin: 8px 0 4px 0;
         font-family: "Orbitron", monospace;
         font-size: 10px;
-        cursor: pointer;
         border-radius: 3px;
         transition: all 0.2s;
         display: inline-block;
       }
-      .gentle_button:hover {
-        background: #004433;
-        color: #88ccaa;
-        border-color: #668866;
-      }
-      .gentle_button {
-        background: #003322;
-        color: #66aa88;
-        border: 1px solid #444;
-        padding: 4px 12px;
-        margin: 8px 0 4px 0;
-        font-family: "Orbitron", monospace;
-        font-size: 10px;
-        cursor: pointer;
-        border-radius: 3px;
-        transition: all 0.2s;
-        display: inline-block;
-      }
-      .skip_button:hover {
-        background: #333;
-        color: #aaa;
-        border-color: #555;
-      }
-      .language_selector {
-        margin-top: 10px;
-        text-align: center;
-      }
+
+      /* Language selection buttons */
       .language_button {
         display: inline-block;
         font-size: 14px;
@@ -151,21 +133,8 @@
         font-family: "Orbitron", monospace;
         color: #aaa;
       }
-      .language_button:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #ccc;
-      }
-      .language_button.active {
-        border-color: #666;
-        background: rgba(255, 255, 255, 0.05);
-        color: #fff;
-      }
-      .trigger_text {
-        display: none;
-      }
-      .trigger_text.active {
-        display: block;
-      }
+
+      /* Warning help button */
       .warning_help {
         display: inline-block;
         width: 16px;
@@ -181,10 +150,151 @@
         border: 1px solid #888;
         transition: all 0.2s;
       }
+
+      /* Modal close button */
+      .modal_close {
+        background: #444;
+        color: #fff;
+        border: 1px solid #666;
+        padding: 8px 16px;
+        margin-top: 15px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-family: "Orbitron", monospace;
+      }
+
+      /* ==========================================================================
+         BUTTON HOVER & INTERACTION STATES
+         ========================================================================== */
+
+      /* Base setup button hover */
+      .setup_button:hover:not(:disabled) {
+        background: #555;
+        border-color: #888;
+      }
+
+      /* Start button hover */
+      .start_button:hover {
+        background: #006600;
+        border-color: #008800;
+      }
+
+      /* Fullscreen button hover */
+      .fullscreen_button:hover {
+        background: #664400;
+        border-color: #886600;
+      }
+
+      /* Gentle button hover */
+      .gentle_button:hover:not(:disabled) {
+        background: #004433;
+        color: #88ccaa;
+        border-color: #668866;
+      }
+
+      /* Language button hover */
+      .language_button:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ccc;
+      }
+
+      /* Warning help hover */
       .warning_help:hover {
         background: #888;
         border-color: #aaa;
       }
+
+      /* Modal close hover */
+      .modal_close:hover {
+        background: #666;
+      }
+
+      /* Skip button hover */
+      .skip_button:hover {
+        background: #333;
+        color: #aaa;
+        border-color: #555;
+      }
+
+      /* ==========================================================================
+         DISABLED STATES
+         ========================================================================== */
+
+      /* Disabled button states */
+      .setup_button:disabled,
+      .gentle_button:disabled,
+
+      /* ==========================================================================
+         ACTIVE & SPECIAL STATES
+         ========================================================================== */
+
+      /* Active language button */
+      .language_button.active {
+        border-color: #666;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+      }
+
+      /* Trigger text visibility states */
+      .trigger_text {
+        display: none;
+      }
+
+      .trigger_text.active {
+        display: block;
+      }
+
+      /* ==========================================================================
+         ANIMATION & TRANSITION STATES
+         ========================================================================== */
+
+      /* Fade animations for setup interface */
+      #audio_setup_interface.fade_in {
+        opacity: 1;
+        transition: opacity 1s ease-in;
+      }
+
+      #audio_setup_interface.fade_out {
+        opacity: 0;
+        transition: opacity 3s ease-out;
+      }
+
+      /* Utility class for hiding cursor during animations */
+      .hide_cursor {
+        cursor: none !important;
+      }
+
+      /* ==========================================================================
+         CONTENT SECTIONS
+         ========================================================================== */
+
+      /* Language selector container */
+      .language_selector {
+        margin-top: 10px;
+        text-align: center;
+      }
+
+      /* Trigger warning text container */
+      .trigger_warning {
+        margin: 15px auto 0 auto;
+        font-size: 12px;
+        color: #888;
+        line-height: 1.4;
+        position: relative;
+        text-align: center;
+      }
+
+      /* Warning help row container */
+      .warning_help_row {
+        margin-top: 8px;
+        text-align: center;
+      }
+
+      /* ==========================================================================
+         MODAL COMPONENTS
+         ========================================================================== */
+
+      /* Warning modal overlay */
       .standard_warning_modal {
         position: fixed;
         top: 0;
@@ -197,6 +307,8 @@
         justify-content: center;
         z-index: 30;
       }
+
+      /* Modal content container */
       .modal_content {
         background: #222;
         color: #fff;
@@ -206,35 +318,6 @@
         text-align: center;
         font-family: "Orbitron", monospace;
         border: 2px solid #666;
-      }
-      .modal_close {
-        background: #444;
-        color: #fff;
-        border: 1px solid #666;
-        padding: 8px 16px;
-        margin-top: 15px;
-        cursor: pointer;
-        border-radius: 4px;
-        font-family: "Orbitron", monospace;
-      }
-      .modal_close:hover {
-        background: #666;
-      }
-      /* Hide cursor during animation */
-      .hide_cursor {
-        cursor: none !important;
-      }
-
-      /* Ensure canvas starts black and invisible */
-      #cinematic_canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: #000;
-        /* display: none; */
-        z-index: 10;
       }
     </style>
     <script src="pre_intro_ui.js"></script>
@@ -254,7 +337,7 @@
         <button id="fullscreen_button" class="setup_button fullscreen_button">Fullscreen</button>
         <button id="test_audio_button" class="setup_button">Test Audio</button>
         <p class="volume_info">↑ ↓ adjust volume</p>
-        <button id="start_button" class="setup_button" disabled>Loading...</button>
+        <button id="start_button" disabled class="setup_button">Loading...</button>
         <div class="language_selector">
           <span class="language_button active" data-lang="en" lang="en">Hello</span>
           <span class="language_button" data-lang="es" lang="es">Hola</span>
@@ -282,7 +365,7 @@
         </div>
 
         <div class="warning_help_row">
-          <button id="gentle_button" class="gentle_button">Gentle Version</button><br />
+          <button id="gentle_button" disabled class="gentle_button setup_button">Gentle Version</button><br />
           <span id="warning_help" class="warning_help">?</span>
         </div>
       </div>

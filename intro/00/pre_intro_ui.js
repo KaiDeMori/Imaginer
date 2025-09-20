@@ -35,13 +35,13 @@ function setup_audio_interface() {
   const test_button = document.getElementById("test_audio_button");
   const fullscreen_button = document.getElementById("fullscreen_button");
   const start_button = document.getElementById("start_button");
+  const gentle_button = document.getElementById("gentle_button");
   const interface_div = document.getElementById("audio_setup_interface");
   const warning_help = document.getElementById("warning_help");
   const standard_warning_modal = document.getElementById("standard_warning_modal");
   const modal_close = document.getElementById("modal_close");
   const language_buttons = document.querySelectorAll(".language_button");
   const trigger_texts = document.querySelectorAll(".trigger_text");
-  const gentle_button = document.getElementById("gentle_button");
 
   let blip_enabled = true;
 
@@ -116,8 +116,8 @@ function setup_audio_interface() {
   function disable_all_action_buttons() {
     start_button.disabled = true;
     gentle_button.disabled = true;
-    start_button.removeEventListener("click", handle_start_click);
-    gentle_button.removeEventListener("click", handle_gentle_click);
+    start_button.removeEventListener("click", handle_click);
+    gentle_button.removeEventListener("click", handle_click);
   }
 
   function fade_out_and_then(callback) {
@@ -130,26 +130,11 @@ function setup_audio_interface() {
     interface_div.classList.add("fade_out");
   }
 
-  function handle_gentle_click() {
-    disable_all_action_buttons();
-
-    // Hide cursor for the gentle cinematic sequence
-    document.body.classList.add("hide_cursor");
-
-    fade_out_and_then(() => {
-      interface_div.remove();
-    });
-
-    // Start the gentle cinematic immediately
-    window.cinematic_bridge.initialize_cinematic(true); // true = gentle mode
-  }
-
   // Event listeners
   test_button.addEventListener("click", play_blip);
   fullscreen_button.addEventListener("click", toggle_fullscreen);
   warning_help.addEventListener("click", show_standard_warning);
   modal_close.addEventListener("click", hide_standard_warning);
-  gentle_button.addEventListener("click", handle_gentle_click);
 
   // Language switching
   language_buttons.forEach((button) => {
@@ -183,41 +168,39 @@ function setup_audio_interface() {
   start_button.textContent = "Loading...";
   start_button.disabled = true;
   start_button.classList.remove("start_button");
+  gentle_button.disabled = true;
+  //gentle_button.classList.remove("gentle_button");
 
-  function handle_start_click() {
+  function handle_click(gentle_mode = false) {
+    console.log("Starting cinematic sequence in" + (gentle_mode ? " gentle mode." : " normal mode."));
     if (!window.cinematic_bridge) {
       console.error("Cinematic bridge not loaded!");
       return;
     }
 
     disable_all_action_buttons();
-    blip_enabled = false;
-
-    // Hide cursor for the entire cinematic sequence
     document.body.classList.add("hide_cursor");
-
+    blip_enabled = false;
     fade_out_and_then(() => {
       interface_div.remove();
     });
-
-    // Start the cinematic immediately
-    window.cinematic_bridge.initialize_cinematic(false); // false = normal mode
+    window.cinematic_bridge.initialize_cinematic(gentle_mode); // true = gentle mode
   }
 
-  start_button.addEventListener("click", handle_start_click);
+  // Setup asset loading callback now that handle_click is defined
+  on_assets_loaded = function () {
+    start_button.addEventListener("click", handle_click);
+    start_button.textContent = "Start";
+    start_button.disabled = false;
+    start_button.classList.add("start_button");
+    gentle_button.addEventListener("click", handle_click.bind(null, true));
+    gentle_button.disabled = false;
+  };
 
   // Don't fade in here - wait for font loading to complete
 }
 
 function start_asset_loading() {
-  // This will be called by asset_loader.js when complete
-  on_assets_loaded = function () {
-    const start_button = document.getElementById("start_button");
-    start_button.textContent = "Start";
-    start_button.disabled = false;
-    start_button.classList.add("start_button");
-  };
-
   // Load the asset loader and start loading
   const script = document.createElement("script");
   script.src = "asset_loader.js";
