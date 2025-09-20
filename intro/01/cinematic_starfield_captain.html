@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Starfield Captain - Interactive Flight</title>
+    <link rel="stylesheet" href="cinematic_starfield.css" />
+    <style>
+      #debug_controls {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        padding: 5px;
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        text-align: center;
+        gap: 8px;
+        cursor: auto;
+      }
+      #zoom_slider_container,
+      #star_count_slider_container {
+        background: rgba(20, 20, 20, 0.92);
+        border-radius: 10px;
+        padding: 10px 16px 8px 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 170px;
+        z-index: 1000;
+      }
+      #zoom_slider_container {
+        margin-bottom: 0px;
+      }
+      #star_count_slider_container {
+        margin-top: 0px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      #star_count_slider {
+        width: 120px;
+      }
+      #star_count_label {
+        color: #fff;
+        font-size: 0.95em;
+        margin-top: 2px;
+        font-family: sans-serif;
+        user-select: none;
+      }
+      #zoom_speed_slider {
+        width: 120px;
+      }
+      #zoom_speed_label {
+        color: #fff;
+        font-size: 0.95em;
+        margin-top: 2px;
+        font-family: sans-serif;
+        user-select: none;
+      }
+      #ui_toggle_hint {
+        color: wheat;
+        font-size: 0.85em;
+        font-family: sans-serif;
+        user-select: none;
+        margin-top: 2px;
+      }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body style="cursor: none">
+    <canvas id="cinematic_canvas" aria-label="Interactive starfield for manual flight"></canvas>
+
+    <div id="debug_controls" style="display: block">
+      <div id="zoom_slider_container">
+        <input type="range" id="zoom_speed_slider" min="0" max="0.1" step="0.00005" value="0.001" />
+        <label for="zoom_speed_slider" id="zoom_speed_label"></label>
+      </div>
+      <div id="star_count_slider_container">
+        <input type="range" id="star_count_slider" min="20" max="30000" step="1" value="200" />
+        <label for="star_count_slider" id="star_count_label"></label>
+      </div>
+      <span id="ui_toggle_hint">Hide with SPACE</span>
+    </div>
+
+    <script src="cinematic_starfield_manager.js"></script>
+    <script>
+      // Interactive starfield sequence that runs forever and responds to slider input
+      const interactive_starfield_sequence = [{ duration: 0, star_count: { from: 200, to: 200 }, zoom_speed: { from: 0.001, to: 0.001 } }];
+
+      // Override the global sequence before creating the manager
+      window.active_cinematic_starfield_timing_sequence = interactive_starfield_sequence;
+
+      // Create the starfield manager
+      const starfield_manager = new CinematicStarfieldManager();
+
+      // Override the static threshold to keep all stars dynamic within our slider range
+      starfield_manager.SWITCH_TO_STATIC_THRESHOLD = 50000;
+
+      // Get slider and label elements
+      const zoom_speed_slider = document.getElementById("zoom_speed_slider");
+      const zoom_speed_label = document.getElementById("zoom_speed_label");
+      const star_count_slider = document.getElementById("star_count_slider");
+      const star_count_label = document.getElementById("star_count_label");
+
+      // Update the sequence values based on slider input
+      function update_sequence_from_sliders() {
+        const current_step = interactive_starfield_sequence[0];
+        const star_count = parseInt(star_count_slider.value);
+        const zoom_speed = parseFloat(zoom_speed_slider.value);
+
+        current_step.star_count.from = star_count;
+        current_step.star_count.to = star_count;
+        current_step.zoom_speed.from = zoom_speed;
+        current_step.zoom_speed.to = zoom_speed;
+      }
+
+      // Update labels with current values
+      function update_labels() {
+        star_count_label.textContent = `Stars: ${star_count_slider.value}`;
+        const zoom_display = (parseFloat(zoom_speed_slider.value) * 1000).toFixed(1);
+        zoom_speed_label.textContent = `Zoom: ${zoom_display}`;
+      }
+
+      // Set up slider event listeners
+      zoom_speed_slider.addEventListener("input", () => {
+        update_sequence_from_sliders();
+        update_labels();
+      });
+
+      star_count_slider.addEventListener("input", () => {
+        update_sequence_from_sliders();
+        update_labels();
+      });
+
+      // Initialize with default values
+      update_sequence_from_sliders();
+      update_labels();
+
+      // Start the starfield animation
+      starfield_manager.start_cinematic_sequence();
+
+      // UI visibility toggle with space bar
+      const debug_controls = document.getElementById("debug_controls");
+      let ui_visible = true;
+
+      function toggle_ui_visibility() {
+        ui_visible = !ui_visible;
+        debug_controls.style.display = ui_visible ? "block" : "none";
+      }
+
+      // Space bar event listener
+      document.addEventListener("keydown", (event) => {
+        if (event.code === "Space") {
+          event.preventDefault(); // Prevent page scroll
+          toggle_ui_visibility();
+        }
+      });
+    </script>
+  </body>
+</html>
