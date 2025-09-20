@@ -22,6 +22,11 @@
         overflow: hidden;
       }
 
+      /* Font scaling CSS variable */
+      :root {
+        --font-scale: 1;
+      }
+
       /* Custom font definitions */
       @font-face {
         font-family: "Andika";
@@ -65,22 +70,27 @@
       /* Font hotkey classes - apply to body for global switching */
       .font-1 * {
         font-family: "Andika", monospace !important;
+        font-size: calc(var(--font-scale) * 1em) !important;
       }
 
       .font-2 * {
         font-family: "Comic Neue", monospace !important;
+        font-size: calc(var(--font-scale) * 1em) !important;
       }
 
       .font-3 * {
         font-family: "Noto Sans", monospace !important;
+        font-size: calc(var(--font-scale) * 1em) !important;
       }
 
       .font-4 * {
         font-family: "Orbitron", monospace !important;
+        font-size: calc(var(--font-scale) * 1em) !important;
       }
 
       .font-5 * {
         font-family: "Quicksand", monospace !important;
+        font-size: calc(var(--font-scale) * 1em) !important;
       }
 
       /* ==========================================================================

@@ -1,7 +1,12 @@
 window.AUDIO_VOLUME_KEY = "imaginer_audio_volume";
+window.FONT_SCALE_KEY = "imaginer_font_scale";
 
 if (localStorage.getItem(window.AUDIO_VOLUME_KEY) === null) {
   localStorage.setItem(window.AUDIO_VOLUME_KEY, "1.0");
+}
+
+if (localStorage.getItem(window.FONT_SCALE_KEY) === null) {
+  localStorage.setItem(window.FONT_SCALE_KEY, "1.0");
 }
 
 // Asset loading completion callback
@@ -35,6 +40,10 @@ async function wait_for_font_and_show_ui() {
 
   await Promise.all(font_promises);
   console.log("All fonts loaded.");
+
+  // Apply saved font scale
+  const saved_font_scale = parseFloat(localStorage.getItem(window.FONT_SCALE_KEY));
+  document.documentElement.style.setProperty("--font-scale", saved_font_scale.toString());
 
   // Set default font (Orbitron - font 4)
   document.body.classList.add("font-4");
@@ -123,6 +132,19 @@ function setup_audio_interface() {
     play_blip();
   }
 
+  function adjust_font_scale(delta) {
+    // get from localStorage, adjust, clamp to [0.5, 2.0]
+    const current_font_scale = parseFloat(localStorage.getItem(window.FONT_SCALE_KEY));
+    const new_font_scale = Math.max(0.5, Math.min(2.0, current_font_scale + delta));
+    // Save to localStorage
+    localStorage.setItem(window.FONT_SCALE_KEY, new_font_scale.toString());
+
+    // Apply to CSS variable
+    document.documentElement.style.setProperty("--font-scale", new_font_scale.toString());
+
+    console.log(`Font scale set to ${new_font_scale}`);
+  }
+
   function toggle_fullscreen() {
     if (!document.fullscreenElement) {
       document.documentElement
@@ -199,8 +221,9 @@ function setup_audio_interface() {
     }
   });
 
-  // Volume control and font switching via keyboard
+  // Volume control, font scaling, and font switching via keyboard
   const volume_step = 0.02;
+  const font_scale_step = 0.01;
   document.addEventListener("keydown", function (event) {
     // Font switching (works always, no audio condition)
     if (event.key >= "1" && event.key <= "5") {
@@ -214,6 +237,17 @@ function setup_audio_interface() {
       return; // Don't process other keys
     }
 
+    // Font scaling (works always, no audio condition)
+    if (event.key === "+" || event.key === "=" || event.code === "NumpadAdd") {
+      event.preventDefault();
+      adjust_font_scale(font_scale_step);
+      return;
+    } else if (event.key === "-" || event.code === "NumpadSubtract") {
+      event.preventDefault();
+      adjust_font_scale(-font_scale_step);
+      return;
+    }
+
     // Volume control (only when audio is ready)
     if (!blip_audio.ended) return;
     if (event.key === "ArrowUp") {
@@ -223,9 +257,7 @@ function setup_audio_interface() {
       event.preventDefault();
       adjust_volume(-volume_step);
     }
-  });
-
-  // Start button - immediately set to loading state
+  }); // Start button - immediately set to loading state
   start_button.textContent = "Loading...";
   start_button.disabled = true;
   start_button.classList.remove("start_button");
