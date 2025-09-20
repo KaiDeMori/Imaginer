@@ -199,9 +199,22 @@ function setup_audio_interface() {
     }
   });
 
-  // Volume control via keyboard
+  // Volume control and font switching via keyboard
   const volume_step = 0.02;
   document.addEventListener("keydown", function (event) {
+    // Font switching (works always, no audio condition)
+    if (event.key >= "1" && event.key <= "5") {
+      // Remove any existing font classes
+      document.body.classList.remove("font-1", "font-2", "font-3", "font-4", "font-5");
+
+      // Add the new font class
+      document.body.classList.add(`font-${event.key}`);
+
+      console.log(`Switched to font ${event.key}`);
+      return; // Don't process other keys
+    }
+
+    // Volume control (only when audio is ready)
     if (!blip_audio.ended) return;
     if (event.key === "ArrowUp") {
       event.preventDefault();
