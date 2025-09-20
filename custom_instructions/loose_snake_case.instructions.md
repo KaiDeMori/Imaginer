@@ -6,8 +6,12 @@ applyTo: '**'
 
 ## Naming Conventions
 - Use **loose_snake_case** for all component, file, variable, and method names (e.g., `menu_bar.js`, `session_store.js`).
-- Retain normal uppercasing for abbreviations (e.g., `DB`, `SQL`) and for standard conventions (e.g., `onMouseDown`).
-- Use proper English words in names whenever possible; avoid abbreviations unless they are standard (e.g., `DB`, `SQL`).
+- Use proper English words in names whenever possible; avoid abbreviations unless they are standard
+    - Examples for allowed abbreviations: `DB`, `SQL`, `JSON`
+	- Examples for disallowed abbreviations: `img` (should be `image`), `ctx` (should be `context`)
+- If abbreviations are used retain normal uppercasing for them (e.g., `connect_DB_endpoint`, `SQL_data_schema`)
+- Built-in functions and library functions are exempt (e.g., `onMouseDown`).
+- If diverging naming is encountered in already existing code, do NOT change it. Preexisting naming is only changed on *explicit* user request, usually in a dedicated refactoring session.
 
 ### Examples
 - `open_DB_connection`

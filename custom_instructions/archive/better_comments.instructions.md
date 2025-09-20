@@ -2,8 +2,6 @@
 applyTo: "**"
 ---
 
-** DO NOT WRITE COMMENTS UNLESS THEY FOLLOW THESE RULES **
-
 # Instructions for Better Comments
 
 - Keep the comments timeless and general.
