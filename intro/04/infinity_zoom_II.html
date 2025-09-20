@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Infinity Zoom II</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Font preload for better performance -->
+    <link href="../fonts/Orbitro
+    <div class="info_overlay">
+      <div>Press 'R' → Trigger region zoom</div>
+      <div>Press 'P' → Pause animation</div>
+    </div>
+    tron-VariableFont_wght.ttf" rel="preload" as="font" type="font/ttf" crossori
+    <div class="info_overlay">
+      <div>Press 'R' → Trigger region zoom</div>
+      <div>Press 'P' → Pause animation</div>
+    </div>
+
+    <!-- Load all infinity zoom dependencies -->
+    <script src="regions.js" defer></script>
+    <script src="infinity_zoom_II_configs.js" defer></script>
+    <script src="infinity_zoom_debug.js" defer></script>
+    <script src="infinity_zoom_II_engine.js" defer></script>
+    <script src="infinity_zoom_II_utils.js" defer></script>
+    <script src="infinity_zoom_II_preloader.js" defer></script>
+
+    <script src="region_zoom_utils.js" defer></script>
+    <script src="mystery_image_region_zoom.js" defer></script>
+    <script src="infinity_zoom_II_featherer.js" defer></script>
+    <script src="region_zoom.js" defer></script>
+    <script src="mystery_image_main_zoom.js" defer></script>
+
+    <!-- Audio elements for cinematic timing -->
+    <audio id="cinematic_audio" preload="auto">
+      <source src="../audio/Also_sprach_Zarathustra.webm" type="audio/webm" />
+      Your browser does not support the audio element.
+    </audio>
+
+    <audio id="bach_audio" preload="auto">
+      <source src="../audio/Bach_Air.m4a" type="audio/mp4" />
+      Your browser does not support the audio element.
+    </audio>
+
+    <script defer>
+      // Audio transition state
+      let audio_transition_state = {
+        zarathustra_audio: null,
+        bach_audio: null,
+        zarathustra_end_timestamp: null,
+        music_transition_complete: false,
+      };
+
+      function start_infinity_zoom_II() {
+        const config = window.infinity_zoom_II.config;
+
+        // Check for URL parameter 't' to enable cinematic audio timing
+        const url_params = new URLSearchParams(window.location.search);
+        const audio_start_time = url_params.get("t");
+
+        if (audio_start_time !== null) {
+          setup_cinematic_audio_mode(parseFloat(audio_start_time));
+        }
+
+        // Setup debug controls
+        window.infinity_zoom_II.debug.setup_controls();
+        // Apply persisted debug values to config
+        window.infinity_zoom_II.debug.apply_persisted_debug_values();
+
+        window.infinity_zoom_II.engine.create(document.getElementById("zoom_canvas"));
+
+        // Add keyboard shortcuts
+        setup_keyboard_shortcuts();
+      }
+
+      function setup_cinematic_audio_mode(start_time) {
+        audio_transition_state.zarathustra_audio = document.getElementById("cinematic_audio");
+        audio_transition_state.bach_audio = document.getElementById("bach_audio");
+
+        const volume = parseFloat(localStorage.getItem("imaginer_audio_volume") || "1.0");
+        audio_transition_state.zarathustra_audio.volume = volume;
+        audio_transition_state.bach_audio.volume = volume;
+
+        audio_transition_state.zarathustra_audio.currentTime = start_time;
+        audio_transition_state.zarathustra_audio.play();
+
+        // Setup music transition monitoring
+        setup_music_transition_monitoring();
+      }
+
+      function setup_music_transition_monitoring() {
+        const music_promise = wait_for_zarathustra_end_plus_silence();
+        const phase_promise = wait_for_phase_4_hold_state();
+
+        Promise.all([music_promise, phase_promise]).then(() => {
+          start_bach_and_main_zoom();
+        });
+      }
+
+      function wait_for_zarathustra_end_plus_silence() {
+        return new Promise((resolve) => {
+          const zarathustra = audio_transition_state.zarathustra_audio;
+
+          if (zarathustra.ended || zarathustra.currentTime >= zarathustra.duration) {
+            audio_transition_state.zarathustra_end_timestamp = performance.now();
+            setTimeout(resolve, 2000);
+            return;
+          }
+
+          const on_ended = () => {
+            audio_transition_state.zarathustra_end_timestamp = performance.now();
+            zarathustra.removeEventListener("ended", on_ended);
+            setTimeout(resolve, 2000);
+          };
+
+          zarathustra.addEventListener("ended", on_ended);
+        });
+      }
+
+      function wait_for_phase_4_hold_state() {
+        return new Promise((resolve) => {
+          const check_phase_state = () => {
+            if (window.infinity_zoom_II.engine && window.infinity_zoom_II.engine.animation_phase === "hold") {
+              resolve();
+            } else {
+              setTimeout(check_phase_state, 100);
+            }
+          };
+
+          check_phase_state();
+        });
+      }
+
+      function start_bach_and_main_zoom() {
+        audio_transition_state.bach_audio.currentTime = 0;
+        audio_transition_state.bach_audio.play();
+
+        window.phase_4_music_ready = true;
+        audio_transition_state.music_transition_complete = true;
+      }
+
+      function setup_keyboard_shortcuts() {
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "r" || event.key === "R") {
+            console.log("Triggering region zoom...");
+            window.infinity_zoom_II.FLAG_initiate_final_reveal = true;
+          } else if (event.key === "p" || event.key === "P") {
+            console.log("Pausing animation...");
+            window.infinity_zoom_II.engine.pause();
+          }
+        });
+      }
+    </script>
+
+    <style>
+      /* Custom font definition */
+      @font-face {
+        font-family: "Orbitron";
+        src: url("../fonts/Orbitron/Orbitron-VariableFont_wght.ttf") format("truetype");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        font-family: "Orbitron", monospace;
+      }
+
+      #zoom_canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+      }
+
+      #debug_div {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        border: 2px solid #00ff00;
+        background-color: rgba(245, 222, 179, 0.9);
+        padding: 10px;
+        z-index: 1000;
+        font-family: "Orbitron", monospace;
+        font-size: 12px;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      #debug_div button {
+        background: #333;
+        color: #fff;
+        border: 1px solid #666;
+        padding: 4px 8px;
+        margin: 2px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-family: "Orbitron", monospace;
+        font-size: 10px;
+      }
+
+      #debug_div button:hover {
+        background: #555;
+        border-color: #888;
+      }
+
+      #debug_div label {
+        display: block;
+        margin: 4px 0;
+        color: #333;
+      }
+
+      #debug_div input[type="checkbox"] {
+        margin-right: 5px;
+      }
+
+      #debug_div input[type="number"],
+      #debug_div select {
+        width: 80px;
+        margin-left: 5px;
+        font-family: "Orbitron", monospace;
+        font-size: 10px;
+      }
+
+      /* Info overlay for keyboard shortcuts */
+      .info_overlay {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 8px;
+        border-radius: 4px;
+        font-family: "Orbitron", monospace;
+        font-size: 11px;
+        z-index: 999;
+      }
+    </style>
+  </head>
+
+  <body onload="start_infinity_zoom_II()">
+    <canvas id="zoom_canvas"></canvas>
+
+    <div id="debug_div">
+      <button onclick="location.reload(true)">Reload</button>
+      <button onclick="window.infinity_zoom_II.FLAG_initiate_final_reveal = true;">Trigger Final Reveal</button>
+      <br />
+      <label>
+        <input type="checkbox" id="global_rotation_enabled" />
+        Global rotation enabled
+      </label>
+      <br />
+      <label>
+        Feather Size:
+        <input type="number" id="feather_size" min="0" step="1" />
+      </label>
+      <br />
+      <label>
+        Region:
+        <select id="region_select"></select>
+      </label>
+    </div>
+
+    <div class="info_overlay">
+      <div>Press 'R' → Trigger region zoom</div>
+      <div>Press 'P' → Pause animation</div>
+    </div>
+  </body>
+</html>
