@@ -45,6 +45,37 @@ function setup_api_key_interface() {
   const message_div = document.getElementById("api_key_message");
   const ok_button = document.getElementById("api_key_ok");
 
+  function validate_api_key_format(key) {
+    if (!key) return { valid: false, message: "" };
+
+    // Modern key pattern: sk-proj- followed by at least 100 chars [A-Za-z0-9_-]
+    const modern_pattern = /^sk-proj-[A-Za-z0-9_-]{100,}$/;
+    // Legacy key pattern: sk- followed by exactly 48 chars [A-Za-z0-9_-]
+    const legacy_pattern = /^sk-[A-Za-z0-9_-]{48}$/;
+
+    if (modern_pattern.test(key)) {
+      return { valid: true, message: "✓ Modern API key format" };
+    } else if (legacy_pattern.test(key)) {
+      return { valid: true, message: "✓ Legacy API key format (still valid)" };
+    } else if (key.startsWith("sk-proj-")) {
+      if (key.length < 108) {
+        // sk-proj- (8) + 100 chars = 108 minimum
+        return { valid: false, message: "⚠️ Key too short" };
+      } else {
+        return { valid: false, message: "⚠️ Key contains invalid characters" };
+      }
+    } else if (key.startsWith("sk-")) {
+      if (key.length !== 51) {
+        // sk- (3) + 48 chars = 51 total
+        return { valid: false, message: "⚠️ Legacy key wrong length (needs exactly 48 chars after sk-)" };
+      } else {
+        return { valid: false, message: "⚠️ Legacy key contains invalid characters" };
+      }
+    } else {
+      return { valid: false, message: "⚠️ API key must start with sk- or sk-proj-" };
+    }
+  }
+
   test_button.addEventListener("click", async () => {
     const key = input.value.trim();
     if (!key) return;
@@ -95,7 +126,16 @@ function setup_api_key_interface() {
   });
 
   input.addEventListener("input", () => {
-    message_div.textContent = "";
+    const key = input.value.trim();
+    const validation = validate_api_key_format(key);
+
+    if (key && validation.message) {
+      message_div.textContent = validation.message;
+      message_div.style.color = validation.valid ? "#66ff66" : "#ffaa66";
+    } else {
+      message_div.textContent = "";
+    }
+
     ok_button.style.visibility = "hidden";
   });
 
