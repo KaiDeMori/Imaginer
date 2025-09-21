@@ -3,6 +3,7 @@
 // Ensures all config keys have default values in localStorage
 
 const DEFAULT_CONFIG = {
+  "imaginer.prompt": "A unicorn-dinosaur.",
   "imaginer.max_parallel_generations": "3",
   "imaginer.n": "1",
   "imaginer.background": "auto",
@@ -11,9 +12,8 @@ const DEFAULT_CONFIG = {
   "imaginer.strip_metadata": "true",
   "imaginer.add_prompt_to_image": "false",
   "imaginer.add_prompt_to_image_xmp": "true",
-  "imaginer.show_mask_mode_button": "true",
+  "imaginer.show_mask_mode_button": "false",
   "imaginer.dividerWidth": "300",
-  imaginer_prompt: "A unicorn-dinosaur.",
 };
 
 /**

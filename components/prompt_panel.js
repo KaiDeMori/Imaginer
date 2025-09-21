@@ -60,7 +60,7 @@ export class Prompt_panel {
 
   render() {
     // Load prompt from localStorage
-    const saved_prompt = localStorage.getItem("imaginer_prompt");
+    const saved_prompt = localStorage.getItem("imaginer.prompt");
     this.root.innerHTML = `
       <div id="prompt-panel-inner" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
         <textarea
@@ -136,7 +136,7 @@ export class Prompt_panel {
 
     // Save prompt to localStorage on change
     prompt_input.addEventListener("input", () => {
-      localStorage.setItem("imaginer_prompt", prompt_input.value);
+      localStorage.setItem("imaginer.prompt", prompt_input.value);
     });
 
     generate_btn.addEventListener("click", () => {
