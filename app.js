@@ -75,6 +75,13 @@ window.addEventListener("DOMContentLoaded", () => {
   // Initialize the resizable divider component, which allows resizing between the gallery and prompt panel.
   const divider = new Resizable_divider(document.getElementById("divider"), document.getElementById("gallery"), document.getElementById("prompt-panel"));
 
+  // Expose internals for intro transition only
+  window.expose_internals_for_intro = () => ({
+    add_image: (blob, prompt = "intro_image") => gallery.addThumbnail(blob, prompt, Date.now()),
+    open_image: (blob, opts = {}) => viewer.open(blob, opts),
+    viewer: viewer,
+  });
+
   let activeGenerations = 0;
   function get_maximum_parallel_generations() {
     return parseInt(localStorage.getItem("imaginer.max_parallel_generations"), 10) || 3;
