@@ -4,7 +4,7 @@
 
 console.log("[Phase4Transition] Module loaded");
 
-const ABSOLUTE_BASE_DIRECTORY_PHASE4 = "/Imaginer/intro/04";
+const RELATIVE_BASE_DIRECTORY_PHASE4 = "../04";
 
 // Phase 4 dependency loading order (critical - some files depend on others)
 const PHASE_04_DEPENDENCIES = [
@@ -70,7 +70,7 @@ class Phase4Transition {
 
     // Load all dependencies in order (sequential for dependencies, parallel where safe)
     for (const dependency of PHASE_04_DEPENDENCIES) {
-      const script_url = `${ABSOLUTE_BASE_DIRECTORY_PHASE4}/${dependency}`;
+      const script_url = `${RELATIVE_BASE_DIRECTORY_PHASE4}/${dependency}`;
       load_promises.push(this.load_script(script_url));
     }
 

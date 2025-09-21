@@ -1,4 +1,4 @@
-const ABSOLUTE_BASE_DIRECTORY_INTRO = "/Imaginer/intro";
+const RELATIVE_BASE_DIRECTORY_INTRO = "../";
 
 const ASSET_URLS_ORDERED = [
   "01/cinematic_starfield.css",
@@ -20,13 +20,13 @@ const asset_loader = {
   async start_loading(callback) {
     // Load ordered assets sequentially
     for (const relative_url of ASSET_URLS_ORDERED) {
-      const url = `${ABSOLUTE_BASE_DIRECTORY_INTRO}/${relative_url}`;
+      const url = `${RELATIVE_BASE_DIRECTORY_INTRO}${relative_url}`;
       await this.load_asset(url);
     }
 
     // Load bulk assets in parallel (including phase 2 images)
     const bulk_promises = ASSET_URLS_BULK.map((relative_url) => {
-      const url = `${ABSOLUTE_BASE_DIRECTORY_INTRO}/${relative_url}`;
+      const url = `${RELATIVE_BASE_DIRECTORY_INTRO}${relative_url}`;
       return this.load_asset(url);
     });
 
