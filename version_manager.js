@@ -1,13 +1,15 @@
 // version_manager.js
 // Handles version tracking and user-facing update messages
 
-const APP_VERSION = '1.0';
-const VERSION_STORAGE_KEY = 'imaginer_app_version';
+import { version_message_modal } from "./components/version_message_modal.js";
 
-// Map of version numbers to messages to show to users
-const VERSION_MESSAGES = {
-  '1.0': 'Welcome to Imaginer 1.0! If you used the alpha version, some features may have changed. Please review the new features and report any issues.\n\nNew: There is now a button to download all images in the current gallery for backup in a zip file.',
-  // Add future version messages here
+const APP_VERSION = "1.0";
+const VERSION_STORAGE_KEY = "imaginer_app_version";
+
+// Map of version numbers to HTML file paths
+const VERSION_HTML_FILES = {
+  "1.0": "version_messages/version_1.0.0.html",
+  // Add future version HTML files here
 };
 
 function get_stored_version() {
@@ -18,23 +20,19 @@ function set_stored_version(version) {
   localStorage.setItem(VERSION_STORAGE_KEY, version);
 }
 
-function get_update_message(current_version, previous_version) {
-  if (!previous_version) {
-    // User is coming from alpha (no version stored)
-    return 'You are upgrading from the alpha version. Welcome to 1.0! Please note that some features may have changed.';
-  }
-  if (current_version !== previous_version && VERSION_MESSAGES[current_version]) {
-    return VERSION_MESSAGES[current_version];
+function get_version_html_path(current_version, previous_version) {
+  if (current_version !== previous_version && VERSION_HTML_FILES[current_version]) {
+    return VERSION_HTML_FILES[current_version];
   }
   return null;
 }
 
-function check_and_show_update_message() {
+async function check_and_show_update_message() {
   const previous_version = get_stored_version();
-  const message = get_update_message(APP_VERSION, previous_version);
-  if (message) {
-    // Replace this with your preferred UI for showing messages
-    alert(message);
+  const html_path = get_version_html_path(APP_VERSION, previous_version);
+  if (html_path) {
+    const modal = new version_message_modal();
+    await modal.open(html_path);
   }
   set_stored_version(APP_VERSION);
 }

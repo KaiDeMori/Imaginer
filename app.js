@@ -19,9 +19,9 @@ const session_store = new Session_store();
 window.sessionStore = session_store;
 
 // Mount components
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   // Check and show version update message if needed
-  check_and_show_update_message();
+  await check_and_show_update_message();
   // Ensure all config defaults are set in localStorage
   ensure_config_defaults();
   // --- Check for API key on load (using scrambled key logic) ---
