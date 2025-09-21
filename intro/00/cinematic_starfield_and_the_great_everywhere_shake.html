@@ -338,6 +338,11 @@
       .api_key_section {
         margin: 20px 0;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
       }
 
       /* API key input field */
@@ -346,14 +351,19 @@
         color: #fff;
         border: 2px solid #666;
         padding: 8px 16px;
-        margin: 0 auto 8px auto;
         font-family: "Orbitron", monospace;
         font-size: 14px;
         border-radius: 4px;
         transition: all 0.2s;
-        display: block;
         width: 200px;
         text-align: center;
+      }
+
+      /* Smaller test button for API key */
+      #api_key_test_button {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 60px;
       }
 
       /* API key input hover and focus states */
@@ -490,15 +500,14 @@
 
     <div id="audio_setup_interface">
       <div class="setup_container">
+        <div class="api_key_section">
+          <input id="api_key_input" type="text" placeholder="sk-..." class="api_key_input" autocomplete="off" data-lpignore="true" data-form-type="other" />
+          <button id="api_key_test_button" class="setup_button">Test</button>
+        </div>
+
         <button id="fullscreen_button" class="setup_button fullscreen_button">Fullscreen</button>
         <button id="test_audio_button" class="setup_button">Test Audio</button>
         <p class="volume_info">↑ ↓ adjust volume</p>
-
-        <div class="api_key_section">
-          <input id="api_key_input" type="text" placeholder="sk-..." class="api_key_input" autocomplete="off" data-lpignore="true" data-form-type="other" />
-          <p class="api_key_info">OpenAI API key</p>
-        </div>
-
         <button id="start_button" disabled class="setup_button">Loading...</button>
         <div class="language_selector">
           <span class="language_button active" data-lang="en" lang="en">Hello</span>
