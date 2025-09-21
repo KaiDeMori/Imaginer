@@ -334,6 +334,47 @@
          CONTENT SECTIONS
          ========================================================================== */
 
+      /* API key section container */
+      .api_key_section {
+        margin: 20px 0;
+        text-align: center;
+      }
+
+      /* API key input field */
+      .api_key_input {
+        background: #222;
+        color: #fff;
+        border: 2px solid #666;
+        padding: 8px 16px;
+        margin: 0 auto 8px auto;
+        font-family: "Orbitron", monospace;
+        font-size: 14px;
+        border-radius: 4px;
+        transition: all 0.2s;
+        display: block;
+        width: 200px;
+        text-align: center;
+      }
+
+      /* API key input hover and focus states */
+      .api_key_input:hover {
+        border-color: #888;
+      }
+
+      .api_key_input:focus {
+        outline: none;
+        border-color: #aaa;
+        background: #333;
+      }
+
+      /* API key information text */
+      .api_key_info {
+        margin: 0;
+        font-size: 12px;
+        color: #aaa;
+        font-family: "Orbitron", monospace;
+      }
+
       /* Language selector container */
       .language_selector {
         margin-top: 10px;
@@ -452,6 +493,12 @@
         <button id="fullscreen_button" class="setup_button fullscreen_button">Fullscreen</button>
         <button id="test_audio_button" class="setup_button">Test Audio</button>
         <p class="volume_info">↑ ↓ adjust volume</p>
+
+        <div class="api_key_section">
+          <input id="api_key_input" type="password" placeholder="sk-..." class="api_key_input" />
+          <p class="api_key_info">OpenAI API key</p>
+        </div>
+
         <button id="start_button" disabled class="setup_button">Loading...</button>
         <div class="language_selector">
           <span class="language_button active" data-lang="en" lang="en">Hello</span>
