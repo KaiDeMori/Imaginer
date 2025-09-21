@@ -73,9 +73,11 @@ export class Config_dialog {
     this.hidden_username_input.style.pointerEvents = "none";
 
     this.input = document.createElement("input");
-    this.input.type = "password";
+    this.input.type = "text";
     this.input.placeholder = "sk-...";
-    this.input.autocomplete = "new-password";
+    this.input.autocomplete = "off";
+    this.input.setAttribute("data-lpignore", "true");
+    this.input.setAttribute("data-form-type", "other");
     this.input.value = "";
     this.input.className = "input";
     import("../storage/session_store.js")
