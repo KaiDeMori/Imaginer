@@ -13,17 +13,132 @@ if (localStorage.getItem(window.FONT_SCALE_KEY) === null) {
 let on_assets_loaded = null;
 
 async function initialize_pre_intro() {
-  // Setup the UI immediately but keep it transparent
-  setup_audio_interface();
+  const has_api_key = await check_for_api_key();
 
-  // Check if Firefox and show warning if not
-  setup_firefox_detection();
+  if (has_api_key) {
+    setup_audio_interface();
+    setup_firefox_detection();
+    start_asset_loading();
+    await wait_for_font_and_show_ui();
+  } else {
+    setup_api_key_interface();
+    await wait_for_font_and_show_api_key_ui();
+  }
+}
 
-  // Start background asset loading
-  start_asset_loading();
+async function check_for_api_key() {
+  return new Promise((resolve) => {
+    import("../../storage/session_store.js")
+      .then(({ Session_store }) => {
+        const key = Session_store.get_api_key();
+        resolve(key && key.trim().length > 0);
+      })
+      .catch(() => {
+        resolve(false);
+      });
+  });
+}
 
-  // Wait for font to load, then show UI
-  await wait_for_font_and_show_ui();
+function setup_api_key_interface() {
+  const interface_div = document.getElementById("audio_setup_interface");
+  const container = interface_div.querySelector(".setup_container");
+
+  container.innerHTML = `
+    <h2 style="color: #fff; font-family: Orbitron, monospace; margin-bottom: 20px;">Please enter your OpenAI API key</h2>
+    <input id="api_key_input_solo" type="text" placeholder="sk-..." class="api_key_input" autocomplete="off" data-lpignore="true" data-form-type="other" style="width: 300px; margin-bottom: 15px;" />
+    <button id="api_key_test_solo" class="setup_button" style="margin-bottom: 15px;">Test</button>
+    <div id="api_key_message" style="color: #fff; font-family: Orbitron, monospace; min-height: 24px; margin-bottom: 15px;"></div>
+    <button id="api_key_ok" class="setup_button" style="display: none;">OK</button>
+  `;
+
+  const input = document.getElementById("api_key_input_solo");
+  const test_button = document.getElementById("api_key_test_solo");
+  const message_div = document.getElementById("api_key_message");
+  const ok_button = document.getElementById("api_key_ok");
+
+  test_button.addEventListener("click", async () => {
+    const key = input.value.trim();
+    if (!key) return;
+
+    test_button.disabled = true;
+    test_button.textContent = "Testing...";
+    message_div.textContent = "";
+
+    const { Session_store } = await import("../../storage/session_store.js");
+
+    try {
+      const resp = await fetch("https://api.openai.com/v1/models", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!resp.ok) {
+        message_div.textContent = "❌ Invalid API key";
+        message_div.style.color = "#ff6666";
+        ok_button.style.display = "none";
+        return;
+      }
+
+      const data = await resp.json();
+      const found = data.data.some((m) => m.id === "gpt-image-1");
+
+      if (found) {
+        Session_store.set_api_key(key);
+        message_div.textContent = "✅ API key valid and ready!";
+        message_div.style.color = "#66ff66";
+        ok_button.style.display = "block";
+      } else {
+        message_div.textContent = "❌ Valid key but no gpt-image-1 access";
+        message_div.style.color = "#ffaa66";
+        ok_button.style.display = "none";
+      }
+    } catch (err) {
+      message_div.textContent = "❌ Connection failed";
+      message_div.style.color = "#ff6666";
+      ok_button.style.display = "none";
+    } finally {
+      test_button.disabled = false;
+      test_button.textContent = "Test";
+    }
+  });
+
+  input.addEventListener("input", () => {
+    message_div.textContent = "";
+    ok_button.style.display = "none";
+  });
+
+  ok_button.addEventListener("click", () => {
+    proceed_to_normal_flow();
+  });
+}
+
+async function wait_for_font_and_show_api_key_ui() {
+  const font_promises = [document.fonts.load("16px Orbitron")];
+  await Promise.all(font_promises);
+
+  const saved_font_scale = parseFloat(localStorage.getItem(window.FONT_SCALE_KEY));
+  document.documentElement.style.setProperty("--font-scale", saved_font_scale.toString());
+  document.body.classList.add("font-4");
+
+  const interface_div = document.getElementById("audio_setup_interface");
+  interface_div.classList.add("fade_in");
+}
+
+function proceed_to_normal_flow() {
+  const interface_div = document.getElementById("audio_setup_interface");
+  interface_div.classList.add("fade_out");
+
+  interface_div.addEventListener("transitionend", function handle_transition() {
+    interface_div.removeEventListener("transitionend", handle_transition);
+
+    setup_audio_interface();
+    setup_firefox_detection();
+    start_asset_loading();
+    wait_for_font_and_show_ui();
+  });
 }
 
 async function wait_for_font_and_show_ui() {
