@@ -87,7 +87,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   let activeGenerations = 0;
   function get_maximum_parallel_generations() {
-    return parseInt(localStorage.getItem("imaginer.max_parallel_generations"), 10);
+    return parseInt(localStorage.getItem("imaginer.max_parallel_generations"));
   }
 
   function update_generate_button() {
@@ -116,7 +116,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }, 600);
 
     // Read n before using it for placeholders
-    let n_local = parseInt(localStorage.getItem("imaginer.n"), 10);
+    let n_local = parseInt(localStorage.getItem("imaginer.n"));
     // Add as many placeholders as images requested (for smoother UX)
     const placeholders = [];
     for (let i = 0; i < n_local; i++) {
@@ -133,7 +133,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const background = localStorage.getItem("imaginer.background");
     let quality = localStorage.getItem("imaginer.quality");
     if (quality === "") quality = null;
-    let n = parseInt(localStorage.getItem("imaginer.n"), 10);
+    let n = parseInt(localStorage.getItem("imaginer.n"));
 
     // --- Attach dropped images from prompt_panel to API request (if any) ---
     const dropped_images = prompt_panel.dropped_images || [];

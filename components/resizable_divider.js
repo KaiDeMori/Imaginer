@@ -7,7 +7,7 @@ export class Resizable_divider {
     this.gallery = galleryEl;
 
     // ── Restore stored width ────────────────────────────────────────────────
-    const stored = parseInt(localStorage.getItem("imaginer.dividerWidth"), 10);
+    const stored = parseInt(localStorage.getItem("imaginer.dividerWidth"));
     this.set_gallery_width(stored);
 
     // ── State ───────────────────────────────────────────────────────────────

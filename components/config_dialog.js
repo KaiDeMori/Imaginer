@@ -491,8 +491,8 @@ export class Config_dialog {
   /* ------------------------------------------------------------------ */
   save() {
     const key = this.input.value.trim();
-    const max = Math.max(1, parseInt(this.max_input.value, 10) || 3);
-    const n = Math.max(1, Math.min(10, parseInt(this.n_input.value, 10) || 1));
+    const max = Math.max(1, parseInt(this.max_input.value));
+    const n = Math.max(1, Math.min(10, parseInt(this.n_input.value)));
     const quality = this.quality_select.value;
     const background = this.background_select.value;
     const strip = this.strip_checkbox.checked;

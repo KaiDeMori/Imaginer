@@ -13,6 +13,7 @@ const DEFAULT_CONFIG = {
   "imaginer.add_prompt_to_image_xmp": "true",
   "imaginer.show_mask_mode_button": "true",
   "imaginer.dividerWidth": "300",
+  imaginer_prompt: "A unicorn-dinosaur.",
 };
 
 /**
