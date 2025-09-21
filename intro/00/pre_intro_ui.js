@@ -67,7 +67,7 @@ function setup_api_key_interface() {
       if (!resp.ok) {
         message_div.textContent = "❌ Invalid API key";
         message_div.style.color = "#ff6666";
-        ok_button.style.display = "none";
+        ok_button.style.visibility = "hidden";
         return;
       }
 
@@ -78,16 +78,16 @@ function setup_api_key_interface() {
         Session_store.set_api_key(key);
         message_div.textContent = "✅ API key valid and ready!";
         message_div.style.color = "#66ff66";
-        ok_button.style.display = "block";
+        ok_button.style.visibility = "visible";
       } else {
         message_div.textContent = "❌ Valid key but no gpt-image-1 access";
         message_div.style.color = "#ffaa66";
-        ok_button.style.display = "none";
+        ok_button.style.visibility = "hidden";
       }
     } catch (err) {
       message_div.textContent = "❌ Connection failed";
       message_div.style.color = "#ff6666";
-      ok_button.style.display = "none";
+      ok_button.style.visibility = "hidden";
     } finally {
       test_button.disabled = false;
       test_button.textContent = "Test";
@@ -96,7 +96,7 @@ function setup_api_key_interface() {
 
   input.addEventListener("input", () => {
     message_div.textContent = "";
-    ok_button.style.display = "none";
+    ok_button.style.visibility = "hidden";
   });
 
   ok_button.addEventListener("click", () => {
