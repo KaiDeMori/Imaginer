@@ -9,7 +9,7 @@ const ASSET_URLS_ORDERED = [
   "00/cinematic_bridge.js",
   "00/phase_02_transition.js",
   "04/phase_04_transition.js",
-  "audio/Also_sprach_Zarathustra.webm",
+  "audio/Also_sprach_Zarathustra.ogg",
 ];
 
 const ASSET_URLS_BULK = [

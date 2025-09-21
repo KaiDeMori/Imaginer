@@ -14,7 +14,7 @@ Seamlessly transition from phase 1 (cinematic starfield + great everywhere shake
   - `01/cinematic_starfield.js`
   - `02/the_great_everywhere_shake.js` 
   - `cinematic_bridge.js`
-  - `audio/Also_sprach_Zarathustra.webm`
+  - `audio/Also_sprach_Zarathustra.ogg`
 
 **Critical transition point:** 
 - `the_great_everywhere_shake.js` line 198: `whiteout_complete = true`
