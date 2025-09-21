@@ -97,6 +97,27 @@
          MAIN LAYOUT COMPONENTS
          ========================================================================== */
 
+      /* API key interface overlay */
+      #api_key_interface {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Enable interaction when visible */
+      #api_key_interface.fade_in {
+        pointer-events: auto;
+      }
+
       /* Audio setup overlay interface */
       #audio_setup_interface {
         position: fixed;
@@ -126,6 +147,70 @@
       /* ==========================================================================
          SETUP INTERFACE COMPONENTS
          ========================================================================== */
+
+      /* API key container wrapper */
+      .api_key_container {
+        text-align: center;
+        color: #fff;
+        font-family: "Orbitron", monospace;
+      }
+
+      /* API key title */
+      .api_key_title {
+        color: #fff;
+        font-family: "Orbitron", monospace;
+        margin-bottom: 20px;
+        font-size: calc(var(--font-scale) * 1.2em);
+      }
+
+      /* API key solo input field */
+      .api_key_input_solo {
+        background: #222;
+        color: #fff;
+        border: 2px solid #666;
+        padding: 12px 20px;
+        font-family: "Orbitron", monospace;
+        font-size: 16px;
+        border-radius: 4px;
+        transition: all 0.2s;
+        width: 300px;
+        text-align: center;
+        margin-bottom: 15px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* API key solo input hover and focus */
+      .api_key_input_solo:hover {
+        border-color: #888;
+      }
+
+      .api_key_input_solo:focus {
+        outline: none;
+        border-color: #aaa;
+        background: #333;
+      }
+
+      /* API key test button in solo interface */
+      .api_key_test_solo {
+        margin-bottom: 15px;
+      }
+
+      /* API key message area */
+      .api_key_message {
+        color: #fff;
+        font-family: "Orbitron", monospace;
+        min-height: 24px;
+        margin-bottom: 15px;
+        font-size: calc(var(--font-scale) * 0.9em);
+      }
+
+      /* API key OK button */
+      .api_key_ok {
+        background: #004400;
+        border-color: #006600;
+      }
 
       /* Setup container wrapper */
       .setup_container {
@@ -314,6 +399,17 @@
          ANIMATION & TRANSITION STATES
          ========================================================================== */
 
+      /* Fade animations for API key interface */
+      #api_key_interface.fade_in {
+        opacity: 1;
+        transition: opacity 1s ease-in;
+      }
+
+      #api_key_interface.fade_out {
+        opacity: 0;
+        transition: opacity 1s ease-out;
+      }
+
       /* Fade animations for setup interface */
       #audio_setup_interface.fade_in {
         opacity: 1;
@@ -497,6 +593,24 @@
     <audio id="blip_audio" preload="auto">
       <source src="../audio/blip.wav" type="audio/wav" />
     </audio>
+
+    <div id="api_key_interface" style="display: none">
+      <div class="api_key_container">
+        <h2 class="api_key_title">Please enter your OpenAI API key</h2>
+        <input
+          id="api_key_input_solo"
+          type="text"
+          placeholder="sk-..."
+          class="api_key_input_solo"
+          autocomplete="off"
+          data-lpignore="true"
+          data-form-type="other"
+        />
+        <button id="api_key_test_solo" class="setup_button api_key_test_solo">Test</button>
+        <div id="api_key_message" class="api_key_message"></div>
+        <button id="api_key_ok" class="setup_button api_key_ok" style="display: none">OK</button>
+      </div>
+    </div>
 
     <div id="audio_setup_interface">
       <div class="setup_container">

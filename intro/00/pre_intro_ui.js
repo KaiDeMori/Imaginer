@@ -40,17 +40,6 @@ async function check_for_api_key() {
 }
 
 function setup_api_key_interface() {
-  const interface_div = document.getElementById("audio_setup_interface");
-  const container = interface_div.querySelector(".setup_container");
-
-  container.innerHTML = `
-    <h2 style="color: #fff; font-family: Orbitron, monospace; margin-bottom: 20px;">Please enter your OpenAI API key</h2>
-    <input id="api_key_input_solo" type="text" placeholder="sk-..." class="api_key_input" autocomplete="off" data-lpignore="true" data-form-type="other" style="width: 300px; margin-bottom: 15px;" />
-    <button id="api_key_test_solo" class="setup_button" style="margin-bottom: 15px;">Test</button>
-    <div id="api_key_message" style="color: #fff; font-family: Orbitron, monospace; min-height: 24px; margin-bottom: 15px;"></div>
-    <button id="api_key_ok" class="setup_button" style="display: none;">OK</button>
-  `;
-
   const input = document.getElementById("api_key_input_solo");
   const test_button = document.getElementById("api_key_test_solo");
   const message_div = document.getElementById("api_key_message");
@@ -123,16 +112,24 @@ async function wait_for_font_and_show_api_key_ui() {
   document.documentElement.style.setProperty("--font-scale", saved_font_scale.toString());
   document.body.classList.add("font-4");
 
-  const interface_div = document.getElementById("audio_setup_interface");
-  interface_div.classList.add("fade_in");
+  const api_key_interface = document.getElementById("api_key_interface");
+  api_key_interface.style.display = "flex";
+  api_key_interface.classList.add("fade_in");
+
+  // Focus the input field after animation starts
+  setTimeout(() => {
+    const input = document.getElementById("api_key_input_solo");
+    input.focus();
+  }, 100);
 }
 
 function proceed_to_normal_flow() {
-  const interface_div = document.getElementById("audio_setup_interface");
-  interface_div.classList.add("fade_out");
+  const api_key_interface = document.getElementById("api_key_interface");
+  api_key_interface.classList.add("fade_out");
 
-  interface_div.addEventListener("transitionend", function handle_transition() {
-    interface_div.removeEventListener("transitionend", handle_transition);
+  api_key_interface.addEventListener("transitionend", function handle_transition() {
+    api_key_interface.removeEventListener("transitionend", handle_transition);
+    api_key_interface.style.display = "none";
 
     setup_audio_interface();
     setup_firefox_detection();
