@@ -13,6 +13,7 @@ import { strip_metadata_from_PNG } from "./strip_metadata_from_PNG/strip_metadat
 import { add_iTXt_chunk_to_png } from "./png_iTXt/png_iTXt.js";
 import { embed_XMP_description } from "./png_XMP_via_iTXt/png-XMP-embedder.js";
 import { check_and_show_update_message } from "./version_manager.js";
+import { ensure_config_defaults } from "./default_config.js";
 
 const session_store = new Session_store();
 window.sessionStore = session_store;
@@ -21,6 +22,8 @@ window.sessionStore = session_store;
 window.addEventListener("DOMContentLoaded", () => {
   // Check and show version update message if needed
   check_and_show_update_message();
+  // Ensure all config defaults are set in localStorage
+  ensure_config_defaults();
   // --- Check for API key on load (using scrambled key logic) ---
   import("./storage/session_store.js").then(({ Session_store }) => {
     const apiKey = Session_store.get_api_key();
@@ -84,7 +87,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   let activeGenerations = 0;
   function get_maximum_parallel_generations() {
-    return parseInt(localStorage.getItem("imaginer.max_parallel_generations"), 10) || 3;
+    return parseInt(localStorage.getItem("imaginer.max_parallel_generations"), 10);
   }
 
   function update_generate_button() {
@@ -114,8 +117,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // Read n before using it for placeholders
     let n_local = parseInt(localStorage.getItem("imaginer.n"), 10);
-    if (isNaN(n_local) || n_local < 1) n_local = 1;
-    if (n_local > 10) n_local = 10;
     // Add as many placeholders as images requested (for smoother UX)
     const placeholders = [];
     for (let i = 0; i < n_local; i++) {
@@ -128,14 +129,11 @@ window.addEventListener("DOMContentLoaded", () => {
     //   - 'background' param: 'transparent', 'opaque', or 'auto' (default)
     //   - 'quality' param: high, medium, low, auto, or null (for gpt-image-1)
     //   - 'n' param: number of images to generate (1-10)
-    const size = localStorage.getItem("imaginer.image_size") || "1024x1024";
-    const background = localStorage.getItem("imaginer.background") || "auto";
+    const size = localStorage.getItem("imaginer.image_size");
+    const background = localStorage.getItem("imaginer.background");
     let quality = localStorage.getItem("imaginer.quality");
-    if (quality === null || quality === undefined) quality = "auto";
     if (quality === "") quality = null;
     let n = parseInt(localStorage.getItem("imaginer.n"), 10);
-    if (isNaN(n) || n < 1) n = 1;
-    if (n > 10) n = 10;
 
     // --- Attach dropped images from prompt_panel to API request (if any) ---
     const dropped_images = prompt_panel.dropped_images || [];
