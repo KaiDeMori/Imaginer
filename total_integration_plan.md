@@ -6,12 +6,7 @@ Integration plan to seamlessly connect the Imaginer intro sequence with the main
 ## Strategy: Dynamic App Loading
 **Chosen approach**: Start from intro HTML, dynamically load main app in background during intro end sequence.
 
-**Why this strategy**:
-- ✅ Clean separation: intro runs in native environment without modifications
-- ✅ No asset path issues: all intro assets work as-is  
-- ✅ No style conflicts: each system runs independently
-- ✅ Leverages existing intro loading infrastructure
-- ✅ Minimal breaking changes required
+**Why this strategy**: Start from intro HTML, dynamically load main app in background during intro end sequence. Clean separation with minimal breaking changes.
 
 ## Technical Implementation Plan
 
@@ -76,11 +71,7 @@ Integration plan to seamlessly connect the Imaginer intro sequence with the main
 - Leverage existing `load_css()` method for main app stylesheets
 - Follow successful pattern from `phase_02_transition.js` and `asset_loader.js`
 
-**Evidence this works**:
-- ✅ Intro already loads ES6 modules: `await import("../03/preloader_module.js")`
-- ✅ Intro already uses dynamic imports successfully in multiple files
-- ✅ Path resolution already working: `"../03/early_universe_formation_V2.js"`
-- ✅ Mixed module/script approach already proven functional
+
 
 ### Phase 4: API Key Coordination
 
@@ -133,7 +124,7 @@ The seamless transition happens when:
 ## File Modifications Required
 
 ### New Files
-- ✅ `total_integration_plan.md` (this file)
+- `total_integration_plan.md` (this file)
 
 ### Modified Files
 1. **`index.html`**:
@@ -153,66 +144,19 @@ The seamless transition happens when:
    - Coordinate intro completion with app reveal
 
 ### Existing Files (No Changes Needed)
-- ✅ `intro_remote_control.js` - already perfect for the transition
-- ✅ `app.js` - already has `expose_internals_for_intro()` function
-- ✅ Main app components - work as-is when properly loaded
+- `intro_remote_control.js` - handles Final_recursion.jpg transition
+- `app.js` - has `expose_internals_for_intro()` function
+- Main app components - work as-is when properly loaded
 
-## Technical Requirements
 
-### Browser Compatibility
-- HTML5 History API support (all modern browsers)
-- ES6 modules support (already required by main app)
-- No special server configuration needed
 
-### Performance Considerations
-- Main app loading happens during intro finale (user won't notice delay)
-- Assets cached after first load
-- Intro assets remain cached for subsequent direct visits
 
-### Error Handling
-- Fallback if main app loading fails during intro
-- Graceful degradation if History API unavailable
-- API key validation coordination between systems
 
-## Testing Scenarios
 
-1. **First-time user**: Sees intro → seamless transition → main app
-2. **Return user**: Direct to main app (no intro)  
-3. **Refresh during app**: Stays in main app (no intro replay)
-4. **Refresh during intro**: Restarts intro (acceptable behavior)
-5. **Back/forward navigation**: Should work normally after transition
 
-## Success Criteria
+## Key Considerations
 
-- ✅ Zero visible flash or jump during transition
-- ✅ URL shows `index.html` after transition completes
-- ✅ Refresh after transition goes to main app (no intro)
-- ✅ Final_recursion.jpg appears identical before and after fade
-- ✅ Main app fully functional after transition
-- ✅ No breaking changes to existing intro or app functionality
+- API key coordination: intro system takes precedence
+- Z-index management: intro canvas above app during transition
+- Asset loading: use existing `asset_loader.js` patterns
 
-## Risk Mitigation
-
-### Asset Loading Failures
-- Implement timeout and retry logic for main app asset loading
-- Show loading indicator if transition takes longer than expected
-
-### Style Conflicts
-- Load main app styles in isolated container initially
-- Verify no CSS conflicts between intro and main app
-
-### State Synchronization  
-- Ensure API key properly shared between intro and main app
-- Verify localStorage state consistency
-
-## Future Enhancements
-
-### Optional Improvements
-- Add subtle loading progress indicator during background app loading
-- Implement skip intro option for power users
-- Add debug mode to test transition repeatedly
-
-### Maintenance Considerations
-- Keep intro and main app asset references in sync
-- Document any shared dependencies clearly
-- Consider intro versioning for future updates
