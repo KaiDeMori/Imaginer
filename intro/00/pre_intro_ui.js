@@ -251,8 +251,6 @@ function setup_audio_interface() {
   const modal_close = document.getElementById("modal_close");
   const language_buttons = document.querySelectorAll(".language_button");
   const trigger_texts = document.querySelectorAll(".trigger_text");
-  const api_key_input = document.getElementById("api_key_input");
-  const api_key_test_button = document.getElementById("api_key_test_button");
 
   let blip_enabled = true;
 
@@ -433,55 +431,6 @@ function setup_audio_interface() {
     });
     window.cinematic_bridge.initialize_cinematic(gentle_mode); // true = gentle mode
   }
-
-  // API key test functionality
-  async function test_api_key() {
-    const key = api_key_input.value.trim();
-    if (!key) return;
-
-    api_key_test_button.disabled = true;
-    api_key_test_button.textContent = "Testing...";
-
-    try {
-      const resp = await fetch("https://api.openai.com/v1/models", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!resp.ok) {
-        api_key_test_button.textContent = "👎";
-        return;
-      }
-
-      const data = await resp.json();
-      if (data && Array.isArray(data.data)) {
-        const found = data.data.some((m) => m.id === "gpt-image-1");
-        if (found) {
-          api_key_test_button.textContent = "👍";
-        } else {
-          api_key_test_button.textContent = "😢";
-        }
-      } else {
-        api_key_test_button.textContent = "👎";
-      }
-    } catch (err) {
-      api_key_test_button.textContent = "👎";
-    } finally {
-      setTimeout(() => {
-        api_key_test_button.disabled = false;
-        api_key_test_button.textContent = "Test";
-      }, 2000);
-    }
-  }
-
-  // Wire up API key test button
-  api_key_test_button.addEventListener("click", test_api_key);
-  api_key_input.addEventListener("input", () => {
-    api_key_test_button.textContent = "Test";
-  });
 
   // Setup asset loading callback now that handle_click is defined
   on_assets_loaded = function () {
