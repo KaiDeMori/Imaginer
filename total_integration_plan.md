@@ -66,21 +66,21 @@ Integration plan to seamlessly connect the Imaginer intro sequence with the main
 
 ### Phase 3: Asset Path Management
 
-**Solution: Extend Existing Pattern**
+**Solution: Extend Existing Asset Loading Pattern**
 
-**Approach**: Leverage the existing `asset_loader.js` infrastructure which already handles relative path resolution perfectly.
+**Confirmed Approach**: The intro system already successfully uses ES6 modules and dynamic imports!
 
-**Implementation**:
-- Extend `asset_loader.js` with main app loading capability
-- Use existing `RELATIVE_BASE_DIRECTORY_INTRO = "../"` pattern
-- Add `MAIN_APP_BASE_DIRECTORY = "../../"` for main app assets
-- Reuse proven `load_css()`, `load_script()`, and dynamic import methods
+**Implementation Details**:
+- Extend `asset_loader.js` with `load_main_app()` method using existing `dynamic import()` pattern
+- Use proven `../../` relative path resolution (same as current intro module loading)
+- Leverage existing `load_css()` method for main app stylesheets
+- Follow successful pattern from `phase_02_transition.js` and `asset_loader.js`
 
-**Why this works**:
-- ✅ Proven approach: intro already uses this successfully
-- ✅ Consistent architecture: matches existing code patterns
-- ✅ Reliable path resolution: auto-calculates correct relative paths
-- ✅ Minimal changes: extends current infrastructure rather than replacing it
+**Evidence this works**:
+- ✅ Intro already loads ES6 modules: `await import("../03/preloader_module.js")`
+- ✅ Intro already uses dynamic imports successfully in multiple files
+- ✅ Path resolution already working: `"../03/early_universe_formation_V2.js"`
+- ✅ Mixed module/script approach already proven functional
 
 ### Phase 4: API Key Coordination
 
