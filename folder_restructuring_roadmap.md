@@ -108,29 +108,24 @@ Move intro entry point from `intro/00/` to root and rename to `intro.html`. Keep
 
 ### 1. Move Operations
 - **Move & Rename**: `intro/00/cinematic_starfield_and_the_great_everywhere_shake.html` → `intro.html` (root)
-- **Move**: `intro/00/*.js` → root (asset_loader.js, browser_detection.js, cinematic_bridge.js, phase_02_transition.js, pre_intro_ui.js)
+- **Keep**: `intro/00/*.js` files stay in place (they have correct relative paths already)
 - **Keep**: `index.html`, `app.js`, `main.css`, `components/`, `storage/`, `intro_remote_control.js` (already at root)
 
 ### 2. Path Updates in Intro System
 
-**`asset_loader.js`** (now at root)
+**`intro/00/asset_loader.js`** (stays in intro/00/)
 ```javascript
-// Change: const RELATIVE_BASE_DIRECTORY_INTRO = "../";
-// To:     const RELATIVE_BASE_DIRECTORY_INTRO = "./intro/";
+// No changes needed - "../" from intro/00/ correctly reaches intro/
 ```
 
-**`phase_02_transition.js`** (now at root)
+**`intro/00/phase_02_transition.js`** (stays in intro/00/)
 ```javascript
-// Change: css_link.href = "../03/early_universe_formation_V2.css";
-// To:     css_link.href = "./intro/03/early_universe_formation_V2.css";
-// Change: await import("../03/early_universe_formation_V2.js");
-// To:     await import("./intro/03/early_universe_formation_V2.js");
+// No changes needed - "../03/" from intro/00/ correctly reaches intro/03/
 ```
 
 **`intro/04/phase_04_transition.js`**
 ```javascript
-// Change: const RELATIVE_BASE_DIRECTORY_PHASE4 = "../04";
-// To:     const RELATIVE_BASE_DIRECTORY_PHASE4 = "./intro/04";
+// No changes needed - "../04" from intro/00/ correctly reaches intro/04/
 ```
 
 **`intro/04/infinity_zoom_II_configs.js`**
@@ -143,11 +138,16 @@ Move intro entry point from `intro/00/` to root and rename to `intro.html`. Keep
 
 **`intro.html`** (renamed and moved to root)
 ```html
-<!-- Font paths stay as: ./fonts/ (already correct from root) -->
-<!-- Audio paths stay as: ./audio/ (already correct from root) -->
-<!-- Script paths change from to ./ (now loading from root) -->
-<!-- Example: <script src="asset_loader.js"></script> -->
-<!-- Example: <script src="browser_detection.js"></script> -->
+<!-- Font paths stay as: ./fonts/ (already correct) -->
+<!-- Audio paths stay as: ./audio/ (already correct) -->
+<!-- Script paths change: -->
+<!-- From: <script src="browser_detection.js"></script> -->
+<!-- To:   <script src="./intro/00/browser_detection.js"></script> -->
+<!-- From: <script src="pre_intro_ui.js"></script> -->
+<!-- To:   <script src="./intro/00/pre_intro_ui.js"></script> -->
+<!-- Firefox icon: -->
+<!-- From: src="../../assets/Firefox_logo_2019.svg" -->
+<!-- To:   src="./assets/Firefox_logo_2019.svg" -->
 ```
 
 ### 4. Application Entry Point
@@ -175,20 +175,17 @@ Move intro entry point from `intro/00/` to root and rename to `intro.html`. Keep
 
 **`intro/03/preloader_module.js`**
 ```javascript
-// Change: const base = "../../assets/ai_universe";
-// To:     const base = "./assets/ai_universe";
+// No changes needed - "../../assets/ai_universe" from intro/03/ correctly reaches root assets/
 ```
 
 **`intro/04/infinity_zoom_II_configs.js`** (display image paths)
 ```javascript
-// Change all: "../../assets/ai_universe/zoom_images_planete/display_images/..."
-// To:         "./assets/ai_universe/zoom_images_planete/display_images/..."
+// No changes needed - "../../assets/" from intro/04/ correctly reaches root assets/
 ```
 
 **`intro/04/phase_04_transition.js`** (audio path)
 ```javascript
-// Change: source.src = "../audio/Bach_Air.m4a";
-// To:     source.src = "./audio/Bach_Air.m4a";
+// No changes needed - "../audio/" from intro/04/ correctly reaches intro/audio/
 ```
 
 ### 7. Main App Asset Loading
@@ -222,16 +219,20 @@ Move intro entry point from `intro/00/` to root and rename to `intro.html`. Keep
 
 ### 9. Pre-Intro UI Updates
 
-**`pre_intro_ui.js`** (now at root)
+**`intro/00/pre_intro_ui.js`** (stays in intro/00/)
 ```javascript
-// Change: import("../../storage/session_store.js")
-// To:     import("./storage/session_store.js")
+// No changes needed - "../../storage/session_store.js" from intro/00/ correctly reaches root storage/
 ```
 
-### 10. Asset Loader Updates
+**Note:** This is why Option A (only move HTML) works perfectly - all JS files keep their existing correct relative paths!
 
-**`asset_loader.js`** (now at root)
+### 10. Pre-Intro UI Asset Loading
+
+**`intro/00/pre_intro_ui.js`**
 ```javascript
-// Change: await import("../03/preloader_module.js");
-// To:     await import("./intro/03/preloader_module.js");
+// Dynamic loading of asset_loader.js needs path update:
+// Change: script.src = "asset_loader.js";
+// To:     script.src = "./intro/00/asset_loader.js";
 ```
+
+**Note:** This is loaded dynamically by pre_intro_ui.js, so it needs the updated path
