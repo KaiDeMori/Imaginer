@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="expect" href="#main-img" />
+    <style>
+      @view-transition {
+        navigation: auto;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        view-transition-name: main-image;
+      }
+      ::view-transition-old(main-image),
+      ::view-transition-new(main-image) {
+        animation-duration: 3s;
+        animation-timing-function: ease-in-out;
+      }
+    </style>
+  </head>
+  <body>
+    <img id="main-img" src="../assets/dummy_pictures/Final_recursion.jpg" />
+  </body>
+</html>

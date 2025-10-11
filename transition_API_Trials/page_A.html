@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @view-transition {
+        navigation: auto;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        view-transition-name: main-image;
+        cursor: pointer;
+      }
+      ::view-transition-old(main-image),
+      ::view-transition-new(main-image) {
+        animation-duration: 3s;
+        animation-timing-function: ease-in-out;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="../assets/ai_universe/alien_planet/01.png" />
+    <script>
+      document.querySelector("img").onclick = () => {
+        if (document.startViewTransition) {
+          document.startViewTransition(() => {
+            window.location.href = "page_B.html";
+          });
+        } else {
+          window.location.href = "page_B.html";
+        }
+      };
+    </script>
+  </body>
+</html>
