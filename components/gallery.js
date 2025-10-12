@@ -4,31 +4,21 @@ export class Gallery {
     // Listen for mask updates to synchronize in-memory records and update UI
     window.addEventListener("imaginer.mask-updated", (e) => {
       const { created, mask_blob, uuid } = e.detail || {};
-      console.debug("[Gallery] mask-updated event received:", { created, mask_blob, uuid });
-      console.debug("[Gallery] records_by_created keys:", Object.keys(this.records_by_created || {}));
-      console.debug("[Gallery] _thumbnail_containers keys:", Object.keys(this._thumbnail_containers || {}));
 
       if (created && this.records_by_created && this.records_by_created[created]) {
         const rec = this.records_by_created[created];
         rec.mask_blob = mask_blob;
         rec.uuid = uuid;
-        console.debug("[Gallery] Updated record for created:", created);
 
         // Update mask-active attribute on the thumbnail container
         if (this._thumbnail_containers && this._thumbnail_containers[created]) {
           const container = this._thumbnail_containers[created];
           if (mask_blob instanceof Blob) {
             container.setAttribute("mask-active", "");
-            console.debug("[Gallery] Added mask-active attribute to container for created:", created);
           } else {
             container.removeAttribute("mask-active");
-            console.debug("[Gallery] Removed mask-active attribute from container for created:", created);
           }
-        } else {
-          console.warn("[Gallery] No container found for created:", created);
         }
-      } else {
-        console.warn("[Gallery] No record found for created:", created, "in records_by_created");
       }
     });
     this.root = root;

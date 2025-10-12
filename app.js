@@ -342,12 +342,21 @@ window.addEventListener("DOMContentLoaded", async () => {
           }
         }
 
-        await session_store.save({
+        const record_id = await session_store.save({
           created,
           image_blob: blob,
           prompt_text: prompt_text,
           prompt_imgs: [],
         });
+        if (gallery.records_by_created) {
+          gallery.records_by_created[created] = {
+            id: record_id,
+            created,
+            image_blob: blob,
+            prompt_text: prompt_text,
+            prompt_imgs: [],
+          };
+        }
         // Update the first placeholder, remove any extras
         gallery.update_placeholder(placeholders[0], blob, false, prompt_text, created);
         for (let i = 1; i < placeholders.length; i++) {
@@ -406,16 +415,33 @@ window.addEventListener("DOMContentLoaded", async () => {
             }
           }
 
-          await session_store.save({
+          const record_id = await session_store.save({
             created,
             image_blob: blob,
             prompt_text: prompt_text,
             prompt_imgs: [],
           });
+          console.debug("[App] Saved with ID =", record_id, "created =", created);
+
           if (placeholders[i]) {
             gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created);
           } else {
+            // Create a record object with the ID for the gallery
+            const record = {
+              id: record_id,
+              created,
+              image_blob: blob,
+              prompt_text: prompt_text,
+              prompt_imgs: [],
+            };
             gallery.addThumbnail(blob, prompt_text, created);
+            // Add to gallery's mapping with the correct ID
+            if (gallery.records_by_created) {
+              gallery.records_by_created[created] = record;
+              console.debug("[App] Added to gallery mapping: created =", created, "id =", record_id);
+            } else {
+              console.debug("[App] ERROR: gallery.records_by_created is NULL");
+            }
           }
         }
         // Remove any extra placeholders if fewer images returned than requested

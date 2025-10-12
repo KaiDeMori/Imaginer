@@ -238,10 +238,6 @@ export class Viewer {
 
     // Save mask if present, non-empty, and image_id is set
     if (this.mask_data && this.bitmap && this.image_id && window.sessionStore) {
-      // Debug: log mask sum before empty check
-      let mask_sum = 0;
-      for (let i = 0; i < this.mask_data.length; ++i) mask_sum += this.mask_data[i];
-      console.debug("[Imaginer] Mask sum before empty check for image_id:", this.image_id, "sum:", mask_sum);
       // Check if mask is empty (all zero)
       let is_empty = true;
       for (let i = 0; i < this.mask_data.length; ++i) {
@@ -271,7 +267,6 @@ export class Viewer {
         ctx.putImageData(img_data, 0, 0);
         // Export as PNG blob
         const mask_blob = await new Promise((res) => mask_canvas.toBlob(res, "image/png"));
-        console.debug("[Imaginer] Mask created and saved for image_id:", this.image_id, mask_blob);
         await window.sessionStore.update(this.image_id, { mask_blob, uuid });
         // Dispatch event to notify gallery of mask update
         window.dispatchEvent(
