@@ -4,7 +4,7 @@
     padding: 6px 12px;
     border-radius: 6px;
     border: none;
-    background: #e33;
+    background: #888;
     color: #fff;
     cursor: pointer;
     opacity: 0.85;
@@ -38,7 +38,6 @@
     z-index: 999;
 }
 
-/* Active state for Remove Mode button */
 /* Active state for Mask Mode button */
 .mask_mode_button_active {
     background: #e33 !important;
