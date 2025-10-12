@@ -434,11 +434,11 @@ function setup_audio_interface() {
 
   // Setup asset loading callback now that handle_click is defined
   on_assets_loaded = function () {
-    start_button.addEventListener("click", handle_click);
+    start_button.addEventListener("click", () => handle_click(false));
     start_button.textContent = "Start";
     start_button.disabled = false;
     start_button.classList.add("start_button");
-    gentle_button.addEventListener("click", handle_click.bind(null, true));
+    gentle_button.addEventListener("click", () => handle_click(true));
     gentle_button.disabled = false;
   };
 
