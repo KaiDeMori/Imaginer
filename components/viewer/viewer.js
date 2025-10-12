@@ -62,19 +62,19 @@ export class Viewer {
       this.toggle_mask_mode();
     });
 
-    this.remove_masks_button = document.createElement("button");
-    this.remove_masks_button.textContent = "Remove Masks";
-    this.remove_masks_button.classList.add("remove_masks_button");
+    this.remove_mask_button = document.createElement("button");
+    this.remove_mask_button.textContent = "Remove Mask";
+    this.remove_mask_button.classList.add("remove_mask_button");
     // Start hidden, will be shown in mask mode
-    this.remove_masks_button.style.display = "none";
-    this.remove_masks_button.addEventListener("click", (e) => {
+    this.remove_mask_button.style.display = "none";
+    this.remove_mask_button.addEventListener("click", (e) => {
       e.stopPropagation();
       this.remove_all_masks();
     });
 
     // Add both buttons to the controls container
     this.mask_mode_controls.appendChild(this.mask_mode_button);
-    this.mask_mode_controls.appendChild(this.remove_masks_button);
+    this.mask_mode_controls.appendChild(this.remove_mask_button);
     this.overlay.appendChild(this.mask_mode_controls);
 
     // Dynamically manage mask mode button visibility
@@ -127,12 +127,12 @@ export class Viewer {
     this.drawDebug = this.debug_manager.draw_debug.bind(this.debug_manager);
 
     // Helper: update Remove Masks button visibility
-    this._update_remove_masks_button_visibility = () => {
+    this._update_remove_mask_button_visibility = () => {
       // Show only if mask mode is active and mask_data has any nonzero value
       if (this.mask_mode && this.mask_data && this.mask_data.some((v) => v)) {
-        this.remove_masks_button.style.display = "inline-block";
+        this.remove_mask_button.style.display = "inline-block";
       } else {
-        this.remove_masks_button.style.display = "none";
+        this.remove_mask_button.style.display = "none";
       }
     };
   }
@@ -226,7 +226,7 @@ export class Viewer {
       this.mask_manager.init_mask();
     }
     this.redraw();
-    this._update_remove_masks_button_visibility();
+    this._update_remove_mask_button_visibility();
   }
 
   /**
@@ -321,7 +321,7 @@ export class Viewer {
       this.mask_manager.init_mask();
       this.mask_cache_dirty = true;
       this.redraw();
-      this._update_remove_masks_button_visibility();
+      this._update_remove_mask_button_visibility();
     }
   }
 
@@ -329,7 +329,7 @@ export class Viewer {
   toggle_mask_mode() {
     this.mask_mode = !this.mask_mode;
     this.behaviour.set_mode(this.mask_mode ? "mask" : "viewer");
-    this._update_remove_masks_button_visibility();
+    this._update_remove_mask_button_visibility();
   }
 
   on_mouse_down(e) {
@@ -351,7 +351,7 @@ export class Viewer {
         this.last_paint_ix = ix;
         this.last_paint_iy = iy;
         this.redraw();
-        this._update_remove_masks_button_visibility();
+        this._update_remove_mask_button_visibility();
       }
     }
   }
@@ -405,7 +405,7 @@ export class Viewer {
     this.last_paint_ix = ix;
     this.last_paint_iy = iy;
     this.redraw();
-    this._update_remove_masks_button_visibility();
+    this._update_remove_mask_button_visibility();
   }
 
   get_image_coords_from_event(e) {

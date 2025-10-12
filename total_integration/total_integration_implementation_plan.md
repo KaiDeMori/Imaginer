@@ -31,7 +31,7 @@ The Viewer component creates additional DOM elements dynamically:
 <div id="imaginer-viewer" class="viewer_overlay">
   <div class="mask_mode_controls">
     <button class="mask_mode_button">Mask Mode</button>
-    <button class="remove_masks_button">Remove Masks</button>
+    <button class="remove_mask_button">Remove Masks</button>
   </div>
   <canvas class="viewer_canvas"></canvas>
   <div class="debug_element"></div>

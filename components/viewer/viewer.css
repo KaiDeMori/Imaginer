@@ -1,5 +1,5 @@
 /* Remove masks button styles */
-.remove_masks_button {
+.remove_mask_button {
     font-size: 16px;
     padding: 6px 12px;
     border-radius: 6px;
@@ -11,6 +11,20 @@
     transition: background 0.15s;
     margin-top: 4px;
 }
+
+/* Remove mode button styles */
+.mask_mode_button {
+   font-size: 16px;
+   padding: 6px 12px;
+   border-radius: 6px;
+   border: none;
+   background: #888;
+   color: #fff;
+   cursor: pointer;
+   opacity: 0.85;
+   transition: background 0.15s;
+}
+
 /* viewer.css - Styles for the Viewer components */
 
 /* Overlay styles */
@@ -22,19 +36,6 @@
     cursor: zoom-out;
     overflow: hidden;
     z-index: 999;
-}
-
-/* Remove mode button styles */
-.mask_mode_button {
-    font-size: 16px;
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: none;
-    background: #888;
-    color: #fff;
-    cursor: pointer;
-    opacity: 0.85;
-    transition: background 0.15s;
 }
 
 /* Active state for Remove Mode button */

@@ -9,7 +9,7 @@
   gap: 8px;
   z-index: 10;
 }
-.mask_mode_button, .remove_masks_button {
+.mask_mode_button, .remove_mask_button {
   background: #fff;
   color: #2d7ef7;
   border: 1.5px solid #2d7ef7;
@@ -22,7 +22,7 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.mask_mode_button:hover, .remove_masks_button:hover {
+.mask_mode_button:hover, .remove_mask_button:hover {
   background: #2d7ef7;
   color: #fff;
   border-color: #2d7ef7;
