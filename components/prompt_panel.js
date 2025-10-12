@@ -200,8 +200,8 @@ export class Prompt_panel {
           let any_error = false;
           const valid_files = [];
           for (const file of files) {
-            if (file.type !== "image/png") {
-              Error_modal.show(`File "${file.name}" is not a PNG image.`);
+            if (file.type !== "image/png" && file.type !== "image/jpeg") {
+              Error_modal.show(`File "${file.name}" is not a PNG or JPEG image.`);
               any_error = true;
               break;
             }
