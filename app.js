@@ -14,6 +14,7 @@ import { add_iTXt_chunk_to_png } from "./png_iTXt/png_iTXt.js";
 import { embed_XMP_description } from "./png_XMP_via_iTXt/png-XMP-embedder.js";
 import { check_and_show_update_message } from "./version_manager.js";
 import { ensure_config_defaults } from "./default_config.js";
+import { get_selected_model } from "./model_fetcher.js";
 
 const session_store = new Session_store();
 window.sessionStore = session_store;
@@ -142,7 +143,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (use_image_edit) {
       // --- Use /v1/images/edits endpoint with multipart/form-data ---
       const form_data = new FormData();
-      form_data.append("model", "gpt-image-1");
+      form_data.append("model", get_selected_model());
       for (const file of dropped_images) {
         form_data.append("image[]", file, file.name);
       }
@@ -230,7 +231,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const request_body = {
-        model: "gpt-image-1",
+        model: get_selected_model(),
         prompt: prompt_text,
         n: n_local,
         size,

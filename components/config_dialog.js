@@ -288,6 +288,14 @@ export class Config_dialog {
     this.advanced_tab_content.appendChild(prompt_container);
     this.advanced_tab_content.appendChild(mask_mode_container);
 
+    // Refresh Image Models button
+    this.refresh_models_button = document.createElement("button");
+    this.refresh_models_button.textContent = "Refresh Image Models";
+    this.refresh_models_button.className = "button refresh_models_button";
+    this.refresh_models_button.style.marginTop = "16px";
+    this.refresh_models_button.style.marginBottom = "8px";
+    this.advanced_tab_content.appendChild(this.refresh_models_button);
+
     // Assemble dialog
     this.dialog.appendChild(title);
     this.dialog.appendChild(tab_bar);
@@ -359,6 +367,16 @@ export class Config_dialog {
         }
         const data = await resp.json();
         if (data && Array.isArray(data.data)) {
+          // Cache the model IDs from test request to avoid duplicate API calls
+          const image_model_ids = data.data
+            .filter((model) => model.id && model.id.startsWith("gpt-image"))
+            .map((model) => model.id)
+            .sort();
+
+          if (image_model_ids.length > 0) {
+            localStorage.setItem("imaginer.available_image_models", JSON.stringify(image_model_ids));
+          }
+
           const found = data.data.some((m) => m.id === "gpt-image-1");
           if (found) {
             this.testFeedback.textContent = "👍";
@@ -396,7 +414,9 @@ export class Config_dialog {
     this.button_cancel.addEventListener("click", () => this.close());
 
     // Save button
-    this.button_save.addEventListener("click", () => this.save());
+    this.button_save.addEventListener("click", async () => {
+      await this.save();
+    });
 
     // Download All Images button
     this.button_download_all.addEventListener("click", async () => {
@@ -451,10 +471,39 @@ export class Config_dialog {
     });
 
     // Enter key inside input triggers save
-    this.input.addEventListener("keydown", (e) => {
+    this.input.addEventListener("keydown", async (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        this.save();
+        await this.save();
+      }
+    });
+
+    // Refresh Image Models button
+    this.refresh_models_button.addEventListener("click", async () => {
+      this.refresh_models_button.disabled = true;
+      this.refresh_models_button.textContent = "Refreshing...";
+
+      try {
+        const { refresh_models } = await import("../model_fetcher.js");
+        await refresh_models();
+
+        // Fire event to notify menu bar
+        window.dispatchEvent(new CustomEvent("imaginer.models_refreshed"));
+
+        this.refresh_models_button.textContent = "✓ Refreshed";
+        setTimeout(() => {
+          this.refresh_models_button.textContent = "Refresh Image Models";
+        }, 2000);
+      } catch (error) {
+        this.refresh_models_button.textContent = "Failed to refresh";
+        setTimeout(() => {
+          this.refresh_models_button.textContent = "Refresh Image Models";
+        }, 2000);
+
+        const { Error_modal } = await import("./error_modal.js");
+        Error_modal.show(error);
+      } finally {
+        this.refresh_models_button.disabled = false;
       }
     });
   }
@@ -491,7 +540,7 @@ export class Config_dialog {
   }
 
   /* ------------------------------------------------------------------ */
-  save() {
+  async save() {
     const key = this.input.value.trim();
     const max = Math.max(1, parseInt(this.max_input.value));
     const n = Math.max(1, Math.min(10, parseInt(this.n_input.value)));
@@ -500,14 +549,15 @@ export class Config_dialog {
     const strip = this.strip_checkbox.checked;
     const add_prompt = this.prompt_checkbox.checked;
     const add_prompt_xmp = this.prompt_xmp_checkbox?.checked;
-    // Use Session_store to set the scrambled API key
-    import("../storage/session_store.js").then(({ Session_store }) => {
-      if (key) {
-        Session_store.set_api_key(key);
-      } else {
-        localStorage.removeItem("imaginer.scrambled_api_key");
-      }
-    });
+
+    // Use Session_store to set the scrambled API key - wait for it to complete
+    const { Session_store } = await import("../storage/session_store.js");
+    if (key) {
+      Session_store.set_api_key(key);
+    } else {
+      localStorage.removeItem("imaginer.scrambled_api_key");
+    }
+
     localStorage.setItem("imaginer.max_parallel_generations", String(max));
     localStorage.setItem("imaginer.n", String(n));
     localStorage.setItem("imaginer.background", background);
