@@ -139,6 +139,16 @@ export class Prompt_panel {
       localStorage.setItem("imaginer.prompt", prompt_input.value);
     });
 
+    // Listen for model changes to show/hide drop area
+    window.addEventListener("imaginer.model_changed", (e) => {
+      this.update_drop_area_visibility(e.detail.model);
+    });
+
+    // Set initial visibility based on current model
+    import("../model_fetcher.js").then(({ get_selected_model }) => {
+      this.update_drop_area_visibility(get_selected_model());
+    });
+
     generate_btn.addEventListener("click", () => {
       const prompt_text = prompt_input.value.trim();
       if (prompt_text && this.onGenerate) {
@@ -239,6 +249,14 @@ export class Prompt_panel {
         });
       }
     });
+  }
+
+  update_drop_area_visibility(model) {
+    const drop_area = this.root.querySelector("#input-image-drop-area");
+    if (!drop_area) return;
+
+    const is_mini_model = model && model.includes("mini");
+    drop_area.style.display = is_mini_model ? "none" : "flex";
   }
 
   set_generate_button_enabled(enabled) {

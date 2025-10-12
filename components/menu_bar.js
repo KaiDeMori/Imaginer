@@ -168,6 +168,12 @@ export class Menu_bar {
         const selected_model = e.target.value;
         if (selected_model) {
           set_selected_model(selected_model);
+          // Fire event to notify other components of model change
+          window.dispatchEvent(
+            new CustomEvent("imaginer.model_changed", {
+              detail: { model: selected_model },
+            })
+          );
         }
       });
     }

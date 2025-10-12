@@ -138,7 +138,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     // --- Attach dropped images from prompt_panel to API request (if any) ---
     const dropped_images = prompt_panel.dropped_images || [];
-    let use_image_edit = dropped_images.length > 0;
+    const selected_model = get_selected_model();
+    const is_mini_model = selected_model.includes("mini");
+    let use_image_edit = dropped_images.length > 0 && !is_mini_model;
 
     if (use_image_edit) {
       // --- Use /v1/images/edits endpoint with multipart/form-data ---
@@ -153,11 +155,24 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (quality !== null && quality !== "auto") form_data.append("quality", quality);
       if (background !== "auto") form_data.append("background", background);
 
+      // Add input_fidelity for non-mini models to ensure proper image editing
+      const selected_model = get_selected_model();
+      if (selected_model === "gpt-image-1") {
+        form_data.append("input_fidelity", "high");
+      }
+
       // --- Attach mask from drop_area_manager if present, and log debug info ---
       const active_mask = drop_area_manager.get_active_mask();
       if (active_mask) {
         form_data.append("mask", active_mask, active_mask.name || "mask.png");
         console.debug("[Imaginer] Sending image edit request WITH mask:", active_mask);
+
+        // DEBUG: Open mask in new tab for inspection
+        const mask_url = URL.createObjectURL(active_mask);
+        const debug_tab = window.open(mask_url, "_blank");
+        console.debug("[Imaginer] Mask opened in new tab for inspection:", mask_url);
+        // Clean up URL after a delay to prevent memory leaks
+        setTimeout(() => URL.revokeObjectURL(mask_url), 10000);
       } else {
         console.debug("[Imaginer] Sending image edit request WITHOUT mask.");
       }

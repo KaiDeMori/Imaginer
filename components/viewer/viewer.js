@@ -266,7 +266,7 @@ export class Viewer {
           img_data.data[i * 4 + 0] = is_masked ? 255 : 0; // R
           img_data.data[i * 4 + 1] = is_masked ? 255 : 0; // G
           img_data.data[i * 4 + 2] = is_masked ? 255 : 0; // B
-          img_data.data[i * 4 + 3] = is_masked ? 255 : 0; // Alpha: 255 = protected, 0 = editable
+          img_data.data[i * 4 + 3] = is_masked ? 0 : 255; // Alpha: masked areas = editable (0), unmasked = protected (255)
         }
         ctx.putImageData(img_data, 0, 0);
         // Export as PNG blob
