@@ -203,8 +203,8 @@ export class Viewer {
             const img_data = ctx.getImageData(0, 0, mask_bitmap.width, mask_bitmap.height);
             this.mask_data = new Uint8ClampedArray(mask_bitmap.width * mask_bitmap.height);
             for (let i = 0; i < this.mask_data.length; ++i) {
-              // If alpha > 0, treat as masked (normalize to 1)
-              this.mask_data[i] = img_data.data[i * 4 + 3] > 0 ? 1 : 0;
+              // If alpha = 0 (editable), treat as masked (user painted it red)
+              this.mask_data[i] = img_data.data[i * 4 + 3] === 0 ? 1 : 0;
             }
             // Normalize: ensure all values are 0 or 1
             for (let i = 0; i < this.mask_data.length; ++i) {
