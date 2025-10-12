@@ -64,7 +64,7 @@ html, body {
 }
 .everything_bloom_text {
   color: #fff;
-  font-size: 5em;
+  font-size: 8vw !important;
   font-family: 'Orbitron', 'Segoe UI', Arial, sans-serif;
   font-weight: 700;
   letter-spacing: 0.08em;
