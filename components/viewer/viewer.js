@@ -29,40 +29,7 @@ export class Viewer {
     this.overlay.classList.add("viewer_overlay");
     document.body.appendChild(this.overlay);
 
-    // --- Mask mode controls container (flex, right-aligned) ---
-    this.mask_mode_controls = document.createElement("div");
-    this.mask_mode_controls.classList.add("mask_mode_controls");
-    Object.assign(this.mask_mode_controls.style, {
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "flex-start",
-      alignItems: "flex-end",
-      gap: "8px",
-      position: "absolute",
-      top: "16px",
-      right: "24px",
-      zIndex: 10,
-      width: "auto",
-      whiteSpace: "nowrap",
-    });
-
-    // Place the Remove Mask button in a separate bottom-right container so the
-    // Mask Mode button remains top-right while the Remove Mask button is lower.
-    this.remove_mask_controls = document.createElement("div");
-    this.remove_mask_controls.classList.add("remove_mask_controls");
-    Object.assign(this.remove_mask_controls.style, {
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "flex-end",
-      alignItems: "flex-end",
-      gap: "8px",
-      position: "absolute",
-      bottom: "16px",
-      right: "24px",
-      zIndex: 10,
-      width: "auto",
-      whiteSpace: "nowrap",
-    });
+    // Mask mode and remove mask buttons will be positioned directly via CSS
 
     this.mask_mode = false;
     // Mask data and offscreen cache
@@ -90,13 +57,9 @@ export class Viewer {
       this.remove_all_masks();
     });
 
-    // Keep Mask Mode button in the top-right for quick access
-    this.mask_mode_controls.appendChild(this.mask_mode_button);
-    this.overlay.appendChild(this.mask_mode_controls);
-
-    // Place Remove Mask button in the bottom-right to separate it visually and reduce accidental activation
-    this.remove_mask_controls.appendChild(this.remove_mask_button);
-    this.overlay.appendChild(this.remove_mask_controls);
+    // Append buttons directly to overlay (positioned via CSS)
+    this.overlay.appendChild(this.mask_mode_button);
+    this.overlay.appendChild(this.remove_mask_button);
 
     // Dynamically manage mask mode button visibility
     this.update_mask_mode_button_visibility();
@@ -163,13 +126,13 @@ export class Viewer {
    */
   update_mask_mode_button_visibility() {
     const show_mask_mode = localStorage.getItem("imaginer.show_mask_mode_button") === "true";
-    // Show/hide both mask control containers as a group
+    // Show/hide buttons directly
     if (show_mask_mode) {
-      this.mask_mode_controls.style.display = "flex";
-      this.remove_mask_controls.style.display = "flex";
+      this.mask_mode_button.style.display = "block";
+      this.remove_mask_button.style.display = "block";
     } else {
-      this.mask_mode_controls.style.display = "none";
-      this.remove_mask_controls.style.display = "none";
+      this.mask_mode_button.style.display = "none";
+      this.remove_mask_button.style.display = "none";
     }
   }
 

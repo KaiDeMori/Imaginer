@@ -1,106 +1,121 @@
-/* Remove masks button styles */
-.remove_mask_button {
-    font-size: 16px;
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: none;
-    background: #888;
-    color: #fff;
-    cursor: pointer;
-    opacity: 0.85;
-    transition: background 0.15s;
-    margin-top: 4px;
-}
-
-/* Remove mode button styles */
-.mask_mode_button {
-   font-size: 16px;
-   padding: 6px 12px;
-   border-radius: 6px;
-   border: none;
-   background: #888;
-   color: #fff;
-   cursor: pointer;
-   opacity: 0.85;
-   transition: background 0.15s;
-}
-
 /* viewer.css - Styles for the Viewer components */
+
+/* Mask mode button - positioned in upper right */
+.mask_mode_button {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #888;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: background 0.15s;
+  z-index: 10;
+}
+
+/* Remove mask button - positioned in lower right */
+.remove_mask_button {
+  position: absolute;
+  bottom: 16px;
+  right: 24px;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #888;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: background 0.15s;
+  z-index: 10;
+}
+
+.mask_mode_button:hover {
+  background: #2d7ef7;
+}
+
+.remove_mask_button:hover {
+  background: #e33;
+}
 
 /* Overlay styles */
 .viewer_overlay {
-    position: fixed;
-    inset: 0;
-    display: none;
-    background: rgba(0, 0, 0, 0.85);
-    cursor: zoom-out;
-    overflow: hidden;
-    z-index: 999;
+  position: fixed;
+  inset: 0;
+  display: none;
+  background: rgba(0, 0, 0, 0.85);
+  cursor: zoom-out;
+  overflow: hidden;
+  z-index: 999;
 }
 
 /* Active state for Mask Mode button */
 .mask_mode_button_active {
-    background: #e33 !important;
+  background: #e33 !important;
 }
 
 /* Canvas styles */
 .viewer_canvas {
-    box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
 }
 
 /* Debug HUD styles */
 .debug_element {
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    color: #0f0;
-    font: 12px monospace;
-    white-space: pre;
-    pointer-events: none;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  color: #0f0;
+  font: 12px monospace;
+  white-space: pre;
+  pointer-events: none;
 }
 
 /* Brush cursor styles */
 .brush_cursor {
-    position: fixed;
-    pointer-events: none;
-    z-index: 1002;
-    display: none;
-    border: 2px solid #e33;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0);
-    box-sizing: border-box;
-    left: 0;
-    top: 0;
-    width: 0;
-    height: 0;
-    transform: translate(-50%, -50%);
+  position: fixed;
+  pointer-events: none;
+  z-index: 1002;
+  display: none;
+  border: 2px solid #e33;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0);
+  box-sizing: border-box;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
 }
 
 /* Dynamic styles for viewer.js */
 .viewer_overlay_visible {
-    display: block;
+  display: block;
 }
 
 .viewer_overlay_debug {
-    outline: 2px solid lime;
+  outline: 2px solid lime;
 }
 
 .debug_element_visible {
-    display: block;
+  display: block;
 }
 
 /* Dynamic styles for brush_cursor.js */
 .brush_cursor_visible {
-    display: block;
+  display: block;
 }
 
 .brush_cursor {
-    --cursor-left: 0;
-    --cursor-top: 0;
-    --cursor-width: 0;
-    --cursor-height: 0;
-    left: var(--cursor-left);
-    top: var(--cursor-top);
-    width: var(--cursor-width);
-    height: var(--cursor-height);
+  --cursor-left: 0;
+  --cursor-top: 0;
+  --cursor-width: 0;
+  --cursor-height: 0;
+  left: var(--cursor-left);
+  top: var(--cursor-top);
+  width: var(--cursor-width);
+  height: var(--cursor-height);
 }
