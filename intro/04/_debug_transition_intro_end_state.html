@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intro End State Debug</title>
+
+    <script src="regions.js" defer></script>
+    <script src="infinity_zoom_II_configs.js" defer></script>
+    <script src="infinity_zoom_debug.js" defer></script>
+    <script src="infinity_zoom_II_utils.js" defer></script>
+    <script src="region_zoom_utils.js" defer></script>
+    <script src="mystery_image_region_zoom.js" defer></script>
+    <script src="region_zoom.js" defer></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #000;
+      }
+
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="zoom_canvas"></canvas>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const canvas = document.getElementById("zoom_canvas");
+        const fit_canvas = () => {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        };
+
+        fit_canvas();
+
+        const utils = window.infinity_zoom_II.utils;
+        const gl = utils.init_webgl(canvas);
+
+        const base_directory = window.infinity_zoom_II.config.RELATIVE_BASE_DIRECTORY;
+        const layer_data = window.infinity_zoom_II.config.LAYERS_DATA;
+        const region_images = window.infinity_zoom_II.config.REGION_DISPLAY_IMAGE_PATHS;
+
+        const penultimate_layer_data = layer_data[layer_data.length - 2];
+        const final_layer_data = layer_data[layer_data.length - 1];
+        const mystery_image_path = region_images[region_images.length - 1];
+
+        const load_image = (src) =>
+          new Promise((resolve) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.src = src;
+          });
+
+        Promise.all([
+          load_image(`${base_directory}/${penultimate_layer_data.image}`),
+          load_image(`${base_directory}/${final_layer_data.image}`),
+          load_image(mystery_image_path),
+        ]).then(([penultimate_image, final_image, mystery_image]) => {
+          const penultimate_texture = utils.create_texture(gl, penultimate_image);
+          const final_texture = utils.create_texture(gl, final_image);
+          const mystery_texture = utils.create_texture(gl, mystery_image);
+
+          const region_program = window.infinity_zoom_II.region_zoom_utils.create_region_shader_program(gl);
+          const matrix_location = gl.getUniformLocation(region_program, "u_matrix");
+          const texture_location = gl.getUniformLocation(region_program, "u_texture");
+          const mystery_quad_buffer = window.infinity_zoom_II.region_zoom_utils.create_image_pixel_quad_buffer(gl, mystery_image.width, mystery_image.height);
+
+          const engine_stub = {
+            canvas,
+            gl_context: gl,
+            global_rotation: 0,
+            layers: [
+              {
+                image: penultimate_image,
+                texture: penultimate_texture,
+                zoom: penultimate_layer_data.zoom,
+              },
+              {
+                image: final_image,
+                texture: final_texture,
+                zoom: final_layer_data.zoom,
+              },
+            ],
+            region_zoom_mystery_images: [
+              {
+                image: mystery_image,
+                texture: mystery_texture,
+              },
+            ],
+            region_zoom_resources: {
+              program: region_program,
+              quad_buffers: {
+                layers: new Map(),
+                mystery_images: [mystery_quad_buffer],
+              },
+              uniform_locations: {
+                matrix: matrix_location,
+                texture: texture_location,
+              },
+            },
+          };
+
+          window.infinity_zoom_II.region_zoom.init_region_zoom(engine_stub, performance.now());
+          window.infinity_zoom_II.region_zoom.render_final_frame();
+
+          window.addEventListener("resize", () => {
+            fit_canvas();
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            window.infinity_zoom_II.region_zoom.render_final_frame();
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
