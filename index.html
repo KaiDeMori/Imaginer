@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Imaginer</title>
-  <link rel="stylesheet" href="main.css">
-  <link rel="stylesheet" href="./components/version_message_modal.css">
-  <link rel="stylesheet" href="./components/config_dialog.css">
-  <link rel="stylesheet" href="./components/viewer/viewer.css">
-</head>
-<body>
-  <div id="app">
-    <div id="menu-bar"></div>
-    <div id="main-content">
-      <div id="gallery"></div>
-      <div id="divider"></div>
-      <div id="prompt-panel"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Imaginer</title>
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="./components/version_message_modal.css" />
+    <link rel="stylesheet" href="./components/config_dialog.css" />
+    <link rel="stylesheet" href="./components/viewer/viewer.css" />
+    <style>
+      @view-transition {
+        navigation: auto;
+      }
+
+      #app {
+        view-transition-name: main-image;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="menu-bar"></div>
+      <div id="main-content">
+        <div id="gallery"></div>
+        <div id="divider"></div>
+        <div id="prompt-panel"></div>
+      </div>
     </div>
-  </div>
-  <script type="module" src="app.js"></script>
-  <script type="module" src="./components/version_message_modal.js"></script>
-</body>
+    <script type="module" src="app.js"></script>
+    <script type="module" src="./components/version_message_modal.js"></script>
+  </body>
 </html>

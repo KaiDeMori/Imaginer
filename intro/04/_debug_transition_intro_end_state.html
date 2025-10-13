@@ -14,6 +14,10 @@
     <script src="region_zoom.js" defer></script>
 
     <style>
+      @view-transition {
+        navigation: auto;
+      }
+
       html,
       body {
         margin: 0;
@@ -25,6 +29,14 @@
         display: block;
         width: 100vw;
         height: 100vh;
+        view-transition-name: main-image;
+        cursor: pointer;
+      }
+
+      ::view-transition-old(main-image),
+      ::view-transition-new(main-image) {
+        animation-duration: 3s;
+        animation-timing-function: ease-in-out;
       }
     </style>
   </head>
@@ -110,6 +122,12 @@
 
           window.infinity_zoom_II.region_zoom.init_region_zoom(engine_stub, performance.now());
           window.infinity_zoom_II.region_zoom.render_final_frame();
+
+          document.addEventListener("click", () => {
+            document.startViewTransition(() => {
+              window.location.href = "../../index.html";
+            });
+          });
 
           window.addEventListener("resize", () => {
             fit_canvas();
