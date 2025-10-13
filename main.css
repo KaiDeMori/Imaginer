@@ -1,31 +1,10 @@
-/* Mask button base styles for proper text rendering */
+/* Mask button base styles - for some strange reason this prevents color bleeding */
 .mask_mode_button,
 .remove_mask_button {
-  background: #fff;
-  color: #2d7ef7;
-  border: 1.5px solid #2d7ef7;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  padding: 6px 18px;
-  margin: 0;
-  cursor: pointer;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.mask_mode_button:hover,
-.remove_mask_button:hover {
-  background: #2d7ef7;
-  color: #fff;
-  border-color: #2d7ef7;
-}
-/* Red outline for input image thumbnails with mask */
-.input-image-thumb[mask-active],
-.gallery-thumb[mask-active] {
-  border: 2px solid #e53935 !important;
-  box-sizing: border-box;
-}
-/* main.css – Minimal layout for Imaginer (unnecessary fluff removed) */
+
+/* main.css – Minimal layout for Imaginer */
 
 html,
 body {
@@ -68,6 +47,13 @@ body {
   background: rgb(240, 241, 245);
   border-right: 1px solid rgb(224, 224, 224);
   overflow-y: auto;
+}
+
+/* Red outline for input image thumbnails with mask */
+.input-image-thumb[mask-active],
+.gallery-thumb[mask-active] {
+  border: 2px solid #e53935 !important;
+  box-sizing: border-box;
 }
 
 /* Draggable divider */
