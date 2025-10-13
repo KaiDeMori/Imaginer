@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        background: #000;
+        margin: 0;
+        padding: 10px;
+        font-family: system-ui;
+      }
+      .btn {
+        background: #888;
+        color: #fff;
+        opacity: 0.85;
+        padding: 4px 8px;
+        border: none;
+        font-size: 14px;
+        margin: 0 1px 1px 0;
+      }
+
+      /* Exact app shadow */
+      .s1 {
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+      }
+      .bg1 {
+        background: #666;
+      }
+
+      /* Different shadows */
+      .s2 {
+        box-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+      }
+      .s3 {
+        box-shadow: inset 0 0 0 1px transparent;
+      }
+      .s4 {
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04), inset 0 0 0 1px transparent;
+      }
+
+      /* Compositing triggers */
+      .t1 {
+        transform: translateZ(0);
+      }
+      .t2 {
+        will-change: transform;
+      }
+      .t3 {
+        filter: blur(0);
+      }
+      .t4 {
+        backface-visibility: hidden;
+      }
+
+      /* Positioning */
+      .fix {
+        position: fixed;
+        top: 440px;
+        left: 10px;
+        z-index: 999;
+      }
+      .abs {
+        position: absolute;
+        z-index: 10;
+      }
+
+      .l {
+        color: #fff;
+        font-size: 10px;
+        margin: 2px 0;
+      }
+      .g {
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="g">
+      <div class="l">1. App exact: shadow→bg</div>
+      <button class="btn s1 bg1">Amio</button><button class="btn s1 bg1">Amio</button>
+    </div>
+
+    <div class="g">
+      <div class="l">2. Diff shadow: glow→bg</div>
+      <button class="btn s2 bg1">Amio</button><button class="btn s2 bg1">Amio</button>
+    </div>
+
+    <div class="g">
+      <div class="l">3. Inset shadow→bg</div>
+      <button class="btn s3 bg1">Amio</button><button class="btn s3 bg1">Amio</button>
+    </div>
+
+    <div class="g">
+      <div class="l">4. Multi shadow→bg</div>
+      <button class="btn s4 bg1">Amio</button><button class="btn s4 bg1">Amio</button>
+    </div>
+
+    <div class="g">
+      <div class="l">5. Transform→shadow→bg</div>
+      <button class="btn t1 s1 bg1">Amio</button><button class="btn t1 s1 bg1">Amio</button>
+    </div>
+
+    <div class="g">
+      <div class="l">6. Will-change→shadow→bg</div>
+      <button class="btn t2 s1 bg1">Amio</button><button class="btn t2 s1 bg1">Amio</button>
+    </div>
+
+    <div class="g">
+      <div class="l">7. Filter→shadow→bg</div>
+      <button class="btn t3 s1 bg1">Amio</button><button class="btn t3 s1 bg1">Amio</button>
+    </div>
+
+    <div class="g">
+      <div class="l">8. Backface→shadow→bg</div>
+      <button class="btn t4 s1 bg1">Amio</button><button class="btn t4 s1 bg1">Amio</button>
+    </div>
+
+    <div class="fix">
+      <div class="l">9. Fixed+abs+shadow→bg</div>
+      <button class="btn abs s1 bg1">Amio</button><button class="btn abs s1 bg1">Amio</button>
+    </div>
+
+    <div style="position: fixed; top: 400px; left: 10px; z-index: 999">
+      <div class="l">10. Fixed+abs NO cascade</div>
+      <button class="btn abs" style="background: #666; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04)">Amio</button>
+      <button class="btn abs" style="background: #666; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04)">Amio</button>
+    </div>
+  </body>
+</html>
