@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        background: #000;
+        margin: 0;
+        padding: 10px;
+        font-family: system-ui;
+      }
+      .btn {
+        background: #888;
+        color: #fff;
+        opacity: 0.85;
+        padding: 4px 8px;
+        border: none;
+        font-size: 14px;
+        margin: 0 1px 1px 0;
+      }
+
+      /* Test 1: Cascade (base + override) */
+      .base1 {
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+      }
+      .override1 {
+        background: #666;
+      }
+
+      /* Test 2: Single rule */
+      .single1 {
+        background: #666;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+      }
+
+      /* Test 3: No shadow cascade */
+      .base2 {
+        background: #999;
+      }
+      .override2 {
+        background: #666;
+      }
+
+      /* Test 4: Shadow only in override */
+      .base3 {
+        background: #999;
+      }
+      .override3 {
+        background: #666;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+      }
+
+      /* Test 5: Fixed positioning context */
+      .fixed {
+        position: fixed;
+        top: 200px;
+        left: 10px;
+        z-index: 999;
+      }
+      .abs {
+        position: absolute;
+        z-index: 10;
+      }
+
+      .label {
+        color: #fff;
+        font-size: 10px;
+        margin: 2px 0;
+      }
+      .group {
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="group">
+      <div class="label">Cascade: base+override</div>
+      <button class="btn base1 override1">Amio</button>
+      <button class="btn base1 override1">Amio</button>
+    </div>
+
+    <div class="group">
+      <div class="label">Single rule</div>
+      <button class="btn single1">Amio</button>
+      <button class="btn single1">Amio</button>
+    </div>
+
+    <div class="group">
+      <div class="label">No shadow</div>
+      <button class="btn base2 override2">Amio</button>
+      <button class="btn base2 override2">Amio</button>
+    </div>
+
+    <div class="group">
+      <div class="label">Shadow in override only</div>
+      <button class="btn base3 override3">Amio</button>
+      <button class="btn base3 override3">Amio</button>
+    </div>
+
+    <div class="fixed">
+      <div class="label">Fixed context</div>
+      <button class="btn abs base1 override1">Amio</button>
+      <br /><br />
+      <button class="btn abs base1 override1">Amio</button>
+    </div>
+  </body>
+</html>
