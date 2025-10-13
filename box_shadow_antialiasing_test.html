@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Box-Shadow Anti-Aliasing Test</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        background: rgba(0, 0, 0, 0.85);
+        margin: 0;
+        padding: 40px;
+        color: white;
+      }
+
+      .test_button {
+        font-size: 16px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        background: #888;
+        color: #fff;
+        cursor: pointer;
+        opacity: 0.85;
+        transition: background 0.15s;
+        margin: 20px;
+        display: inline-block;
+      }
+
+      .with_shadow {
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+      }
+
+      .no_shadow {
+        box-shadow: none;
+      }
+
+      .test_section {
+        margin: 40px 0;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+      }
+
+      h2 {
+        margin-top: 0;
+      }
+
+      .comparison {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .label {
+        font-size: 14px;
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Box-Shadow Anti-Aliasing Test</h1>
+    <p>This demonstrates how a tiny box-shadow prevents color bleeding on semi-transparent text.</p>
+
+    <div class="test_section">
+      <h2>Side-by-Side Comparison</h2>
+      <div class="comparison">
+        <div>
+          <button class="test_button with_shadow">With Shadow</button>
+          <div class="label">box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04)</div>
+        </div>
+        <div>
+          <button class="test_button no_shadow">No Shadow</button>
+          <div class="label">No box-shadow</div>
+        </div>
+      </div>
+      <p>
+        <strong>Look closely at the text edges.</strong> The button with shadow should have crisp white text, while the one without may show color
+        fringing/bleeding.
+      </p>
+    </div>
+
+    <div class="test_section">
+      <h2>Toggle Test</h2>
+      <button id="toggle_button" class="test_button with_shadow">Toggle Shadow (Currently: ON)</button>
+      <p>Click the button to toggle the box-shadow on/off and observe the text rendering change.</p>
+    </div>
+
+    <div class="test_section">
+      <h2>Technical Details</h2>
+      <ul>
+        <li>Both buttons have <code>opacity: 0.85</code></li>
+        <li>Both have white text on gray background</li>
+        <li>Only difference: tiny box-shadow creates new stacking context</li>
+        <li>This changes how browser composites the opacity</li>
+        <li>Result: Different text anti-aliasing behavior</li>
+      </ul>
+    </div>
+
+    <script>
+      const toggleButton = document.getElementById("toggle_button");
+      let hasShadow = true;
+
+      toggleButton.addEventListener("click", () => {
+        if (hasShadow) {
+          toggleButton.classList.remove("with_shadow");
+          toggleButton.textContent = "Toggle Shadow (Currently: OFF)";
+        } else {
+          toggleButton.classList.add("with_shadow");
+          toggleButton.textContent = "Toggle Shadow (Currently: ON)";
+        }
+        hasShadow = !hasShadow;
+      });
+    </script>
+  </body>
+</html>

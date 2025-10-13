@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        background: #fff;
+        padding: 0;
+        margin: 0;
+      }
+      .fix-trigger {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 5px;
+        background: red;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        display: none;
+      }
+      body.fix .fix-trigger {
+        display: block;
+      }
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 999;
+      }
+      .btn {
+        position: absolute;
+        right: 50px;
+        background: #888;
+        color: white;
+        opacity: 0.85;
+        padding: 6px 12px;
+        border: none;
+        font-size: 16px;
+        z-index: 10;
+        border-radius: 6px;
+      }
+      .btn1 {
+        top: 50px;
+      }
+      .btn2 {
+        top: 100px;
+      }
+      input {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 10;
+      }
+      label {
+        position: absolute;
+        top: 20px;
+        left: 40px;
+        color: white;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body class="fix">
+    <div class="fix-trigger"></div>
+    <div class="overlay">
+      <input type="checkbox" id="fix" checked />
+      <label for="fix">Fix bleeding</label>
+      <button class="btn btn1">Button 1</button>
+      <button class="btn btn2">Button 2</button>
+    </div>
+    <script>
+      document.getElementById("fix").onchange = (e) => {
+        document.body.classList.toggle("fix", e.target.checked);
+      };
+    </script>
+  </body>
+</html>
