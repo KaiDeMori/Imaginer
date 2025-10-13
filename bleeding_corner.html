@@ -119,10 +119,28 @@
       <button class="btn abs s1 bg1">Amio</button><button class="btn abs s1 bg1">Amio</button>
     </div>
 
-    <div style="position: fixed; top: 400px; left: 10px; z-index: 999">
-      <div class="l">10. Fixed+abs NO cascade</div>
-      <button class="btn abs" style="background: #666; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04)">Amio</button>
-      <button class="btn abs" style="background: #666; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04)">Amio</button>
+    <div style="position: fixed; top: 430px; left: 10px; z-index: 999">
+      <div class="l">11. Fixed: opacity vs no opacity</div>
+      <div style="color: #fff; opacity: 0.85">Amio opacity</div>
+      <div style="color: #fff">Amio no opacity</div>
+    </div>
+
+    <div class="g">
+      <div class="l">12. Body children: opacity test</div>
+      <div style="color: #fff; opacity: 0.85">Amio opacity</div>
+      <div style="color: #fff">Amio no opacity</div>
+    </div>
+
+    <div class="g">
+      <div class="l">13. Isolation test</div>
+      <div style="color: #fff; opacity: 0.85; isolation: isolate">Amio isolated</div>
+      <div style="color: #fff; opacity: 0.85">Amio normal</div>
+    </div>
+
+    <div class="g">
+      <div class="l">14. Contain test</div>
+      <div style="color: #fff; opacity: 0.85; contain: layout">Amio contain</div>
+      <div style="color: #fff; opacity: 0.85">Amio normal</div>
     </div>
   </body>
 </html>
