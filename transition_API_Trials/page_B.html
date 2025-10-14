@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <link rel="expect" href="#main-img" />
+    <link rel="expect" href="#main-img" blocking="render" />
     <style>
       @view-transition {
         navigation: auto;
@@ -29,6 +29,23 @@
     </style>
   </head>
   <body>
-    <img id="main-img" src="../assets/dummy_pictures/Final_recursion.jpg" />
+    <script>
+      const DELAY_MS = 5000;
+
+      console.log("Page B loading started - will create image after", DELAY_MS, "ms delay");
+
+      setTimeout(() => {
+        console.log("Creating and adding image element after delay");
+
+        const img = document.createElement("img");
+        img.id = "main-img";
+        img.src = "../assets/dummy_pictures/Final_recursion.jpg";
+
+        img.onload = () => {
+          console.log("Image loaded successfully");
+          document.body.appendChild(img);
+        };
+      }, DELAY_MS);
+    </script>
   </body>
 </html>
