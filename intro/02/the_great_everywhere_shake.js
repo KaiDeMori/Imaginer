@@ -325,7 +325,7 @@ function initialize_shake() {
       if (!whiteout_complete) {
         if (elapsed < zoom_duration_ms) {
           // Normal animation phase
-          const scale = zoom_base + zoom_amplitude * Math.sin(Math.PI * t);
+          const scale = zoom_base + zoom_amplitude * Math.sin((Math.PI / 2) * t);
           // Custom shake timing: no shake for first 7 seconds, then ramp to peak at 12 seconds
           let shake_fade = 0;
           if (elapsed > 7000) {
@@ -363,7 +363,7 @@ function initialize_shake() {
           // After main animation, keep drawing static background with maximum shake
           const shake_x = shake_amplitude_px * (2 * Math.random() - 1);
           const shake_y = shake_amplitude_px * (2 * Math.random() - 1);
-          draw_scaled_and_shaken(zoom_base, shake_x, shake_y);
+          draw_scaled_and_shaken(zoom_base + zoom_amplitude, shake_x, shake_y);
           // Draw explosions AFTER background so they appear on top
           draw_explosions(performance.now());
         }
