@@ -74,16 +74,25 @@ function _fire_progress(loaded, total) {
  *
  * @param {Function} [onProgress] – Optional callback `(loadedCount, totalCount)`
  *                                  fired after each successful image decode.
+ * @param {string[]|Set<string>} [target_urls] – Optional list of specific URLs to load.
+ *                                               If provided, only these assets are loaded.
  * @returns {Promise<Map<string, ImageBitmap>>} – Resolves when all assets are
  *                                               decoded + converted.
  */
-function load_and_decode_images(onProgress) {
+function load_and_decode_images(onProgress, target_urls = null) {
   _progress_callback = typeof onProgress === "function" ? onProgress : null;
 
-  const total = asset_manifest.length;
+  let assets_to_load = asset_manifest;
+  if (target_urls) {
+    const target_set = target_urls instanceof Set ? target_urls : new Set(target_urls);
+    // Filter manifest to ensure we only load valid, known assets
+    assets_to_load = asset_manifest.filter((url) => target_set.has(url));
+  }
+
+  const total = assets_to_load.length;
   let loaded = 0;
 
-  const loaders = asset_manifest.map(
+  const loaders = assets_to_load.map(
     (src) =>
       new Promise((resolve, reject) => {
         const img = new Image();

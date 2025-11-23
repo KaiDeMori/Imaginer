@@ -18,18 +18,11 @@ properties** so the frame loop can run true physics.  The immutable props are:
 // ---------------------------------------------------------------------------
 import { rand } from "./deterministic_rng.js";
 import { layers_config } from "./layers_model.js";
+import { LAYER_TIMELINE } from "./timeline_engine.js";
 
 // ---------------------------------------------------------------------------
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// Number of sprite instances we want per layer.
-const SPRITE_COUNT_PER_LAYER = Object.freeze({
-  cosmic_fog: 5,
-  galaxy_streams: 4,
-  nebulae: 6,
-  star_clusters: 3,
-});
-
 // ---------------------------------------------------------------------------
 // World-space spawn & physics tables -----------------------------------------
 // ---------------------------------------------------------------------------
@@ -110,7 +103,10 @@ function generate_sprite_instances(bitmaps_map) {
   for (const layer_cfg of layers_config) {
     const layer_name = layer_cfg.name;
     const files = layer_cfg.files;
-    const desired_cnt = SPRITE_COUNT_PER_LAYER[layer_name] ?? 0;
+
+    // Find sprite count from LAYER_TIMELINE
+    const timeline_entry = LAYER_TIMELINE.find((l) => l.name === layer_name);
+    const desired_cnt = timeline_entry ? timeline_entry.sprite_count || 0 : 0;
 
     // Deterministically shuffle files for this layer
     const shuffled_files = _deterministic_shuffle(files);

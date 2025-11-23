@@ -33,6 +33,7 @@ const LAYER_TIMELINE = Object.freeze([
   // name, p_in, p_out, z_start, z_end, base_opacity, fade_easing, distance_fade_end_z, (optional) distance_fade_start_z
   {
     name: "cosmic_fog",
+    sprite_count: 5,
     p_in: 0.04,
     p_out: 0.28,
     z_start: 10,
@@ -44,6 +45,7 @@ const LAYER_TIMELINE = Object.freeze([
   },
   {
     name: "galaxy_streams",
+    sprite_count: 4,
     p_in: 0.2,
     p_out: 0.5,
     z_start: 50,
@@ -55,6 +57,7 @@ const LAYER_TIMELINE = Object.freeze([
   },
   {
     name: "nebulae",
+    sprite_count: 6,
     p_in: 0.4,
     p_out: 0.75,
     z_start: 240,
@@ -66,6 +69,7 @@ const LAYER_TIMELINE = Object.freeze([
   },
   {
     name: "star_clusters",
+    sprite_count: 3,
     p_in: 0.65,
     p_out: 0.97,
     z_start: 100,

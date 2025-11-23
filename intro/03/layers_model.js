@@ -4,20 +4,6 @@ Layers Model – Early Universe Formation V2
 -----------------------------------------
 Builds and exports the deterministic `layers_config` array that describes every
 visual layer used in the final multi-stage zoom-through animation.
-
-Responsibilities (matches *Task 1 · Data Model & Config* in
-`multi_layer_animation_progress.md`):
-  1. Derive, for each logical layer, the list of asset URLs from the canonical
-     `asset_manifest` (imported from `preloader_module.js`).
-  2. Shuffle the file list *deterministically* using the seeded `rand()` helper
-     so that a given seed always yields the exact same per-layer order while
-     different seeds create variety.
-  3. Freeze every nested structure so that accidental run-time mutations can be
-     caught early during development.
-  4. Export a single frozen constant – `layers_config` – which other modules
-     (timeline engine, renderer, debug helpers) can import.
-
-No side-effects beyond defining the constant.
 */
 
 // ---------------------------------------------------------------------------

@@ -6,6 +6,8 @@
 import { load_and_decode_images } from "./preloader_module.js";
 import { rand, eu_seed } from "./deterministic_rng.js";
 import { UniverseAnimator } from "./canvas_animation.js";
+import { layers_config } from "./layers_model.js";
+import { LAYER_TIMELINE } from "./timeline_engine.js";
 import "./seed_ui_panel.js"; // renders the seed information UI
 
 // for standalone testing
@@ -32,7 +34,19 @@ export async function initialize_early_universe_v2(canvas_element, white_screen_
 
   const preload_start_time = performance.now();
 
-  const bitmaps_map = await load_and_decode_images();
+  // Calculate required URLs based on sprite counts
+  const required_urls = new Set();
+  for (const layer_def of LAYER_TIMELINE) {
+    const config = layers_config.find((l) => l.name === layer_def.name);
+    if (config) {
+      const count = layer_def.sprite_count || 0;
+      // layers_config.files is already deterministically shuffled
+      const files_to_load = config.files.slice(0, count);
+      files_to_load.forEach((url) => required_urls.add(url));
+    }
+  }
+
+  const bitmaps_map = await load_and_decode_images(null, required_urls);
   const load_time_ms = performance.now() - preload_start_time;
 
   console.log(`[EUF] Preload complete in ${load_time_ms.toFixed(0)} ms – starting immediately (no white hold needed)`);
@@ -98,7 +112,18 @@ if (is_standalone_mode) {
     let universe_animator = null;
     const preload_start_time = performance.now();
 
-    load_and_decode_images()
+    // Calculate required URLs based on sprite counts
+    const required_urls = new Set();
+    for (const layer_def of LAYER_TIMELINE) {
+      const config = layers_config.find((l) => l.name === layer_def.name);
+      if (config) {
+        const count = layer_def.sprite_count || 0;
+        const files_to_load = config.files.slice(0, count);
+        files_to_load.forEach((url) => required_urls.add(url));
+      }
+    }
+
+    load_and_decode_images(null, required_urls)
       .then((bitmaps_map) => {
         const load_time_ms = performance.now() - preload_start_time;
         const min_hold_ms = 1_000; // 1 second minimum white hold

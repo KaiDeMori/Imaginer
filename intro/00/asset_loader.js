@@ -41,9 +41,22 @@ const asset_loader = {
   async load_phase_2_images() {
     // Import phase 2 preloader module and use it directly
     const { load_and_decode_images } = await import("../03/preloader_module.js");
+    const { layers_config } = await import("../03/layers_model.js");
+    const { LAYER_TIMELINE } = await import("../03/timeline_engine.js");
+
+    // Calculate required URLs based on sprite counts
+    const required_urls = new Set();
+    for (const layer_def of LAYER_TIMELINE) {
+      const config = layers_config.find((l) => l.name === layer_def.name);
+      if (config) {
+        const count = layer_def.sprite_count || 0;
+        const files_to_load = config.files.slice(0, count);
+        files_to_load.forEach((url) => required_urls.add(url));
+      }
+    }
 
     // Load all phase 2 images - they'll be cached for instant access during transition
-    await load_and_decode_images();
+    await load_and_decode_images(null, required_urls);
   },
   load_asset(url) {
     const extension = url.split(".").pop().toLowerCase();
