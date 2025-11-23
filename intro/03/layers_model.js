@@ -57,6 +57,7 @@ const LAYERS_DECL = [
   { name: "galaxy_streams", path_sub: "/galaxy_streams/" },
   { name: "nebulae", path_sub: "/nebulae/" },
   { name: "star_clusters", path_sub: "/star_clusters/" },
+  { name: "star_clusters_b", path_sub: "/star_clusters/" },
 ];
 
 /**
