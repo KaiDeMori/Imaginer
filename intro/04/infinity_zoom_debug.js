@@ -74,7 +74,21 @@ function create_debug_elements() {
     background-color: wheat;
     padding: 10px;
     z-index: 1000;
+    display: none; /* Hidden by default */
   `;
+
+  // Toggle visibility with "d" key
+  window.addEventListener("keydown", (ev) => {
+    // Ignore if typing in an input
+    const tgt = ev.target;
+    if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.isContentEditable)) {
+      return;
+    }
+
+    if (ev.key === "d") {
+      debug_div.style.display = debug_div.style.display === "none" ? "block" : "none";
+    }
+  });
 
   // Create reload button
   const reload_button = document.createElement("button");

@@ -22,9 +22,10 @@ No exports.
   const panel = document.createElement("div");
   panel.id = "seedUIPanel";
   panel.innerHTML = `Seed: <code>${current_seed}</code>`;
+  panel.style.display = "none"; // Hidden by default
 
   const regenerate_btn = document.createElement("button");
-  regenerate_btn.type  = "button";
+  regenerate_btn.type = "button";
   regenerate_btn.textContent = "Regenerate";
   regenerate_btn.title = "Create a new random seed and reload the page.";
 
@@ -43,5 +44,18 @@ No exports.
     }
     // Use location.reload() so that *all* modules re-initialise with new seed.
     location.reload();
+  });
+
+  // Toggle visibility with "d" key
+  window.addEventListener("keydown", (ev) => {
+    // Ignore if typing in an input
+    const tgt = ev.target;
+    if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.isContentEditable)) {
+      return;
+    }
+
+    if (ev.key === "d") {
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
   });
 })();
