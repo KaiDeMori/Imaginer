@@ -108,12 +108,11 @@ function generate_sprite_instances(bitmaps_map) {
     const timeline_entry = LAYER_TIMELINE.find((l) => l.name === layer_name);
     const desired_cnt = timeline_entry ? timeline_entry.sprite_count || 0 : 0;
 
-    // Deterministically shuffle files for this layer
-    const shuffled_files = _deterministic_shuffle(files);
-    const sprite_cnt = Math.min(desired_cnt, shuffled_files.length);
+    // Use the files exactly as they appear in layers_config (which is already shuffled).
+    const sprite_cnt = Math.min(desired_cnt, files.length);
 
     for (let i = 0; i < sprite_cnt; i++) {
-      const img_url = shuffled_files[i];
+      const img_url = files[i];
       const bmp = bitmaps_map.get(img_url);
 
       if (!bmp) {
