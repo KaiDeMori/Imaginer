@@ -28,10 +28,11 @@ const ASSET_FORMAT = "png"; // "png" for development, "webm" for production
 
 // Max number of files in each asset folder (update as needed)
 const asset_max_numbers = {
-  cosmic_fog: 16,
+  cosmic_fog: 14,
   galaxy_streams: 11,
   nebulae: 16,
-  star_clusters: 19,
+  black_holes: 3,
+  star_clusters: 21,
 };
 
 const asset_manifest = [];
