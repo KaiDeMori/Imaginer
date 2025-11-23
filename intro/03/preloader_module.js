@@ -95,6 +95,14 @@ function load_and_decode_images(onProgress, target_urls = null) {
   const loaders = assets_to_load.map(
     (src) =>
       new Promise((resolve, reject) => {
+        // Optimization: Check if already loaded and decoded
+        if (preloaded_bitmaps.has(src)) {
+          loaded += 1;
+          _fire_progress(loaded, total);
+          resolve(preloaded_bitmaps.get(src));
+          return;
+        }
+
         const img = new Image();
 
         // CORS note: if the assets are served with proper CORS headers, you may

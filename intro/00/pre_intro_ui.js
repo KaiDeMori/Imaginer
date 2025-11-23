@@ -474,7 +474,14 @@ function start_asset_loading() {
   const script = document.createElement("script");
   script.src = "asset_loader.js";
   script.onload = function () {
-    window.asset_loader.start_loading(on_assets_loaded);
+    window.asset_loader.start_loading(on_assets_loaded).catch((error) => {
+      console.error("Critical Asset Loading Failure:", error);
+      // Update UI to reflect failure
+      const start_button = document.getElementById("start_button");
+      start_button.textContent = "Load Failed";
+      start_button.classList.add("error");
+      alert(`Critical Error: Failed to load required assets.\n\n${error.message}\n\nPlease reload the page.`);
+    });
   };
   document.head.appendChild(script);
 }
