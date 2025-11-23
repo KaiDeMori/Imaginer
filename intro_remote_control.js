@@ -1,5 +1,7 @@
 export class Intro_remote_control {
-  constructor() {
+  constructor(target_window = window) {
+    this.target_window = target_window;
+    this.target_document = target_window.document;
     this.target_filename = "Final_recursion.jpg";
   }
 
@@ -16,19 +18,20 @@ export class Intro_remote_control {
   }
 
   is_app_ready() {
-    const gallery = document.getElementById("gallery");
-    const gallery_grid = gallery.querySelector('div[style*="grid"]');
-    const viewer_overlay = document.getElementById("imaginer-viewer");
-    return gallery && gallery_grid && viewer_overlay && window.sessionStore;
+    const gallery = this.target_document.getElementById("gallery");
+    const gallery_grid = gallery ? gallery.querySelector('div[style*="grid"]') : null;
+    const viewer_overlay = this.target_document.getElementById("imaginer-viewer");
+    return gallery && gallery_grid && viewer_overlay && this.target_window.sessionStore && this.target_window.expose_internals_for_intro;
   }
 
   async find_intro_picture() {
-    const response = await fetch(`assets/dummy_pictures/${this.target_filename}`);
+    // Use target window fetch to ensure paths are relative to the app
+    const response = await this.target_window.fetch(`assets/dummy_pictures/${this.target_filename}`);
     return await response.blob();
   }
 
   async open_image_covering(blob) {
-    const internals = window.expose_internals_for_intro();
+    const internals = this.target_window.expose_internals_for_intro();
     internals.add_image(blob, "intro_image");
     await this.sleep(100);
     internals.open_image(blob);
@@ -37,12 +40,13 @@ export class Intro_remote_control {
   }
 
   async apply_covering_mode(blob) {
-    const internals = window.expose_internals_for_intro();
+    const internals = this.target_window.expose_internals_for_intro();
     const viewer = internals.viewer;
 
-    const bitmap = await createImageBitmap(blob);
-    const viewport_width = window.innerWidth;
-    const viewport_height = window.innerHeight;
+    // Use target window createImageBitmap to ensure compatibility
+    const bitmap = await this.target_window.createImageBitmap(blob);
+    const viewport_width = this.target_window.innerWidth;
+    const viewport_height = this.target_window.innerHeight;
     const image_width = bitmap.width;
     const image_height = bitmap.height;
 

@@ -18,6 +18,7 @@ const PHASE_04_DEPENDENCIES = [
   "mystery_image_region_zoom.js",
   "region_zoom.js",
   "mystery_image_main_zoom.js",
+  "app_transition_manager.js",
   "infinity_zoom_II_engine.js", // MUST be last - depends on all others
 ];
 

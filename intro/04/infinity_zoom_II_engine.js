@@ -261,6 +261,11 @@ const engine = {
       //noop
     }
 
+    // Update app transition manager
+    if (window.infinity_zoom_II.app_transition_manager) {
+      window.infinity_zoom_II.app_transition_manager.update(this.animation_phase);
+    }
+
     // Update occlusion culling optimization (skip during region zoom)
     if (this.animation_phase !== "region_zoom" && this.animation_phase !== "region_zoom_hold") {
       this.update_first_visible_layer_index();
@@ -381,6 +386,11 @@ const engine = {
       current_base_scale = covering_scale / final_layer_relative_scale;
       this.animation_phase = "final_rotation";
       this.final_rotation_start_time = now;
+
+      // Start loading the app
+      if (window.infinity_zoom_II.app_transition_manager) {
+        window.infinity_zoom_II.app_transition_manager.start_loading_app();
+      }
     }
 
     // Update all layer TRS with synchronized scaling
