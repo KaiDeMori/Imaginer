@@ -426,6 +426,21 @@
         cursor: none !important;
       }
 
+      /* Pulsing glow animation for Test Audio button */
+      @keyframes pulse_glow {
+        0%,
+        100% {
+          box-shadow: 0 0 12px rgba(0, 102, 0, 0.6), 0 0 6px rgba(0, 102, 0, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 24px rgba(0, 136, 0, 0.9), 0 0 36px rgba(0, 102, 0, 0.6), 0 0 48px rgba(0, 68, 0, 0.3);
+        }
+      }
+
+      .test_audio_pulse {
+        animation: pulse_glow 2s ease-in-out infinite;
+      }
+
       /* ==========================================================================
          CONTENT SECTIONS
          ========================================================================== */

@@ -12,6 +12,10 @@ if (localStorage.getItem(window.FONT_SCALE_KEY) === null) {
 // Asset loading completion callback
 let on_assets_loaded = null;
 
+// Track both conditions required to enable Start button
+let assets_ready = false;
+let audio_tested = false;
+
 async function initialize_pre_intro() {
   const has_api_key = await check_for_api_key();
 
@@ -264,6 +268,20 @@ function setup_audio_interface() {
     }
   }
 
+  function check_and_enable_start_button() {
+    if (assets_ready && audio_tested) {
+      start_button.addEventListener("click", () => handle_click(false));
+      start_button.textContent = "Start";
+      start_button.disabled = false;
+      start_button.classList.add("start_button");
+      gentle_button.addEventListener("click", () => handle_click(true));
+      gentle_button.disabled = false;
+    } else if (assets_ready && !audio_tested) {
+      start_button.textContent = "Please test audio";
+      start_button.disabled = true;
+    }
+  }
+
   function adjust_volume(delta) {
     // get from localStorage, adjust, clamp to [0, 1]
     const current_audio_volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
@@ -353,7 +371,14 @@ function setup_audio_interface() {
   }
 
   // Event listeners
-  test_button.addEventListener("click", play_blip);
+  test_button.addEventListener("click", function () {
+    play_blip();
+    if (!audio_tested) {
+      audio_tested = true;
+      test_button.classList.remove("test_audio_pulse");
+      check_and_enable_start_button();
+    }
+  });
   fullscreen_button.addEventListener("click", toggle_fullscreen);
   warning_help.addEventListener("click", show_standard_warning);
   modal_close.addEventListener("click", hide_standard_warning);
@@ -434,13 +459,12 @@ function setup_audio_interface() {
 
   // Setup asset loading callback now that handle_click is defined
   on_assets_loaded = function () {
-    start_button.addEventListener("click", () => handle_click(false));
-    start_button.textContent = "Start";
-    start_button.disabled = false;
-    start_button.classList.add("start_button");
-    gentle_button.addEventListener("click", () => handle_click(true));
-    gentle_button.disabled = false;
+    assets_ready = true;
+    check_and_enable_start_button();
   };
+
+  // Add pulsing glow to Test Audio button to indicate user must click it
+  test_button.classList.add("test_audio_pulse");
 
   // Don't fade in here - wait for font loading to complete
 }
