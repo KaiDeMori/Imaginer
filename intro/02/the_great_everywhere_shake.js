@@ -263,9 +263,9 @@ function initialize_shake() {
 
   function start_zoom_and_explosion_animation() {
     const zoom_duration_ms = 12000;
-    const zoom_amplitude = 0.08;
+    const zoom_amplitude = 0.1;
     const zoom_base = 1.0;
-    const shake_amplitude_px = gentle_mode ? 0 : 12; // NO shaking in gentle mode
+    const shake_amplitude_px = gentle_mode ? 0 : 8; // NO shaking in gentle mode
     const start_time = performance.now();
 
     let whiteout_frame_drawn = false;
