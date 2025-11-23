@@ -33,9 +33,42 @@ const asset_loader = {
     // Also load phase 2 images in parallel
     const phase_2_promise = this.load_phase_2_images();
 
-    await Promise.all([...bulk_promises, phase_2_promise]);
+    // Load phase 4 assets (Infinity Zoom)
+    const phase_4_promise = this.load_phase_4_assets();
+
+    await Promise.all([...bulk_promises, phase_2_promise, phase_4_promise]);
 
     callback();
+  },
+
+  async load_phase_4_assets() {
+    const RELATIVE_BASE_DIRECTORY_PHASE4 = "../04";
+    const dependencies = [
+      "infinity_zoom_debug.js",
+      "regions.js",
+      "infinity_zoom_II_configs.js",
+      "infinity_zoom_II_featherer.js",
+      "infinity_zoom_II_preloader.js",
+    ];
+
+    // Load scripts sequentially
+    for (const dep of dependencies) {
+      await this.load_script(`${RELATIVE_BASE_DIRECTORY_PHASE4}/${dep}`);
+    }
+
+    // Trigger image preloading
+    return new Promise((resolve) => {
+      if (window.infinity_zoom_II && window.infinity_zoom_II.preloader) {
+        console.log("Starting Phase 4 asset preloading...");
+        window.infinity_zoom_II.preloader.load_all_images(() => {
+          console.log("Phase 4 assets preloaded.");
+          resolve();
+        });
+      } else {
+        console.error("Phase 4 preloader not found.");
+        resolve(); // Resolve anyway to not block
+      }
+    });
   },
 
   async load_phase_2_images() {

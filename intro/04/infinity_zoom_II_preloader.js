@@ -12,15 +12,24 @@ function load_all_images(callback) {
   let loaded_count = 0;
   const total_count = layers_data.length + region_display_image_paths.length + main_display_image_paths.length;
 
+  // Check cache first
+  if (window.infinity_zoom_II.preloader.cached_images) {
+    log("Returning cached images from preloader.");
+    callback(window.infinity_zoom_II.preloader.cached_images);
+    return;
+  }
+
   function on_all_loaded() {
     window.infinity_zoom_II.REGION_DISPLAY_IMAGES = region_display_images;
     window.infinity_zoom_II.MAIN_DISPLAY_IMAGES = main_display_images;
 
     if (feather_size !== undefined) {
       window.infinity_zoom_II.featherer.process_images_with_feathering(layer_images, feather_size, (processed_images) => {
+        window.infinity_zoom_II.preloader.cached_images = processed_images;
         callback(processed_images);
       });
     } else {
+      window.infinity_zoom_II.preloader.cached_images = layer_images;
       callback(layer_images);
     }
   }
