@@ -68,34 +68,40 @@ const asset_loader = {
   },
 
   load_css(url) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = url;
       link.onload = resolve;
+      link.onerror = () => reject(new Error(`Failed to load CSS: ${url}`));
       document.head.appendChild(link);
     });
   },
 
   load_script(url) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = url;
       script.onload = resolve;
+      script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
       document.head.appendChild(script);
     });
   },
 
   load_image(url) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const image = new Image();
       image.onload = resolve;
+      image.onerror = () => reject(new Error(`Failed to load image: ${url}`));
       image.src = url;
     });
   },
 
   async load_audio(url) {
     const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load audio: ${url} (${response.status} ${response.statusText})`);
+    }
     const array_buffer = await response.arrayBuffer();
     const audio_context = new AudioContext();
     const decoded_buffer = await audio_context.decodeAudioData(array_buffer);

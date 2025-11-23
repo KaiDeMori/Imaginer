@@ -32,7 +32,7 @@ const asset_max_numbers = {
   galaxy_streams: 11,
   nebulae: 16,
   black_holes: 3,
-  star_clusters: 21,
+  star_clusters: 18,
 };
 
 const asset_manifest = [];
@@ -117,7 +117,7 @@ function load_and_decode_images(onProgress, target_urls = null) {
           console.error(`[Preloader] Failed to load: ${src}`, err);
           // We keep the reference to avoid memory leaks.
           img.remove();
-          reject(err || new Error(`Image failed to load: ${src}`));
+          reject(err instanceof Error ? err : new Error(`Image failed to load: ${src}`));
         }
 
         img.onerror = _on_error;
