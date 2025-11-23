@@ -24,10 +24,10 @@ import { layers_config } from "./layers_model.js";
 // ---------------------------------------------------------------------------
 // Number of sprite instances we want per layer.
 const SPRITE_COUNT_PER_LAYER = Object.freeze({
-  cosmic_fog: 8,
-  galaxy_streams: 7,
-  nebulae: 10,
-  star_clusters: 6,
+  cosmic_fog: 5,
+  galaxy_streams: 4,
+  nebulae: 6,
+  star_clusters: 3,
 });
 
 // ---------------------------------------------------------------------------

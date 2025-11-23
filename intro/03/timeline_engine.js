@@ -75,17 +75,6 @@ const LAYER_TIMELINE = Object.freeze([
     distance_fade_end_z: -40,
     distance_fade_start_z: 8 + -146.49 * 0.32,
   },
-  {
-    name: "star_clusters_b",
-    p_in: 0.85,
-    p_out: 0.99,
-    z_start: 120,
-    z_end: 8 + -146.49 * 0.32,
-    base_opacity: 1,
-    fade_easing: "linear",
-    distance_fade_end_z: -40,
-    distance_fade_start_z: 8 + -146.49 * 0.32,
-  },
 ]);
 
 // Maximum layer Z-start (furthest positive Z) – useful for helper formulas
