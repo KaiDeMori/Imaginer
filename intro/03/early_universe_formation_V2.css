@@ -1,6 +1,7 @@
 /* Early Universe Formation V2 – global styles */
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -27,7 +28,7 @@ html, body {
   width: 100%;
   height: 100%;
   display: block; /* removes default inline-block gap */
-  cursor: default; /* avoid I-beam on text selection */
+  cursor: none; /* avoid I-beam on text selection */
   background: #000000; /* ensures black if canvas clears */
 }
 
