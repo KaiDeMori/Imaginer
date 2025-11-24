@@ -33,8 +33,15 @@ if (window.self === window.top) {
     } else {
       // User chose to skip. Mark as done so we don't ask again.
       localStorage.setItem("imaginer.intro.first_start", "false");
+      document.getElementById("app-hider")?.remove();
     }
+  } else {
+    // OOBE complete or in iframe -> Show app
+    document.getElementById("app-hider")?.remove();
   }
+} else {
+  // In iframe -> Show app
+  document.getElementById("app-hider")?.remove();
 }
 
 const session_store = new Session_store();
