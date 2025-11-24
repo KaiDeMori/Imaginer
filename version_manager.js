@@ -32,7 +32,15 @@ async function check_and_show_update_message() {
   const html_path = get_version_html_path(APP_VERSION, previous_version);
   if (html_path) {
     const modal = new version_message_modal();
-    await modal.open(html_path);
+    await modal.open(html_path, () => {
+      // Attempt to exit fullscreen on close (handles intro transition case)
+      const target_doc = window.parent.document || document;
+      if (target_doc.fullscreenElement) {
+        target_doc.exitFullscreen().catch((err) => {
+          console.warn("Could not exit fullscreen:", err);
+        });
+      }
+    });
   }
   set_stored_version(APP_VERSION);
 }

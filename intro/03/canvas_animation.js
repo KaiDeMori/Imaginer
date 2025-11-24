@@ -12,7 +12,7 @@ import { get_layer_states } from "./timeline_engine.js";
 // ---------------------------------------------------------------------------
 // Constants ------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-const TOTAL_DURATION_MS = 33_000;
+const TOTAL_DURATION_MS = 35_000;
 // Camera Z curve ---------------------------------
 const CAM_Z_START = -1; // at t = 0 (closest to layers)
 const CAM_Z_END = -20; // at t = 1 (camera has moved "forward" by 19 units)
