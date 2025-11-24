@@ -1,5 +1,6 @@
 // menu_bar.js - Menu bar component
 import { Config_dialog } from "./config_dialog.js";
+import { About_dialog } from "./about_dialog.js";
 import { Session_store } from "../storage/session_store.js";
 import { Error_modal } from "./error_modal.js";
 import { get_models_for_dropdown, get_selected_model, set_selected_model, refresh_models } from "../model_fetcher.js";
@@ -38,7 +39,10 @@ export class Menu_bar {
             <option value="">—</option>
           </select>
         </div>
-        <button id="config-btn" title="Config" style="margin-left: auto; font-size: 1.3rem; background: none; border: none; cursor: pointer;">⚙️</button>
+        <div style="margin-left: auto; display: flex; gap: 8px;">
+          <button id="config-btn" title="Config" style="font-size: 1.3rem; background: none; border: none; cursor: pointer;">⚙️</button>
+          <button id="about-btn" title="About" style="font-size: 1.8rem; background: none; border: none; cursor: pointer;">🛈</button>
+        </div>
       </div>
       <style>
         .orientation-btn {
@@ -227,7 +231,18 @@ export class Menu_bar {
         });
       });
     }
-    // ...existing code...
+    // About Dialog
+    const about_button = this.root.querySelector("#about-btn");
+    if (about_button) {
+      let about_dialog = null;
+      about_button.addEventListener("click", () => {
+        if (!about_dialog) {
+          about_dialog = new About_dialog();
+        }
+        about_dialog.open();
+      });
+    }
+
     // Remove background select logic (now in config dialog)
     // Initial save to ensure settings are present
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
