@@ -17,10 +17,10 @@ export class About_dialog {
     const title = document.createElement("h2");
     title.textContent = "About Imaginer";
     title.className = "title";
-    title.style.marginBottom = "20px";
+    title.style.marginBottom = "10px";
 
     const content = document.createElement("div");
-    content.style.marginBottom = "24px";
+    content.style.marginBottom = "16px";
     content.style.textAlign = "center";
 
     // Version History
@@ -28,12 +28,13 @@ export class About_dialog {
     version_header.textContent = "Version History";
     version_header.style.fontSize = "1rem";
     version_header.style.marginTop = "0";
+    version_header.style.marginBottom = "4px";
     content.appendChild(version_header);
 
     const version_list = document.createElement("ul");
     version_list.style.listStyle = "none";
     version_list.style.padding = "0";
-    version_list.style.margin = "0 0 16px 0";
+    version_list.style.margin = "0 0 12px 0";
 
     Object.entries(VERSION_HTML_FILES)
       .reverse()
@@ -55,10 +56,12 @@ export class About_dialog {
     const credits_header = document.createElement("h3");
     credits_header.textContent = "Credits";
     credits_header.style.fontSize = "1rem";
+    credits_header.style.marginTop = "0";
+    credits_header.style.marginBottom = "4px";
     content.appendChild(credits_header);
 
     const credits_paragraph = document.createElement("p");
-    credits_paragraph.style.margin = "0 0 16px 0";
+    credits_paragraph.style.margin = "0 0 12px 0";
     credits_paragraph.style.fontSize = "0.9rem";
     credits_paragraph.style.lineHeight = "1.5";
 
@@ -119,6 +122,28 @@ export class About_dialog {
     links_container.appendChild(repo_link);
 
     content.appendChild(links_container);
+
+    // Dedication
+    const dedication = document.createElement("p");
+    dedication.style.marginTop = "16px";
+    dedication.style.fontSize = "1.2rem";
+    dedication.style.color = "#555";
+    dedication.textContent = "For Lilly with ❤️";
+
+    // Load custom font
+    const font = new FontFace("HennyPenny", "url(fonts/Henny_Penny/HennyPenny-Regular.ttf)");
+    font
+      .load()
+      .then((loaded_font) => {
+        document.fonts.add(loaded_font);
+        dedication.style.fontFamily = "HennyPenny, cursive";
+      })
+      .catch((error) => {
+        console.warn("Failed to load HennyPenny font:", error);
+        dedication.style.fontFamily = "cursive";
+      });
+
+    content.appendChild(dedication);
 
     const button_row = document.createElement("div");
     button_row.className = "button_row";
