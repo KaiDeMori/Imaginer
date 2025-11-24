@@ -477,8 +477,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   update_generate_button();
 });
 
-// --- Hard reset function: clears all Imaginer data in the browser ---
-window.hard_reset = function hard_reset() {
+// --- Tabula Rasa function: clears all Imaginer data in the browser ---
+window.tabula_rasa = function tabula_rasa() {
   try {
     localStorage.clear();
     sessionStorage.clear();
@@ -490,8 +490,8 @@ window.hard_reset = function hard_reset() {
       // Fallback: try to delete common Imaginer DBs if you know their names
       // indexedDB.deleteDatabase('imaginer_db');
     }
-    console.log("Imaginer data has been hard reset.");
+    console.log("Imaginer data has been wiped clean (tabula rasa). Reload the page to start fresh.");
   } catch (e) {
-    console.error("Error during hard reset:", e);
+    console.error("Error during tabula rasa:", e);
   }
 };
