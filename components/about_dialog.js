@@ -19,11 +19,6 @@ export class About_dialog {
 
     const content = document.createElement("div");
     content.style.marginBottom = "24px";
-    content.innerHTML = `
-      <p style="margin: 10px 0; font-size: 1.1rem;"><strong>Imaginer</strong></p>
-      <p style="margin: 10px 0; color: #666;">Version 1.0</p>
-      <p style="margin: 10px 0;">A creative tool for AI image generation.</p>
-    `;
 
     const button_row = document.createElement("div");
     button_row.className = "button_row";
