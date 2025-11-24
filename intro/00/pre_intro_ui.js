@@ -16,7 +16,24 @@ let on_assets_loaded = null;
 let assets_ready = false;
 let audio_tested = false;
 
+function is_webgl_available() {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+  } catch (e) {
+    return false;
+  }
+}
+
 async function initialize_pre_intro() {
+  if (!is_webgl_available()) {
+    console.warn("WebGL not available. Skipping intro.");
+    alert("WebGL is not available. The intro sequence requires WebGL and will be skipped.");
+    localStorage.setItem("imaginer.intro.first_start", "false");
+    window.location.replace("../../index.html");
+    return;
+  }
+
   const has_api_key = await check_for_api_key();
 
   if (has_api_key) {
