@@ -79,6 +79,8 @@ export class About_dialog {
       { name: "gpt-5.1-codex", bold: false },
       { name: "Kai De–Mori", bold: true },
       { name: "o3-pro", bold: false },
+      { name: "VSCode", bold: false },
+      { name: "WinGPT", bold: false },
     ];
 
     credits_data.forEach((item, index) => {
