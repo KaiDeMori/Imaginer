@@ -77,8 +77,27 @@ Implement a "First Run" experience where new users are automatically redirected 
 
 3.  **`version_manager.js`**:
     ```javascript
-    // Inside on_close callback
-    localStorage.setItem("imaginer.intro.first_start", "false");
+    // Helper to finalize OOBE (mark complete & exit fullscreen)
+    const finalize_oobe = () => {
+        localStorage.setItem("imaginer.intro.first_start", "false");
+        const target_doc = window.parent.document || document;
+        if (target_doc.fullscreenElement) {
+            target_doc.exitFullscreen().catch((err) => console.warn(err));
+        }
+    };
+
+    if (html_path) {
+        // Show modal
+        const modal = new version_message_modal();
+        await modal.open(html_path, () => {
+            finalize_oobe();
+        });
+    } else {
+        // No modal needed, but if OOBE is pending, we MUST finalize it
+        if (localStorage.getItem("imaginer.intro.first_start") === "true") {
+            finalize_oobe();
+        }
+    }
     ```
 
 This seems robust and covers the iframe scenario correctly.

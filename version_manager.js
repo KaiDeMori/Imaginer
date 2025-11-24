@@ -30,17 +30,26 @@ function get_version_html_path(current_version, previous_version) {
 async function check_and_show_update_message() {
   const previous_version = get_stored_version();
   const html_path = get_version_html_path(APP_VERSION, previous_version);
+
+  // Helper to finalize OOBE (mark complete & exit fullscreen)
+  const finalize_oobe = () => {
+    localStorage.setItem("imaginer.intro.first_start", "false");
+    const target_doc = window.parent.document || document;
+    if (target_doc.fullscreenElement) {
+      target_doc.exitFullscreen().catch((err) => console.warn(err));
+    }
+  };
+
   if (html_path) {
     const modal = new version_message_modal();
     await modal.open(html_path, () => {
-      // Attempt to exit fullscreen on close (handles intro transition case)
-      const target_doc = window.parent.document || document;
-      if (target_doc.fullscreenElement) {
-        target_doc.exitFullscreen().catch((err) => {
-          console.warn("Could not exit fullscreen:", err);
-        });
-      }
+      finalize_oobe();
     });
+  } else {
+    // No modal needed, but if OOBE is pending, we MUST finalize it
+    if (localStorage.getItem("imaginer.intro.first_start") === "true") {
+      finalize_oobe();
+    }
   }
   set_stored_version(APP_VERSION);
 }

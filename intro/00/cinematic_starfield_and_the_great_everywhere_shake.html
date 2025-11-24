@@ -553,6 +553,16 @@
         display: block;
       }
     </style>
+    <script>
+      // --- OOBE State Management ---
+      (function () {
+        const key = localStorage.getItem("imaginer.intro.first_start");
+        if (key === "false") {
+          alert("imaginer.intro.first_start is false! This page should not be loaded if the intro is already done.");
+        }
+        localStorage.setItem("imaginer.intro.first_start", "true");
+      })();
+    </script>
     <script src="browser_detection.js"></script>
     <script src="pre_intro_ui.js"></script>
   </head>

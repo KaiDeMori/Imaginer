@@ -16,6 +16,27 @@ import { check_and_show_update_message } from "./version_manager.js";
 import { ensure_config_defaults } from "./default_config.js";
 import { get_selected_model } from "./model_fetcher.js";
 
+// --- OOBE / First Run Check ---
+if (window.self === window.top) {
+  // Only check if NOT in an iframe (prevents infinite loop when loaded by intro)
+  const first_start = localStorage.getItem("imaginer.intro.first_start");
+
+  if (first_start === null) {
+    // First run -> Go to intro
+    window.location.replace("intro/00/cinematic_starfield_and_the_great_everywhere_shake.html");
+  } else if (first_start === "true") {
+    // Incomplete run -> Ask user
+    if (confirm("The intro sequence was interrupted. Would you like to watch it again?\n\nClick OK to restart the intro.\nClick Cancel to skip to the app.")) {
+      // User chose to restart. Reset key to ensure clean state.
+      localStorage.removeItem("imaginer.intro.first_start");
+      window.location.replace("intro/00/cinematic_starfield_and_the_great_everywhere_shake.html");
+    } else {
+      // User chose to skip. Mark as done so we don't ask again.
+      localStorage.setItem("imaginer.intro.first_start", "false");
+    }
+  }
+}
+
 const session_store = new Session_store();
 window.sessionStore = session_store;
 
