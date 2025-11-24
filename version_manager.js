@@ -54,4 +54,4 @@ async function check_and_show_update_message() {
   set_stored_version(APP_VERSION);
 }
 
-export { APP_VERSION, check_and_show_update_message };
+export { APP_VERSION, check_and_show_update_message, VERSION_HTML_FILES };
