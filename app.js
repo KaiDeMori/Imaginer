@@ -1,5 +1,5 @@
-// NOTE: Only gpt-image-1 is supported, so we ignore response_format (always returns b64_json)
 // app.js - Root application logic (updated with image generation logic)
+// NOTE: Only gpt-image-1 is supported, so we ignore response_format (always returns b64_json)
 
 import { Menu_bar } from "./components/menu_bar.js";
 import { Resizable_divider } from "./components/resizable_divider.js";
