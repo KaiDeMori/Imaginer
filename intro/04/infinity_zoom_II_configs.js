@@ -51,7 +51,7 @@ window.infinity_zoom_II.config.region_zoom = {
 window.infinity_zoom_II.config.REGION_DISPLAY_IMAGE_PATHS = [
   "../../assets/ai_universe/zoom_images_planete/display_images/region_zoom/u1264212648_photo_of_of_a_traditional_French_mime_riding_a_bicy_bab8869e-91ed-4290-b766-63beb51c844d.jpg",
   "../../assets/ai_universe/zoom_images_planete/display_images/region_zoom/u1264212648_photo_of_a_panda_sitting_on_a_table_in_the_forest_a_6c82a065-dcbe-4937-8d45-8507648d2a5b.jpg",
-  "../../assets/ai_universe/zoom_images_planete/display_images/region_zoom/Final_recursion.jpg",
+  "../../assets/ai_universe/zoom_images_planete/display_images/region_zoom/Final_recursion.webp",
 ];
 
 // Display images for main zoom portal effect

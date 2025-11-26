@@ -2,7 +2,7 @@ export class Intro_remote_control {
   constructor(target_window = window) {
     this.target_window = target_window;
     this.target_document = target_window.document;
-    this.target_filename = "Final_recursion.jpg";
+    this.target_filename = "Final_recursion.webp";
   }
 
   async execute() {
