@@ -313,6 +313,11 @@ function setup_audio_interface() {
     if (cinematic_audio) {
       cinematic_audio.volume = new_audio_volume;
     }
+    // If we're in phase 4, update the bach audio too
+    const bach_audio = document.getElementById("bach_audio");
+    if (bach_audio) {
+      bach_audio.volume = new_audio_volume;
+    }
 
     console.log(`Audio volume set to ${new_audio_volume}`);
 
