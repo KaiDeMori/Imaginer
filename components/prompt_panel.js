@@ -255,8 +255,11 @@ export class Prompt_panel {
     const drop_area = this.root.querySelector("#input-image-drop-area");
     if (!drop_area) return;
 
-    const is_mini_model = model && model.includes("mini");
-    drop_area.style.display = is_mini_model ? "none" : "flex";
+    // Explicit list of models that do not support image input
+    const no_image_support_models = [];
+
+    const supports_images = !no_image_support_models.includes(model);
+    drop_area.style.display = supports_images ? "flex" : "none";
   }
 
   set_generate_button_enabled(enabled) {
