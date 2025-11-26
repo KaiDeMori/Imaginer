@@ -20,7 +20,7 @@ export class About_dialog {
     title.style.marginBottom = "10px";
 
     const content = document.createElement("div");
-    content.style.marginBottom = "16px";
+    content.style.marginBottom = "0";
     content.style.textAlign = "center";
 
     // Version History
@@ -128,6 +128,7 @@ export class About_dialog {
     // Dedication
     const dedication = document.createElement("p");
     dedication.style.marginTop = "16px";
+    dedication.style.marginBottom = "0";
     dedication.style.fontSize = "1.2rem";
     dedication.style.color = "#555";
     dedication.textContent = "For Lilly with ❤️";
@@ -146,6 +147,18 @@ export class About_dialog {
       });
 
     content.appendChild(dedication);
+
+    // Icon
+    const icon_img = document.createElement("img");
+    icon_img.src = "assets/Imaginer_Icon_crop_circle.webp";
+    icon_img.alt = "Imaginer Icon";
+    icon_img.style.width = "100px";
+    icon_img.style.height = "100px";
+    icon_img.style.marginTop = "0";
+    icon_img.style.display = "block";
+    icon_img.style.marginLeft = "auto";
+    icon_img.style.marginRight = "auto";
+    content.appendChild(icon_img);
 
     const button_row = document.createElement("div");
     button_row.className = "button_row";
