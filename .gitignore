@@ -51,7 +51,6 @@ project_status.md
 png metadata.md
 assets/conversion_stuff
 api_trials/
-audio/
 png_exif/add_exif_chunk_to_png.js
 png_exif/add_EXIF_UserComment_to_png.js
 png_exif/exif_usercomment.js
@@ -67,5 +66,6 @@ intro_trials/planetwise/zoom_images
 intro_trials/planetwise/zoom_images_planete/
 
 # Ignore everything in intro/audio except webm
+!intro/audio/
 intro/audio/*
 !intro/audio/*.webm
