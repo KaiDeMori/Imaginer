@@ -13,6 +13,9 @@
       console.log("[AppTransitionManager] Starting app load...");
       this.iframe = document.createElement("iframe");
       // Assuming we are in intro/04/, index.html is in ../../
+      // We set a session storage flag to signal the app it's running in intro mode
+      // This is safer than localStorage as it's cleared when the tab closes
+      sessionStorage.setItem("imaginer.intro.is_running", "true");
       this.iframe.src = "../../index.html";
       this.iframe.style.cssText =
         "position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 2s ease-in-out;";

@@ -17,31 +17,36 @@ import { ensure_config_defaults } from "./default_config.js";
 import { get_selected_model } from "./model_fetcher.js";
 
 // --- OOBE / First Run Check ---
-if (window.self === window.top) {
-  // Only check if NOT in an iframe (prevents infinite loop when loaded by intro)
+let is_redirecting = false;
+// Check session storage for intro mode flag (set by intro/04/app_transition_manager.js)
+const is_intro_running = sessionStorage.getItem("imaginer.intro.is_running") === "true";
+
+if (!is_intro_running) {
+  // Only check if NOT in intro mode (prevents infinite loop when loaded by intro)
   const first_start = localStorage.getItem("imaginer.intro.first_start");
 
   if (first_start === null) {
     // First run -> Go to intro
+    is_redirecting = true;
     window.location.replace("intro/00/cinematic_starfield_and_the_great_everywhere_shake.html");
   } else if (first_start === "true") {
     // Incomplete run -> Ask user
     if (confirm("The intro sequence was interrupted. Would you like to watch it again?\n\nClick OK to restart the intro.\nClick Cancel to skip to the app.")) {
       // User chose to restart. Reset key to ensure clean state.
+      is_redirecting = true;
       localStorage.removeItem("imaginer.intro.first_start");
       window.location.replace("intro/00/cinematic_starfield_and_the_great_everywhere_shake.html");
     } else {
       // User chose to skip. Mark as done so we don't ask again.
       localStorage.setItem("imaginer.intro.first_start", "false");
-      document.getElementById("app-hider")?.remove();
     }
   } else {
     // OOBE complete or in iframe -> Show app
-    document.getElementById("app-hider")?.remove();
   }
 } else {
-  // In iframe -> Show app
-  document.getElementById("app-hider")?.remove();
+  // In intro mode -> Show app
+  // Clear the flag so subsequent reloads (e.g. user refresh) behave normally
+  sessionStorage.removeItem("imaginer.intro.is_running");
 }
 
 const session_store = new Session_store();
@@ -49,6 +54,29 @@ window.sessionStore = session_store;
 
 // Mount components
 window.addEventListener("DOMContentLoaded", async () => {
+  if (is_redirecting) return;
+
+  // Fade out startup overlay
+  const overlay = document.getElementById("startup-overlay");
+  if (overlay) {
+    // If first_start is true, we are inside the intro sequence (iframe).
+    // We remove the overlay immediately so the intro can control the fade-in of the iframe.
+    // In the "interrupted" case (top level), the confirm dialog handles the state:
+    // - If Cancel (Skip): first_start becomes "false" before this runs -> Smooth fade.
+    // - If OK (Restart): is_redirecting is true -> This code doesn't run.
+    const is_first_start_active = localStorage.getItem("imaginer.intro.first_start") === "true";
+
+    if (is_first_start_active) {
+      overlay.remove();
+    } else {
+      // Normal start: Fade out smoothly
+      // Force reflow to ensure transition plays if added dynamically (though here it's static)
+      overlay.offsetHeight;
+      overlay.addEventListener("transitionend", () => overlay.remove(), { once: true });
+      overlay.style.opacity = "0";
+    }
+  }
+
   // Check and show version update message if needed
   await check_and_show_update_message();
   // Ensure all config defaults are set in localStorage
