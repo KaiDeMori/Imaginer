@@ -138,6 +138,17 @@
           } else if (event.key === "p" || event.key === "P") {
             console.log("Pausing animation...");
             window.infinity_zoom_II.engine.pause();
+          } else if (event.key === "d" || event.key === "D") {
+            // Toggle debug_div
+            var debug_div = document.getElementById("debug_div");
+            if (debug_div) {
+              debug_div.style.display = debug_div.style.display === "none" ? "block" : "none";
+            }
+            // Toggle info_overlay
+            var info_overlay = document.querySelector(".info_overlay");
+            if (info_overlay) {
+              info_overlay.style.display = info_overlay.style.display === "none" ? "block" : "none";
+            }
           }
         });
       }
@@ -182,6 +193,7 @@
         font-size: 12px;
         border-radius: 4px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        display: none;
       }
 
       #debug_div button {
@@ -231,6 +243,7 @@
         font-family: "Orbitron", monospace;
         font-size: 11px;
         z-index: 999;
+        display: none;
       }
     </style>
   </head>
