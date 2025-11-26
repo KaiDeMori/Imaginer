@@ -24,7 +24,7 @@ function pad(num, len = 2) {
 // See assets/ai_universe/assets_loading_reloaded.md for approach summary.
 
 // Format configuration - switch between development and production formats
-const ASSET_FORMAT = "webm"; // "png" for development, "webm" for production
+const ASSET_FORMAT = "webp"; // "png" for development, "webm" for production
 
 // Max number of files in each asset folder (update as needed)
 const asset_max_numbers = {
