@@ -40,6 +40,7 @@ export class Menu_bar {
           </select>
         </div>
         <div style="margin-left: auto; display: flex; gap: 8px;">
+          <button id="delete-mode-btn" title="Delete Mode" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; opacity: 0.5; transition: opacity 0.2s;">🗑️</button>
           <button id="config-btn" title="Config" style="font-size: 1.3rem; background: none; border: none; cursor: pointer;">⚙️</button>
           <button id="about-btn" title="About" style="font-size: 1.8rem; background: none; border: none; cursor: pointer;">🛈</button>
         </div>
@@ -92,6 +93,28 @@ export class Menu_bar {
 
   /* --------------------------------------------------------------- */
   async attach_events() {
+    const delete_btn = this.root.querySelector("#delete-mode-btn");
+    if (delete_btn) {
+      delete_btn.addEventListener("click", () => {
+        const is_active = delete_btn.style.opacity === "1";
+        // Toggle state
+        if (is_active) {
+          delete_btn.style.opacity = "0.5";
+          delete_btn.style.background = "none";
+        } else {
+          delete_btn.style.opacity = "1";
+          delete_btn.style.background = "#ffebee"; // Light red background to indicate danger/delete
+          delete_btn.style.borderRadius = "4px";
+        }
+
+        window.dispatchEvent(
+          new CustomEvent("imaginer.delete_mode_toggled", {
+            detail: { active: !is_active },
+          })
+        );
+      });
+    }
+
     const config_button = this.root.querySelector("#config-btn");
     if (!config_button) return;
 

@@ -32,6 +32,31 @@ export class Gallery {
     });
     this.root.appendChild(this.grid);
     this.records_by_created = {};
+    this.delete_mode = false;
+
+    // Listen for delete mode toggle
+    window.addEventListener("imaginer.delete_mode_toggled", (e) => {
+      this.delete_mode = e.detail.active;
+      if (this.delete_mode) {
+        this.grid.classList.add("delete-mode");
+      } else {
+        this.grid.classList.remove("delete-mode");
+      }
+    });
+
+    // Add style for delete mode cursor
+    const style = document.createElement("style");
+    style.textContent = `
+      .delete-mode img {
+        cursor: not-allowed !important;
+      }
+      .delete-mode .gallery-thumb:hover {
+        opacity: 0.7;
+        transition: opacity 0.2s;
+      }
+    `;
+    this.root.appendChild(style);
+
     this.loadImages();
   }
 
@@ -137,7 +162,34 @@ export class Gallery {
       display: "block",
     });
 
-    imgEl.addEventListener("click", () => {
+    imgEl.addEventListener("click", async () => {
+      // Check for delete mode
+      if (this.delete_mode) {
+        if (confirm("Delete this image?")) {
+          // Remove from DB
+          if (typeof created === "number" && this.records_by_created) {
+            const rec = this.records_by_created[created];
+            if (rec && rec.id !== undefined) {
+              try {
+                await window.sessionStore.delete(rec.id);
+              } catch (err) {
+                console.error("Failed to delete image:", err);
+                alert("Failed to delete image.");
+                return;
+              }
+              // Remove from memory
+              delete this.records_by_created[created];
+              if (this._thumbnail_containers) {
+                delete this._thumbnail_containers[created];
+              }
+            }
+          }
+          // Remove from UI
+          container.remove();
+        }
+        return;
+      }
+
       // Try to pass image id if available (for mask support)
       if (typeof created === "number" && this.records_by_created) {
         const rec = this.records_by_created[created];

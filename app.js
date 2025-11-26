@@ -334,14 +334,18 @@ window.addEventListener("DOMContentLoaded", async () => {
           errObj = { message: `API request failed: ${response.status} ${response.statusText}` };
         }
         Error_modal.show(errObj);
-        gallery.update_placeholder(placeholder, null, true);
+        for (const ph of placeholders) {
+          gallery.update_placeholder(ph, null, true);
+        }
         return;
       }
 
       const data = await response.json();
       if (!Array.isArray(data.data) || data.data.length === 0) {
         Error_modal.show({ message: "No images returned from API." });
-        gallery.update_placeholder(placeholder, null, true);
+        for (const ph of placeholders) {
+          gallery.update_placeholder(ph, null, true);
+        }
         return;
       }
 
