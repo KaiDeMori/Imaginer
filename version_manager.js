@@ -12,46 +12,41 @@ const VERSION_HTML_FILES = {
   // Add future version HTML files here
 };
 
-function get_stored_version() {
-  return localStorage.getItem(VERSION_STORAGE_KEY);
-}
-
-function set_stored_version(version) {
-  localStorage.setItem(VERSION_STORAGE_KEY, version);
-}
-
-function get_version_html_path(current_version, previous_version) {
-  if (current_version !== previous_version && VERSION_HTML_FILES[current_version]) {
-    return VERSION_HTML_FILES[current_version];
-  }
-  return null;
-}
-
 async function check_and_show_update_message() {
-  const previous_version = get_stored_version();
-  const html_path = get_version_html_path(APP_VERSION, previous_version);
+  const previous_version = localStorage.getItem(VERSION_STORAGE_KEY);
+  const is_new_version = APP_VERSION !== previous_version;
 
   // Helper to finalize OOBE (mark complete & exit fullscreen)
   const finalize_oobe = () => {
-    localStorage.setItem("imaginer.intro.first_start", "false");
-    const target_doc = window.parent.document || document;
-    if (target_doc.fullscreenElement) {
-      target_doc.exitFullscreen().catch((err) => console.warn(err));
+    if (localStorage.getItem("imaginer.intro.first_start") === "true") {
+      localStorage.setItem("imaginer.intro.first_start", "false");
+      const target_doc = window.parent.document || document;
+      if (target_doc.fullscreenElement) {
+        target_doc.exitFullscreen().catch((err) => console.warn(err));
+      }
     }
   };
 
-  if (html_path) {
-    const modal = new version_message_modal();
-    await modal.open(html_path, () => {
-      finalize_oobe();
-    });
-  } else {
-    // No modal needed, but if OOBE is pending, we MUST finalize it
-    if (localStorage.getItem("imaginer.intro.first_start") === "true") {
+  if (is_new_version) {
+    const html_path = VERSION_HTML_FILES[APP_VERSION];
+    if (html_path) {
+      const modal = new version_message_modal();
+      await modal.open(html_path, () => {
+        finalize_oobe();
+        // Force reload to ensure fresh assets (especially for Firefox)
+        // Only reload if this was an update (previous_version exists).
+        if (previous_version) {
+          location.reload(true);
+        }
+      });
+    } else {
+      alert(`Error: Release notes for version ${APP_VERSION} not found.`);
       finalize_oobe();
     }
+  } else {
+    finalize_oobe();
   }
-  set_stored_version(APP_VERSION);
+  localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
 }
 
 export { APP_VERSION, check_and_show_update_message, VERSION_HTML_FILES };
