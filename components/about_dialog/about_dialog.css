@@ -1,0 +1,101 @@
+.about_overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  display: none; /* hidden by default */
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.about_dialog {
+  background: #fff;
+  border-radius: 10px;
+  min-width: 340px;
+  width: 400px;
+  max-width: 95vw;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 28px 20px 28px;
+  box-sizing: border-box;
+  border: 1.5px solid #e0e0e0;
+  text-align: center;
+}
+
+.about_title {
+  margin: 0 0 10px 0;
+}
+
+.about_content {
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.about_header {
+  font-size: 1rem;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.about_list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+}
+
+.about_list_item {
+  margin-bottom: 4px;
+}
+
+.about_link {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.about_paragraph {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.about_links_container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.about_dedication {
+  margin-top: 16px;
+  margin-bottom: 0;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.about_icon {
+  width: 100px;
+  height: 100px;
+  margin-top: 0;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.about_button_row {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.about_button {
+  padding: 8px 16px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  background: #1976d2;
+  color: #fff;
+}
