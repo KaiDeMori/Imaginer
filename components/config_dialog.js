@@ -178,18 +178,16 @@ export class Config_dialog {
     this.strip_checkbox = document.createElement("input");
     this.strip_checkbox.type = "checkbox";
     this.strip_checkbox.checked = localStorage.getItem("imaginer.strip_metadata") === "true";
-
-    const strip_label = document.createElement("label");
-    strip_label.textContent = "Strip Server-Side metadata";
-    strip_label.className = "checkbox_label";
-    strip_label.setAttribute("for", "strip_checkbox");
     this.strip_checkbox.id = "strip_checkbox";
 
+    const strip_text = document.createElement("span");
+    strip_text.textContent = "Strip Server-Side metadata";
+
     // Wrap input and label in a flex row for consistent gap
-    const strip_row = document.createElement("span");
+    const strip_row = document.createElement("label");
     strip_row.className = "checkbox_label";
     strip_row.appendChild(this.strip_checkbox);
-    strip_row.appendChild(strip_label);
+    strip_row.appendChild(strip_text);
     strip_container.appendChild(strip_row);
 
     // Show Mask Mode Button checkbox ---------------------------------
@@ -205,15 +203,13 @@ export class Config_dialog {
     this.show_mask_mode_checkbox.id = "show_mask_mode_checkbox";
     this.show_mask_mode_checkbox.checked = localStorage.getItem("imaginer.show_mask_mode_button") === "true";
 
-    const show_mask_mode_label = document.createElement("label");
-    show_mask_mode_label.textContent = "Show Mask Mode Button";
-    show_mask_mode_label.className = "checkbox_label";
-    show_mask_mode_label.setAttribute("for", "show_mask_mode_checkbox");
+    const show_mask_mode_text = document.createElement("span");
+    show_mask_mode_text.textContent = "Show Mask Mode Button";
 
-    const mask_mode_row = document.createElement("span");
+    const mask_mode_row = document.createElement("label");
     mask_mode_row.className = "checkbox_label";
     mask_mode_row.appendChild(this.show_mask_mode_checkbox);
-    mask_mode_row.appendChild(show_mask_mode_label);
+    mask_mode_row.appendChild(show_mask_mode_text);
     mask_mode_container.appendChild(mask_mode_row);
 
     // Optimized: Embed prompt group with two checkboxes
