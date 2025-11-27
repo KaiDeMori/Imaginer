@@ -1,0 +1,85 @@
+<div class="overlay">
+  <div class="dialog">
+    <h2 class="title">Configuration</h2>
+
+    <div class="tab_bar">
+      <button class="tab_button active" id="basic_tab_button">Basic</button>
+      <button class="tab_button" id="advanced_tab_button">Advanced</button>
+    </div>
+
+    <div class="tab_content" id="basic_tab_content">
+      <label class="label">OpenAI API Key</label>
+      <form class="form" autocomplete="off" id="api_key_form">
+        <input
+          type="text"
+          name="username"
+          autocomplete="username"
+          value="user"
+          tabindex="-1"
+          aria-hidden="true"
+          style="position: absolute; opacity: 0; height: 0; width: 0; pointer-events: none"
+        />
+        <input type="text" placeholder="sk-..." autocomplete="off" data-lpignore="true" data-form-type="other" class="input" id="api_key_input" />
+        <button type="submit" class="button test_button" id="test_button">Test</button>
+        <span class="feedback" id="test_feedback"></span>
+      </form>
+
+      <label class="label">Maximum number of parallel generations</label>
+      <input type="number" min="1" max="10" step="1" class="input" id="max_input" />
+
+      <label class="label">Number of images to generate (n)</label>
+      <input type="number" min="1" max="10" step="1" class="input" id="n_input" />
+
+      <label class="label">Background</label>
+      <select class="input" id="background_select">
+        <option value="auto">Automatic</option>
+        <option value="transparent">Transparent</option>
+        <option value="opaque">Opaque</option>
+      </select>
+
+      <label class="label">Image quality</label>
+      <select class="input" id="quality_select">
+        <option value="auto">Automatic (default)</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+
+    <div class="tab_content" id="advanced_tab_content" style="display: none">
+      <div class="strip_container">
+        <label class="checkbox_label">
+          <input type="checkbox" id="strip_checkbox" />
+          <span>Strip Server-Side metadata</span>
+        </label>
+      </div>
+
+      <div class="prompt_container">
+        <div class="prompt_group_label">Embed prompt:</div>
+        <label class="checkbox_label">
+          <input type="checkbox" id="prompt_checkbox" />
+          <span>as iTXt (standard PNG text chunk)</span>
+        </label>
+        <label class="checkbox_label">
+          <input type="checkbox" id="prompt_xmp_checkbox" />
+          <span>as XMP (for Adobe/metadata-aware tools)</span>
+        </label>
+      </div>
+
+      <div class="mask_mode_container" style="display: flex; align-items: center; margin: 8px 0 0 0; min-height: 32px">
+        <label class="checkbox_label">
+          <input type="checkbox" id="show_mask_mode_checkbox" />
+          <span>Show Mask Mode Button</span>
+        </label>
+      </div>
+
+      <button class="button refresh_models_button" id="refresh_models_button" style="margin-top: 16px; margin-bottom: 8px">Refresh Image Models</button>
+    </div>
+
+    <div class="button_row">
+      <button class="button download_button" id="download_all_button">Download All Images</button>
+      <button class="button cancel_button" id="cancel_button">Cancel</button>
+      <button class="button save_button" id="save_button">Save</button>
+    </div>
+  </div>
+</div>

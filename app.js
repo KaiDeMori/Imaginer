@@ -104,7 +104,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
       document.body.appendChild(msg);
       // Dynamically import and open config dialog
-      import("./components/config_dialog.js").then(({ Config_dialog }) => {
+      import("./components/config_dialog/config_dialog.js").then(({ Config_dialog }) => {
         const cfg = new Config_dialog(() => {
           msg.remove();
           window.dispatchEvent(new Event("imaginer.config_changed"));

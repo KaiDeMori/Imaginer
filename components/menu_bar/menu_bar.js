@@ -1,5 +1,5 @@
 // menu_bar.js - Menu bar component
-import { Config_dialog } from "../config_dialog.js";
+import { Config_dialog } from "../config_dialog/config_dialog.js";
 import { About_dialog } from "../about_dialog.js";
 import { Session_store } from "../../storage/session_store.js";
 import { Error_modal } from "../error_modal.js";
