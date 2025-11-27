@@ -1,94 +1,34 @@
 // menu_bar.js - Menu bar component
-import { Config_dialog } from "./config_dialog.js";
-import { About_dialog } from "./about_dialog.js";
-import { Session_store } from "../storage/session_store.js";
-import { Error_modal } from "./error_modal.js";
-import { get_models_for_dropdown, get_selected_model, set_selected_model, refresh_models } from "../model_fetcher.js";
+import { Config_dialog } from "../config_dialog.js";
+import { About_dialog } from "../about_dialog.js";
+import { Session_store } from "../../storage/session_store.js";
+import { Error_modal } from "../error_modal.js";
+import { get_models_for_dropdown, get_selected_model, set_selected_model, refresh_models } from "../../model_fetcher.js";
 
 export class Menu_bar {
   constructor(root) {
     this.root = root;
-
-    // Build DOM & wire events
-    this.render();
-    this.attach_events();
+    this.init();
   }
 
-  /* --------------------------------------------------------------- */
-  render() {
-    // Using innerHTML for brevity – simple static markup
-    // --- Orientation drop-down and transparency checkbox added ---
-    // See OpenAI API docs: 'size' param for orientation, 'background' param for transparency
-    // Orientation: 'landscape' (1536x1024), 'portrait' (1024x1536), 'square' (1024x1024)
-    // Transparency: background: 'transparent' (output PNG or WEBP), 'opaque', or 'auto' (default)
-    this.root.innerHTML = `
-      <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <div id="orientation-radio-group" style="display: flex; gap: 8px;">
-            <button class="orientation-btn" data-orientation="landscape" title="Landscape" type="button">
-              <img src="./assets/Landscape.png" alt="Landscape" class="orientation-img" />
-            </button>
-            <button class="orientation-btn" data-orientation="portrait" title="Portrait" type="button">
-              <img src="./assets/Portrait.png" alt="Portrait" class="orientation-img" />
-            </button>
-            <button class="orientation-btn" data-orientation="square" title="Square" type="button">
-              <img src="./assets/Square.png" alt="Square" class="orientation-img" />
-            </button>
-          </div>
-          <select id="model-select" class="model-select" disabled title="Image Generation Model">
-            <option value="">—</option>
-          </select>
-        </div>
-        <div style="margin-left: auto; display: flex; gap: 8px;">
-          <button id="delete-mode-btn" title="Delete Mode" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; opacity: 0.5; transition: opacity 0.2s;">🗑️</button>
-          <button id="config-btn" title="Config" style="font-size: 1.3rem; background: none; border: none; cursor: pointer;">⚙️</button>
-          <button id="about-btn" title="About" style="font-size: 1.8rem; background: none; border: none; cursor: pointer;">🛈</button>
-        </div>
-      </div>
-      <style>
-        .orientation-btn {
-          border: 2px solid transparent;
-          background: white;
-          border-radius: 6px;
-          padding: 2px;
-          width: 44px;
-          height: 44px;
-          cursor: pointer;
-          transition: border 0.15s;
-        }
-        .orientation-btn.selected {
-          border: 2px solid #1976d2;
-          background: #e3f0ff;
-        }
-        .orientation-img {
-          width: 32px;
-          height: 32px;
-          display: block;
-          filter: grayscale(100%) contrast(0.7);
-          transition: filter 0.15s;
-        }
-        .orientation-btn.selected .orientation-img {
-          filter: none;
-        }
-        .orientation-btn:focus {
-          outline: 2px solid #1976d2;
-        }
-        .model-select {
-          padding: 6px 8px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          background: white;
-          font-size: 0.9rem;
-          min-width: 120px;
-          cursor: pointer;
-        }
-        .model-select:disabled {
-          background: #f5f5f5;
-          color: #999;
-          cursor: not-allowed;
-        }
-      </style>
-    `;
+  async init() {
+    // 1. Load CSS (if not already there)
+    if (!document.querySelector('link[href="components/menu_bar/menu_bar.css"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "components/menu_bar/menu_bar.css";
+      document.head.appendChild(link);
+    }
+
+    // 2. Fetch HTML
+    const response = await fetch("components/menu_bar/menu_bar.html");
+    const html = await response.text();
+
+    // 3. Inject
+    this.root.innerHTML = html;
+
+    // 4. Start Logic
+    this.attach_events();
   }
 
   /* --------------------------------------------------------------- */
@@ -226,9 +166,7 @@ export class Menu_bar {
     let orientation_buttons = [];
     if (orientation_radio_group) {
       orientation_buttons = Array.from(orientation_radio_group.querySelectorAll(".orientation-btn"));
-      // Load current or default orientation
-      const SETTINGS_KEY = "imaginer.menu_settings";
-      let settings = { orientation: "square", ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") };
+
       function select_orientation(orientation) {
         orientation_buttons.forEach((btn) => {
           if (btn.dataset.orientation === orientation) {

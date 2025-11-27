@@ -1,0 +1,29 @@
+<div style="display: flex; align-items: center; width: 100%; justify-content: space-between">
+  <div style="display: flex; gap: 12px; align-items: center">
+    <div id="orientation-radio-group" style="display: flex; gap: 8px">
+      <button class="orientation-btn" data-orientation="landscape" title="Landscape" type="button">
+        <img src="./assets/Landscape.png" alt="Landscape" class="orientation-img" />
+      </button>
+      <button class="orientation-btn" data-orientation="portrait" title="Portrait" type="button">
+        <img src="./assets/Portrait.png" alt="Portrait" class="orientation-img" />
+      </button>
+      <button class="orientation-btn" data-orientation="square" title="Square" type="button">
+        <img src="./assets/Square.png" alt="Square" class="orientation-img" />
+      </button>
+    </div>
+    <select id="model-select" class="model-select" disabled title="Image Generation Model">
+      <option value="">—</option>
+    </select>
+  </div>
+  <div style="margin-left: auto; display: flex; gap: 8px">
+    <button
+      id="delete-mode-btn"
+      title="Delete Mode"
+      style="font-size: 1.3rem; background: none; border: none; cursor: pointer; opacity: 0.5; transition: opacity 0.2s"
+    >
+      🗑️
+    </button>
+    <button id="config-btn" title="Config" style="font-size: 1.3rem; background: none; border: none; cursor: pointer">⚙️</button>
+    <button id="about-btn" title="About" style="font-size: 1.8rem; background: none; border: none; cursor: pointer">🛈</button>
+  </div>
+</div>
