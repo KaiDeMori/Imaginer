@@ -119,6 +119,11 @@ export class Viewer {
         this.remove_mask_button.style.display = "none";
       }
     };
+
+    // Listen for config changes to update mask mode button visibility
+    window.addEventListener("imaginer.config_changed", () => {
+      this.update_mask_mode_button_visibility();
+    });
   }
 
   /**
