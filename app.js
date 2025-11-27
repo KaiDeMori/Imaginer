@@ -143,6 +143,16 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   let activeGenerations = 0;
+
+  // Warn user if they try to reload while images are pending
+  window.addEventListener("beforeunload", (e) => {
+    if (activeGenerations > 0) {
+      e.preventDefault();
+      e.returnValue = "Images are still being generated. Are you sure you want to leave?";
+      return e.returnValue;
+    }
+  });
+
   function get_maximum_parallel_generations() {
     return parseInt(localStorage.getItem("imaginer.max_parallel_generations"));
   }
