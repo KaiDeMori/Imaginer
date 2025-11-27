@@ -103,7 +103,7 @@ export class Menu_bar {
           delete_btn.style.background = "none";
         } else {
           delete_btn.style.opacity = "1";
-          delete_btn.style.background = "#ffebee"; // Light red background to indicate danger/delete
+          delete_btn.style.background = "rgb(255, 82, 82)"; // Light red background to indicate danger/delete
           delete_btn.style.borderRadius = "4px";
         }
 
