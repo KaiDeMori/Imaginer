@@ -115,13 +115,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   // --- Clean up orphaned masks on page load ---
-  if (window.sessionStore && window.sessionStore.cleanup_orphaned_masks) {
-    window.sessionStore.get_all({ reverse: false }).then((records) => {
+  if (window.databaseStore && window.databaseStore.cleanup_orphaned_masks) {
+    window.databaseStore.get_all({ reverse: false }).then((records) => {
       // Collect all UUIDs in use by images (not just masks)
       const valid_uuids = new Set(records.map((r) => r.uuid).filter(Boolean));
-      window.sessionStore.cleanup_orphaned_masks(valid_uuids).then((num_cleaned) => {
+      window.databaseStore.cleanup_orphaned_masks(valid_uuids).then((num_cleaned) => {
         if (num_cleaned > 0) {
-          console.info(`[Imaginer] Cleaned up ${num_cleaned} orphaned mask(s) from sessionStore.`);
+          console.info(`[Imaginer] Cleaned up ${num_cleaned} orphaned mask(s) from databaseStore.`);
         }
       });
     });
