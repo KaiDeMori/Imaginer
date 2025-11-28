@@ -62,7 +62,7 @@ export class Generation_panel {
     // Load prompt from localStorage
     const saved_prompt = localStorage.getItem("imaginer.prompt");
     this.root.innerHTML = `
-      <div id="prompt-panel-inner" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
+      <div id="generation-panel-inner" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
         <textarea
           id="prompt-input"
           rows="4"

@@ -132,8 +132,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const viewer = new Viewer();
   const gallery = new Gallery(document.getElementById("gallery"), viewer);
-  // Initialize the resizable divider component, which allows resizing between the gallery and prompt panel.
-  const divider = new Resizable_divider(document.getElementById("divider"), document.getElementById("gallery"), document.getElementById("prompt-panel"));
+  // Initialize the resizable divider component, which allows resizing between the gallery and generation panel.
+  const divider = new Resizable_divider(document.getElementById("divider"), document.getElementById("gallery"), document.getElementById("generation-panel"));
 
   // Expose internals for intro transition only
   window.expose_internals_for_intro = () => ({
@@ -165,7 +165,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   // --- Cool-down state for generate button ---
   let generate_cooldown = false;
 
-  const generation_panel = new Generation_panel(document.getElementById("prompt-panel"), async (prompt_text, embed_options = {}) => {
+  const generation_panel = new Generation_panel(document.getElementById("generation-panel"), async (prompt_text, embed_options = {}) => {
     const max = get_maximum_parallel_generations();
     if (activeGenerations >= max || generate_cooldown) {
       generation_panel.set_generate_button_enabled(false);

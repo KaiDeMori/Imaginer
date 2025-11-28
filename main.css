@@ -64,8 +64,8 @@ body {
   z-index: 1;
 }
 
-/* Prompt panel */
-#prompt-panel {
+/* Generation panel */
+#generation-panel {
   flex: 1 1 0px;
   background: rgb(255, 255, 255);
   overflow-y: auto;
