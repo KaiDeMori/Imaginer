@@ -62,9 +62,9 @@ export class Gallery {
 
   async loadImages() {
     let records = [];
-    if (window.sessionStore?.get_all) {
+    if (window.database_store?.get_all) {
       // Get images in ascending order (oldest first)
-      records = await window.sessionStore.get_all({ reverse: false });
+      records = await window.database_store.get_all({ reverse: false });
     } else {
       records = await this.loadDummyImages();
     }
@@ -171,7 +171,7 @@ export class Gallery {
             const rec = this.records_by_created[created];
             if (rec && rec.id !== undefined) {
               try {
-                await window.sessionStore.delete(rec.id);
+                await window.database_store.delete(rec.id);
               } catch (err) {
                 console.error("Failed to delete image:", err);
                 alert("Failed to delete image.");
