@@ -15,9 +15,10 @@ The application will display **either** the Generation Panel **or** the Conversa
 
 #### A. Mode Switching
 -   **Config Key**: `imaginer.mode` (values: `"generation"` or `"conversation"`).
--   **Behavior**: On startup (and potentially on config change), the app checks this key.
+-   **Behavior**: On startup, the app checks this key.
     -   If `"generation"`: The `Generation_panel` is rendered in the main content area.
     -   If `"conversation"`: The `Conversation_panel` is rendered in the main content area, replacing the `Generation_panel`.
+-   **Reload Requirement**: Changing the mode via configuration will always trigger a full application reload. There is no dynamic switching between modes at runtime.
 
 #### B. Conversation Panel Component (`components/conversation_panel/conversation_panel.js`)
 This new component will replace the `Generation_panel` when in conversation mode.
