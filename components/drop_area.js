@@ -61,8 +61,8 @@ function handle_drop(event, render_callback) {
         }
       } else {
         // If UUID is present, try to find mask in databaseStore
-        if (uuid && window.databaseStore) {
-          window.databaseStore.get_all({ reverse: false }).then((records) => {
+        if (uuid && window.database_store) {
+          window.database_store.get_all({ reverse: false }).then((records) => {
             const rec = records.find((r) => r.uuid === uuid && r.mask_blob);
             if (rec && rec.mask_blob) {
               // Attach mask from databaseStore

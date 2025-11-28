@@ -21,7 +21,7 @@ export class Intro_remote_control {
     const gallery = this.target_document.getElementById("gallery");
     const gallery_grid = gallery ? gallery.querySelector('div[style*="grid"]') : null;
     const viewer_overlay = this.target_document.getElementById("imaginer-viewer");
-    return gallery && gallery_grid && viewer_overlay && this.target_window.databaseStore && this.target_window.expose_internals_for_intro;
+    return gallery && gallery_grid && viewer_overlay && this.target_window.database_store && this.target_window.expose_internals_for_intro;
   }
 
   async find_intro_picture() {
