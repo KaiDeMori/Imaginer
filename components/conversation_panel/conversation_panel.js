@@ -19,7 +19,7 @@ export class Conversation_panel {
     this.history_container = this.container.querySelector("#conversation-history");
     this.prompt_input = this.container.querySelector("#conversation-prompt-input");
     this.send_btn = this.container.querySelector("#conversation-send-btn");
-    this.new_conv_btn = this.container.querySelector("#new-conversation-btn");
+    // this.new_conv_btn = this.container.querySelector("#new-conversation-btn"); // Removed
     this.resize_handle = this.container.querySelector("#conversation-resize-handle");
     this.prompt_area = this.container.querySelector("#conversation-prompt-area");
 
@@ -29,7 +29,7 @@ export class Conversation_panel {
 
   attach_event_listeners() {
     this.send_btn.addEventListener("click", () => this.handle_send());
-    this.new_conv_btn.addEventListener("click", () => this.clear_history());
+    // this.new_conv_btn.addEventListener("click", () => this.clear_history()); // Removed
 
     // Resize logic
     let is_resizing = false;

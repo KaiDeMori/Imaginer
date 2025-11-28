@@ -168,10 +168,27 @@ window.addEventListener("DOMContentLoaded", async () => {
   const mode = localStorage.getItem("imaginer.mode") || "generation";
   const generation_panel_root = mode === "generation" ? document.getElementById("generation-panel") : document.createElement("div");
 
+  let conversation_panel_instance = null;
   if (mode === "conversation") {
     const { Conversation_panel } = await import("./components/conversation_panel/conversation_panel.js");
-    new Conversation_panel(document.getElementById("generation-panel"));
+    conversation_panel_instance = new Conversation_panel(document.getElementById("generation-panel"));
   }
+
+  // Update menu bar visibility
+  if (menu_bar.set_conversation_mode) {
+    menu_bar.set_conversation_mode(mode === "conversation");
+  }
+
+  window.addEventListener("imaginer.new_conversation", () => {
+    if (conversation_panel_instance) {
+      conversation_panel_instance.clear_history();
+    }
+  });
+
+  window.addEventListener("imaginer.toggle_history", () => {
+    // Placeholder for history toggle
+    alert("History feature coming soon!");
+  });
 
   const generation_panel = new Generation_panel(generation_panel_root, async (prompt_text, embed_options = {}) => {
     const max = get_maximum_parallel_generations();
