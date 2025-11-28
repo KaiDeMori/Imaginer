@@ -1,5 +1,5 @@
-// prompt_panel.js - Prompt panel component (updated with generate button logic)
-export class Prompt_panel {
+// generation_panel.js - Prompt panel component (updated with generate button logic)
+export class Generation_panel {
   _update_input_image_thumbnails() {
     const drop_area = this.root.querySelector("#input-image-drop-area");
     if (!drop_area) return;

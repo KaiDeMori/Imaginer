@@ -4,7 +4,7 @@
 import { Menu_bar } from "./components/menu_bar/menu_bar.js";
 import { Resizable_divider } from "./components/resizable_divider.js";
 import { Gallery } from "./components/gallery.js";
-import { Prompt_panel } from "./components/prompt_panel.js";
+import { Generation_panel } from "./components/generation_panel.js";
 import drop_area_manager from "./components/drop_area_manager.js";
 import { Viewer } from "./components/viewer/viewer.js";
 import { Session_store } from "./storage/session_store.js";
@@ -159,16 +159,16 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   function update_generate_button() {
     const max = get_maximum_parallel_generations();
-    prompt_panel.set_generate_button_enabled(activeGenerations < max);
+    generation_panel.set_generate_button_enabled(activeGenerations < max);
   }
 
   // --- Cool-down state for generate button ---
   let generate_cooldown = false;
 
-  const prompt_panel = new Prompt_panel(document.getElementById("prompt-panel"), async (prompt_text, embed_options = {}) => {
+  const generation_panel = new Generation_panel(document.getElementById("prompt-panel"), async (prompt_text, embed_options = {}) => {
     const max = get_maximum_parallel_generations();
     if (activeGenerations >= max || generate_cooldown) {
-      prompt_panel.set_generate_button_enabled(false);
+      generation_panel.set_generate_button_enabled(false);
       return;
     }
     activeGenerations++;
@@ -176,7 +176,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     // Start cool-down (600ms)
     generate_cooldown = true;
-    prompt_panel.set_generate_button_enabled(false);
+    generation_panel.set_generate_button_enabled(false);
     setTimeout(() => {
       generate_cooldown = false;
       update_generate_button();
@@ -202,8 +202,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (quality === "") quality = null;
     let n = parseInt(localStorage.getItem("imaginer.n"));
 
-    // --- Attach dropped images from prompt_panel to API request (if any) ---
-    const dropped_images = prompt_panel.dropped_images || [];
+    // --- Attach dropped images from generation_panel to API request (if any) ---
+    const dropped_images = generation_panel.dropped_images || [];
     const selected_model = get_selected_model();
     const is_mini_model = selected_model.includes("mini");
     let use_image_edit = dropped_images.length > 0 && !is_mini_model;
