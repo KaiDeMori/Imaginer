@@ -5,7 +5,6 @@ import { Menu_bar } from "./components/menu_bar/menu_bar.js";
 import { Resizable_divider } from "./components/resizable_divider.js";
 import { Gallery } from "./components/gallery.js";
 import { Prompt_panel } from "./components/prompt_panel.js";
-import { Conversation_panel } from "./components/conversation_panel/conversation_panel.js";
 import drop_area_manager from "./components/drop_area_manager.js";
 import { Viewer } from "./components/viewer/viewer.js";
 import { Session_store } from "./storage/session_store.js";
@@ -135,32 +134,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   const gallery = new Gallery(document.getElementById("gallery"), viewer);
   // Initialize the resizable divider component, which allows resizing between the gallery and prompt panel.
   const divider = new Resizable_divider(document.getElementById("divider"), document.getElementById("gallery"), document.getElementById("prompt-panel"));
-
-  // Initialize Conversation Panel
-  const conversation_panel = new Conversation_panel(document.getElementById("conversation-panel"));
-
-  // Tab Logic
-  const tab_gen = document.getElementById("tab-generation");
-  const tab_conv = document.getElementById("tab-conversation");
-  const pane_gen = document.getElementById("prompt-panel");
-  const pane_conv = document.getElementById("conversation-panel");
-
-  function switch_tab(tab) {
-    if (tab === "generation") {
-      tab_gen.classList.add("active");
-      tab_conv.classList.remove("active");
-      pane_gen.classList.add("active");
-      pane_conv.classList.remove("active");
-    } else {
-      tab_gen.classList.remove("active");
-      tab_conv.classList.add("active");
-      pane_gen.classList.remove("active");
-      pane_conv.classList.add("active");
-    }
-  }
-
-  tab_gen.addEventListener("click", () => switch_tab("generation"));
-  tab_conv.addEventListener("click", () => switch_tab("conversation"));
 
   // Expose internals for intro transition only
   window.expose_internals_for_intro = () => ({
