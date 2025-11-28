@@ -153,8 +153,7 @@ To address the edge case of "lost" conversations (those with no saved images), w
 ### 5.1. Storage Strategy (Local Registry)
 Since the Responses API does not provide an endpoint to list all past conversations, we must maintain a **local registry** of conversation metadata.
 -   **Storage Location**: **IndexedDB** (via the existing `Database_store` class).
-    -   *Clarification*: Despite the name, `Database_store` uses `IndexedDB`, which is fully persistent across browser restarts and reloads. It is **not** cleared when the session ends.
-    -   We will add a new object store (table) named `conversations` to the existing database.
+    -   We will add a new object store (table) named `conversation_history` to the existing database.
 -   **Schema**:
     ```json
     {
