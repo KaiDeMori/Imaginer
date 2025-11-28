@@ -1,7 +1,7 @@
 // model_fetcher.js - Utility functions for managing image generation models
 // Handles fetching, caching, and retrieving available OpenAI image models
 
-import { Session_store } from "./storage/session_store.js";
+import { Database_store } from "./storage/database_store.js";
 
 const CACHE_KEY = "imaginer.available_image_models";
 const SELECTED_KEY = "imaginer.selected_image_model";
@@ -12,7 +12,7 @@ const SELECTED_KEY = "imaginer.selected_image_model";
  * @returns {Promise<Array>} Array of model ID strings
  */
 export async function fetch_available_models() {
-  const api_key = Session_store.get_api_key();
+  const api_key = Database_store.get_api_key();
   if (!api_key) {
     throw new Error("No API key available");
   }

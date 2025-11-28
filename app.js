@@ -7,7 +7,7 @@ import { Gallery } from "./components/gallery.js";
 import { Generation_panel } from "./components/generation_panel.js";
 import drop_area_manager from "./components/drop_area_manager.js";
 import { Viewer } from "./components/viewer/viewer.js";
-import { Session_store } from "./storage/session_store.js";
+import { Database_store } from "./storage/database_store.js";
 import { Error_modal } from "./components/error_modal.js";
 import { strip_metadata_from_PNG } from "./strip_metadata_from_PNG/strip_metadata_from_PNG.js";
 import { add_iTXt_chunk_to_png } from "./png_iTXt/png_iTXt.js";
@@ -49,8 +49,8 @@ if (!is_intro_running) {
   sessionStorage.removeItem("imaginer.intro.is_running");
 }
 
-const session_store = new Session_store();
-window.sessionStore = session_store;
+const database_store = new Database_store();
+window.databaseStore = database_store;
 
 // Mount components
 window.addEventListener("DOMContentLoaded", async () => {
@@ -82,8 +82,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   // Ensure all config defaults are set in localStorage
   ensure_config_defaults();
   // --- Check for API key on load (using scrambled key logic) ---
-  import("./storage/session_store.js").then(({ Session_store }) => {
-    const apiKey = Session_store.get_api_key();
+  import("./storage/database_store.js").then(({ Database_store }) => {
+    const apiKey = Database_store.get_api_key();
     if (!apiKey) {
       // Show a message and open the config dialog
       const msg = document.createElement("div");
@@ -258,7 +258,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         const response = await fetch("https://api.openai.com/v1/images/edits", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${Session_store.get_api_key()}`,
+            Authorization: `Bearer ${Database_store.get_api_key()}`,
             // Note: Do not set Content-Type; browser will set it for FormData
           },
           body: form_data,
@@ -292,7 +292,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         for (let i = 0; i < data.data.length; i++) {
           let base64Data = data.data[i].b64_json;
           let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
-          await session_store.save({
+          await database_store.save({
             created,
             image_blob: blob,
             prompt_text,
@@ -339,7 +339,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Session_store.get_api_key()}`,
+          Authorization: `Bearer ${Database_store.get_api_key()}`,
         },
         body: JSON.stringify(request_body),
       });
@@ -420,7 +420,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           }
         }
 
-        const record_id = await session_store.save({
+        const record_id = await database_store.save({
           created,
           image_blob: blob,
           prompt_text: prompt_text,
@@ -493,7 +493,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             }
           }
 
-          const record_id = await session_store.save({
+          const record_id = await database_store.save({
             created,
             image_blob: blob,
             prompt_text: prompt_text,

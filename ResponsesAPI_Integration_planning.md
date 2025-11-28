@@ -34,7 +34,7 @@ This new component will replace the `Generation_panel` when in conversation mode
     -   Displays user messages and model responses.
     -   **Images**:
         -   Displayed inline within the chat bubble.
-        -   **"Add to Gallery" Button**: Each generated image in the chat will have a button to save it to the main application gallery (and `Session_store`).
+        -   **"Add to Gallery" Button**: Each generated image in the chat will have a button to save it to the main application gallery (and `Database_store`).
 -   **Image Input Area**:
     -   Reuses the current drag-and-drop component (likely leveraging `drop_area_manager.js` or similar logic) to handle image uploads for the conversation context.
 -   **Conversation Prompt**:
@@ -76,7 +76,7 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
 2.  **Image Handling**:
     -   **Input**: Images dropped into the input area need to be uploaded or passed as base64/URLs. The Responses API supports `file_ids` (via the Files API) or direct image inputs. Using the Files API might be cleaner for multi-turn edits.
     -   **Output**: Generated images come back in the response. We render them as `blob` URLs.
-    -   **Saving**: When "Add to Gallery" is clicked, we take the image blob and pass it to the existing `Session_store.save()` and `Gallery.addThumbnail()` methods.
+    -   **Saving**: When "Add to Gallery" is clicked, we take the image blob and pass it to the existing `Database_store.save()` and `Gallery.addThumbnail()` methods.
 
 ### 2.3. File Structure Changes
 
@@ -112,7 +112,7 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
 To provide access to past conversations without a dedicated sidebar, we will integrate conversation history directly into the Gallery.
 
 ### 4.1. Data Model Updates
--   **`Session_store`**: Update the schema (implicitly) to store `conversation_id` alongside existing image metadata.
+-   **`Database_store`**: Update the schema (implicitly) to store `conversation_id` alongside existing image metadata.
     -   New field: `conversation_id` (string, optional).
     -   **`prompt_text`**: For images generated in Conversation Mode, this field will be left **empty** or `null`. We do not attempt to infer a single prompt from a multi-turn conversation.
     -   **Exclusivity Rule**: An image should ideally have EITHER `prompt_text` OR `conversation_id`. If both are present (e.g. due to a bug or migration), `conversation_id` takes precedence, and `prompt_text` is removed.
@@ -140,7 +140,7 @@ To provide access to past conversations without a dedicated sidebar, we will int
     -   **Click Action**: Copies the prompt text into the chat input box as a draft message.
 
 ### 4.4. Implementation Steps
-1.  **Update `Session_store`**: Ensure `conversation_id` is passed and saved during image generation in `Conversation_panel`. Ensure `prompt_text` is empty for these images.
+1.  **Update `Database_store`**: Ensure `conversation_id` is passed and saved during image generation in `Conversation_panel`. Ensure `prompt_text` is empty for these images.
 2.  **Update `Gallery`**:
     -   Modify `addThumbnail` to accept `conversation_id`.
     -   Logic to render 💬 vs 🗨️ based on data presence.
@@ -152,8 +152,8 @@ To address the edge case of "lost" conversations (those with no saved images), w
 
 ### 5.1. Storage Strategy (Local Registry)
 Since the Responses API does not provide an endpoint to list all past conversations, we must maintain a **local registry** of conversation metadata.
--   **Storage Location**: **IndexedDB** (via the existing `Session_store` class).
-    -   *Clarification*: Despite the name, `Session_store` uses `IndexedDB`, which is fully persistent across browser restarts and reloads. It is **not** cleared when the session ends.
+-   **Storage Location**: **IndexedDB** (via the existing `Database_store` class).
+    -   *Clarification*: Despite the name, `Database_store` uses `IndexedDB`, which is fully persistent across browser restarts and reloads. It is **not** cleared when the session ends.
     -   We will add a new object store (table) named `conversations` to the existing database.
 -   **Schema**:
     ```json
@@ -182,8 +182,8 @@ Instead of a new browser tab (which introduces complexity with cross-tab communi
     -   Clicking "Delete" removes it from the registry (and ideally clears local cache).
 
 ### 5.3. Implementation Steps
-1.  **Update `Session_store`**: Add methods `add_conversation_metadata(meta)`, `get_all_conversations()`, `delete_conversation(id)`.
+1.  **Update `Database_store`**: Add methods `add_conversation_metadata(meta)`, `get_all_conversations()`, `delete_conversation(id)`.
 2.  **Update `Conversation_panel`**:
-    -   Call `Session_store.add_conversation_metadata` when a new conversation starts.
+    -   Call `Database_store.add_conversation_metadata` when a new conversation starts.
     -   Add the "History" button to the header.
     -   Implement the `History_overlay` component (or simple HTML injection) to render the list.

@@ -1,10 +1,10 @@
-// storage/session_store.js – Thin wrapper around IndexedDB + localStorage
+// storage/database_store.js – Thin wrapper around IndexedDB + localStorage
 
 /*
 Usage example:
 
-import { Session_store } from './storage/session_store.js';
-const store = new Session_store();
+import { Database_store } from './storage/database_store.js';
+const store = new Database_store();
 await store.save({
   created: Date.now() / 1000,
   image_blob: someBlob,
@@ -14,7 +14,7 @@ await store.save({
 const all = await store.get_all();
 */
 
-export class Session_store {
+export class Database_store {
   /* ------------------------------------------------------------------ */
   /* Construction & DB initialisation                                   */
   /* ------------------------------------------------------------------ */
@@ -66,13 +66,13 @@ export class Session_store {
   }
 
   static get scramble_key() {
-    let key = localStorage.getItem(Session_store.scramble_key_key);
+    let key = localStorage.getItem(Database_store.scramble_key_key);
     if (!key) {
       // Generate a random key (128 chars, base64)
       const arr = new Uint8Array(96); // 96 bytes = 128 base64 chars
       window.crypto.getRandomValues(arr);
       key = btoa(String.fromCharCode(...arr));
-      localStorage.setItem(Session_store.scramble_key_key, key);
+      localStorage.setItem(Database_store.scramble_key_key, key);
     }
     return key;
   }
@@ -91,12 +91,12 @@ export class Session_store {
   }
 
   static get_api_key() {
-    const scrambled = localStorage.getItem(Session_store.api_key_key);
+    const scrambled = localStorage.getItem(Database_store.api_key_key);
     if (!scrambled) return "";
     // decode from base64, then xor
     try {
       const bin = atob(scrambled);
-      return Session_store._xor(bin, Session_store.scramble_key);
+      return Database_store._xor(bin, Database_store.scramble_key);
     } catch (e) {
       return "";
     }
@@ -105,8 +105,8 @@ export class Session_store {
   static set_api_key(key) {
     if (key === undefined || key === null) return;
     // xor, then base64 encode
-    const scrambled = btoa(Session_store._xor(key, Session_store.scramble_key));
-    localStorage.setItem(Session_store.api_key_key, scrambled);
+    const scrambled = btoa(Database_store._xor(key, Database_store.scramble_key));
+    localStorage.setItem(Database_store.api_key_key, scrambled);
   }
 
   /* ------------------------------------------------------------------ */

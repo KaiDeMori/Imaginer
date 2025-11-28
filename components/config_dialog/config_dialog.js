@@ -185,9 +185,9 @@ export class Config_dialog {
         // Dynamically import JSZip
         const { get_jszip } = await import("../../static_imports/jszip_loader.js");
         const JSZip = await get_jszip();
-        // Get all images from session store
-        const { Session_store } = await import("../../storage/session_store.js");
-        const store = new Session_store();
+        // Get all images from database store
+        const { Database_store } = await import("../../storage/database_store.js");
+        const store = new Database_store();
         const records = await store.get_all({ reverse: false });
         if (!records.length) throw new Error("No images to download.");
         const zip = new JSZip();
@@ -272,11 +272,11 @@ export class Config_dialog {
 
     // Show Mask Mode Button checkbox
     this.show_mask_mode_checkbox.checked = localStorage.getItem("imaginer.show_mask_mode_button") === "true";
-    // Use Session_store to get the decoded API key
+    // Use Database_store to get the decoded API key
     this.input.value = "";
-    import("../../storage/session_store.js")
-      .then(({ Session_store }) => {
-        this.input.value = Session_store.get_api_key() || "";
+    import("../../storage/database_store.js")
+      .then(({ Database_store }) => {
+        this.input.value = Database_store.get_api_key() || "";
       })
       .catch(() => {
         this.input.value = "";
@@ -311,10 +311,10 @@ export class Config_dialog {
     const add_prompt = this.prompt_checkbox.checked;
     const add_prompt_xmp = this.prompt_xmp_checkbox?.checked;
 
-    // Use Session_store to set the scrambled API key - wait for it to complete
-    const { Session_store } = await import("../../storage/session_store.js");
+    // Use Database_store to set the scrambled API key - wait for it to complete
+    const { Database_store } = await import("../../storage/database_store.js");
     if (key) {
-      Session_store.set_api_key(key);
+      Database_store.set_api_key(key);
     } else {
       localStorage.removeItem("imaginer.scrambled_api_key");
     }

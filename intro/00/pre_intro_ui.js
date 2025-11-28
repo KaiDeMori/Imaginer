@@ -49,9 +49,9 @@ async function initialize_pre_intro() {
 
 async function check_for_api_key() {
   return new Promise((resolve) => {
-    import("../../storage/session_store.js")
-      .then(({ Session_store }) => {
-        const key = Session_store.get_api_key();
+    import("../../storage/database_store.js")
+      .then(({ Database_store }) => {
+        const key = Database_store.get_api_key();
         resolve(key && key.trim().length > 0);
       })
       .catch(() => {
@@ -105,7 +105,7 @@ function setup_api_key_interface() {
     test_button.textContent = "Testing...";
     message_div.textContent = "";
 
-    const { Session_store } = await import("../../storage/session_store.js");
+    const { Database_store } = await import("../../storage/database_store.js");
 
     try {
       const resp = await fetch("https://api.openai.com/v1/models", {
@@ -127,7 +127,7 @@ function setup_api_key_interface() {
       const found = data.data.some((m) => m.id === "gpt-image-1");
 
       if (found) {
-        Session_store.set_api_key(key);
+        Database_store.set_api_key(key);
         message_div.textContent = "✅ API key valid and ready!";
         message_div.style.color = "#66ff66";
         ok_button.style.visibility = "visible";

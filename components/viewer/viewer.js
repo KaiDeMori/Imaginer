@@ -162,8 +162,8 @@ export class Viewer {
         "This image cannot be opened because it was saved in an old or invalid format.\n" +
           "Would you like to clean up all old/bad images? (This will delete all saved images.)"
       );
-      if (do_cleanup && window.sessionStore) {
-        await window.sessionStore.clear();
+      if (do_cleanup && window.databaseStore) {
+        await window.databaseStore.clear();
         if (window.location) window.location.reload();
       }
       return;
@@ -175,13 +175,13 @@ export class Viewer {
     this.reset_transforms();
     this.overlay.classList.toggle("viewer_overlay_visible", true);
 
-    // Load mask from session_store if image_id is provided
+    // Load mask from database_store if image_id is provided
     this.mask_data = null;
     this.mask_cache_canvas = null;
     this.mask_cache_dirty = true;
-    if (opts.image_id && window.sessionStore) {
+    if (opts.image_id && window.databaseStore) {
       try {
-        const rec = await window.sessionStore.get(opts.image_id);
+        const rec = await window.databaseStore.get(opts.image_id);
         if (rec && rec.mask_blob && typeof rec.mask_blob === "object" && rec.mask_blob instanceof Blob && rec.mask_blob.size > 0) {
           // Load mask_blob as ImageData and convert to mask_data
           try {
@@ -221,14 +221,14 @@ export class Viewer {
   }
 
   /**
-   * Close the viewer and persist the mask (if present) to session_store.
+   * Close the viewer and persist the mask (if present) to database_store.
    * Requires that the image_id is set on this.image_id.
    */
   async close() {
     if (!this.is_open()) return;
 
     // Save mask if present, non-empty, and image_id is set
-    if (this.mask_data && this.bitmap && this.image_id && window.sessionStore) {
+    if (this.mask_data && this.bitmap && this.image_id && window.databaseStore) {
       // Check if mask is empty (all zero)
       let is_empty = true;
       for (let i = 0; i < this.mask_data.length; ++i) {
@@ -238,7 +238,7 @@ export class Viewer {
         }
       }
       // Get the record to update uuid if needed
-      let rec = await window.sessionStore.get(this.image_id);
+      let rec = await window.databaseStore.get(this.image_id);
       let uuid = rec && rec.uuid ? rec.uuid : window.crypto?.randomUUID ? window.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now();
       if (!is_empty) {
         // Convert mask_data to PNG blob
@@ -258,7 +258,7 @@ export class Viewer {
         ctx.putImageData(img_data, 0, 0);
         // Export as PNG blob
         const mask_blob = await new Promise((res) => mask_canvas.toBlob(res, "image/png"));
-        await window.sessionStore.update(this.image_id, { mask_blob, uuid });
+        await window.databaseStore.update(this.image_id, { mask_blob, uuid });
         // Dispatch event to notify gallery of mask update
         window.dispatchEvent(
           new CustomEvent("imaginer.mask-updated", {
@@ -275,7 +275,7 @@ export class Viewer {
       } else {
         // Remove mask_blob if mask is empty
         console.debug("[Imaginer] Mask REMOVED (empty) for image_id:", this.image_id);
-        await window.sessionStore.update(this.image_id, { mask_blob: null });
+        await window.databaseStore.update(this.image_id, { mask_blob: null });
         // Dispatch event to notify gallery of mask removal
         window.dispatchEvent(
           new CustomEvent("imaginer.mask-updated", {

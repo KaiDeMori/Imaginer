@@ -1,23 +1,25 @@
 ---
-applyTo: '**'
+applyTo: "**"
 ---
 
 # Project Naming and Casing Standards
 
 ## Naming Conventions
-- Use **loose_snake_case** for all component, file, variable, and method names (e.g., `menu_bar.js`, `session_store.js`).
+
+- Use **loose_snake_case** for all component, file, variable, and method names (e.g., `menu_bar.js`, `database_store.js`).
 - Use proper English words in names whenever possible; avoid abbreviations unless they are standard
-    - Examples for allowed abbreviations: `DB`, `SQL`, `JSON`
-	- Examples for disallowed abbreviations: `img` (should be `image`), `ctx` (should be `context`)
+  - Examples for allowed abbreviations: `DB`, `SQL`, `JSON`
+  - Examples for disallowed abbreviations: `img` (should be `image`), `ctx` (should be `context`)
 - If abbreviations are used retain normal uppercasing for them (e.g., `connect_DB_endpoint`, `SQL_data_schema`)
 - Built-in functions and library functions are exempt (e.g., `onMouseDown`).
-- If diverging naming is encountered in already existing code, do NOT change it. Preexisting naming is only changed on *explicit* user request, usually in a dedicated refactoring session.
+- If diverging naming is encountered in already existing code, do NOT change it. Preexisting naming is only changed on _explicit_ user request, usually in a dedicated refactoring session.
 
 ### Examples
+
 - `open_DB_connection`
 - `save_image_as(image_format)`
 - `handle_SQL_error`
 - `menu_bar.js`
-- `session_store.js`
+- `database_store.js`
 
 **Summary:** Use loose_snake_case for all names, keep abbreviations and conventions as normally capitalized, and prefer full English words over abbreviations.

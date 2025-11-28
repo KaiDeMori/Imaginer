@@ -1,7 +1,7 @@
 // menu_bar.js - Menu bar component
 import { Config_dialog } from "../config_dialog/config_dialog.js";
 import { About_dialog } from "../about_dialog/about_dialog.js";
-import { Session_store } from "../../storage/session_store.js";
+import { Database_store } from "../../storage/database_store.js";
 import { Error_modal } from "../error_modal.js";
 import { get_models_for_dropdown, get_selected_model, set_selected_model, refresh_models } from "../../model_fetcher.js";
 
@@ -116,14 +116,14 @@ export class Menu_bar {
     };
 
     // Check for API key and populate immediately if present
-    const api_key = Session_store.get_api_key();
+    const api_key = Database_store.get_api_key();
     if (api_key) {
       populate_models();
     }
 
     // Listen for config changes (when API key is added)
     window.addEventListener("imaginer.config_changed", () => {
-      const updated_api_key = Session_store.get_api_key();
+      const updated_api_key = Database_store.get_api_key();
       if (updated_api_key) {
         populate_models();
       }
