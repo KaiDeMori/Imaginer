@@ -10,8 +10,12 @@ To maintain a smooth user experience and avoid unnecessary API calls/costs, we w
 3.  **User Action**: User types a prompt and clicks "Send".
 4.  **Upload Phase**:
     *   The system iterates through all files in `drop_area_manager`.
-    *   Each file is uploaded to OpenAI's Files API (`POST /v1/files`) with `purpose="vision"`.
-    *   The system waits for all uploads to complete and collects the returned `file_id`s.
+    *   **Gallery Check**: If the file has an associated UUID (is from Gallery), we check the database for an existing `openai_file_id`.
+    *   **Upload**:
+        *   If an ID exists, we skip upload and use that ID.
+        *   If no ID exists (or it's an external file), we upload to OpenAI's Files API (`POST /v1/files`) with `purpose="vision"`.
+    *   **Update**: If we uploaded a Gallery image, we save the returned `file_id` back to the database record for future reuse.
+    *   The system collects all `file_id`s.
 5.  **Response Request**:
     *   The system constructs the `POST /v1/responses` request.
     *   The `input` array includes a user message containing the text prompt and the image references (using `file_id`).
@@ -90,14 +94,31 @@ async function handle_send() {
     const prompt_text = prompt_input.value;
     const images = drop_area_manager.get_images(); // Array of { image: File, ... }
     
-    // 1. Upload Images
+    // 1. Upload Images (with caching)
     const uploaded_file_ids = [];
     if (images.length > 0) {
         // Show some loading indicator...
         try {
-            const upload_promises = images.map(img_entry => 
-                upload_file(img_entry.image, get_api_key())
-            );
+            const upload_promises = images.map(async (img_entry) => {
+                // Check if image is from gallery (has UUID)
+                if (img_entry.uuid) {
+                    const record = await window.database_store.get(img_entry.uuid);
+                    if (record && record.openai_file_id) {
+                        return record.openai_file_id; // Reuse existing ID
+                    }
+                }
+
+                // Upload if not found or external
+                const new_file_id = await upload_file(img_entry.image, get_api_key());
+
+                // If it was a gallery image, save the ID for next time
+                if (img_entry.uuid) {
+                    await window.database_store.update(img_entry.uuid, { openai_file_id: new_file_id });
+                }
+                
+                return new_file_id;
+            });
+            
             uploaded_file_ids.push(...await Promise.all(upload_promises));
         } catch (error) {
             console.error("Upload failed", error);

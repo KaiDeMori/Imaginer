@@ -74,7 +74,9 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
         -   We need to parse this response, update the UI, and store the `conversation_id` if it's new.
 
 2.  **Image Handling**:
-    -   **Input**: Images dropped into the input area need to be uploaded or passed as base64/URLs. The Responses API supports `file_ids` (via the Files API) or direct image inputs. Using the Files API might be cleaner for multi-turn edits.
+    -   **Input**: Images dropped into the input area are handled via the Files API.
+        -   **Gallery Images**: We check if the image record already has an `openai_file_id`. If yes, we reuse it. If no, we upload it and update the record with the new ID.
+        -   **External Images**: Always uploaded as new files.
     -   **Output**: Generated images come back in the response. We render them as `blob` URLs.
     -   **Saving**: When "Add to Gallery" is clicked, we take the image blob and pass it to the existing `Database_store.save()` and `Gallery.addThumbnail()` methods.
 
@@ -115,8 +117,9 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
 To provide access to past conversations without a dedicated sidebar, we will integrate conversation history directly into the Gallery.
 
 ### 4.1. Data Model Updates
--   **`Database_store`**: Update the schema (implicitly) to store `conversation_id` alongside existing image metadata.
+-   **`Database_store`**: Update the schema (implicitly) to store `conversation_id` and `openai_file_id` alongside existing image metadata.
     -   New field: `conversation_id` (string, optional).
+    -   New field: `openai_file_id` (string, optional). Stores the ID returned by OpenAI's Files API to avoid re-uploading the same image.
     -   **`prompt_text`**: For images generated in Conversation Mode, this field will be left **empty** or `null`. We do not attempt to infer a single prompt from a multi-turn conversation.
     -   **Exclusivity Rule**: An image should ideally have EITHER `prompt_text` OR `conversation_id`. If both are present (e.g. due to a bug or migration), `conversation_id` takes precedence, and `prompt_text` is removed.
 
