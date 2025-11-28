@@ -35,10 +35,15 @@ To maintain a smooth user experience and avoid unnecessary API calls/costs, we w
 *   **Endpoint**: `POST https://api.openai.com/v1/responses`
 *   **Input Structure**:
     We will wrap the inputs in a `message` item to group the text and images together.
+    If a mask is present (on the first image), it is passed via the `tools` configuration.
+
     ```json
     {
       "model": "gpt-4o",
-      "tools": [{ "type": "image_generation" }],
+      "tools": [{ 
+          "type": "image_generation",
+          "input_image_mask": { "file_id": "file-mask123..." } // Only if mask exists
+      }],
       "input": [
         {
           "type": "message",
@@ -92,13 +97,17 @@ import { upload_file } from "../../api/file_uploader.js";
 
 async function handle_send() {
     const prompt_text = prompt_input.value;
-    const images = drop_area_manager.get_images(); // Array of { image: File, ... }
+    const images = drop_area_manager.get_images(); // Array of { image: File, mask: File|null, ... }
+    const active_mask = drop_area_manager.get_active_mask(); // File|null
     
     // 1. Upload Images (with caching)
     const uploaded_file_ids = [];
+    let uploaded_mask_id = null;
+
     if (images.length > 0) {
         // Show some loading indicator...
         try {
+            // Upload images
             const upload_promises = images.map(async (img_entry) => {
                 // Check if image is from gallery (has UUID)
                 if (img_entry.uuid) {
@@ -120,6 +129,14 @@ async function handle_send() {
             });
             
             uploaded_file_ids.push(...await Promise.all(upload_promises));
+
+            // Upload mask if present
+            if (active_mask) {
+                 // Note: We might want to cache mask IDs too if they come from gallery, 
+                 // but for now let's just upload.
+                 uploaded_mask_id = await upload_file(active_mask, get_api_key());
+            }
+
         } catch (error) {
             console.error("Upload failed", error);
             // Show error to user
@@ -140,10 +157,16 @@ async function handle_send() {
         content_items.push({ type: "input_image", file_id: file_id });
     });
 
-    // 3. Send to Responses API
+    // 3. Configure Tools (with mask if needed)
+    const tools = [{ type: "image_generation" }];
+    if (uploaded_mask_id) {
+        tools[0].input_image_mask = { file_id: uploaded_mask_id };
+    }
+
+    // 4. Send to Responses API
     const payload = {
         model: "gpt-4o",
-        tools: [{ type: "image_generation" }],
+        tools: tools,
         input: [
             {
                 type: "message",
@@ -156,7 +179,7 @@ async function handle_send() {
 
     // ... execute fetch ...
 
-    // 4. Cleanup
+    // 5. Cleanup
     drop_area_manager.clear(); // Need to implement clear() in manager if not exists
     prompt_input.value = "";
 }
@@ -164,5 +187,6 @@ async function handle_send() {
 
 ### C. Updates Needed
 1.  **`drop_area_manager.js`**: Ensure there is a method to clear/reset the state (e.g., `clear_images()`).
-2.  **`Conversation_panel`**: Implement the logic above.
-3.  **UI Feedback**: Since uploading might take a few seconds, the "Send" button should show a spinner or "Uploading..." state.
+2.  **`conversation_drop_area.js`**: Create this new UI component to handle drag-and-drop events and rendering for the conversation panel, utilizing `drop_area_manager.js` for state.
+3.  **`Conversation_panel`**: Implement the logic above, integrating `conversation_drop_area.js`.
+4.  **UI Feedback**: Since uploading might take a few seconds, the "Send" button should show a spinner or "Uploading..." state.

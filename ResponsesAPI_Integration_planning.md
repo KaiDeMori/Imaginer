@@ -9,6 +9,10 @@ The goal is to integrate the new OpenAI Responses API (Conversational API) into 
 
 The application will display **either** the Generation Panel **or** the Conversation Panel based on the `imaginer.mode` configuration key. They will never be shown simultaneously.
 
+## 1.1. Model Strategy (Exclusive `gpt-image` Support)
+
+We will exclusively support **`gpt-image`** models (e.g., `gpt-image-1`) for all image generation and editing tasks within the Conversation Mode. We will **ignore** legacy DALL-E models (`dall-e-2`, `dall-e-3`). The Responses API integration will be built specifically around the capabilities of `gpt-image` models, including their advanced instruction following and masking capabilities.
+
 ## 2. Detailed Breakdown
 
 ### 2.1. User Interface (UI)
@@ -36,7 +40,8 @@ This new component will replace the `Generation_panel` when in conversation mode
         -   Displayed inline within the chat bubble.
         -   **"Add to Gallery" Button**: Each generated image in the chat will have a button to save it to the main application gallery (and `Database_store`).
 -   **Image Input Area**:
-    -   Reuses the current drag-and-drop component (likely leveraging `drop_area_manager.js` or similar logic) to handle image uploads for the conversation context.
+    -   **Logic**: Reuses the existing `drop_area_manager.js` singleton to manage file state, mask association (first image only), and UUIDs. This ensures consistent behavior for mask handling across the app.
+    -   **UI**: Uses a new component `conversation_drop_area.js` (instead of `drop_area.js`) to render the drop zone and thumbnails specifically for the conversation layout. This decouples the visual presentation from the Generation Panel while sharing the robust underlying logic.
 -   **Conversation Prompt**:
     -   Compact text input area with a "Send" button.
 
@@ -90,6 +95,7 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
     -   `conversation_panel.js`
     -   `conversation_panel.html`
     -   `conversation_panel.css`
+    -   `conversation_drop_area.js` (New UI logic for drop zone)
 -   `components/conversation_history/`:
     -   `conversation_history.js`
     -   `conversation_history.html`
