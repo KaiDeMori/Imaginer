@@ -44,7 +44,16 @@
       <div id="main-content">
         <div id="gallery"></div>
         <div id="divider"></div>
-        <div id="prompt-panel"></div>
+        <div id="right-panel">
+          <div id="tab-bar">
+            <button id="tab-generation" class="tab-button active">Generation</button>
+            <button id="tab-conversation" class="tab-button">Conversation</button>
+          </div>
+          <div id="tab-content">
+            <div id="prompt-panel" class="tab-pane active"></div>
+            <div id="conversation-panel" class="tab-pane"></div>
+          </div>
+        </div>
       </div>
     </div>
     <script type="module" src="app.js"></script>
