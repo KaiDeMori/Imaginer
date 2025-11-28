@@ -41,7 +41,7 @@ This new component will replace the `Generation_panel` when in conversation mode
     -   Compact text input area with a "Send" button.
 
 #### C. Conversation Management
--   **"New Conversation" Button**: Located in the `Conversation_panel` header (if applicable) or accessible via a clear UI element. Clears the current view and resets the conversation ID.
+-   **"New Conversation" Button**: Located in the main **Menu Bar** (icon: 🆕). Clears the current view and resets the conversation ID.
 -   **Persistence**: We will rely on OpenAI's server-side conversation storage. The client only needs to persist the current `conversation_id` (e.g., in `localStorage`) to resume the session after a page reload.
 
 ### 2.2. Logic & Data Flow
@@ -81,6 +81,9 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
 ### 2.3. File Structure Changes
 
 -   `app.js`: Update initialization logic to check `imaginer.mode` and render the appropriate panel.
+-   `components/menu_bar/`:
+    -   `menu_bar.js`: Add logic to toggle conversation buttons.
+    -   `menu_bar.html`: Add "New Conversation" and "History" buttons.
 -   `components/conversation_panel/`:
     -   `conversation_panel.js`
     -   `conversation_panel.html`
@@ -170,7 +173,7 @@ Since the Responses API does not provide an endpoint to list all past conversati
 
 ### 5.2. UI: The History Overlay
 Instead of a new browser tab (which introduces complexity with cross-tab communication and popup blockers), we will use a **Full-Screen Overlay** within the application.
--   **Access**: A "History" button (clock icon?) next to the "New Conversation" button in the `Conversation_panel` header.
+-   **Access**: A "History" button (icon: 📜) next to the "New Conversation" button in the **Menu Bar**.
 -   **Appearance**: A modal/overlay covering the main content area.
     -   **Header**: "Conversation History" + Close button.
     -   **List**: Scrollable list of conversation cards.
