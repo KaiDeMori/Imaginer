@@ -8,6 +8,7 @@ import { get_models_for_dropdown, get_selected_model, set_selected_model, refres
 export class Menu_bar {
   constructor(root) {
     this.root = root;
+    this.pending_conversation_mode = false; // Store pending state
     this.init();
   }
 
@@ -29,6 +30,9 @@ export class Menu_bar {
 
     // 4. Start Logic
     this.attach_events();
+
+    // Apply pending conversation mode if set before init completed
+    this.set_conversation_mode(this.pending_conversation_mode);
   }
 
   /* --------------------------------------------------------------- */
@@ -52,6 +56,20 @@ export class Menu_bar {
             detail: { active: !is_active },
           })
         );
+      });
+    }
+
+    const new_conv_btn = this.root.querySelector("#new-conversation-btn");
+    if (new_conv_btn) {
+      new_conv_btn.addEventListener("click", () => {
+        window.dispatchEvent(new CustomEvent("imaginer.new_conversation"));
+      });
+    }
+
+    const history_btn = this.root.querySelector("#conversation-history-btn");
+    if (history_btn) {
+      history_btn.addEventListener("click", () => {
+        window.dispatchEvent(new CustomEvent("imaginer.toggle_history"));
       });
     }
 
@@ -212,5 +230,14 @@ export class Menu_bar {
     if (settings.orientation === "landscape") size = "1536x1024";
     else if (settings.orientation === "portrait") size = "1024x1536";
     localStorage.setItem("imaginer.image_size", size);
+  }
+
+  set_conversation_mode(is_conversation) {
+    this.pending_conversation_mode = is_conversation;
+    const new_conv_btn = this.root.querySelector("#new-conversation-btn");
+    const history_btn = this.root.querySelector("#conversation-history-btn");
+
+    if (new_conv_btn) new_conv_btn.style.display = is_conversation ? "block" : "none";
+    if (history_btn) history_btn.style.display = is_conversation ? "block" : "none";
   }
 }
