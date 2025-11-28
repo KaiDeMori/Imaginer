@@ -6,14 +6,19 @@
   height: 44px;
   cursor: pointer;
   transition: border 0.15s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .orientation-btn.selected {
   border: 2px solid #1976d2;
   background: #e3f0ff;
 }
 .orientation-img {
-  width: 32px;
-  height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  width: auto;
+  height: auto;
   display: block;
   filter: grayscale(100%) contrast(0.7);
   transition: filter 0.15s;
