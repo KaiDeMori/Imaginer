@@ -165,7 +165,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   // --- Cool-down state for generate button ---
   let generate_cooldown = false;
 
-  const generation_panel = new Generation_panel(document.getElementById("generation-panel"), async (prompt_text, embed_options = {}) => {
+  const mode = localStorage.getItem("imaginer.mode") || "generation";
+  const generation_panel_root = mode === "generation" ? document.getElementById("generation-panel") : document.createElement("div");
+
+  if (mode === "conversation") {
+    const { Conversation_panel } = await import("./components/conversation_panel/conversation_panel.js");
+    new Conversation_panel(document.getElementById("generation-panel"));
+  }
+
+  const generation_panel = new Generation_panel(generation_panel_root, async (prompt_text, embed_options = {}) => {
     const max = get_maximum_parallel_generations();
     if (activeGenerations >= max || generate_cooldown) {
       generation_panel.set_generate_button_enabled(false);
