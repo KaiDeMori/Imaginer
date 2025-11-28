@@ -106,3 +106,84 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
 
 ### Next Steps
 * [] create a mock-up of the UI
+
+## 4. Gallery Integration & History Management
+
+To provide access to past conversations without a dedicated sidebar, we will integrate conversation history directly into the Gallery.
+
+### 4.1. Data Model Updates
+-   **`Session_store`**: Update the schema (implicitly) to store `conversation_id` alongside existing image metadata.
+    -   New field: `conversation_id` (string, optional).
+    -   **`prompt_text`**: For images generated in Conversation Mode, this field will be left **empty** or `null`. We do not attempt to infer a single prompt from a multi-turn conversation.
+    -   **Exclusivity Rule**: An image should ideally have EITHER `prompt_text` OR `conversation_id`. If both are present (e.g. due to a bug or migration), `conversation_id` takes precedence, and `prompt_text` is removed.
+
+### 4.2. Gallery UI Changes
+-   **Indicators**: The hover overlay on gallery thumbnails will be updated to show distinct icons based on available metadata:
+    1.  **Speech Bubble (💬)**: Displayed ONLY if `prompt_text` is present AND `conversation_id` is missing.
+        -   *Behavior*: Copies the text to the active input area.
+    2.  **Chat Bubbles (🗨️)**: Displayed if `conversation_id` is present (even if `prompt_text` exists).
+        -   *Behavior*: Context-dependent (see below).
+
+### 4.3. Cross-Mode Interaction Logic
+
+#### A. In Generation Mode
+-   **Images with `prompt_text`**: Show Speech Bubble (💬). Clicking fills the prompt box.
+-   **Images with `conversation_id`**: Show Chat Bubbles (🗨️).
+    -   **State**: Disabled / Informational only.
+    -   **Tooltip**: "Created in Conversation Mode".
+    -   **Click Action**: **None** (or shows a simple toast message). We do NOT prompt for reload or mode switch. The user must manually change the mode in settings if they wish to resume the conversation.
+
+#### B. In Conversation Mode
+-   **Images with `conversation_id`**: Show Chat Bubbles (🗨️).
+    -   **Click Action**: Clears the current view and loads the history associated with that `conversation_id`.
+-   **Images with `prompt_text`**: Show Speech Bubble (💬).
+    -   **Click Action**: Copies the prompt text into the chat input box as a draft message.
+
+### 4.4. Implementation Steps
+1.  **Update `Session_store`**: Ensure `conversation_id` is passed and saved during image generation in `Conversation_panel`. Ensure `prompt_text` is empty for these images.
+2.  **Update `Gallery`**:
+    -   Modify `addThumbnail` to accept `conversation_id`.
+    -   Logic to render 💬 vs 🗨️ based on data presence.
+    -   Implement the click handlers with the strict mode checks described above.
+
+## 5. Conversation History Management
+
+To address the edge case of "lost" conversations (those with no saved images), we will implement a dedicated **Conversation History** interface.
+
+### 5.1. Storage Strategy (Local Registry)
+Since the Responses API does not provide an endpoint to list all past conversations, we must maintain a **local registry** of conversation metadata.
+-   **Storage Location**: **IndexedDB** (via the existing `Session_store` class).
+    -   *Clarification*: Despite the name, `Session_store` uses `IndexedDB`, which is fully persistent across browser restarts and reloads. It is **not** cleared when the session ends.
+    -   We will add a new object store (table) named `conversations` to the existing database.
+-   **Schema**:
+    ```json
+    {
+      "id": "conv_123...",
+      "created_at": 1716900000,
+      "last_active": 1716900500,
+      "title": "Blue Dinosaur Edit", // Derived from first user message or generated
+      "preview": "Make it look like a painting..." // First few words
+    }
+    ```
+-   **Update Logic**:
+    -   **On Creation**: When a new `conversation_id` is received from the API, add an entry.
+    -   **On Message**: Update `last_active` and potentially `title` (if we implement auto-titling).
+
+### 5.2. UI: The History Overlay
+Instead of a new browser tab (which introduces complexity with cross-tab communication and popup blockers), we will use a **Full-Screen Overlay** within the application.
+-   **Access**: A "History" button (clock icon?) next to the "New Conversation" button in the `Conversation_panel` header.
+-   **Appearance**: A modal/overlay covering the main content area.
+    -   **Header**: "Conversation History" + Close button.
+    -   **List**: Scrollable list of conversation cards.
+        -   **Card Content**: Title, Date, Preview text.
+        -   **Actions**: "Open", "Delete".
+-   **Behavior**:
+    -   Clicking a card closes the overlay and loads that conversation.
+    -   Clicking "Delete" removes it from the registry (and ideally clears local cache).
+
+### 5.3. Implementation Steps
+1.  **Update `Session_store`**: Add methods `add_conversation_metadata(meta)`, `get_all_conversations()`, `delete_conversation(id)`.
+2.  **Update `Conversation_panel`**:
+    -   Call `Session_store.add_conversation_metadata` when a new conversation starts.
+    -   Add the "History" button to the header.
+    -   Implement the `History_overlay` component (or simple HTML injection) to render the list.
