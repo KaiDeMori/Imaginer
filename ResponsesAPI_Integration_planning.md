@@ -104,8 +104,7 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
 1.  **Model Selection**: The Responses API uses a "driving model" (like `gpt-4o`) which then calls the image tool. This is different from the direct `dall-e-3` calls. We need to ensure the user understands they are talking to an assistant that *can* generate images, not just a "prompt processor".
 2.  **"Chat" vs. "Conversation"**: Strictly adhering to "Conversation" terminology is good. It emphasizes the persistent, multi-turn nature.
 3.  **Image Inputs**: For the "edit this image" workflow in a conversation, we should decide if we upload the image to OpenAI's Files API first (better for persistence) or send it as base64 in the message (simpler for one-offs). Given the "Conversation" focus, using the Files API (`POST /v1/files`) might be more robust for long conversations.
-4.  **Streaming**: The Responses API supports streaming. Implementing this would make the UI feel much snappier, showing text tokens as they arrive. This is a "nice to have" for V1 but highly recommended.
-5.  **Cost Management**: Conversations can get long. We might want to implement a "token usage" indicator or a way to "prune" context if that becomes an issue, though the API handles much of this.
+4.  **Streaming**: The Responses API supports streaming. Implementing this would make the UI feel much snappier, showing text tokens as they arrive. This is a "nice to have" for V1 but highly recommended. Ignore for now.
 
 ### Next Steps
 1.  Create the `api/responses_client.js` wrapper.
