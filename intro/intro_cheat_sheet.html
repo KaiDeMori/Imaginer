@@ -210,8 +210,17 @@
           <p>Interactive flight mode (Phase 01) with debug controls.</p>
         </div>
         <div class="link-card">
-          <a href="03/early_universe_formation_V2.html?t=0" target="_blank">Early Universe Formation</a>
+          <a id="early_universe_link" href="03/early_universe_formation_V2.html?t=56" target="_blank">Early Universe Formation</a>
           <p>Particle simulation of the early universe (Phase 03).</p>
+          <div style="margin-top: 0.5rem; border-top: 1px solid #eee; padding-top: 0.5rem">
+            <div style="margin-bottom: 0.5rem">
+              <label for="early_universe_t" style="font-size: 0.9em; color: #555">Start Time (t):</label>
+              <input type="number" id="early_universe_t" value="56" style="width: 50px; padding: 2px; border: 1px solid #ccc; border-radius: 3px" />
+            </div>
+            <div>
+              <label style="font-size: 0.9em; color: #555; cursor: pointer"> <input type="checkbox" id="early_universe_no_audio" /> Disable Audio </label>
+            </div>
+          </div>
         </div>
         <div class="link-card">
           <a href="04/infinity_zoom_II.html" target="_blank">Infinity Zoom II</a>
@@ -320,6 +329,31 @@
           update_display();
         }
       });
+
+      // Early Universe Link Logic
+      const eu_link = document.getElementById("early_universe_link");
+      const eu_t_input = document.getElementById("early_universe_t");
+      const eu_no_audio = document.getElementById("early_universe_no_audio");
+
+      function update_eu_link() {
+        const base_url = "03/early_universe_formation_V2.html";
+        let t_val = "";
+
+        eu_t_input.disabled = eu_no_audio.checked;
+
+        if (!eu_no_audio.checked) {
+          t_val = eu_t_input.value;
+        }
+
+        eu_link.href = `${base_url}?t=${t_val}`;
+      }
+
+      if (eu_link && eu_t_input && eu_no_audio) {
+        eu_t_input.addEventListener("input", update_eu_link);
+        eu_no_audio.addEventListener("change", update_eu_link);
+        // Initialize
+        update_eu_link();
+      }
 
       // Init
       load_settings();
