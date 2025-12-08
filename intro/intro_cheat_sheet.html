@@ -168,6 +168,7 @@
         display: inline-block;
         border-left: 4px solid #0277bd;
         color: #333;
+        line-height: 2.2;
       }
 
       code {
@@ -181,6 +182,8 @@
       ul {
         line-height: 1.6;
         color: #333;
+        list-style: none;
+        padding-left: 0;
       }
 
       li {
@@ -194,9 +197,19 @@
       <p style="font-size: 1.2em; color: #555">A quick reference guide to the intro sequence components, styles, and assets.</p>
 
       <div class="controls-info">
-        <strong>Interactive Controls (Apply to entire page):</strong><br /><br />
+        <strong>Interactive Controls (Apply to entire page):</strong><br />
         <code>1</code> - <code>5</code> : Switch Font Family<br />
         <code>+</code> / <code>-</code> : Adjust Font Size
+      </div>
+
+      <div style="display: inline-block; margin-left: 1rem; vertical-align: top; margin-top: 1rem">
+        <button
+          id="fullscreen_toggle"
+          style="padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; background: #0277bd; color: white; border: none; border-radius: 4px"
+        >
+          Toggle Fullscreen
+        </button>
+        <span style="margin-left: 0.5rem; color: #555">(or press <code>F11</code>)</span>
       </div>
 
       <p id="current_settings" style="color: #666; margin-top: 1rem; font-family: monospace; font-size: 1.1em">Current: Orbitron (Font 4) | Scale: 1.00</p>
@@ -205,13 +218,13 @@
     <div class="section">
       <h2>Fonts</h2>
       <ul>
-        <li style="font-family: 'Andika', monospace"><strong>Andika</strong> (Font 1): A clear, sans-serif font designed for literacy.</li>
-        <li style="font-family: 'Comic Neue', monospace"><strong>Comic Neue</strong> (Font 2): A modern, more legible version of Comic Sans.</li>
-        <li style="font-family: 'Noto Sans', monospace"><strong>Noto Sans</strong> (Font 3): A clean, universal sans-serif font.</li>
+        <li style="font-family: 'Andika', monospace"><strong>1 – Andika</strong>: A clear, sans-serif font designed for literacy.</li>
+        <li style="font-family: 'Comic Neue', monospace"><strong>2 – Comic Neue</strong>: A modern, more legible version of Comic Sans.</li>
+        <li style="font-family: 'Noto Sans', monospace"><strong>3 – Noto Sans</strong>: A clean, universal sans-serif font.</li>
         <li style="font-family: 'Orbitron', monospace">
-          <strong>Orbitron</strong> (Font 4): The primary cinematic font. Used for the main title and "bloom" effects to give a sci-fi feel.
+          <strong>4 – Orbitron</strong>: The primary cinematic font. Used for the main title and "bloom" effects to give a sci-fi feel.
         </li>
-        <li style="font-family: 'Quicksand', monospace"><strong>Quicksand</strong> (Font 5): A rounded sans-serif font with a friendly appearance.</li>
+        <li style="font-family: 'Quicksand', monospace"><strong>5 – Quicksand</strong>: A rounded sans-serif font with a friendly appearance.</li>
       </ul>
     </div>
 
@@ -364,6 +377,22 @@
         eu_no_audio.addEventListener("change", update_eu_link);
         // Initialize
         update_eu_link();
+      }
+
+      // Fullscreen Toggle
+      const fullscreen_btn = document.getElementById("fullscreen_toggle");
+      if (fullscreen_btn) {
+        fullscreen_btn.addEventListener("click", () => {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch((err) => {
+              console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        });
       }
 
       // Init
