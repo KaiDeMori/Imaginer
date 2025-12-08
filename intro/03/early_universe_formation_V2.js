@@ -107,7 +107,9 @@ if (is_standalone_mode) {
   if (!white_screen_el || !canvas_el) {
     console.error("[EUF] Standalone mode requires whiteScreen and cinematic_canvas elements");
   } else {
-    const start_time = url_params.has("t") ? parseFloat(url_params.get("t")) : null;
+    const t_param = url_params.get("t");
+    const audio_enabled = t_param !== "";
+    const start_time = audio_enabled ? parseFloat(t_param) : 0;
 
     let universe_animator = null;
     const preload_start_time = performance.now();
@@ -133,17 +135,19 @@ if (is_standalone_mode) {
 
         setTimeout(() => {
           // Apply saved volume and start audio at specified time
-          console.log("[EUF] Starting audio at time", start_time);
-          const audio = document.getElementById("cinematic_audio");
-          if (audio && start_time !== null) {
-            const saved_audio_volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
-            audio.volume = saved_audio_volume;
-            console.log(`[EUF] Applied saved audio volume: ${saved_audio_volume}`);
+          if (audio_enabled) {
+            console.log("[EUF] Starting audio at time", start_time);
+            const audio = document.getElementById("cinematic_audio");
+            if (audio) {
+              const saved_audio_volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
+              audio.volume = saved_audio_volume;
+              console.log(`[EUF] Applied saved audio volume: ${saved_audio_volume}`);
 
-            if (start_time > 0) {
-              audio.currentTime = start_time;
+              if (start_time > 0) {
+                audio.currentTime = start_time;
+              }
+              audio.play().catch((err) => console.warn("[EUF] Audio play failed:", err));
             }
-            audio.play().catch((err) => console.warn("[EUF] Audio play failed:", err));
           }
 
           _fade_out_white_overlay(white_screen_el);
