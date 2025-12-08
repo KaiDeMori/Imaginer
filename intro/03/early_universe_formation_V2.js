@@ -107,7 +107,7 @@ if (is_standalone_mode) {
   if (!white_screen_el || !canvas_el) {
     console.error("[EUF] Standalone mode requires whiteScreen and cinematic_canvas elements");
   } else {
-    const start_time = parseFloat(url_params.get("t")) || 0;
+    const start_time = url_params.has("t") ? parseFloat(url_params.get("t")) : null;
 
     let universe_animator = null;
     const preload_start_time = performance.now();
@@ -135,7 +135,7 @@ if (is_standalone_mode) {
           // Apply saved volume and start audio at specified time
           console.log("[EUF] Starting audio at time", start_time);
           const audio = document.getElementById("cinematic_audio");
-          if (audio) {
+          if (audio && start_time !== null) {
             const saved_audio_volume = parseFloat(localStorage.getItem(window.AUDIO_VOLUME_KEY));
             audio.volume = saved_audio_volume;
             console.log(`[EUF] Applied saved audio volume: ${saved_audio_volume}`);
