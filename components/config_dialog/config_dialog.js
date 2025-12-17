@@ -269,9 +269,15 @@ export class Config_dialog {
 
     // Clear Gallery button
     this.clear_gallery_button.addEventListener("click", async () => {
+      if (!this.clear_gallery_warned) {
+        this.clear_gallery_warned = true;
+        this.button_download_all.classList.add("glow-animation");
+        return;
+      }
+
       const confirmation = prompt("WARNING: This will remove ALL images from your gallery!\n\nType 'YES' to confirm:");
 
-      if (confirmation === "YES") {
+      if (confirmation && confirmation.toUpperCase() === "YES") {
         try {
           await window.database_store.clear();
           location.reload();
@@ -284,6 +290,10 @@ export class Config_dialog {
 
   async open() {
     await this.init_promise;
+
+    // Reset clear gallery warning state
+    this.clear_gallery_warned = false;
+    this.button_download_all.classList.remove("glow-animation");
 
     // Show Mask Mode Button checkbox
     this.show_mask_mode_checkbox.checked = localStorage.getItem("imaginer.show_mask_mode_button") === "true";
