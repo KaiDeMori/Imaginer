@@ -104,7 +104,7 @@ export class Generation_panel {
             overflow-x: auto;
           "
         >
-          <span id="input-image-drop-placeholder" style="color:#bbb;">Drag & drop PNG image(s) here</span>
+          <span id="input-image-drop-placeholder" style="color:#bbb;">Drop image(s) for editing</span>
         </div>
         <button
           id="generate-btn"

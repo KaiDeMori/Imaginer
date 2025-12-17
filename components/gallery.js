@@ -59,6 +59,24 @@ export class Gallery {
     `;
     this.root.appendChild(style);
 
+    // Placeholder for empty state
+    this.root.style.position = "relative";
+    this.empty_placeholder = document.createElement("div");
+    this.empty_placeholder.textContent = "Drop image(s) for import";
+    Object.assign(this.empty_placeholder.style, {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      color: "#bbb",
+      fontSize: "1.1rem",
+      pointerEvents: "none",
+      textAlign: "center",
+      width: "100%",
+      display: "none",
+    });
+    this.root.appendChild(this.empty_placeholder);
+
     this.enable_drag_and_drop();
     this.loadImages();
   }
@@ -83,6 +101,7 @@ export class Gallery {
       }
       this.addThumbnail(rec.image_blob, rec.prompt_text, rec.created);
     }
+    this.update_empty_state();
   }
 
   async loadDummyImages() {
@@ -239,6 +258,7 @@ export class Gallery {
           }
           // Remove from UI
           container.remove();
+          this.update_empty_state();
         }
         return;
       }
@@ -344,6 +364,7 @@ export class Gallery {
     } else {
       this.grid.appendChild(container);
     }
+    this.update_empty_state();
   }
 
   addPlaceholder(startTime = Math.floor(Date.now() / 1000)) {
@@ -379,6 +400,7 @@ export class Gallery {
     Gallery._activePlaceholders = Gallery._activePlaceholders || [];
     Gallery._activePlaceholders.push(placeholder);
     Gallery._ensureTimerInterval();
+    this.update_empty_state();
     return placeholder;
   }
 
@@ -426,6 +448,14 @@ export class Gallery {
     // Replace placeholder with a thumbnail (with download button)
     this.addThumbnail(blob, promptText, created);
     placeholder.remove();
+    this.update_empty_state();
+  }
+
+  update_empty_state() {
+    const has_images = this.grid.children.length > 0;
+    if (this.empty_placeholder) {
+      this.empty_placeholder.style.display = has_images ? "none" : "block";
+    }
   }
 
   // --- Timer update logic (static, shared for all Gallery instances) ---
