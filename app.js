@@ -290,7 +290,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           }
           Error_modal.show(errObj);
           for (const ph of placeholders) {
-            if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+            if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
           }
           return;
         }
@@ -299,7 +299,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (!Array.isArray(data.data) || data.data.length === 0) {
           Error_modal.show({ message: "No images returned from API." });
           for (const ph of placeholders) {
-            if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+            if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
           }
           return;
         }
@@ -329,7 +329,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         console.error("Error editing image:", error);
         Error_modal.show(error && error.message ? error.message : error);
         for (const ph of placeholders) {
-          if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+          if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
         }
       } finally {
         activeGenerations--;
@@ -370,7 +370,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
         Error_modal.show(errObj);
         for (const ph of placeholders) {
-          gallery.update_placeholder(ph, null, true);
+          gallery.update_placeholder(ph, null, true, prompt_text);
         }
         return;
       }
@@ -379,7 +379,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (!Array.isArray(data.data) || data.data.length === 0) {
         Error_modal.show({ message: "No images returned from API." });
         for (const ph of placeholders) {
-          gallery.update_placeholder(ph, null, true);
+          gallery.update_placeholder(ph, null, true, prompt_text);
         }
         return;
       }
@@ -549,7 +549,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       Error_modal.show(error && error.message ? error.message : error);
       // Remove all placeholders on error
       for (const ph of placeholders) {
-        if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+        if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
       }
     } finally {
       activeGenerations--;

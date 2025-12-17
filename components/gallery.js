@@ -339,6 +339,35 @@ export class Gallery {
       placeholder.style.background = "#f88";
       // Remove timer if present
       if (placeholder._timer) placeholder._timer.remove();
+
+      // Add "Use Prompt" button to the error placeholder so the prompt isn't lost
+      const btnPrompt = document.createElement("button");
+      btnPrompt.textContent = "💬";
+      Object.assign(btnPrompt.style, {
+        position: "absolute",
+        top: "6px",
+        right: "6px",
+        zIndex: 2,
+        background: "#fff",
+        border: "none",
+        borderRadius: "4px",
+        padding: "2px 6px",
+        fontSize: "1.1rem",
+        cursor: "pointer",
+        opacity: 1, // Always visible on error for clarity
+      });
+      btnPrompt.title = "Load this prompt into the prompt box";
+
+      btnPrompt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const promptInput = document.querySelector("#prompt-input");
+        if (promptInput) {
+          promptInput.value = promptText || "";
+          localStorage.setItem("imaginer.prompt", promptText || "");
+          promptInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
+      placeholder.appendChild(btnPrompt);
       return;
     }
     // Replace placeholder with a thumbnail (with download button)
