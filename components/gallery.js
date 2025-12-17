@@ -117,7 +117,7 @@ export class Gallery {
       for (const file of e.dataTransfer.files) {
         if (file.type === "image/png") {
           const prompt = await read_png_metadata(file);
-          const created = Date.now();
+          const created = Math.floor(Date.now() / 1000);
 
           // Save to DB
           if (window.database_store) {
