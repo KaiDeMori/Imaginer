@@ -27,7 +27,14 @@
 
       const stored_version = localStorage.getItem(VERSION_STORAGE_KEY);
 
-      if (!stored_version || stored_version === TARGET_VERSION) {
+      if (!stored_version) {
+        return;
+      }
+
+      const { compare_versions } = await import("../version_manager.js");
+      const needs_model_refresh = compare_versions(TARGET_VERSION, stored_version) === 1;
+
+      if (!needs_model_refresh) {
         return;
       }
 
