@@ -119,29 +119,25 @@
       <div class="subtle_note">🤫 🧩 Conversation mode work continues quietly in the background...</div>
     </div>
     <script type="module">
-      const VERSION_STORAGE_KEY = "imaginer_app_version";
-      const TARGET_VERSION = "1.1";
+      (function () {
+        // 1. Safety Check: Ensure we are running inside the Imaginer app's version modal
+        // We check for the presence of the modal container class which is added by version_message_modal.js
+        const is_in_modal = !!document.querySelector(".version_message_modal");
+        if (!is_in_modal) {
+          console.info("Migration script skipped: Not running inside Imaginer version modal.");
+          return;
+        }
 
-      const stored_version = localStorage.getItem(VERSION_STORAGE_KEY);
+        // 2. The Logic: Clear model-related localStorage keys
+        console.log("Running Imaginer 1.1 migration: Clearing model cache...");
+        const MODEL_CACHE_KEY = "imaginer.available_image_models";
+        const MODEL_SELECTED_KEY = "imaginer.selected_image_model";
 
-      if (!stored_version) {
-        return;
-      }
+        localStorage.removeItem(MODEL_CACHE_KEY);
+        localStorage.removeItem(MODEL_SELECTED_KEY);
 
-      const { compare_versions } = await import("../version_manager.js");
-      const needs_model_refresh = compare_versions(TARGET_VERSION, stored_version) === 1;
-
-      if (!needs_model_refresh) {
-        return;
-      }
-
-      try {
-        const { refresh_models, set_selected_model } = await import("../model_fetcher.js");
-        await refresh_models();
-        set_selected_model("gpt-image-1.5");
-      } catch (err) {
-        console.warn("Model refresh failed:", err);
-      }
+        console.log("Imaginer 1.1 migration complete.");
+      })();
     </script>
   </body>
 </html>
