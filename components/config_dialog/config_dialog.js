@@ -57,6 +57,7 @@ export class Config_dialog {
     this.button_cancel = this.overlay.querySelector("#cancel_button");
     this.button_save = this.overlay.querySelector("#save_button");
     this.refresh_models_button = this.overlay.querySelector("#refresh_models_button");
+    this.clear_gallery_button = this.overlay.querySelector("#clear_gallery_button");
 
     // 6. Wire events
     this.wire_events();
@@ -104,7 +105,7 @@ export class Config_dialog {
         const resp = await fetch("https://api.openai.com/v1/models", {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${key}`,
+            "Authorization": `Bearer ${key}`,
             "Content-Type": "application/json",
           },
         });
@@ -263,6 +264,20 @@ export class Config_dialog {
         Error_modal.show(error);
       } finally {
         this.refresh_models_button.disabled = false;
+      }
+    });
+
+    // Clear Gallery button
+    this.clear_gallery_button.addEventListener("click", async () => {
+      const confirmation = prompt("WARNING: This will remove ALL images from your gallery!\n\nType 'YES' to confirm:");
+
+      if (confirmation === "YES") {
+        try {
+          await window.database_store.clear();
+          location.reload();
+        } catch (err) {
+          alert("Failed to clear gallery: " + err.message);
+        }
       }
     });
   }
