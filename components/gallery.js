@@ -1,4 +1,6 @@
 // gallery.js – Thumbnail grid with placeholder support
+import { read_png_metadata } from "./png_metadata_reader.js";
+
 export class Gallery {
   constructor(root, viewer) {
     // Listen for mask updates to synchronize in-memory records and update UI
@@ -57,6 +59,7 @@ export class Gallery {
     `;
     this.root.appendChild(style);
 
+    this.enable_drag_and_drop();
     this.loadImages();
   }
 
@@ -95,6 +98,53 @@ export class Gallery {
       );
     }
     return (await Promise.all(promises)).filter(Boolean);
+  }
+
+  enable_drag_and_drop() {
+    this.root.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      this.root.style.backgroundColor = "rgba(255, 255, 255, 0.1)"; // Visual feedback
+    });
+
+    this.root.addEventListener("dragleave", (e) => {
+      this.root.style.backgroundColor = "";
+    });
+
+    this.root.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      this.root.style.backgroundColor = "";
+
+      for (const file of e.dataTransfer.files) {
+        if (file.type === "image/png") {
+          const prompt = await read_png_metadata(file);
+          const created = Date.now();
+
+          // Save to DB
+          if (window.database_store) {
+            const id = await window.database_store.save({
+              created,
+              image_blob: file,
+              prompt_text: prompt,
+              prompt_imgs: [],
+            });
+
+            // Update internal record
+            if (this.records_by_created) {
+              this.records_by_created[created] = {
+                id,
+                created,
+                image_blob: file,
+                prompt_text: prompt,
+                prompt_imgs: [],
+              };
+            }
+          }
+
+          // Update UI
+          this.addThumbnail(file, prompt, created);
+        }
+      }
+    });
   }
 
   addThumbnail(blob, promptText = "", created = null) {

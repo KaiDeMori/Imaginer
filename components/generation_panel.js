@@ -185,8 +185,10 @@ export class Generation_panel {
         const { blob, promptText, created, mask_blob, uuid } = window.imaginer_gallery_drag_store[drag_id];
         // Only accept PNGs for now
         if (blob && blob.type === "image/png") {
-          // Give the blob a name for thumbnail UI
-          blob.name = promptText ? promptText.slice(0, 20).replace(/\s+/g, "_") + ".png" : "gallery_image.png";
+          // Give the blob a name for thumbnail UI (only if it's not a File, which has a read-only name)
+          if (!(blob instanceof File)) {
+            blob.name = promptText ? promptText.slice(0, 20).replace(/\s+/g, "_") + ".png" : "gallery_image.png";
+          }
           // Convert mask_blob (Blob) to File if present
           let mask_file = null;
           if (mask_blob instanceof Blob) {
