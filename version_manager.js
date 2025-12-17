@@ -33,7 +33,7 @@ function compare_versions(left_version, right_version) {
   return 0;
 }
 
-async function check_and_show_update_message() {
+async function check_and_show_update_message(suppress_modal = false) {
   const previous_version = localStorage.getItem(VERSION_STORAGE_KEY);
   const normalized_previous_version = previous_version || "0";
   const version_comparison_result = compare_versions(APP_VERSION, normalized_previous_version);
@@ -44,14 +44,18 @@ async function check_and_show_update_message() {
   const finalize_oobe = () => {
     if (localStorage.getItem("imaginer.intro.first_start") === "true") {
       localStorage.setItem("imaginer.intro.first_start", "false");
-      const target_doc = window.parent.document || document;
-      if (target_doc.fullscreenElement) {
-        target_doc.exitFullscreen().catch((err) => console.warn(err));
+      // Only exit fullscreen if we are NOT suppressing the modal (i.e. normal flow).
+      // If suppressed (intro running), we let the intro manage the screen state.
+      if (!suppress_modal) {
+        const target_doc = window.parent.document || document;
+        if (target_doc.fullscreenElement) {
+          target_doc.exitFullscreen().catch((err) => console.warn(err));
+        }
       }
     }
   };
 
-  if (is_new_version) {
+  if (is_new_version && !suppress_modal) {
     const html_path = VERSION_HTML_FILES[APP_VERSION];
     if (html_path) {
       const modal = new version_message_modal();
@@ -67,10 +71,17 @@ async function check_and_show_update_message() {
       alert(`Error: Release notes for version ${APP_VERSION} not found.`);
       finalize_oobe();
     }
+    localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
   } else {
+    // If no new version OR suppressed:
+    // We still need to mark OOBE as complete so we don't get stuck in a loop/prompt.
     finalize_oobe();
+    
+    // If suppressed, we do NOT update the version key, so the modal appears on the next (normal) run.
+    if (!suppress_modal) {
+      localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
+    }
   }
-  localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
 }
 
 export { APP_VERSION, check_and_show_update_message, compare_versions, VERSION_HTML_FILES };
