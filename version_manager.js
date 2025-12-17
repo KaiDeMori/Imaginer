@@ -3,13 +3,14 @@
 
 import { version_message_modal } from "./components/version_message_modal.js";
 
-const APP_VERSION = "1.0";
+const APP_VERSION = "1.1";
 const VERSION_STORAGE_KEY = "imaginer_app_version";
 
 // Map of version numbers to HTML file paths
 const VERSION_HTML_FILES = {
   "1.0": "version_messages/version_1.0.0.html",
   "1.1": "version_messages/version_1.1.0.html",
+  //"99.0": "version_messages/version_99.0.html",
   // Add future version HTML files here
 };
 
