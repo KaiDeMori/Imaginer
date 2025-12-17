@@ -13,9 +13,31 @@ const VERSION_HTML_FILES = {
   // Add future version HTML files here
 };
 
+function compare_versions(left_version, right_version) {
+  const left_segments = left_version.split(".").map((segment) => parseInt(segment, 10));
+  const right_segments = right_version.split(".").map((segment) => parseInt(segment, 10));
+  const max_segments = Math.max(left_segments.length, right_segments.length);
+
+  for (let segment_index = 0; segment_index < max_segments; segment_index += 1) {
+    const left_value = left_segments[segment_index] ?? 0;
+    const right_value = right_segments[segment_index] ?? 0;
+
+    if (left_value === right_value) {
+      continue;
+    }
+
+    return left_value > right_value ? 1 : -1;
+  }
+
+  return 0;
+}
+
 async function check_and_show_update_message() {
   const previous_version = localStorage.getItem(VERSION_STORAGE_KEY);
-  const is_new_version = APP_VERSION !== previous_version;
+  const normalized_previous_version = previous_version || "0";
+  const version_comparison_result = compare_versions(APP_VERSION, normalized_previous_version);
+  const is_new_version = version_comparison_result !== 0;
+  const is_upgrade = previous_version ? version_comparison_result === 1 : false;
 
   // Helper to finalize OOBE (mark complete & exit fullscreen)
   const finalize_oobe = () => {
@@ -36,7 +58,7 @@ async function check_and_show_update_message() {
         finalize_oobe();
         // Force reload to ensure fresh assets (especially for Firefox)
         // Only reload if this was an update (previous_version exists).
-        if (previous_version) {
+        if (is_upgrade) {
           location.reload(true);
         }
       });
@@ -50,4 +72,4 @@ async function check_and_show_update_message() {
   localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
 }
 
-export { APP_VERSION, check_and_show_update_message, VERSION_HTML_FILES };
+export { APP_VERSION, check_and_show_update_message, compare_versions, VERSION_HTML_FILES };
