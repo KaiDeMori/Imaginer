@@ -590,3 +590,10 @@ window.tabula_rasa = function tabula_rasa() {
     console.error("Error during tabula rasa:", e);
   }
 };
+
+// --- Debug function to trigger performance warning ---
+window.debug_trigger_performance_warning = async function () {
+  const { Performance_limit_warning } = await import("./components/performance_limit_warning/performance_limit_warning.js");
+  const warning = new Performance_limit_warning();
+  warning.open();
+};

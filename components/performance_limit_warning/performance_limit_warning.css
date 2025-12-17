@@ -1,0 +1,86 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000; /* Higher than config dialog */
+}
+
+.dialog {
+  background: #fff;
+  border-radius: 10px;
+  min-width: 340px;
+  width: 450px;
+  max-width: 95vw;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  box-sizing: border-box;
+  border: 1.5px solid #e0e0e0;
+}
+
+.title {
+  margin: 0 0 16px 0;
+  color: #d32f2f; /* Red for warning */
+}
+
+.content {
+  margin-bottom: 24px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.content p {
+  margin: 0 0 12px 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.button {
+  padding: 10px 16px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.button.primary {
+  background-color: #1976d2;
+  color: white;
+}
+.button.primary:hover {
+  background-color: #1565c0;
+}
+
+.button.danger {
+  background-color: #d32f2f;
+  color: white;
+}
+.button.danger:hover {
+  background-color: #c62828;
+}
+
+.button.secondary {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+.button.secondary:hover {
+  background-color: #e0e0e0;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
