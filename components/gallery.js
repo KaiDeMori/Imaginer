@@ -140,10 +140,11 @@ export class Gallery {
       for (const file of e.dataTransfer.files) {
         if (file.type.startsWith("image/")) {
           let blob = file;
-          let prompt = "";
+          let prompt = null;
 
           if (file.type === "image/png") {
-            prompt = await read_png_metadata(file);
+            const text = await read_png_metadata(file);
+            if (text) prompt = text;
           } else {
             try {
               blob = await convert_image_to_png(file);
@@ -157,21 +158,20 @@ export class Gallery {
 
           // Save to DB
           if (window.database_store) {
-            const id = await window.database_store.save({
+            const record = {
               created,
               image_blob: blob,
-              prompt_text: prompt,
               prompt_imgs: [],
-            });
+            };
+            if (prompt) record.prompt_text = prompt;
+
+            const id = await window.database_store.save(record);
 
             // Update internal record
             if (this.records_by_created) {
               this.records_by_created[created] = {
                 id,
-                created,
-                image_blob: blob,
-                prompt_text: prompt,
-                prompt_imgs: [],
+                ...record,
               };
             }
           }
@@ -327,50 +327,53 @@ export class Gallery {
     });
 
     // Prompt-to-box button (upper right)
-    const btnPrompt = document.createElement("button");
-    btnPrompt.textContent = "💬";
-    Object.assign(btnPrompt.style, {
-      position: "absolute",
-      top: "6px",
-      right: "6px",
-      zIndex: 2,
-      background: "#fff",
-      border: "none",
-      borderRadius: "4px",
-      padding: "2px 6px",
-      fontSize: "1.1rem",
-      cursor: "pointer",
-      opacity: 0,
-      transition: "opacity 0.1s",
-    });
-    btnPrompt.title = "Load this prompt into the prompt box";
+    let btnPrompt = null;
+    if (promptText) {
+      btnPrompt = document.createElement("button");
+      btnPrompt.textContent = "💬";
+      Object.assign(btnPrompt.style, {
+        position: "absolute",
+        top: "6px",
+        right: "6px",
+        zIndex: 2,
+        background: "#fff",
+        border: "none",
+        borderRadius: "4px",
+        padding: "2px 6px",
+        fontSize: "1.1rem",
+        cursor: "pointer",
+        opacity: 0,
+        transition: "opacity 0.1s",
+      });
+      btnPrompt.title = "Load this prompt into the prompt box";
 
-    btnPrompt.addEventListener("click", (e) => {
-      e.stopPropagation();
-      // Find the prompt input box and set its value
-      const promptInput = document.querySelector("#prompt-input");
-      if (promptInput) {
-        promptInput.value = promptText || "";
-        // Save to localStorage for persistence
-        localStorage.setItem("imaginer.prompt", promptText || "");
-        // Optionally, trigger input event for listeners
-        promptInput.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-    });
+      btnPrompt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // Find the prompt input box and set its value
+        const promptInput = document.querySelector("#prompt-input");
+        if (promptInput) {
+          promptInput.value = promptText || "";
+          // Save to localStorage for persistence
+          localStorage.setItem("imaginer.prompt", promptText || "");
+          // Optionally, trigger input event for listeners
+          promptInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
+    }
 
     // Show buttons on hover
     container.addEventListener("mouseenter", () => {
       btnDownload.style.opacity = 1;
-      btnPrompt.style.opacity = 1;
+      if (btnPrompt) btnPrompt.style.opacity = 1;
     });
     container.addEventListener("mouseleave", () => {
       btnDownload.style.opacity = 0;
-      btnPrompt.style.opacity = 0;
+      if (btnPrompt) btnPrompt.style.opacity = 0;
     });
 
     container.appendChild(imgEl);
     container.appendChild(btnDownload);
-    container.appendChild(btnPrompt);
+    if (btnPrompt) container.appendChild(btnPrompt);
 
     // --- Insert at the beginning to keep descending order ---
     if (this.grid.firstChild) {
