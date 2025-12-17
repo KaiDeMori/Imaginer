@@ -356,7 +356,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Database_store.get_api_key()}`,
+          "Authorization": `Bearer ${Database_store.get_api_key()}`,
         },
         body: JSON.stringify(request_body),
       });
