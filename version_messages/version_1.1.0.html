@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Version 1.1.0 Message</title>
+    <style>
+      .version_message_content {
+        font-size: 1.1em;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="version_message_content">
+      <h2>🚀 Imaginer 1.1 is live! 🚀</h2>
+      <p>Here is the headline for this release:</p>
+      <ul>
+        <li>🖼️ <strong>gpt-image-1.5</strong> is the new default recommendation with crisper details plus steadier text and editing.</li>
+        <li>💸 It also costs less per image! 🥳</li>
+        <li>🧩 Conversation mode work continues behind the scenes.</li>
+      </ul>
+      <p>Enjoy the upgrade and let us know how the new model treats your ideas!</p>
+    </div>
+    <script type="module">
+      const VERSION_STORAGE_KEY = "imaginer_app_version";
+      const TARGET_VERSION = "1.1";
+
+      const stored_version = localStorage.getItem(VERSION_STORAGE_KEY);
+
+      if (!stored_version || stored_version === TARGET_VERSION) {
+        return;
+      }
+
+      try {
+        const { refresh_models, set_selected_model } = await import("../model_fetcher.js");
+        await refresh_models();
+        set_selected_model("gpt-image-1.5");
+      } catch (err) {
+        console.warn("Model refresh failed:", err);
+      }
+    </script>
+  </body>
+</html>
