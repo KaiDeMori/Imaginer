@@ -3,16 +3,19 @@
 
 import { version_message_modal } from "./components/version_message_modal.js";
 
-const APP_VERSION = "1.1";
 const VERSION_STORAGE_KEY = "imaginer_app_version";
 
-// Map of version numbers to HTML file paths
-const VERSION_HTML_FILES = {
-  "1.0": "version_messages/version_1.0.0.html",
-  "1.1": "version_messages/version_1.1.0.html",
-  //"99.0": "version_messages/version_99.0.html",
-  // Add future version HTML files here
-};
+// Fetch version config from server (cache-busted)
+async function get_version_config() {
+  try {
+    const response = await fetch(`version.json?t=${Date.now()}`);
+    if (!response.ok) throw new Error("Failed to fetch version.json");
+    return await response.json();
+  } catch (e) {
+    console.error("Could not load version config:", e);
+    return null;
+  }
+}
 
 function compare_versions(left_version, right_version) {
   const left_segments = left_version.split(".").map((segment) => parseInt(segment, 10));
@@ -34,9 +37,13 @@ function compare_versions(left_version, right_version) {
 }
 
 async function check_and_show_update_message(suppress_modal = false) {
+  const config = await get_version_config();
+  if (!config) return;
+
+  const current_app_version = config.version;
   const previous_version = localStorage.getItem(VERSION_STORAGE_KEY);
   const normalized_previous_version = previous_version || "0";
-  const version_comparison_result = compare_versions(APP_VERSION, normalized_previous_version);
+  const version_comparison_result = compare_versions(current_app_version, normalized_previous_version);
   const is_new_version = version_comparison_result !== 0;
   const is_upgrade = previous_version ? version_comparison_result === 1 : false;
 
@@ -56,7 +63,7 @@ async function check_and_show_update_message(suppress_modal = false) {
   };
 
   if (is_new_version && !suppress_modal) {
-    const html_path = VERSION_HTML_FILES[APP_VERSION];
+    const html_path = config.history[current_app_version];
     if (html_path) {
       const modal = new version_message_modal();
       await modal.open(html_path, () => {
@@ -68,20 +75,25 @@ async function check_and_show_update_message(suppress_modal = false) {
         }
       });
     } else {
-      alert(`Error: Release notes for version ${APP_VERSION} not found.`);
+      alert(`Error: Release notes for version ${current_app_version} not found.`);
       finalize_oobe();
     }
-    localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
+    localStorage.setItem(VERSION_STORAGE_KEY, current_app_version);
   } else {
     // If no new version OR suppressed:
     // We still need to mark OOBE as complete so we don't get stuck in a loop/prompt.
     finalize_oobe();
-    
+
     // If suppressed, we do NOT update the version key, so the modal appears on the next (normal) run.
     if (!suppress_modal) {
-      localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
+      localStorage.setItem(VERSION_STORAGE_KEY, current_app_version);
     }
   }
 }
 
-export { APP_VERSION, check_and_show_update_message, compare_versions, VERSION_HTML_FILES };
+async function get_version_history() {
+  const config = await get_version_config();
+  return config ? config.history : {};
+}
+
+export { check_and_show_update_message, compare_versions, get_version_history };
