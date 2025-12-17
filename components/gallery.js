@@ -3,7 +3,8 @@ import { read_png_metadata } from "./png_metadata_reader.js";
 import { convert_image_to_png } from "./image_converter.js";
 
 export class Gallery {
-  constructor(root, viewer) {
+  constructor(root, viewer, options = {}) {
+    this.on_loading_complete = options.on_loading_complete;
     // Listen for mask updates to synchronize in-memory records and update UI
     window.addEventListener("imaginer.mask-updated", (e) => {
       const { created, mask_blob, uuid } = e.detail || {};
@@ -103,6 +104,10 @@ export class Gallery {
       this.addThumbnail(rec.image_blob, rec.prompt_text, rec.created);
     }
     this.update_empty_state();
+
+    if (this.on_loading_complete) {
+      setTimeout(() => this.on_loading_complete(), 0);
+    }
   }
 
   async loadDummyImages() {

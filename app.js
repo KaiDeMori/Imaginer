@@ -131,7 +131,20 @@ window.addEventListener("DOMContentLoaded", async () => {
   const menu_bar = new Menu_bar(document.getElementById("menu-bar"));
 
   const viewer = new Viewer();
-  const gallery = new Gallery(document.getElementById("gallery"), viewer);
+
+  const MAX_GALLERY_LOAD_DURATION_MS = 15000;
+  const start_time = performance.now();
+
+  const gallery = new Gallery(document.getElementById("gallery"), viewer, {
+    on_loading_complete: async () => {
+      const duration = performance.now() - start_time;
+      if (duration > MAX_GALLERY_LOAD_DURATION_MS) {
+        const { Performance_limit_warning } = await import("./components/performance_limit_warning/performance_limit_warning.js");
+        const warning = new Performance_limit_warning();
+        warning.open();
+      }
+    },
+  });
   // Initialize the resizable divider component, which allows resizing between the gallery and generation panel.
   const divider = new Resizable_divider(document.getElementById("divider"), document.getElementById("gallery"), document.getElementById("generation-panel"));
 
