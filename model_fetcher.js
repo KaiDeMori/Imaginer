@@ -5,6 +5,7 @@ import { Database_store } from "./storage/database_store.js";
 
 const CACHE_KEY = "imaginer.available_image_models";
 const SELECTED_KEY = "imaginer.selected_image_model";
+const DEFAULT_MODEL = "gpt-image-1.5";
 
 /**
  * Fetch available image models from OpenAI API
@@ -42,7 +43,7 @@ export async function fetch_available_models() {
 
   // Filter for gpt-image models and sort lexically
   const image_model_ids = data.data
-    .filter((model) => model.id && model.id.startsWith("gpt-image"))
+    .filter((model) => model.id && model.id.startsWith(DEFAULT_MODEL))
     .map((model) => model.id)
     .sort();
 
@@ -95,7 +96,7 @@ export function get_selected_model() {
   }
 
   // Ultimate fallback
-  return "gpt-image-1";
+  return DEFAULT_MODEL;
 }
 
 /**
