@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moderation Error Test</title>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: system-ui, sans-serif;
+        background-color: #fff;
+      }
+      .header {
+        font-size: 4rem;
+        margin-bottom: 2rem;
+        cursor: default;
+        user-select: none;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+      .header span {
+        transition: transform 0.3s ease;
+        display: inline-block;
+      }
+      .header span:hover {
+        transform: rotate(180deg);
+      }
+      .error-image {
+        max-width: 80vw;
+        max-height: 60vh;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        object-fit: contain;
+        animation: fade-in 0.5s ease-out;
+      }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span>🙈</span>
+      <span>🤷</span>
+      <span>🔄</span>
+    </div>
+    <img id="random-image" class="error-image" alt="" />
+
+    <script>
+      const images = [
+        "assets/error/error_monster_01.webp",
+        "assets/error/error_monster_02.webp",
+        "assets/error/error_robot_01.webp",
+        "assets/error/error_robot_02.webp",
+      ];
+
+      const randomIndex = Math.floor(Math.random() * images.length);
+      document.getElementById("random-image").src = images[randomIndex];
+    </script>
+  </body>
+</html>
