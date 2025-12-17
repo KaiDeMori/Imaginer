@@ -92,9 +92,10 @@ export function get_selected_model() {
   // Fallback to first available model from cache
   const cached_model_ids = get_cached_models();
   if (cached_model_ids.length > 0) {
-    const first_model = cached_model_ids[0];
-    localStorage.setItem(SELECTED_KEY, first_model);
-    return first_model;
+    const has_default_model = cached_model_ids.includes(DEFAULT_MODEL);
+    const fallback_model = has_default_model ? DEFAULT_MODEL : cached_model_ids[0];
+    localStorage.setItem(SELECTED_KEY, fallback_model);
+    return fallback_model;
   }
 
   // Ultimate fallback
