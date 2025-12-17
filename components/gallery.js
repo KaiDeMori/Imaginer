@@ -1,5 +1,6 @@
 // gallery.js – Thumbnail grid with placeholder support
 import { read_png_metadata } from "./png_metadata_reader.js";
+import { convert_image_to_png } from "./image_converter.js";
 
 export class Gallery {
   constructor(root, viewer) {
@@ -137,15 +138,28 @@ export class Gallery {
       this.root.style.borderColor = "";
 
       for (const file of e.dataTransfer.files) {
-        if (file.type === "image/png") {
-          const prompt = await read_png_metadata(file);
+        if (file.type.startsWith("image/")) {
+          let blob = file;
+          let prompt = "";
+
+          if (file.type === "image/png") {
+            prompt = await read_png_metadata(file);
+          } else {
+            try {
+              blob = await convert_image_to_png(file);
+            } catch (err) {
+              console.error("Failed to convert image:", file.name, err);
+              continue;
+            }
+          }
+
           const created = Math.floor(Date.now() / 1000);
 
           // Save to DB
           if (window.database_store) {
             const id = await window.database_store.save({
               created,
-              image_blob: file,
+              image_blob: blob,
               prompt_text: prompt,
               prompt_imgs: [],
             });
@@ -155,7 +169,7 @@ export class Gallery {
               this.records_by_created[created] = {
                 id,
                 created,
-                image_blob: file,
+                image_blob: blob,
                 prompt_text: prompt,
                 prompt_imgs: [],
               };
@@ -163,7 +177,7 @@ export class Gallery {
           }
 
           // Update UI
-          this.addThumbnail(file, prompt, created);
+          this.addThumbnail(blob, prompt, created);
         }
       }
     });
