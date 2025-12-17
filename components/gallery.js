@@ -103,16 +103,19 @@ export class Gallery {
   enable_drag_and_drop() {
     this.root.addEventListener("dragover", (e) => {
       e.preventDefault();
-      this.root.style.backgroundColor = "rgba(255, 255, 255, 0.1)"; // Visual feedback
+      this.root.style.backgroundColor = "#e6f7ff"; // Visual feedback
+      this.root.style.borderColor = "#1890ff";
     });
 
     this.root.addEventListener("dragleave", (e) => {
       this.root.style.backgroundColor = "";
+      this.root.style.borderColor = "";
     });
 
     this.root.addEventListener("drop", async (e) => {
       e.preventDefault();
       this.root.style.backgroundColor = "";
+      this.root.style.borderColor = "";
 
       for (const file of e.dataTransfer.files) {
         if (file.type === "image/png") {
