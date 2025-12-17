@@ -150,6 +150,7 @@ export class Gallery {
               blob = await convert_image_to_png(file);
             } catch (err) {
               console.error("Failed to convert image:", file.name, err);
+              alert(`Failed to convert image: ${file.name}\n${err.message || "Unknown error"}`);
               continue;
             }
           }
