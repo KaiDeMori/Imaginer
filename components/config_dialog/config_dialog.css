@@ -1,7 +1,43 @@
+/* Spacing Variables */
+:root {
+  /* Container */
+  --dialog-padding-vertical: 16px;
+  --dialog-padding-horizontal: 24px;
+  --title-margin-bottom: 12px;
+
+  /* Tab Bar */
+  --tab-bar-margin-bottom: 14px;
+  --tab-padding-vertical: 10px;
+  --tab-padding-horizontal: 12px;
+  --tab-gap: 8px;
+
+  /* Fields */
+  --field-gap: 10px;
+  --field-inline-label-gap: 12px;
+  --field-stacked-label-gap: 5px;
+
+  /* Sections */
+  --section-gap: 14px;
+  --section-checkbox-gap: 6px;
+  --section-indent: 10px;
+  --section-label-margin: 6px;
+
+  /* Buttons */
+  --button-row-margin-top: 18px;
+  --button-row-padding: 16px;
+  --button-group-gap: 8px;
+  --action-button-gap: 12px;
+
+  /* Forms */
+  --form-element-gap: 8px;
+}
+
 /* Tab Bar Styles */
 .tab_bar {
   display: flex;
+  gap: var(--tab-gap);
   border-bottom: 1.5px solid #e0e0e0;
+  margin-bottom: var(--tab-bar-margin-bottom);
 }
 .tab_button {
   background: none;
@@ -11,6 +47,7 @@
   font-weight: bold;
   cursor: pointer;
   color: #1976d2;
+  padding: var(--tab-padding-vertical) var(--tab-padding-horizontal);
   border-bottom: 2.5px solid transparent;
   transition: border-bottom 0.2s, color 0.2s;
 }
@@ -56,16 +93,18 @@
   flex-direction: column;
   box-sizing: border-box;
   border: 1.5px solid #e0e0e0;
+  padding: var(--dialog-padding-vertical) var(--dialog-padding-horizontal);
 }
 
 .title {
-  margin: 0;
+  margin: 0 0 var(--title-margin-bottom) 0;
 }
 
 /* Form Elements */
 .form {
   display: flex;
   align-items: center;
+  gap: var(--form-element-gap);
 }
 
 .input {
@@ -104,14 +143,20 @@
   display: flex;
 }
 
+.field + .field {
+  margin-top: var(--field-gap);
+}
+
 .field_stacked {
   flex-direction: column;
   align-items: stretch;
+  gap: var(--field-stacked-label-gap);
 }
 
 .field_inline {
   flex-direction: row;
   align-items: center;
+  gap: var(--field-inline-label-gap);
 }
 
 .field_inline .label {
@@ -131,10 +176,6 @@
 }
 
 /* Labels and Containers */
-:root {
-  --config-label-margin-top: 4px; /* Space above label */
-  --config-label-margin-bottom: 0px; /* Space below label (to input) */
-}
 
 .label {
   font-size: 0.95rem;
@@ -151,21 +192,27 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: var(--section-checkbox-gap);
 }
 
 .prompt_group_label {
   font-size: 0.95rem;
   font-weight: bold;
+  margin-bottom: var(--section-label-margin);
 }
 
 /* Button Row */
 .button_row {
   display: flex;
   justify-content: space-between;
+  margin-top: var(--button-row-margin-top);
+  padding-top: var(--button-row-padding);
+  border-top: 1px solid #e0e0e0;
 }
 
 .button_group {
   display: flex;
+  gap: var(--button-group-gap);
 }
 
 .download_button {
@@ -214,12 +261,24 @@
 .section {
 }
 
+.section + .section {
+  margin-top: var(--section-gap);
+}
+
 .section_column {
   display: flex;
   flex-direction: column;
 }
 
+.section_column + .section,
+.section + .section_column,
+.section_column + .section_column {
+  margin-top: var(--section-gap);
+}
+
 .indent {
+  margin-left: var(--section-indent);
+  margin-top: var(--section-checkbox-gap);
 }
 
 .input_narrow {
@@ -233,6 +292,11 @@
 }
 
 .action_button {
+  margin-top: var(--section-gap);
+}
+
+.action_button + .button_delete {
+  margin-top: var(--action-button-gap);
 }
 
 .button_delete {
