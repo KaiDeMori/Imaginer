@@ -65,25 +65,11 @@
 ## Configuration & Settings ("Config")
 
 ### Accessing Configuration
-- Config button (gear icon)
-- Basic vs Advanced tabs
+*DONE*
 
 ### Basic Settings
 
-#### API Key
-- Entering your OpenAI API key
-- Testing the connection
-- Key storage (localStorage, browser-specific)
-
-#### Maximum Parallel Generations
-- What this controls
-- Recommended values
-- Performance considerations
-- cost considerations (accidentally clicking many times)
-
-#### Number of Images (n)
-- Generate multiple variations
-- Cost considerations
+*DONE*
 
 ### Advanced Settings
 

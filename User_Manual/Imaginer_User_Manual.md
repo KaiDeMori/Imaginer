@@ -248,3 +248,73 @@ The dropdown in the menu bar (next to the orientation buttons) lets you choose w
 Different models offer trade-offs between quality, speed, and cost.
 
 Use Config → Advanced → **Refresh Models** to update the list when new models become available.
+
+
+## Configuration & Settings
+
+### Accessing Configuration
+
+Click the **⚙️ Config button** (gear icon) in the menu bar to open the Configuration dialog.
+
+The Configuration dialog has two tabs:
+
+- **Basic**: API key, generation settings, image quality, and background options.
+- **Advanced**: PNG metadata options, mask mode settings, data management, and model refresh.
+
+Click between tabs to access different settings. Changes save automatically when you close the dialog.
+
+
+### Basic Settings
+
+#### API Key
+
+**OpenAI API Key** is where you enter or update your API key.
+
+**Test button** verifies your key works and that you have access to image generation. Test results appear as icons below the input field:
+- 👍 = Key is valid and has image generation access.
+- 👎 = Key is invalid or connection failed.
+- 😢 = Key is valid but lacks access to image models.
+
+Press Enter in the key field to test automatically.
+
+
+#### Maximum Parallel Generations
+
+**Maximum number of parallel generations** limits how many images can generate at the same time.
+
+**Default**: 3 (range: 1-10)
+
+When you reach this limit, the Generate button becomes disabled until a generation completes. This prevents accidental overuse and keeps your browser responsive.
+
+
+#### Number of Images (n)
+
+**Number of images to generate (n)** sets how many images to create per Generate click.
+
+**Default**: 1 (range: 1-10)
+
+All images use the same prompt but produce different variations. Each image is billed separately.
+
+
+#### Background
+
+**Background** controls whether generated images have transparent or opaque backgrounds.
+
+**Options**:
+- **Automatic** (default): The model decides based on your prompt.
+- **Transparent**: Generates images with transparent backgrounds.
+- **Opaque**: Generates images with solid backgrounds.
+
+Transparency works best for isolated objects like logos and icons.
+
+
+#### Image Quality
+
+**Image quality** controls the rendering quality of generated images.
+
+**Options**:
+- **Automatic** (default): The model selects the best quality based on your prompt.
+- **High**: Higher quality rendering.
+- **Medium**: Balanced quality.
+- **Low**: Lower quality rendering.
+
