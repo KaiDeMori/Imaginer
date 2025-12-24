@@ -5,267 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Imaginer User Manual</title>
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-        line-height: 1.6;
-        color: #24292e;
-        background: #ffffff;
         margin: 0;
-        padding: 0;
+        font-family: system-ui, -apple-system, sans-serif;
         display: flex;
+        height: 100vh;
       }
 
       #toc_container {
-        width: 280px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-        overflow-y: auto;
-        background: #f6f8fa;
-        border-right: 1px solid #e1e4e8;
+        width: 300px;
         padding: 20px;
+        border-right: 1px solid #ccc;
+        overflow-y: auto;
+        flex-shrink: 0;
       }
 
-      #toc_title {
-        font-size: 1.1em;
-        font-weight: 600;
-        margin-bottom: 16px;
-        color: #24292e;
-      }
-
-      #toc {
+      #toc_container ul {
         list-style: none;
-        padding: 0;
-      }
-
-      #toc li {
-        margin-bottom: 0;
-      }
-
-      #toc a {
-        display: block;
-        padding: 4px 0;
-        color: #0366d6;
-        text-decoration: none;
-        font-size: 0.9em;
-        transition: color 0.2s;
-      }
-
-      #toc a:hover {
-        color: #0251a3;
-        text-decoration: underline;
-      }
-
-      #toc a.active {
-        color: #0251a3;
-        font-weight: 600;
-      }
-
-      #toc .toc_h2 {
         padding-left: 0;
       }
 
-      #toc .toc_h3 {
-        padding-left: 16px;
-        font-size: 0.85em;
+      #toc_container ul ul {
+        padding-left: 20px;
       }
 
-      #toc .toc_h4 {
-        padding-left: 32px;
-        font-size: 0.8em;
-        color: #586069;
+      #toc_container a {
+        text-decoration: none;
+        color: #333;
+        line-height: 1.6;
       }
 
-      #content_wrapper {
-        flex: 1;
-        overflow-y: auto;
-        height: 100vh;
+      #toc_container a:hover {
+        text-decoration: underline;
       }
 
       #content {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
         max-width: 900px;
-        margin: 0 auto;
-        padding: 45px;
-      }
-
-      h1 {
-        padding-bottom: 0.3em;
-        font-size: 2em;
-        border-bottom: 1px solid #eaecef;
-        margin-bottom: 16px;
-        margin-top: 24px;
-      }
-
-      h2 {
-        padding-bottom: 0.3em;
-        font-size: 1.5em;
-        border-bottom: 1px solid #eaecef;
-        margin-bottom: 16px;
-        margin-top: 24px;
-      }
-
-      h3 {
-        font-size: 1.25em;
-        margin-bottom: 16px;
-        margin-top: 24px;
-      }
-
-      h4 {
-        font-size: 1em;
-        margin-bottom: 16px;
-        margin-top: 24px;
-      }
-
-      p {
-        margin-bottom: 16px;
-      }
-
-      ul,
-      ol {
-        padding-left: 2em;
-        margin-bottom: 16px;
-      }
-
-      li {
-        margin-bottom: 4px;
-      }
-
-      code {
-        background-color: rgba(27, 31, 35, 0.05);
-        border-radius: 3px;
-        font-size: 85%;
-        margin: 0;
-        padding: 0.2em 0.4em;
-        font-family: "Consolas", "Monaco", "Courier New", monospace;
-      }
-
-      pre {
-        background-color: #f6f8fa;
-        border-radius: 3px;
-        padding: 16px;
-        overflow: auto;
-        margin-bottom: 16px;
-      }
-
-      pre code {
-        background-color: transparent;
-        padding: 0;
-      }
-
-      blockquote {
-        border-left: 4px solid #dfe2e5;
-        padding: 0 15px;
-        color: #6a737d;
-        margin-bottom: 16px;
-      }
-
-      strong {
-        font-weight: 600;
-      }
-
-      hr {
-        height: 0.25em;
-        padding: 0;
-        margin: 24px 0;
-        background-color: #e1e4e8;
-        border: 0;
-      }
-
-      #loading {
-        text-align: center;
-        padding: 50px;
-        color: #6a737d;
-      }
-
-      #error {
-        text-align: center;
-        padding: 50px;
-        color: #cb2431;
       }
     </style>
   </head>
   <body>
     <div id="toc_container">
-      <div id="toc_title">Table of Contents</div>
-      <ul id="toc"></ul>
-    </div>
-    <div id="content_wrapper">
-      <div id="content">
-        <div id="loading">Loading manual...</div>
-      </div>
+      <h2>Contents</h2>
+      <div id="toc"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <div id="content"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <script>
-      const content_element = document.getElementById("content");
-      const toc_element = document.getElementById("toc");
-      const content_wrapper = document.getElementById("content_wrapper");
+      async function load_manual() {
+        const response = await fetch("Imaginer_User_Manual.md");
+        const markdown_text = await response.text();
 
-      function generate_toc() {
-        const headings = content_element.querySelectorAll("h2, h3, h4");
         const toc_items = [];
 
-        headings.forEach((heading, index) => {
-          const id = `section_${index}`;
-          heading.id = id;
+        const renderer = new marked.Renderer();
+        const original_heading = renderer.heading.bind(renderer);
 
-          const li = document.createElement("li");
-          const a = document.createElement("a");
-          a.href = `#${id}`;
-          a.textContent = heading.textContent;
-          a.className = `toc_${heading.tagName.toLowerCase()}`;
+        renderer.heading = function (text, level, raw) {
+          const id = raw.toLowerCase().replace(/[^\w]+/g, "-");
+          toc_items.push({ text, level, id });
+          return `<h${level} id="${id}">${text}</h${level}>`;
+        };
 
-          a.addEventListener("click", (e) => {
-            e.preventDefault();
-            heading.scrollIntoView({ behavior: "smooth", block: "start" });
-          });
+        marked.setOptions({ renderer });
 
-          li.appendChild(a);
-          toc_items.push({ element: li, heading: heading });
-        });
+        const html_content = marked.parse(markdown_text);
+        document.getElementById("content").innerHTML = html_content;
 
-        toc_items.forEach((item) => toc_element.appendChild(item.element));
-
-        setup_active_tracking(toc_items);
+        generate_toc(toc_items);
       }
 
-      function setup_active_tracking(toc_items) {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                toc_items.forEach((item) => {
-                  const link = item.element.querySelector("a");
-                  if (item.heading === entry.target) {
-                    link.classList.add("active");
-                  } else {
-                    link.classList.remove("active");
-                  }
-                });
-              }
-            });
-          },
-          { rootMargin: "-20% 0px -70% 0px", threshold: 0 }
-        );
+      function generate_toc(items) {
+        let html = "<ul>";
+        let current_level = 0;
 
-        toc_items.forEach((item) => observer.observe(item.heading));
+        for (const item of items) {
+          while (current_level < item.level) {
+            html += "<ul>";
+            current_level++;
+          }
+          while (current_level > item.level) {
+            html += "</ul>";
+            current_level--;
+          }
+
+          html += `<li><a href="#${item.id}">${item.text}</a></li>`;
+        }
+
+        while (current_level > 0) {
+          html += "</ul>";
+          current_level--;
+        }
+        html += "</ul>";
+
+        document.getElementById("toc").innerHTML = html;
       }
 
-      fetch("Imaginer_User_Manual.md")
-        .then((response) => response.text())
-        .then((markdown_text) => {
-          content_element.innerHTML = marked.parse(markdown_text);
-          generate_toc();
-        })
-        .catch((error) => {
-          content_element.innerHTML = '<div id="error">Failed to load manual: ' + error.message + "</div>";
-        });
+      load_manual();
     </script>
   </body>
 </html>
