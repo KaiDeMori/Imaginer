@@ -70,7 +70,14 @@ When a topic (like a configuration setting) is relevant in multiple places:
 - Include just enough context so readers understand what it does in that specific situation
 - **Do NOT use section number references** (e.g., "see Section III.2") - these are difficult to maintain as the manual evolves
 
-Example: "You can adjust this setting in Config → Advanced."
+## Navigation Path Format
+
+When referencing UI navigation paths, menu items, or configuration settings, use the hierarchical arrow format with the bold element at the END of the path. This creates a consistent, scannable format throughout the manual.
+
+**Example**:
+```
+Use Config → Advanced → **Refresh Models** to update the list.
+```
 
 This keeps the reading flow natural while maintaining a single source of truth for technical details.
 

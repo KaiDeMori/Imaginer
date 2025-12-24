@@ -83,14 +83,11 @@ The menu bar spans the top of the screen and contains all your controls and sett
 
 **Left side:**
 - **Orientation buttons**: Three icon buttons to select image orientation
-  - 🖼️ Landscape (1536×1024 pixels)
-  - 🖼️ Portrait (1024×1536 pixels)  
-  - 🖼️ Square (1024×1024 pixels, default)
   
 - **Model dropdown**: Select which AI model to use for generation
   - Shows available image generation models from your OpenAI account
   - Auto-populates when you add an API key
-  - Use **Refresh Models** in Config → Advanced to update the list
+  - Use Config → Advanced → **Refresh Models** to update the list.
 
 
 **Right side:**
@@ -170,7 +167,7 @@ Creating images in Imaginer is straightforward:
 
 Generate several variations of your prompt at once:
 
-- **How to enable**: Adjust **Number of Images (n)** in Config → Basic (default is 1, maximum is 10)
+- **How to enable**: Adjust Config → Basic → **Number of Images (n)** (default is 1, maximum is 10)
 - **How it works**: When you click Generate, Imaginer creates the specified number of placeholders and requests that many images from the API
 - **Display**: All images appear as separate thumbnails in the Gallery as they complete
 - **Generation limit**: The **Maximum Parallel Generations** setting (default: 3) controls how many Generate requests can run simultaneously. If you reach this limit, the Generate button becomes disabled until a generation completes.
