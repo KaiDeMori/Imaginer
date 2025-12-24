@@ -64,57 +64,7 @@
 
 ## Configuration & Settings ("Config")
 
-### Accessing Configuration
 *DONE*
-
-### Basic Settings
-
-*DONE*
-
-### Advanced Settings
-
-#### Background
-- Auto, Transparent, Opaque options
-- When to use each
-
-#### Image Quality
-- Auto vs High quality
-- Impact on generation time and cost
-
-#### Orientation/Size
-- Landscape (1536×1024)
-- Portrait (1024×1536)
-- Square (1024×1024)
-
-#### PNG Metadata Options
-- Strip metadata from generated images
-- Embed prompt as iTXt chunk
-- Embed prompt as XMP metadata
-- What each option does
-
-#### Mask Mode Button
-- Show/hide mask mode in Viewer
-- When to enable
-
-### Data Management
-
-#### Delete Mode
-- How to enable delete mode (trash button in menu bar)
-- How to delete images (click thumbnails when delete mode active)
-- How to exit delete mode
-- Visual feedback (button appearance, cursor changes)
-
-#### Download All Images
-- Creates ZIP file of all gallery images
-- File naming (based on prompt)
-
-#### Clear Gallery
-- Removes all images from IndexedDB
-- Cannot be undone
-
-#### Refresh Models
-- Update available models list
-- When to use
 
 ---
 

@@ -318,3 +318,46 @@ Transparency works best for isolated objects like logos and icons.
 - **Medium**: Balanced quality.
 - **Low**: Lower quality rendering.
 
+#### Orientation and Size
+
+Use Menu Bar → **Orientation buttons** to choose the canvas shape for generation and edits.
+
+**Options**:
+- **Landscape** (1536×1024) for wide scenes.
+- **Portrait** (1024×1536) for tall subjects.
+- **Square** (1024×1024, default) for balanced framing.
+
+Your selection persists between sessions and applies to the next generation or edit request.
+
+
+### Advanced Settings
+
+#### PNG Metadata Options
+
+- **Strip Server-Side metadata** (default: on): Removes metadata from OpenAI responses before saving, keeping files lean. Prompt embedding still runs after stripping.
+- **Embed prompt as iTXt** (default: off): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata.
+- **Embed prompt as XMP** (default: on): Writes the prompt in an XMP block for metadata-aware apps. If both options are on, the prompt is written to iTXt first, then XMP.
+
+#### Mask Mode Button
+
+Config → Advanced → **Show Mask Mode Button** toggles whether the Viewer shows the mask tools. Enable it when you need to paint or remove masks; disable it to keep the Viewer simpler by hiding the mask buttons.
+
+
+### Data Management
+
+#### Delete Mode
+
+Menu Bar → **Delete Mode** toggles deletion. When active, the button turns red and gallery thumbnails use a “no” cursor and dim on hover. Click any thumbnail to confirm “Delete this image?”. Confirmed deletes remove the image from the gallery and storage permanently. Click the button again to exit delete mode.
+
+#### Download All Images
+
+Config → **Download All Images** bundles every stored image (generated and imported) into a ZIP. Filenames use the first 20 characters of the prompt plus the image timestamp; the ZIP is named `Imaginer_Export_<timestamp>.zip`. A progress dialog shows status. If no images are present, you see an error instead of a download.
+
+#### Clear Gallery
+
+Config → Advanced → **Delete Gallery** wipes all stored images. The first click only highlights **Download All Images** as a warning. The second click asks you to type `YES`. Confirming clears the gallery database and reloads the app. This cannot be undone — export first if needed.
+
+#### Refresh Models
+
+Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*` models and repopulates the model dropdown. The button shows “Refreshing…” while it runs and briefly shows a checkmark when done. Use it after adding an API key or when new models become available.
+
