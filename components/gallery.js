@@ -101,7 +101,7 @@ export class Gallery {
       if (rec && rec.image_blob && rec.uuid) {
         rec.image_blob.imaginer_uuid = rec.uuid;
       }
-      this.addThumbnail(rec.image_blob, rec.prompt_text, rec.created);
+      this.create_or_update_thumbnail(null, rec.image_blob, rec.prompt_text, rec.created);
     }
     this.update_empty_state();
 
@@ -183,68 +183,18 @@ export class Gallery {
           }
 
           // Update UI
-          this.addThumbnail(blob, prompt, created);
+          this.create_or_update_thumbnail(null, blob, prompt, created);
         }
       }
     });
   }
 
-  addThumbnail(blob, promptText = "", created = null) {
+  _build_thumbnail_content(blob, prompt_text, created) {
     const url = URL.createObjectURL(blob);
-    // Container for image and download button
-    const container = document.createElement("div");
-    container.classList.add("gallery-thumb");
-    Object.assign(container.style, {
-      position: "relative",
-      width: "100%",
-      aspectRatio: "1 / 1",
-      display: "block",
-    });
-    // Add mask-active attribute if mask_blob is present
-    if (typeof created === "number" && this.records_by_created && this.records_by_created[created]) {
-      const rec = this.records_by_created[created];
-      if (rec && rec.mask_blob instanceof Blob) {
-        container.setAttribute("mask-active", "");
-      }
-    }
-    // Store a reference for later updates
-    if (typeof created === "number") {
-      if (!this._thumbnail_containers) this._thumbnail_containers = {};
-      this._thumbnail_containers[created] = container;
-    }
-    // --- Make the container draggable for DnD to prompt panel ---
-    container.draggable = true;
-    container.addEventListener("dragstart", (event) => {
-      // We'll handle the data transfer logic in the next step
-      event.dataTransfer.setData("application/x-imaginer-blob", "gallery-thumbnail");
-      // Optionally, set a drag image for better visuals
-      if (event.dataTransfer.setDragImage) {
-        event.dataTransfer.setDragImage(container, 32, 32);
-      }
-      // Store the blob and metadata in a global singleton for retrieval on drop
-      if (!window.imaginer_gallery_drag_store) window.imaginer_gallery_drag_store = {};
-      const drag_id = "drag_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
-      // Try to get mask_blob and uuid if available in the record
-      let mask_blob = null;
-      let uuid = null;
-      if (typeof created === "number" && this.records_by_created) {
-        const rec = this.records_by_created[created];
-        if (rec) {
-          if (rec.mask_blob instanceof Blob) {
-            mask_blob = rec.mask_blob;
-          }
-          if (rec.uuid) {
-            uuid = rec.uuid;
-          }
-        }
-      }
-      window.imaginer_gallery_drag_store[drag_id] = { blob, promptText, created, mask_blob, uuid };
-      event.dataTransfer.setData("application/x-imaginer-blob-id", drag_id);
-    });
 
-    const imgEl = document.createElement("img");
-    imgEl.src = url;
-    Object.assign(imgEl.style, {
+    const image_element = document.createElement("img");
+    image_element.src = url;
+    Object.assign(image_element.style, {
       width: "100%",
       aspectRatio: "1 / 1",
       objectFit: "contain",
@@ -254,36 +204,15 @@ export class Gallery {
       display: "block",
     });
 
-    imgEl.addEventListener("click", async () => {
-      // Check for delete mode
+    image_element.addEventListener("click", async () => {
       if (this.delete_mode) {
         if (confirm("Delete this image?")) {
-          // Remove from DB
-          if (typeof created === "number" && this.records_by_created) {
-            const rec = this.records_by_created[created];
-            if (rec && rec.id !== undefined) {
-              try {
-                await window.database_store.delete(rec.id);
-              } catch (err) {
-                console.error("Failed to delete image:", err);
-                alert("Failed to delete image.");
-                return;
-              }
-              // Remove from memory
-              delete this.records_by_created[created];
-              if (this._thumbnail_containers) {
-                delete this._thumbnail_containers[created];
-              }
-            }
-          }
-          // Remove from UI
-          container.remove();
-          this.update_empty_state();
+          const container = image_element.closest(".gallery-thumb");
+          await this._delete_image(created, container);
         }
         return;
       }
 
-      // Try to pass image id if available (for mask support)
       if (typeof created === "number" && this.records_by_created) {
         const rec = this.records_by_created[created];
         if (rec && rec.id !== undefined) {
@@ -294,10 +223,9 @@ export class Gallery {
       this.viewer.open(blob);
     });
 
-    // Download button (upper left)
-    const btnDownload = document.createElement("button");
-    btnDownload.textContent = "⬇️";
-    Object.assign(btnDownload.style, {
+    const button_download = document.createElement("button");
+    button_download.textContent = "⬇️";
+    Object.assign(button_download.style, {
       position: "absolute",
       top: "6px",
       left: "6px",
@@ -311,13 +239,11 @@ export class Gallery {
       opacity: 0,
       transition: "opacity 0.1s",
     });
-    btnDownload.title = "Download image";
+    button_download.title = "Download image";
 
-    // Download logic
-    btnDownload.addEventListener("click", (e) => {
+    button_download.addEventListener("click", (e) => {
       e.stopPropagation();
-      // Generate filename: first 20 chars of prompt, plus timestamp
-      let base = (promptText || "image")
+      let base = (prompt_text || "image")
         .replace(/\s+/g, "_")
         .replace(/[^a-zA-Z0-9_\-]/g, "")
         .slice(0, 20);
@@ -332,12 +258,11 @@ export class Gallery {
       setTimeout(() => a.remove(), 100);
     });
 
-    // Prompt-to-box button (upper right)
-    let btnPrompt = null;
-    if (promptText) {
-      btnPrompt = document.createElement("button");
-      btnPrompt.textContent = "💬";
-      Object.assign(btnPrompt.style, {
+    let button_prompt = null;
+    if (prompt_text) {
+      button_prompt = document.createElement("button");
+      button_prompt.textContent = "💬";
+      Object.assign(button_prompt.style, {
         position: "absolute",
         top: "6px",
         right: "6px",
@@ -351,46 +276,130 @@ export class Gallery {
         opacity: 0,
         transition: "opacity 0.1s",
       });
-      btnPrompt.title = "Load this prompt into the prompt box";
+      button_prompt.title = "Load this prompt into the prompt box";
 
-      btnPrompt.addEventListener("click", (e) => {
+      button_prompt.addEventListener("click", (e) => {
         e.stopPropagation();
-        // Find the prompt input box and set its value
         const promptInput = document.querySelector("#prompt-input");
         if (promptInput) {
-          promptInput.value = promptText || "";
-          // Save to localStorage for persistence
-          localStorage.setItem("imaginer.prompt", promptText || "");
-          // Optionally, trigger input event for listeners
+          promptInput.value = prompt_text || "";
+          localStorage.setItem("imaginer.prompt", prompt_text || "");
           promptInput.dispatchEvent(new Event("input", { bubbles: true }));
         }
       });
     }
 
-    // Show buttons on hover
-    container.addEventListener("mouseenter", () => {
-      btnDownload.style.opacity = 1;
-      if (btnPrompt) btnPrompt.style.opacity = 1;
-    });
-    container.addEventListener("mouseleave", () => {
-      btnDownload.style.opacity = 0;
-      if (btnPrompt) btnPrompt.style.opacity = 0;
-    });
+    return { image_element, button_download, button_prompt };
+  }
 
-    container.appendChild(imgEl);
-    container.appendChild(btnDownload);
-    if (btnPrompt) container.appendChild(btnPrompt);
+  _make_draggable(container, blob, prompt_text, created) {
+    container.draggable = true;
+    container.addEventListener("dragstart", (event) => {
+      event.dataTransfer.setData("application/x-imaginer-blob", "gallery-thumbnail");
+      if (event.dataTransfer.setDragImage) {
+        event.dataTransfer.setDragImage(container, 32, 32);
+      }
 
-    // --- Insert at the beginning to keep descending order ---
-    if (this.grid.firstChild) {
-      this.grid.insertBefore(container, this.grid.firstChild);
-    } else {
-      this.grid.appendChild(container);
+      if (!window.imaginer_gallery_drag_store) window.imaginer_gallery_drag_store = {};
+      const drag_id = "drag_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
+
+      let mask_blob = null;
+      let uuid = null;
+      if (typeof created === "number" && this.records_by_created) {
+        const rec = this.records_by_created[created];
+        if (rec) {
+          if (rec.mask_blob instanceof Blob) mask_blob = rec.mask_blob;
+          if (rec.uuid) uuid = rec.uuid;
+        }
+      }
+
+      window.imaginer_gallery_drag_store[drag_id] = { blob, promptText: prompt_text, created, mask_blob, uuid };
+      event.dataTransfer.setData("application/x-imaginer-blob-id", drag_id);
+    });
+  }
+
+  async _delete_image(created, container) {
+    if (typeof created === "number" && this.records_by_created) {
+      const rec = this.records_by_created[created];
+      if (rec && rec.id !== undefined) {
+        try {
+          await window.database_store.delete(rec.id);
+        } catch (err) {
+          console.error("Failed to delete image:", err);
+          alert("Failed to delete image.");
+          return;
+        }
+        delete this.records_by_created[created];
+        if (this._thumbnail_containers) {
+          delete this._thumbnail_containers[created];
+        }
+      }
     }
+    container.remove();
     this.update_empty_state();
   }
 
-  addPlaceholder(startTime = Math.floor(Date.now() / 1000)) {
+  create_or_update_thumbnail(container, blob, prompt_text, created) {
+    if (!container) {
+      container = document.createElement("div");
+    }
+
+    container.classList.add("gallery-thumb");
+
+    Object.assign(container.style, {
+      position: "relative",
+      width: "100%",
+      aspectRatio: "1 / 1",
+      display: "block",
+      background: "",
+      borderRadius: "4px",
+      alignItems: "",
+      justifyContent: "",
+    });
+
+    if (typeof created === "number" && this.records_by_created && this.records_by_created[created]) {
+      const rec = this.records_by_created[created];
+      if (rec && rec.mask_blob instanceof Blob) {
+        container.setAttribute("mask-active", "");
+      }
+    }
+
+    if (typeof created === "number") {
+      if (!this._thumbnail_containers) this._thumbnail_containers = {};
+      this._thumbnail_containers[created] = container;
+    }
+
+    this._make_draggable(container, blob, prompt_text, created);
+
+    const { image_element, button_download, button_prompt } = this._build_thumbnail_content(blob, prompt_text, created);
+
+    container.appendChild(image_element);
+    container.appendChild(button_download);
+    if (button_prompt) container.appendChild(button_prompt);
+
+    container.addEventListener("mouseenter", () => {
+      button_download.style.opacity = 1;
+      if (button_prompt) button_prompt.style.opacity = 1;
+    });
+    container.addEventListener("mouseleave", () => {
+      button_download.style.opacity = 0;
+      if (button_prompt) button_prompt.style.opacity = 0;
+    });
+
+    const is_new_container = !container.parentNode;
+    if (is_new_container) {
+      if (this.grid.firstChild) {
+        this.grid.insertBefore(container, this.grid.firstChild);
+      } else {
+        this.grid.appendChild(container);
+      }
+      this.update_empty_state();
+    }
+
+    return container;
+  }
+
+  create_placeholder(start_time = Math.floor(Date.now() / 1000)) {
     const placeholder = document.createElement("div");
     Object.assign(placeholder.style, {
       width: "100%",
@@ -402,7 +411,6 @@ export class Gallery {
       alignItems: "center",
       justifyContent: "center",
     });
-    // Timer element
     const timer = document.createElement("span");
     Object.assign(timer.style, {
       position: "absolute",
@@ -418,11 +426,11 @@ export class Gallery {
     });
     placeholder.appendChild(timer);
     placeholder._timer = timer;
-    placeholder._startTime = startTime;
+    placeholder._start_time = start_time;
     this.grid.prepend(placeholder);
-    Gallery._activePlaceholders = Gallery._activePlaceholders || [];
-    Gallery._activePlaceholders.push(placeholder);
-    Gallery._ensureTimerInterval();
+    Gallery.tracked_placeholders = Gallery.tracked_placeholders || [];
+    Gallery.tracked_placeholders.push(placeholder);
+    Gallery.start_placeholder_timer_if_needed();
     this.update_empty_state();
     return placeholder;
   }
@@ -471,10 +479,10 @@ export class Gallery {
     placeholder.appendChild(image);
   }
 
-  update_placeholder(placeholder, blob, isError = false, promptText = "", created = null) {
-    if (Gallery._activePlaceholders) {
-      const idx = Gallery._activePlaceholders.indexOf(placeholder);
-      if (idx !== -1) Gallery._activePlaceholders.splice(idx, 1);
+  update_placeholder(placeholder, blob, is_error = false, prompt_text = "", created = null) {
+    if (Gallery.tracked_placeholders) {
+      const idx = Gallery.tracked_placeholders.indexOf(placeholder);
+      if (idx !== -1) Gallery.tracked_placeholders.splice(idx, 1);
     }
 
     const partial_image = placeholder.querySelector("img.partial-preview");
@@ -485,15 +493,13 @@ export class Gallery {
     const partial_label = placeholder.querySelector(".partial-label");
     if (partial_label) partial_label.remove();
 
-    if (isError) {
+    if (is_error) {
       placeholder.style.background = "#f88";
-      // Remove timer if present
       if (placeholder._timer) placeholder._timer.remove();
 
-      // Add "Use Prompt" button to the error placeholder so the prompt isn't lost
-      const btnPrompt = document.createElement("button");
-      btnPrompt.textContent = "💬";
-      Object.assign(btnPrompt.style, {
+      const button_prompt = document.createElement("button");
+      button_prompt.textContent = "💬";
+      Object.assign(button_prompt.style, {
         position: "absolute",
         top: "6px",
         right: "6px",
@@ -504,25 +510,26 @@ export class Gallery {
         padding: "2px 6px",
         fontSize: "1.1rem",
         cursor: "pointer",
-        opacity: 1, // Always visible on error for clarity
+        opacity: 1,
       });
-      btnPrompt.title = "Load this prompt into the prompt box";
+      button_prompt.title = "Load this prompt into the prompt box";
 
-      btnPrompt.addEventListener("click", (e) => {
+      button_prompt.addEventListener("click", (e) => {
         e.stopPropagation();
         const promptInput = document.querySelector("#prompt-input");
         if (promptInput) {
-          promptInput.value = promptText || "";
-          localStorage.setItem("imaginer.prompt", promptText || "");
+          promptInput.value = prompt_text || "";
+          localStorage.setItem("imaginer.prompt", prompt_text || "");
           promptInput.dispatchEvent(new Event("input", { bubbles: true }));
         }
       });
-      placeholder.appendChild(btnPrompt);
+      placeholder.appendChild(button_prompt);
       return;
     }
-    // Replace placeholder with a thumbnail (with download button)
-    this.addThumbnail(blob, promptText, created);
-    placeholder.remove();
+
+    if (placeholder._timer) placeholder._timer.remove();
+
+    this.create_or_update_thumbnail(placeholder, blob, prompt_text, created);
     this.update_empty_state();
   }
 
@@ -534,18 +541,18 @@ export class Gallery {
   }
 
   // --- Timer update logic (static, shared for all Gallery instances) ---
-  static _ensureTimerInterval() {
-    if (Gallery._timerInterval) return;
-    Gallery._timerInterval = setInterval(() => {
-      if (!Gallery._activePlaceholders || Gallery._activePlaceholders.length === 0) {
-        clearInterval(Gallery._timerInterval);
-        Gallery._timerInterval = null;
+  static start_placeholder_timer_if_needed() {
+    if (Gallery.timer_interval_id) return;
+    Gallery.timer_interval_id = setInterval(() => {
+      if (!Gallery.tracked_placeholders || Gallery.tracked_placeholders.length === 0) {
+        clearInterval(Gallery.timer_interval_id);
+        Gallery.timer_interval_id = null;
         return;
       }
       const now = Math.floor(Date.now() / 1000);
-      for (const ph of Gallery._activePlaceholders) {
-        if (!ph._timer || !ph._startTime) continue;
-        const elapsed = Math.max(0, now - ph._startTime);
+      for (const ph of Gallery.tracked_placeholders) {
+        if (!ph._timer || !ph._start_time) continue;
+        const elapsed = Math.max(0, now - ph._start_time);
         const min = Math.floor(elapsed / 60);
         const sec = elapsed % 60;
         ph._timer.textContent = `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;

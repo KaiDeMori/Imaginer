@@ -83,7 +83,7 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
         -   **Gallery Images**: We check if the image record already has an `openai_file_id`. If yes, we reuse it. If no, we upload it and update the record with the new ID.
         -   **External Images**: Always uploaded as new files.
     -   **Output**: Generated images come back in the response. We render them as `blob` URLs.
-    -   **Saving**: When "Add to Gallery" is clicked, we take the image blob and pass it to the existing `Database_store.save()` and `Gallery.addThumbnail()` methods.
+    -   **Saving**: When "Add to Gallery" is clicked, we take the image blob and pass it to the existing `Database_store.save()` and `Gallery.create_or_update_thumbnail()` methods.
 
 ### 2.3. File Structure Changes
 
@@ -154,7 +154,7 @@ To provide access to past conversations without a dedicated sidebar, we will int
 ### 4.4. Implementation Steps
 1.  **Update `Database_store`**: Ensure `conversation_id` is passed and saved during image generation in `Conversation_panel`. Ensure `prompt_text` is empty for these images.
 2.  **Update `Gallery`**:
-    -   Modify `addThumbnail` to accept `conversation_id`.
+    -   Modify `create_or_update_thumbnail` to accept `conversation_id`.
     -   Logic to render 💬 vs 🗨️ based on data presence.
     -   Implement the click handlers with the strict mode checks described above.
 

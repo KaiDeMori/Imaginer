@@ -150,7 +150,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // Expose internals for intro transition only
   window.expose_internals_for_intro = () => ({
-    add_image: (blob, prompt = "intro_image") => gallery.addThumbnail(blob, prompt, Date.now()),
+    add_image: (blob, prompt = "intro_image") => gallery.create_or_update_thumbnail(null, blob, prompt, Date.now()),
     open_image: (blob, opts = {}) => viewer.open(blob, opts),
     viewer: viewer,
   });
@@ -354,7 +354,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     // Add as many placeholders as images requested (for smoother UX)
     const placeholders = [];
     for (let i = 0; i < n_local; i++) {
-      placeholders.push(gallery.addPlaceholder());
+      placeholders.push(gallery.create_placeholder());
     }
 
     // --- Read orientation, transparency, quality, and n from localStorage (set by menu bar/config) ---
@@ -460,7 +460,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           if (placeholders[i]) {
             gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created);
           } else {
-            gallery.addThumbnail(blob, prompt_text, created);
+            gallery.create_or_update_thumbnail(null, blob, prompt_text, created);
           }
         }
         // Remove any extra placeholders if fewer images returned than requested
@@ -588,7 +588,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 prompt_text: prompt_text,
                 prompt_imgs: [],
               };
-              gallery.addThumbnail(blob, prompt_text, created);
+              gallery.create_or_update_thumbnail(null, blob, prompt_text, created);
               // Add to gallery's mapping with the correct ID
               if (gallery.records_by_created) {
                 gallery.records_by_created[created] = record;
