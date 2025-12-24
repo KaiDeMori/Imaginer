@@ -1,0 +1,293 @@
+# Imaginer User Manual - Topics To Be Documented
+
+*This file tracks remaining documentation work. As topics are completed and added to the main manual, they are removed from here.*
+
+---
+
+## I. Getting Started
+
+### 1. What is Imaginer?
+- Brief overview of the app
+- Main purpose and capabilities
+- Browser-based, no installation needed
+
+### 2. First-Time Setup
+- The intro sequence (OOBE - Out-of-Box Experience)
+- Intro debug tools reference (`intro/intro_debug_tools.html`)
+- Obtaining an OpenAI API key
+- Entering your API key in the Config dialog
+- Testing your connection
+
+### 3. Understanding the Interface
+- The three main areas: Menu Bar, Gallery, Prompt Panel
+- Resizable divider between Gallery and Prompt Panel
+- Overview of what each area does
+
+---
+
+## II. Core Features
+
+### 1. Image Generation
+
+#### Basic Generation
+- Writing effective prompts
+- Choosing image orientation (landscape, portrait, square)
+- The Generate button
+- Understanding the generation process
+- Viewing generated images
+
+#### Multiple Images
+- Generating multiple images at once (n parameter)
+- Parallel generation limits
+- Managing generation queue
+
+### 2. The Gallery
+
+#### Understanding the Gallery
+- How images are stored (IndexedDB, local to browser)
+- Thumbnail view
+- Import images via drag-and-drop
+- Automatic format conversion (to PNG)
+
+#### Managing Gallery Images
+- Viewing images (click to open in Viewer)
+- Downloading images individually
+- Delete mode (trash icon in menu)
+- Clearing entire gallery
+- Drag images from gallery to prompt panel for editing
+
+### 3. The Viewer
+
+#### Viewing Images
+- Opening an image (click thumbnail)
+- Closing the viewer (click outside image)
+- Full-screen display
+
+#### Zoom and Pan
+- Mouse wheel zoom
+- Zoom behavior (mouse-centric)
+- Panning with drag
+- Reset to fit view
+
+#### Mask Mode (Advanced)
+- What is mask mode?
+- Enabling mask mode button (Config setting)
+- Activating mask mode
+- Painting masks with brush
+- Removing masks
+- Using masks for inpainting
+- Mask visualization (red overlay)
+
+### 4. Image Editing
+
+#### Edit Mode vs Generation Mode
+- Drag-and-drop images to prompt panel
+- Visual feedback (thumbnails in drop area)
+- Editing with reference images
+- Removing input images
+
+#### Using Masks for Inpainting
+- Creating a mask in Viewer
+- Dragging masked image to prompt panel
+- Prompting for specific edits
+- Understanding mask-active indicator (red border)
+
+### 5. Model Selection
+- Model dropdown in menu bar
+- Auto-refresh on config changes
+- Understanding model capabilities
+- gpt-image-1 as primary model
+
+---
+
+## III. Configuration & Settings
+
+### 1. Accessing Configuration
+- Config button (gear icon)
+- Basic vs Advanced tabs
+
+### 2. Basic Settings
+
+#### API Key
+- Entering your OpenAI API key
+- Testing the connection
+- Key storage (localStorage, browser-specific)
+
+#### Maximum Parallel Generations
+- What this controls
+- Recommended values
+- Performance considerations
+
+#### Number of Images (n)
+- Generate multiple variations
+- Cost considerations
+
+### 3. Advanced Settings
+
+#### Background
+- Auto, Transparent, Opaque options
+- When to use each
+
+#### Image Quality
+- Auto vs High quality
+- Impact on generation time and cost
+
+#### Orientation/Size
+- Landscape (1536×1024)
+- Portrait (1024×1536)
+- Square (1024×1024)
+
+#### PNG Metadata Options
+- Strip metadata from generated images
+- Embed prompt as iTXt chunk
+- Embed prompt as XMP metadata
+- What each option does
+
+#### Mask Mode Button
+- Show/hide mask mode in Viewer
+- When to enable
+
+### 4. Data Management
+
+#### Download All Images
+- Creates ZIP file of all gallery images
+- File naming (based on prompt)
+
+#### Clear Gallery
+- Removes all images from IndexedDB
+- Cannot be undone
+
+#### Refresh Models
+- Update available models list
+- When to use
+
+---
+
+## IV. Advanced Features
+
+### 1. Conversation Mode (Experimental)
+- What is Conversation Mode?
+- Switching between Generation and Conversation modes
+- Multi-turn image refinement
+- Conversation history
+- Adding images to gallery from conversations
+
+### 2. PNG Metadata
+
+#### Reading metadata from imported images
+- Prompts embedded in PNGs
+- Auto-population of prompt field
+
+#### Writing metadata to generated images
+- iTXt chunks
+- XMP metadata
+- Compatibility considerations
+
+### 3. Keyboard Shortcuts
+- **Viewer**: 
+  - `D` key: Toggle debug overlay
+  - (Document other shortcuts as they exist)
+
+### 4. Debug Features
+- Debug overlay (if enabled)
+- Understanding debug information
+
+---
+
+## V. Understanding Image Generation
+
+### 1. The Generation Process
+- From prompt to image
+- Role of the API
+- What happens during generation
+- Error handling
+
+### 2. Quality and Performance
+- Factors affecting generation time
+- Quality settings impact
+- Network considerations
+- Browser performance
+
+### 3. Costs
+- How API usage is billed
+- Impact of settings on cost (quality, n parameter)
+- Monitoring usage (outside app)
+
+---
+
+## VI. Troubleshooting & FAQ
+
+### 1. Common Issues
+
+#### API Key Problems
+- Invalid key errors
+- Testing connection
+- Where keys are stored
+
+#### Generation Failures
+- Content policy violations
+- Network errors
+- Timeout issues
+
+#### Browser Issues
+- Supported browsers
+- Storage limitations
+- Clearing browser data impact
+
+### 2. Frequently Asked Questions
+- How can I edit an image?
+- How can I import an external image? (and what does "import" and "external" mean?)
+- How can I save an image?
+- How can I backup/export my images?
+- How can I delete images?
+- How can I clear the whole gallery?
+- Where are my images stored?
+- Can I access my images on another device?
+- What happens if I clear browser data?
+- Can I use Imaginer offline?
+- Why can't I see the mask mode button?
+
+---
+
+## VII. Technical Information
+
+### 1. Architecture Overview
+- Client-side only application
+- No server-side storage
+- IndexedDB for image persistence
+- localStorage for settings
+
+### 2. Data Storage
+- What's stored in IndexedDB
+- What's stored in localStorage
+- Browser storage limits
+- Privacy considerations
+
+### 3. Image Formats
+- Why PNG only?
+- Automatic conversion process
+- Metadata preservation
+
+### 4. OpenAI Integration
+- Which APIs are used
+- gpt-image-1 model specifics
+- Response API (for conversation mode)
+
+---
+
+## VIII. Appendices
+
+### A. Glossary
+- Key terms explained (inpainting, mask, iTXt, XMP, etc.)
+
+### B. Keyboard Reference
+- Complete list of keyboard shortcuts
+
+### C. Default Values
+- All default configuration settings
+- Initial prompt
+
+### D. Version History
+- How to check current version
+- Understanding version messages
+- What's new (link to version messages)
