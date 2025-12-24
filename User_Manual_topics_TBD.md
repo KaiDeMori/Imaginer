@@ -2,21 +2,38 @@
 
 *This file tracks remaining documentation work. As topics are completed and added to the main manual, they are removed from here.*
 
+## How This Works
+
+This file serves as your working backlog for writing the Imaginer User Manual. Here's the workflow:
+
+1. **Start a conversation** by attaching this file and specifying which topic(s) you want to work on
+2. **The assistant researches** the codebase to verify every statement and feature mentioned in the topic
+3. **The assistant writes** complete, polished documentation following the guidelines in `User_Manual_roadmap.md`
+4. **Content is added** to `Imaginer_User_Manual.md` (the actual user manual)
+5. **Topic is removed** from this TBD file once completed
+6. **Repeat** until all topics are documented
+
+### Critical Rule: Verify Before Writing
+
+**Before writing any documentation, the assistant MUST:**
+- Read relevant source files to verify features exist as described
+- Check configuration keys and default values in the actual code
+- Verify UI elements, button labels, and behavior
+- Confirm technical details (storage mechanisms, API endpoints, etc.)
+- Note any discrepancies between the topic outline and actual implementation
+
+**Never assume** a feature works as outlined - always verify in the codebase first. This step-by-step approach ensures accuracy.
+
+### Related Files
+
+- **`Imaginer_User_Manual.md`** - The actual user manual where completed documentation lives
+- **`User_Manual_roadmap.md`** - Writing guidelines, style standards, priorities, and strategic planning
+
+The assistant will use the `manage_todo_list` tool to track verification and writing progress within each conversation.
+
 ---
 
 ## I. Getting Started
-
-### 1. What is Imaginer?
-- Brief overview of the app
-- Main purpose and capabilities
-- Browser-based, no installation needed
-
-### 2. First-Time Setup
-- The intro sequence (OOBE - Out-of-Box Experience)
-- Intro debug tools reference (`intro/intro_debug_tools.html`)
-- Obtaining an OpenAI API key
-- Entering your API key in the Config dialog
-- Testing your connection
 
 ### 3. Understanding the Interface
 - The three main areas: Menu Bar, Gallery, Prompt Panel
@@ -183,10 +200,11 @@
 - XMP metadata
 - Compatibility considerations
 
-### 3. Keyboard Shortcuts
+### 3. Keyboard Shortcuts (Main App Only)
 - **Viewer**: 
   - `D` key: Toggle debug overlay
-  - (Document other shortcuts as they exist)
+  - (Document other shortcuts as they exist in the main app)
+- **Note**: Intro sequence has separate keyboard controls documented in Appendix E
 
 ### 4. Debug Features
 - Debug overlay (if enabled)
@@ -280,8 +298,9 @@
 ### A. Glossary
 - Key terms explained (inpainting, mask, iTXt, XMP, etc.)
 
-### B. Keyboard Reference
-- Complete list of keyboard shortcuts
+### B. Keyboard Reference (Main App)
+- Complete list of keyboard shortcuts for the main application
+- (Intro sequence shortcuts are in Appendix E)
 
 ### C. Default Values
 - All default configuration settings
@@ -291,3 +310,34 @@
 - How to check current version
 - Understanding version messages
 - What's new (link to version messages)
+
+### E. The Intro Sequence (Advanced)
+- What is the intro sequence?
+  - Epic cinematic experience completely separate from the main app
+  - Plays AFTER API key entry on first launch only
+  - Can be skipped during playback
+  - Has no connection to image generation functionality
+
+- The flow on first start
+  - API key dialog appears first (with format validation and test button)
+  - After successful key entry, audio setup screen appears
+  - User tests audio, optionally enables fullscreen
+  - Intro sequence begins ("Also sprach Zarathustra" soundtrack)
+  - After completion, user is taken to main app
+
+- Technical requirements
+  - WebGL support required (automatically checked, skips to main app if unavailable)
+  - Browser compatibility (works best in Firefox per developer recommendation)
+  - Audio support for soundtrack
+
+- Keyboard controls during intro
+  - `1`-`5`: Switch font family (Andika, Comic Neue, Noto Sans, Orbitron, Quicksand)
+  - `+`/`-` or `=`/`-`: Adjust font scale
+  - Arrow Up/Down: Adjust audio volume
+  - Font and volume settings persist via localStorage
+
+- Debug tools reference
+  - Standalone debug page at `intro/intro_debug_tools.html`
+  - Links to individual intro phases
+  - Interactive font and scale testing
+  - Direct access to intro components for development/testing
