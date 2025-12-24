@@ -160,10 +160,9 @@ Creating images in Imaginer is straightforward:
 
 Generate several variations of your prompt at once:
 
-- **How to enable**: Adjust Config → Basic → **Number of Images (n)** (default is 1, maximum is 10).
-- **How it works**: When you click Generate, Imaginer creates the specified number of placeholders and requests that many images from the API.
-- **Display**: All images appear as separate thumbnails in the Gallery as they complete.
-- **Generation limit**: The **Maximum Parallel Generations** setting (default: 3) controls how many Generate requests can run simultaneously. If you reach this limit, the Generate button becomes disabled until a generation completes.
+ **How to enable**: Adjust Config → Basic → **Number of Images (n)**.
+ **What it does**: When you click Generate, Imaginer creates that many images.
+ **Display**: All images appear as separate thumbnails in the Gallery as they complete.
 
 
 ### The Gallery
@@ -172,16 +171,17 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Importing Images
 
-**Drag and drop image files** from your computer into the gallery area.  
+**Drag and drop image files** from your computer into the gallery area to import them.  
 Images with embedded prompts are automatically detected. Images over 4 MB are rejected.
 
 #### Deleting Images
 
-1. Click the 🗑️ button in the menu bar to enable delete mode.
-2. Click any thumbnail to delete it (confirmation required).
-3. Click 🗑️ again to exit delete mode.
+1. Click the 🗑️ button in the menu bar to enable delete mode (the button turns red).
+2. Move your cursor over thumbnails. A special “no” cursor and dimmed hover state show that delete mode is active.
+3. Click any thumbnail to delete it. Imaginer asks you to confirm before removal.
+4. Click 🗑️ again to exit delete mode.
 
-**⚠️ Warning**: Deletion is permanent.
+**⚠️ Warning**: Deletion is permanent and removes the image from the gallery and local storage.
 
 #### Thumbnail Actions
 
@@ -230,7 +230,7 @@ Masks save automatically when you close the Viewer. Gallery thumbnails with mask
 
 ### Image Editing
 
-**Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery.
+**Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery.
 
 The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them.
 
@@ -239,7 +239,7 @@ The drop area highlights in blue when you drag over it. **Click thumbnails in th
 **When using multiple images**: If you drop several images with masks, only the first image's mask is used. The first thumbnail shows a red border when its mask is active. Other masked images show a regular border.
 
 
-### Model Selection
+
 
 The dropdown in the menu bar (next to the orientation buttons) lets you choose which AI model generates your images.
 
@@ -289,9 +289,7 @@ When you reach this limit, the Generate button becomes disabled until a generati
 
 **Number of images to generate (n)** sets how many images to create per Generate click.
 
-**Default**: 1 (range: 1-10)
-
-All images use the same prompt but produce different variations. Each image is billed separately.
+All images use the same prompt but produce different variations.
 
 
 #### Background
@@ -352,8 +350,7 @@ Config → Advanced → **Show Mask Mode Button** toggles whether the Viewer sho
 ### Data Management
 
 #### Delete Mode
-
-Menu Bar → **Delete Mode** toggles deletion. When active, the button turns red and gallery thumbnails use a “no” cursor and dim on hover. Click any thumbnail to confirm “Delete this image?”. Confirmed deletes remove the image from the gallery and storage permanently. Click the button again to exit delete mode.
+Menu Bar → **Delete Mode** toggles whether clicks on gallery thumbnails delete images instead of opening them. See The Gallery → **Deleting Images** for how it looks and behaves.
 
 #### Download All Images
 
@@ -362,10 +359,6 @@ Config → **Download All Images** bundles every stored image (generated and imp
 #### Clear Gallery
 
 Config → Advanced → **Delete Gallery** wipes all stored images. The first click only highlights **Download All Images** as a warning. The second click asks you to type `YES`. Confirming clears the gallery database and reloads the app. This cannot be undone — export first if needed.
-
-#### Refresh Models
-
-Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*` models and repopulates the model dropdown. The button shows “Refreshing…” while it runs and briefly shows a checkmark when done. Use it after adding an API key or when new models become available.
 
 
 ## Advanced Features
