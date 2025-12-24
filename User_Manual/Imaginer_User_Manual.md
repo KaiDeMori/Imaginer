@@ -203,5 +203,7 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Storage
 
-Images are stored in your browser and persist between sessions. Each browser has its own storage. **Clearing browser data deletes all gallery images permanently.**
+Images are stored in your browser and persist between sessions. Each browser has its own storage. 
+
+**⚠️ Warning**: Clearing browser data deletes all gallery images permanently.
 
