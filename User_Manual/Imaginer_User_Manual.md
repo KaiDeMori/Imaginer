@@ -94,7 +94,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
 
 
 **Right side:**
-- 🗑️ **Delete Mode button**: Toggle deletion mode to remove images from gallery (starts dimmed)
+- 🗑️ **Delete Mode button**: Toggle deletion mode to remove images from gallery
 - ⚙️ **Config button**: Open configuration dialog for settings and API key management
 - 🛈 **About button**: View app information and version
 
@@ -157,7 +157,7 @@ Creating images in Imaginer is straightforward:
 3. **Watch as your image generates**:
    - A placeholder appears instantly in the Gallery with a timer showing elapsed time
    - The placeholder has a gray background while generation is in progress
-   - Generation typically takes 10-30 seconds
+   - Generation typically takes about a minute, depending on the selected model and settings.
 
 4. **View your completed image**:
    - When generation finishes, the placeholder is replaced with your image thumbnail

@@ -94,60 +94,34 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 
 ### 2. The Gallery
 
-#### Understanding the Gallery
-- How images are stored (IndexedDB, local to browser)
-- Thumbnail view
-- Import images via drag-and-drop
-- Automatic format conversion (to PNG)
+#### Basic Gallery Usage
+- Viewing your image collection as thumbnails
+- Importing images via drag-and-drop
+- Opening images (click to view full-screen)
+- Deleting images (brief mention, link to Data Management section for full details)
 
-#### Managing Gallery Images
-- Viewing images (click to open in Viewer)
-- Downloading images individually
-- Delete mode (trash icon in menu)
-- Clearing entire gallery
-- Drag images from gallery to prompt panel for editing
+#### Working with Gallery Images
+- Dragging images to prompt panel for editing
+- Downloading individual images
+- Downloading all images as ZIP (mention briefly, link to Config section)
 
 ### 3. The Viewer
 
-#### Viewing Images
-- Opening an image (click thumbnail)
-- Closing the viewer (click outside image)
-- Full-screen display
-
-#### Zoom and Pan
-- Mouse wheel zoom
-- Zoom behavior (mouse-centric)
-- Panning with drag
-- Reset to fit view
-
-#### Mask Mode (Advanced)
-- What is mask mode?
-- Enabling mask mode button (Config setting)
-- Activating mask mode
-- Painting masks with brush
-- Removing masks
-- Using masks for inpainting
-- Mask visualization (red overlay)
+#### Viewing and Navigating
+- Opening and closing images
+- Zooming with mouse wheel
+- Panning by dragging
+- Fitting image to screen
 
 ### 4. Image Editing
-
-#### Edit Mode vs Generation Mode
-- Drag-and-drop images to prompt panel
-- Visual feedback (thumbnails in drop area)
-- Editing with reference images
+- How to use images as edit references (drag from gallery to prompt panel)
+- Visual feedback in drop area
+- Editing with prompts
 - Removing input images
 
-#### Using Masks for Inpainting
-- Creating a mask in Viewer
-- Dragging masked image to prompt panel
-- Prompting for specific edits
-- Understanding mask-active indicator (red border)
-
 ### 5. Model Selection
-- Model dropdown in menu bar
-- Auto-refresh on config changes
-- Understanding model capabilities
-- gpt-image-1 as primary model
+- Selecting models from dropdown
+- What models are (brief, simple explanation)
 
 ---
 
@@ -200,6 +174,12 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - When to enable
 
 ### 4. Data Management
+
+#### Delete Mode
+- How to enable delete mode (trash button in menu bar)
+- How to delete images (click thumbnails when delete mode active)
+- How to exit delete mode
+- Visual feedback (button appearance, cursor changes)
 
 #### Download All Images
 - Creates ZIP file of all gallery images
