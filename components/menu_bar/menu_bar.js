@@ -205,6 +205,14 @@ export class Menu_bar {
         });
       });
     }
+    // Help button
+    const help_button = this.root.querySelector("#help-btn");
+    if (help_button) {
+      help_button.addEventListener("click", () => {
+        window.open("User_Manual/Imaginer_User_Manual.html", "_blank");
+      });
+    }
+
     // About Dialog
     const about_button = this.root.querySelector("#about-btn");
     if (about_button) {
