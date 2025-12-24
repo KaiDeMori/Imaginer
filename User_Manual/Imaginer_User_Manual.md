@@ -98,7 +98,7 @@ The menu bar also manages your image orientation selection, which persists betwe
 The gallery displays all your generated and imported images as a grid of thumbnails:
 
 - **Thumbnail grid**: Images shown in chronological order (oldest first).
-- **Click any thumbnail** to open it in the full-screen Viewer.
+- **Click any thumbnail** to open it in the Viewer.
 - **Drag images** from the gallery to the Prompt Panel to use them as reference images for editing.
 - **Import images**: Drag-and-drop images from your computer directly into the gallery.
   - Non-PNG images are automatically converted to PNG format.
