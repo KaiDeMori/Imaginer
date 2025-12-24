@@ -59,93 +59,23 @@ When documenting topics from `User_Manual_topics_TBD.md`:
 
 ---
 
-## Content Structure & Organization
+## Configuration Keys Reference
 
-The detailed topic structure has been moved to `User_Manual_topics_TBD.md` for tracking documentation progress.
+Quick reference of all localStorage configuration keys used by Imaginer:
 
-### Main Sections Overview
-
-1. **Getting Started** - Help new users set up and understand the basics
-2. **Core Features** - Main functionality users will use regularly
-3. **Configuration & Settings** - All configuration options
-4. **Advanced Features** - Power-user features and special capabilities
-5. **Understanding Image Generation** - How the system works
-6. **Troubleshooting & FAQ** - Common issues and questions
-7. **Technical Information** - Deeper understanding for interested users
-8. **Appendices** - Glossary, keyboard reference, defaults, version history
-
----
-
-## Topics Priority
-
-### Phase 1 (Essential)
-- What is Imaginer?
-- First-Time Setup
-- Understanding the Interface
-- Basic Image Generation
-- Gallery basics
-- Viewing images
-- Configuration (API key, basic settings)
-
-### Phase 2 (Important)
-- Advanced generation options
-- Image editing with drag-and-drop
-- Gallery management (delete, download)
-- All configuration options
-- Troubleshooting basics
-
-### Phase 3 (Advanced)
-- Mask mode and inpainting
-- Conversation mode
-- PNG metadata details
-- Technical information
-- Complete FAQ
-
----
-
-## Notes from Codebase Analysis
-
-### Features Discovered
-- ✅ OOBE/Intro sequence (cinematic starfield)
-- ✅ Remote control for intro (intro_remote_control.js)
-- ✅ Version manager with update messages
-- ✅ Resizable divider with saved state
-- ✅ Gallery drag-and-drop for import
-- ✅ Viewer with zoom/pan/mask mode
-- ✅ Brush cursor with absolute size
-- ✅ Drop area manager for input images
-- ✅ Error modal system
-- ✅ Config dialog (tabbed: Basic/Advanced)
-- ✅ Model fetcher with auto-refresh
-- ✅ PNG metadata reader/writer (iTXt, XMP)
-- ✅ Image converter (auto-convert to PNG)
-- ✅ Download all as ZIP
-- ✅ Delete mode toggle
-- ✅ Conversation mode (experimental)
-- ✅ Performance limit warning
-- ✅ Generation cooldown mechanism
-
-### Component Structure
-- Menu bar with orientation selector, model dropdown, config/about buttons
-- Gallery with placeholder support
-- Generation panel with drop area
-- Conversation panel (separate mode)
-- Viewer with mask manager, zoom/pan manager, debug manager
-- Various dialogs (config, about, error, download progress)
-
-### Configuration Keys Found
 - `imaginer.prompt` - Current prompt text
 - `imaginer.max_parallel_generations` - Concurrency limit
 - `imaginer.n` - Number of images per generation
-- `imaginer.background` - Background setting
-- `imaginer.quality` - Quality setting
-- `imaginer.image_size` - Size setting
+- `imaginer.background` - Background setting (auto/transparent/opaque)
+- `imaginer.quality` - Quality setting (auto/high)
+- `imaginer.image_size` - Size/orientation setting
 - `imaginer.strip_metadata` - Strip metadata flag
-- `imaginer.add_prompt_to_image` - iTXt embedding
-- `imaginer.add_prompt_to_image_xmp` - XMP embedding
-- `imaginer.show_mask_mode_button` - Show mask mode button
-- `imaginer.dividerWidth` - Gallery width
-- `imaginer.mode` - Generation vs Conversation mode
+- `imaginer.add_prompt_to_image` - iTXt embedding enabled
+- `imaginer.add_prompt_to_image_xmp` - XMP embedding enabled
+- `imaginer.show_mask_mode_button` - Mask mode button visibility
+- `imaginer.dividerWidth` - Gallery panel width
+- `imaginer.mode` - Current mode (generation/conversation)
+- `imaginer.api_key` - Stores the user's OpenAI API key (hashed)
 
 ---
 
