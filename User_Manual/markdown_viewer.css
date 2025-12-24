@@ -10,15 +10,21 @@
   --background-light: rgb(247, 247, 250);
   --background-white: rgb(255, 255, 255);
   --toc-background: rgb(240, 241, 245);
+  --content-line-height: 1.5;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: system-ui, sans-serif;
   display: flex;
   height: 100vh;
   background: var(--background-light);
   color: var(--text-color);
+}
+
+p {
+  line-height: var(--content-line-height);
+  margin: 4px 0 16px 10px;
 }
 
 #toc_container {
@@ -57,7 +63,7 @@ body {
 #toc_container a {
   text-decoration: none;
   color: var(--text-color);
-  line-height: 1.6;
+  line-height: var(--content-line-height);
   display: inline-block;
   transition: color 0.2s;
 }
@@ -98,94 +104,99 @@ body {
 
 #content h1 {
   font-size: 2.2rem;
-  margin-top: 0;
-  margin-bottom: 24px;
+  margin-top: 48px;
+  margin-bottom: 6px;
   color: var(--text-color);
-  border-bottom: 2px solid var(--border-color);
   padding-bottom: 12px;
+  font-weight: 700;
+}
+
+#content h1:first-child {
+  margin-top: 0;
 }
 
 #content h2 {
   font-size: 1.8rem;
-  margin-top: 36px;
-  margin-bottom: 16px;
+  margin-top: 25px;
+  margin-bottom: 12px;
   color: var(--text-color);
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 8px;
+  border-bottom: 1px solid rgb(224, 224, 224);
+  padding-bottom: 6px;
+  font-weight: 600;
 }
 
 #content h3 {
   font-size: 1.4rem;
-  margin-top: 28px;
-  margin-bottom: 12px;
-  color: var(--text-color);
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: rgb(68, 68, 68);
+  font-weight: 600;
 }
 
 #content h4 {
   font-size: 1.2rem;
-  margin-top: 24px;
+  margin-top: 20px;
   margin-bottom: 10px;
-  color: var(--text-color);
+  color: var(--link-color);
+  font-weight: 600;
 }
 
 #content h5 {
   font-size: 1.05rem;
   margin-top: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   color: var(--text-color);
 }
 
 #content h6 {
   font-size: 0.95rem;
   margin-top: 18px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   color: #666;
   font-weight: bold;
-}
-
-#content p {
-  line-height: 1.7;
-  margin: 12px 0;
 }
 
 #content a {
   color: var(--link-color);
   text-decoration: none;
-  transition: color 0.2s;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s, color 0.2s;
 }
 
 #content a:hover {
   color: var(--link-hover-color);
-  text-decoration: underline;
+  border-bottom-color: var(--link-hover-color);
 }
 
 #content ul,
 #content ol {
-  line-height: 1.7;
-  margin: 12px 0;
-  padding-left: 28px;
+  line-height: var(--content-line-height);
+  margin: 16px 0;
+  padding-left: 32px;
 }
 
 #content li {
-  margin: 6px 0;
+  margin: 8px 0;
 }
 
 #content code {
   font-family: "Consolas", "Monaco", "Courier New", monospace;
   font-size: 0.92em;
-  background: rgb(247, 247, 250);
-  padding: 2px 6px;
-  border-radius: 3px;
-  border: 1px solid var(--border-color);
+  background: rgb(245, 245, 248);
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid rgb(230, 230, 235);
+  color: rgb(200, 30, 90);
 }
 
 #content pre {
-  background: rgb(247, 247, 250);
-  border: 1px solid var(--border-color);
+  background: rgb(245, 245, 248);
+  border: 1px solid rgb(230, 230, 235);
   border-radius: 6px;
-  padding: 16px;
+  padding: 18px;
   overflow-x: auto;
-  margin: 16px 0;
+  margin: 20px 0;
+  line-height: var(--content-line-height);
 }
 
 #content pre code {
@@ -193,14 +204,16 @@ body {
   border: none;
   padding: 0;
   font-size: 0.9rem;
+  color: var(--text-color);
 }
 
 #content blockquote {
   border-left: 4px solid var(--link-color);
-  margin: 16px 0;
-  padding: 12px 20px;
+  margin: 20px 0;
+  padding: 14px 24px;
   background: rgb(245, 250, 255);
   color: #444;
+  font-style: italic;
 }
 
 #content table {
