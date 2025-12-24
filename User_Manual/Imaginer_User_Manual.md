@@ -146,12 +146,11 @@ Creating images in Imaginer is straightforward:
 
 3. **Watch as your image generates**:
    - A placeholder appears instantly in the Gallery with a timer showing elapsed time.
-   - The placeholder has a gray background while generation is in progress.
+   - With streaming preview enabled, you'll see your image forming in real-time.
    - Generation typically takes about a minute, depending on the selected model and settings.
 
 4. **View your completed image**:
-   - When generation finishes, the placeholder is replaced with your image thumbnail.
-   - The thumbnail appears at the top of the Gallery grid.
+   - When generation finishes, the preview is replaced with your final full-quality image.
    - Click the thumbnail to view it full-screen in the Viewer.
 
 **If generation fails**, the placeholder turns red. Click the 💬 button on the error placeholder to reload the prompt into the text area and try again.
@@ -345,6 +344,16 @@ Your selection persists between sessions and applies to the next generation or e
 #### Mask Mode Button
 
 Config → Advanced → **Show Mask Mode Button** toggles whether the Viewer shows the mask tools. Enable it when you need to paint or remove masks; disable it to keep the Viewer simpler by hiding the mask buttons.
+
+#### Image Streaming Preview
+
+Config → Advanced → **Enable Image Streaming Preview** toggles progressive image previews during generation (default: on).
+
+When enabled, you see dimmed preview images as generation progresses instead of waiting for the final result. The **Number of partial images** setting (0-5, default: 2) controls how many preview updates you receive:
+- **0** = No previews, only the final image
+- **1-5** = Progressive previews during generation
+
+Higher preview counts provide more frequent updates but use slightly more API resources. The timer continues running throughout all previews.
 
 
 ### Data Management

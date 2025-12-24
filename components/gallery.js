@@ -450,8 +450,6 @@ export class Gallery {
       width: "100%",
       height: "100%",
       objectFit: "contain",
-      opacity: "0.7",
-      filter: "brightness(0.9)",
       position: "absolute",
       top: "0",
       left: "0",
