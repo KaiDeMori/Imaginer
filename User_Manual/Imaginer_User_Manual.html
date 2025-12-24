@@ -78,27 +78,12 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <script type="module">
       import { create_toc } from "./toc_maker.js";
+      import { parse_markdown_with_toc } from "./markdown_maker.js";
 
       async function load_manual() {
-        const response = await fetch("Imaginer_User_Manual.md");
-        const markdown_text = await response.text();
+        const { html_content, toc_items } = await parse_markdown_with_toc("Imaginer_User_Manual.md");
 
-        const toc_items = [];
-
-        const renderer = new marked.Renderer();
-        const original_heading = renderer.heading.bind(renderer);
-
-        renderer.heading = function (text, level, raw) {
-          const id = raw.toLowerCase().replace(/[^\w]+/g, "-");
-          toc_items.push({ text, level, id });
-          return `<h${level} id="${id}">${text}</h${level}>`;
-        };
-
-        marked.setOptions({ renderer });
-
-        const html_content = marked.parse(markdown_text);
         document.getElementById("content").innerHTML = html_content;
-
         create_toc(toc_items, "toc", { expand_depth: 2 });
       }
 
