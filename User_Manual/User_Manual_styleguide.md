@@ -73,15 +73,76 @@
 
 ---
 
+## Documentation Structure
+
+Imaginer documentation is split into three companion files:
+
+### User Manual (`Imaginer_User_Manual.md`)
+**Audience**: End users (children and adults)  
+**Purpose**: Clear, practical instructions for using the app
+
+**Content guidelines**:
+- Focus on "what" and "how" from the user's perspective
+- Simple language accessible to all ages
+- Minimal technical jargon
+- Step-by-step instructions and workflows
+- Practical tips and feature descriptions
+
+### Technical Manual (`Imaginer_Technical_Manual.md`)
+**Audience**: Help chat AI, developers, and power users  
+**Purpose**: Technical reference and implementation details
+
+**Content guidelines**:
+- Architecture and data storage mechanisms
+- API endpoints and integration details
+- File formats and technical specifications
+- Implementation-specific behavior
+- Keyboard shortcuts and debug features
+- Version history and technical appendices
+
+### FAQ (`Imaginer_FAQ.md`)
+**Audience**: Users troubleshooting problems and seeking quick answers  
+**Purpose**: Problem-solving reference and common questions
+
+**Content guidelines**:
+- Common issues and their solutions
+- Error scenarios and recovery steps
+- Quick-answer format for frequent questions
+- Links to relevant sections in User Manual when more detail is needed
+- Practical workarounds and tips
+
+### Content Placement Decision
+
+**Put in User Manual when**:
+- Users need it to accomplish their goals
+- It's a visible feature or setting
+- It affects user workflow or decisions
+
+**Put in Technical Manual when**:
+- It explains how things work under the hood
+- It's implementation-specific (IndexedDB, localStorage, API details)
+- It's for troubleshooting or advanced understanding
+- It's reference material (keyboard shortcuts, version history)
+
+**Put in FAQ when**:
+- It's a common problem with a quick solution
+- Users are asking "why doesn't this work?"
+- It's a frequently asked question
+- It needs troubleshooting steps
+
+---
+
 ## AI Help Chat Consideration
 
-This manual will be the knowledge base for the integrated help chat AI. Write content that:
-- Can be easily referenced by an AI assistant.
-- Provides complete, accurate information.
-- Uses consistent terminology throughout.
-- Is structured logically for question-answering.
+All three documentation files serve as the knowledge base for the integrated help chat AI:
+- **User Manual** provides user-friendly explanations the AI can relay directly
+- **Technical Manual** gives the AI deeper context for advanced questions
+- **FAQ** offers quick solutions for common problems and questions
 
-Keep the text meant for humans short and non-technical and prefer to add technical details that the Help Chat AI might need to the end of the manual in separate sections.
+Write all documentation with AI assistance in mind:
+- Use consistent terminology across all files
+- Structure content logically for question-answering
+- Keep cross-references clear and maintainable
 
 ---
 
@@ -143,7 +204,8 @@ This keeps the reading flow natural while maintaining a single source of truth f
 
 ## Related Documentation Files
 
-- **`User_Manual_topics_TBD.md`** - Working list of topics that need to be documented.
-- **`Imaginer_User_Manual.md`** - The actual user manual where completed documentation lives.
-- **`User_Manual_roadmap.md`** - Content structure, priorities, workflow, and strategic planning.
-- **`User_Manual_styleguide.md`** - This file: Writing guidelines and style standards.
+- **`Imaginer_User_Manual.md`** - User-facing manual with practical instructions and feature documentation
+- **`Imaginer_FAQ.md`** - Troubleshooting guide and frequently asked questions
+- **`Imaginer_Technical_Manual.md`** - Technical reference with architecture details and implementation specifics
+- **`User_Manual_roadmap.md`** - Content structure, priorities, workflow, and strategic planning
+- **`User_Manual_styleguide.md`** - This file: Writing guidelines and style standards
