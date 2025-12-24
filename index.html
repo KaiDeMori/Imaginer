@@ -55,12 +55,15 @@
         <div id="generation-panel"></div>
       </div>
     </div>
-    <script type="importmap">
-      {
-        "imports": {
-          "./version_manager.js": "./version_manager.js?v=1.1"
-        }
-      }
+    <script>
+      const script = document.createElement("script");
+      script.type = "importmap";
+      script.textContent = JSON.stringify({
+        imports: {
+          "./version_manager.js": `./version_manager.js?v=${Date.now()}`,
+        },
+      });
+      document.currentScript.after(script);
     </script>
     <script type="module" src="app.js"></script>
     <script type="module" src="./components/version_message_modal.js"></script>
