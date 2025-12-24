@@ -29,6 +29,22 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 - **`Imaginer_User_Manual.md`** - The actual user manual where completed documentation lives
 - **`User_Manual_roadmap.md`** - Writing guidelines, style standards, priorities, and strategic planning
 
+### Additional Context for Documentation
+
+**Target Audience**: This manual serves both children and adults. The app is designed to be accessible for kids, but documentation should be clear and helpful for all ages.
+
+**Writing Balance**:
+- Use simple, clear language that anyone can understand
+- Avoid condescending or overly childish tone
+- Explain technical concepts in plain terms without being patronizing
+- Focus on being helpful and approachable, not age-specific
+
+**AI Help Chat Consideration**: This manual will be the knowledge base for the integrated help chat AI. Write content that:
+- Can be easily referenced by an AI assistant
+- Provides complete, accurate information
+- Uses consistent terminology throughout
+- Is structured logically for question-answering
+
 The assistant will use the `manage_todo_list` tool to track verification and writing progress within each conversation.
 
 ---
