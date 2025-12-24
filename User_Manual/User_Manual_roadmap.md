@@ -9,52 +9,42 @@ This document serves as the master plan for creating the Imaginer User Manual. I
 
 **Writing Style**: See `User_Manual_styleguide.md` for detailed writing guidelines and standards.
 
----
 
-## Documentation Workflow
+## Supported Image Formats
 
-### How to Work on Documentation
+### Generation Output
+- **PNG only** - All AI-generated images are returned as PNG format
+  - API returns base64-encoded PNG data
+  - Images saved to database as PNG Blobs
+  - No format selection available (API limitation)
 
-When documenting topics from `User_Manual_topics_TBD.md`:
+### Image Editing Input
+- **PNG** - Primary format, fully supported
+- **JPEG** - Also accepted by OpenAI `/v1/images/edits` endpoint
+- **Other formats** - Automatically converted to PNG before sending to API
+  - Includes GIF, WebP, and any format browser can handle
+  - Conversion happens transparently via `image_converter.js`
 
-1. **Start a conversation** by attaching the TBD file and specifying which topic(s) you want to work on
-2. **Check what's already documented**: Read the relevant sections of `Imaginer_User_Manual.md` to avoid duplicating content
-3. **Create a todo list** using `manage_todo_list` with specific, granular tasks for the topic
-   - Each todo should represent checking/documenting ONE specific feature or aspect
-   - Example todos: "Verify orientation button locations", "Document Generate button behavior", "Check image storage mechanism"
-4. **Work through todos one at a time:**
-   - Mark todo as in-progress
-   - Read source code to verify the feature
-   - Document what actually exists (never invent features)
-   - Mark todo as completed
-   - Move to next todo
-5. **After all todos are complete:**
-   - Add the compiled content to `Imaginer_User_Manual.md`
-   - Remove the completed topic from the TBD file
+### Drag & Drop
+- **From Gallery (Internal)**: PNG only
+  - Gallery images are always stored as PNG
+  - Includes associated masks if present
+- **From External Files**: Any image format browser supports
+  - PNG, JPEG, GIF, WebP, etc.
+  - Non-PNG/JPEG files automatically converted to PNG for editing
+  - Validation occurs in `generation_panel.js`
 
-**Important**: Use `manage_todo_list` to break topics into small, verifiable chunks. This prevents overwhelming analysis and ensures each feature is properly verified before documenting.
+### Downloads
+- **PNG only** - All downloaded images are PNG format
+  - Original format preserved from database storage
+  - Filename pattern: `imaginer_<timestamp>.png`
+  - Includes embedded metadata if enabled in configuration
 
-### Configuration Settings Documentation Strategy
-
-**Avoiding duplication while maintaining readability:**
-
-1. **In feature sections** (Core Features, Advanced Features):
-   - Brief practical mention of the setting in context
-   - Focus on "what" and "why" for the user's immediate task
-   - Reference Configuration & Settings section for full details (see **Navigation Path Format** in style guide)
-
-2. **In Configuration section**:
-   - Complete technical documentation of each setting
-   - All available values/options
-   - Default values and behavior
-   - Impact on cost, performance, quality, etc.
-   - This is the single source of truth for technical details
-
-3. **Benefits**:
-   - Users reading feature sections get practical, contextual guidance
-   - Users in Config section get comprehensive reference
-   - Changes only need to be made in one place (Config section)
-   - No content duplication
+### Masks
+- **PNG only** - Mask images must be PNG format
+  - Generated from viewer canvas as PNG
+  - Stored in database as PNG Blobs
+  - Required format for OpenAI API
 
 ---
 
