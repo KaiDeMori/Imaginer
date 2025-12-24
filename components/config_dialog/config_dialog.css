@@ -68,6 +68,7 @@
   min-height: 0;
   min-width: 0;
   box-sizing: border-box;
+  padding-bottom: var(--input-padding-horizontal);
 }
 /* Mask Mode Container (styled like strip_container) */
 .mask_mode_container {
@@ -108,7 +109,7 @@
 /* Form Elements */
 .form {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--form-element-gap);
 }
 
