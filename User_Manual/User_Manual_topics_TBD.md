@@ -14,19 +14,6 @@
 
 ## Core Features
 
-### The Gallery
-
-#### Basic Gallery Usage
-- Viewing your image collection as thumbnails
-- Importing images via drag-and-drop
-- Opening images (click to view full-screen)
-- Deleting images (brief mention, see Data Management → **Delete Mode** for full details)
-
-#### Working with Gallery Images
-- Dragging images to prompt panel for editing
-- Downloading individual images
-- Downloading all images as ZIP (mention briefly, see Data Management → **Download All Images** for details)
-
 ### The Viewer
 
 #### Viewing and Navigating

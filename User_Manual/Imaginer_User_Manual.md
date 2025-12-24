@@ -171,3 +171,37 @@ Generate several variations of your prompt at once:
 - **How it works**: When you click Generate, Imaginer creates the specified number of placeholders and requests that many images from the API.
 - **Display**: All images appear as separate thumbnails in the Gallery as they complete.
 - **Generation limit**: The **Maximum Parallel Generations** setting (default: 3) controls how many Generate requests can run simultaneously. If you reach this limit, the Generate button becomes disabled until a generation completes.
+
+---
+
+### 2. The Gallery
+
+The gallery displays your images as thumbnails (newest at the top). **Click any thumbnail** to view it full-screen in the Viewer.
+
+#### Importing Images
+
+**Drag and drop image files** from your computer into the gallery area. Images with embedded prompts are automatically detected.
+
+#### Deleting Images
+
+1. Click the 🗑️ button in the menu bar to enable delete mode.
+2. Click any thumbnail to delete it (confirmation required).
+3. Click 🗑️ again to exit delete mode.
+
+**⚠️ Warning**: Deletion is permanent.
+
+#### Thumbnail Actions
+
+**Hover over any thumbnail** to reveal action buttons:
+
+- ⬇️ **Download** (top-left): Save the image to your computer.
+- 💬 **Use Prompt** (top-right): Load the image's prompt into the text area.
+
+#### Using Images for Editing
+
+**Drag thumbnails to the drop area** at the bottom of the Prompt Panel to use them as edit references. See **Image Editing** for details.
+
+#### Storage
+
+Images are stored in your browser and persist between sessions. Each browser has its own storage. **Clearing browser data deletes all gallery images permanently.**
+
