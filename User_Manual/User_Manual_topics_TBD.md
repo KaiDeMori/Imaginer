@@ -98,13 +98,6 @@
 
 ## Advanced Features
 
-### Conversation Mode (Experimental)
-- What is Conversation Mode?
-- Switching between Generation and Conversation modes
-- Multi-turn image refinement
-- Conversation history
-- Adding images to gallery from conversations
-
 ### PNG Metadata
 
 #### Reading metadata from imported images
