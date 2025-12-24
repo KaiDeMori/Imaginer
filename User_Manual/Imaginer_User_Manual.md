@@ -426,18 +426,6 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 - `Ctrl` + `D`: Toggle debug overlay (mask mode).
 - `Ctrl` + mouse wheel: Adjust brush size.
 
-### Default Values
-- Initial prompt: "A unicorn-dinosaur."
-- Maximum Parallel Generations: 3
-- Number of Images: 1
-- Orientation: Square 1024×1024
-- Background: Automatic
-- Quality: Automatic
-- Strip Server-Side metadata: On
-- Embed prompt as iTXt: Off
-- Embed prompt as XMP: On
-- Show Mask Mode Button: Off
-
 ### Version History
 - Version info is stored in `version.json`.
 - Release notes appear as modals on updates and are shown once per version.
