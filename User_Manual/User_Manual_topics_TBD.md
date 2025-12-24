@@ -26,7 +26,7 @@
 
 ---
 
-## Configuration & Settings
+## Configuration & Settings ("Config")
 
 ### Accessing Configuration
 - Config button (gear icon)
