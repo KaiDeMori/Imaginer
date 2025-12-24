@@ -7,11 +7,20 @@
 This file serves as your working backlog for writing the Imaginer User Manual. Here's the workflow:
 
 1. **Start a conversation** by attaching this file and specifying which topic(s) you want to work on
-2. **The assistant researches** the codebase to verify every statement and feature mentioned in the topic
-3. **The assistant writes** complete, polished documentation following the guidelines in `User_Manual_styleguide.md`
-4. **Content is added** to `Imaginer_User_Manual.md` (the actual user manual)
-5. **Topic is removed** from this TBD file once completed
-6. **Repeat** until all topics are documented
+2. **Create a todo list** using `manage_todo_list` with specific, granular tasks for the topic
+   - Each todo should represent checking/documenting ONE specific feature or aspect
+   - Example todos: "Verify orientation button locations", "Document Generate button behavior", "Check image storage mechanism"
+3. **Work through todos one at a time:**
+   - Mark todo as in-progress
+   - Research the codebase to verify that specific feature
+   - Write the documentation for that feature
+   - Mark todo as completed
+   - Move to next todo
+4. **After all todos are complete:**
+   - Add the compiled content to `Imaginer_User_Manual.md`
+   - Remove the completed topic from this TBD file
+
+**Important**: Use `manage_todo_list` to break topics into small, verifiable chunks. This prevents overwhelming analysis and ensures each feature is properly verified before documenting.
 
 ### Critical Rule: Verify Before Writing
 
@@ -38,7 +47,7 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
    - Brief practical mention of the setting in context
    - Simple explanation of what it does for this specific feature
    - Reference to Config section for full details
-   - Example: "To generate multiple images at once, increase 'Number of Images (n)' in Config → Basic (see Section III.2 for details)"
+   - Example: "To generate multiple images at once, increase 'Number of Images (n)' in Config → Basic"
 
 2. **In Configuration section** (III. Configuration & Settings):
    - Complete technical documentation of each setting
@@ -89,13 +98,13 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - The Generate button (location, what happens when clicked)
 - Visual feedback during generation (progress indicators, status)
 - Where generated images appear (Gallery)
-- Brief note: Image orientation can be changed in Config → Advanced
+- Brief note: Image orientation is selected using buttons in the menu bar (landscape, portrait, square)
 
 #### Multiple Images
 - Brief explanation: generating multiple variations at once
-- How to enable: 'Number of Images (n)' setting in Config → Basic (see Section III.2)
+- How to enable: 'Number of Images (n)' setting in Config → Basic
 - How multiple generations are displayed in the Gallery
-- Brief note: Parallel generation limits prevent browser overload (see Section III.2)
+- Brief note: Parallel generation limits prevent browser overload (see 'Maximum Parallel Generations' in Config → Basic)
 
 ### 2. The Gallery
 
