@@ -37,12 +37,6 @@
 
 **Do not use section numbers or letter prefixes** in any documentation (manual, TBD file, etc.) unless order is absolutely critical (e.g., sequential steps that must be followed in a specific order). Keep sections clean and unnumbered for easier maintenance and reorganization.
 
-**For cross-references**: Use descriptive navigation instead of section numbers:
-- ✅ "See Config → Advanced for details".
-- ✅ "Explained in the Configuration section".
-- ❌ "See Section III.2".
-- ❌ "Covered in 3.4.1".
-
 ---
 
 ## Target Audience

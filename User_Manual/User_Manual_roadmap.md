@@ -2,11 +2,6 @@
 
 *Planning document for the comprehensive user manual*
 
-## Purpose
-This document serves as the master plan for creating the Imaginer User Manual. It contains the feature inventory, content structure, priorities, and topics to cover.
-
-**⚠️ DOCUMENTATION FOCUS**: This roadmap is exclusively for documenting existing features. The goal is to get it right and not forget anything. Do NOT invent new features or interactive elements while writing documentation.
-
 **Writing Style**: See `User_Manual_styleguide.md` for detailed writing guidelines and standards.
 
 
