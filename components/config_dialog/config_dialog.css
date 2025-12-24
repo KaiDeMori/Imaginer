@@ -119,6 +119,13 @@
   border-radius: 4px;
   box-sizing: border-box;
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  margin-left: var(--input-padding-horizontal);
+  margin-right: var(--input-padding-horizontal);
+}
+
+.input:focus {
+  outline: 2px solid #1976d2;
+  border-color: #1976d2;
 }
 
 .button {
@@ -266,6 +273,7 @@
 
 /* Compact utility classes */
 .section {
+  /* Used to separate groups of fields */
 }
 
 .section + .section {

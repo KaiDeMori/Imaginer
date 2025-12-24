@@ -9,7 +9,7 @@
 
     <div class="tab_content" id="basic_tab_content">
       <div class="field field_stacked">
-        <label class="label">OpenAI API Key</label>
+        <label class="label" for="api_key_input">OpenAI API Key</label>
         <form class="form" autocomplete="off" id="api_key_form">
           <input
             type="text"
@@ -27,17 +27,17 @@
       </div>
 
       <div class="field field_inline">
-        <label class="label">Maximum number of parallel generations</label>
+        <label class="label" for="max_input">Maximum number of parallel generations</label>
         <input type="number" min="1" max="10" step="1" class="input" id="max_input" />
       </div>
 
       <div class="field field_inline">
-        <label class="label">Number of images to generate (n)</label>
+        <label class="label" for="n_input">Number of images to generate (n)</label>
         <input type="number" min="1" max="10" step="1" class="input" id="n_input" />
       </div>
 
       <div class="field field_inline">
-        <label class="label">Background</label>
+        <label class="label" for="background_select">Background</label>
         <select class="input" id="background_select">
           <option value="auto">Automatic</option>
           <option value="transparent">Transparent</option>
@@ -46,7 +46,7 @@
       </div>
 
       <div class="field field_inline">
-        <label class="label">Image quality</label>
+        <label class="label" for="quality_select">Image quality</label>
         <select class="input" id="quality_select">
           <option value="auto">Automatic</option>
           <option value="high">High</option>
@@ -56,7 +56,7 @@
       </div>
 
       <div class="field field_inline">
-        <label class="label">Input fidelity</label>
+        <label class="label" for="input_fidelity_select">Input fidelity</label>
         <select class="input" id="input_fidelity_select">
           <option value="low">Low (default)</option>
           <option value="high">High</option>
@@ -98,7 +98,7 @@
         </label>
         <div class="indent">
           <div class="field field_inline">
-            <label class="label">Number of partial images</label>
+            <label class="label" for="partial_images_input">Number of partial images</label>
             <input type="number" min="1" max="3" step="1" class="input input_narrow" id="partial_images_input" />
           </div>
         </div>
