@@ -45,6 +45,8 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 - Uses consistent terminology throughout
 - Is structured logically for question-answering
 
+Keep the text meant for humans short and non-technical and prefer to add technical details that the Help Chat AI might need to the end of the manual in separate sections.
+
 The assistant will use the `manage_todo_list` tool to track verification and writing progress within each conversation.
 
 ---
@@ -296,6 +298,7 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - What's stored in localStorage
 - Browser storage limits
 - Privacy considerations
+- **Technical note**: API key hashing (cryptographically non-secure hash used for basic obfuscation)
 
 ### 3. Image Formats
 - Why PNG only?
