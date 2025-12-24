@@ -420,12 +420,6 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 
 ## Appendices
 
-### Glossary
-- **Mask**: Painted area marking which pixels can change during an edit (shown as red overlay).
-- **Inpainting**: Editing only masked regions while preserving the rest.
-- **iTXt**: PNG metadata chunk for storing text data.
-- **XMP**: Metadata format for embedding information in images.
-
 ### Keyboard Reference
 - `Escape`: Close viewer or exit mask mode.
 - `D`: Toggle debug overlay (viewer).
