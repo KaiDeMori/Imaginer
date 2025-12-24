@@ -74,10 +74,27 @@ When a topic (like a configuration setting) is relevant in multiple places:
 
 When referencing UI navigation paths, menu items, or configuration settings, use the hierarchical arrow format with the bold element at the END of the path. This creates a consistent, scannable format throughout the manual.
 
-**Example**:
+**Format**: `Parent → Child → **Final Element**`
+
+**When to use this format:**
+- Referencing UI navigation sequences (e.g., opening dialogs, tabs, sections)
+- Pointing to specific settings or controls
+- Cross-referencing documentation sections
+- Any hierarchical navigation path in the app
+
+**Examples**:
 ```
 Use Config → Advanced → **Refresh Models** to update the list.
+Adjust Config → Basic → **Number of Images (n)** to generate multiple variations.
+See Data Management → **Delete Mode** for full details.
 ```
+
+**Guidelines:**
+- Use the right arrow symbol `→` (not `>`, `/`, or `-`)
+- Bold only the final element in the path
+- Use actual UI labels as they appear in the app
+- Keep parent elements unbolded for visual hierarchy
+- Use this format consistently throughout all documentation
 
 This keeps the reading flow natural while maintaining a single source of truth for technical details.
 

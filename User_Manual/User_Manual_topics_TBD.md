@@ -2,7 +2,7 @@
 
 *This file tracks remaining documentation work. As topics are completed and added to the main manual, they are removed from here.*
 
-**Workflow and style guidelines**: See `User_Manual_roadmap.md` for documentation workflow and `User_Manual_styleguide.md` for writing standards.
+**Workflow and style guidelines**: Always start with reading `User_Manual_roadmap.md` for documentation workflow and `User_Manual_styleguide.md` for writing standards.
 
 ---
 
@@ -20,12 +20,12 @@
 - Viewing your image collection as thumbnails
 - Importing images via drag-and-drop
 - Opening images (click to view full-screen)
-- Deleting images (brief mention, link to Data Management section for full details)
+- Deleting images (brief mention, see Data Management → **Delete Mode** for full details)
 
 #### Working with Gallery Images
 - Dragging images to prompt panel for editing
 - Downloading individual images
-- Downloading all images as ZIP (mention briefly, link to Config section)
+- Downloading all images as ZIP (mention briefly, see Data Management → **Download All Images** for details)
 
 ### The Viewer
 

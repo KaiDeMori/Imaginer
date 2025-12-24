@@ -41,8 +41,8 @@ When documenting topics from `User_Manual_topics_TBD.md`:
 1. **In feature sections** (Core Features, Advanced Features):
    - Brief practical mention of the setting in context
    - Focus on "what" and "why" for the user's immediate task
-   - Link to Config section for full details
-   - Example: "To generate multiple images at once, increase 'Number of Images (n)' in Config → Basic"
+   - Reference Configuration & Settings section for full details using arrow format
+   - Example: "To generate multiple images at once, adjust Config → Basic → **Number of Images (n)**"
 
 2. **In Configuration section**:
    - Complete technical documentation of each setting
@@ -108,19 +108,7 @@ An integrated, AI-driven help system based on chat conversation, providing conte
 The help system will receive the following context about the current app state:
 
 #### Configuration (localStorage)
-- `imaginer.prompt` - Current prompt text
-- `imaginer.max_parallel_generations` - Concurrency limit
-- `imaginer.n` - Number of images per generation
-- `imaginer.background` - Background setting (auto/transparent/opaque)
-- `imaginer.quality` - Quality setting (auto/high)
-- `imaginer.image_size` - Size/orientation setting
-- `imaginer.strip_metadata` - Strip metadata flag
-- `imaginer.add_prompt_to_image` - iTXt embedding enabled
-- `imaginer.add_prompt_to_image_xmp` - XMP embedding enabled
-- `imaginer.show_mask_mode_button` - Mask mode button visibility
-- `imaginer.dividerWidth` - Gallery panel width
-- `imaginer.mode` - Current mode (generation/conversation)
-- `imaginer.api_key` - Whether API key is configured (boolean only, not actual key)
+*see comprehensive list in `localStorage_keys_explained.md`**
 
 #### Gallery State
 - Total number of images in gallery
