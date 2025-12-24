@@ -79,6 +79,20 @@
         </label>
       </div>
 
+      <div class="streaming_container" style="margin-top: 16px">
+        <label class="checkbox_label">
+          <input type="checkbox" id="enable_streaming_checkbox" />
+          <span>Enable Image Streaming Preview</span>
+        </label>
+        <div style="margin-left: 24px; margin-top: 8px">
+          <label class="label">Number of partial images (0-5)</label>
+          <input type="number" min="0" max="5" step="1" class="input" id="partial_images_input" />
+          <small style="color: #666; font-size: 0.85rem; margin-top: 4px; display: block">
+            0 = no partials (only final), 1-5 = progressive previews during generation
+          </small>
+        </div>
+      </div>
+
       <button class="button refresh_models_button" id="refresh_models_button" style="margin-top: 16px; margin-bottom: 8px">Refresh Image Models</button>
       <button class="button" id="clear_gallery_button" style="margin-top: 8px; background-color: #d32f2f; color: white">Delete Gallery</button>
     </div>

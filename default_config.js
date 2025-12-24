@@ -16,6 +16,8 @@ const DEFAULT_CONFIG = {
   "imaginer.add_prompt_to_image": "false",
   "imaginer.add_prompt_to_image_xmp": "true",
   "imaginer.show_mask_mode_button": "false",
+  "imaginer.enable_streaming": "true",
+  "imaginer.partial_images": "2",
   "imaginer.dividerWidth": "300",
   "imaginer.mode": "generation",
 };

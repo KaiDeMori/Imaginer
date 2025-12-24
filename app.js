@@ -203,6 +203,135 @@ window.addEventListener("DOMContentLoaded", async () => {
     alert("History feature coming soon!");
   });
 
+  async function process_image_metadata(blob, prompt_text, embed_options) {
+    const strip_metadata = localStorage.getItem("imaginer.strip_metadata") === "true";
+    if (strip_metadata) {
+      const arrayBuffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      try {
+        blob = strip_metadata_from_PNG(uint8Array);
+      } catch (err) {
+        console.warn("Failed to strip PNG metadata:", err);
+      }
+    }
+
+    const embed_itxt = embed_options.embed_itxt ?? localStorage.getItem("imaginer.add_prompt_to_image") === "true";
+    const embed_xmp = embed_options.embed_xmp ?? localStorage.getItem("imaginer.add_prompt_to_image_xmp") === "true";
+
+    if (embed_itxt || embed_xmp) {
+      const reader = new FileReader();
+      const data_url = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      try {
+        if (embed_itxt) {
+          blob = await add_iTXt_chunk_to_png(data_url, prompt_text, "prompt_text");
+        }
+        if (embed_xmp) {
+          blob = await embed_XMP_description(
+            embed_itxt
+              ? await new Promise((resolve, reject) => {
+                  const r2 = new FileReader();
+                  r2.onload = () => resolve(r2.result);
+                  r2.onerror = reject;
+                  r2.readAsDataURL(blob);
+                })
+              : data_url,
+            prompt_text
+          );
+        }
+      } catch (err) {
+        console.warn("Failed to embed prompt metadata:", err);
+      }
+    }
+
+    return blob;
+  }
+
+  async function generate_image_with_streaming(request_body, placeholder, prompt_text, embed_options) {
+    const api_key = Database_store.get_api_key();
+
+    const response = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${api_key}`,
+      },
+      body: JSON.stringify(request_body),
+    });
+
+    if (!response.ok) {
+      let errObj = null;
+      try {
+        errObj = await response.json();
+      } catch (_) {
+        errObj = { message: `API request failed: ${response.status} ${response.statusText}` };
+      }
+      throw errObj;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const json_str = line.slice(6);
+          if (json_str === "[DONE]") continue;
+
+          try {
+            const event = JSON.parse(json_str);
+
+            if (event.type === "image_generation.partial_image") {
+              const base64_data = event.b64_json;
+              const blob = await fetch(`data:image/png;base64,${base64_data}`).then((res) => res.blob());
+              gallery.update_placeholder_with_partial_image(placeholder, blob, event.partial_image_index);
+            } else if (event.type === "image_generation.completed") {
+              const base64_data = event.b64_json;
+              let blob = await fetch(`data:image/png;base64,${base64_data}`).then((res) => res.blob());
+
+              blob = await process_image_metadata(blob, prompt_text, embed_options);
+
+              const created = Math.floor(Date.now() / 1000);
+              const record_id = await database_store.save({
+                created,
+                image_blob: blob,
+                prompt_text,
+                prompt_imgs: [],
+              });
+              if (gallery.records_by_created) {
+                gallery.records_by_created[created] = {
+                  id: record_id,
+                  created,
+                  image_blob: blob,
+                  prompt_text,
+                  prompt_imgs: [],
+                };
+              }
+              gallery.update_placeholder(placeholder, blob, false, prompt_text, created);
+              return;
+            }
+          } catch (parse_err) {
+            console.warn("Failed to parse SSE event:", parse_err);
+          }
+        }
+      }
+    }
+  }
+
   const generation_panel = new Generation_panel(generation_panel_root, async (prompt_text, embed_options = {}) => {
     const max = get_maximum_parallel_generations();
     if (activeGenerations >= max || generate_cooldown) {
@@ -351,177 +480,67 @@ window.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    const enable_streaming = localStorage.getItem("imaginer.enable_streaming") === "true";
+    const partial_images = parseInt(localStorage.getItem("imaginer.partial_images")) || 2;
+
     try {
       const request_body = {
         model: get_selected_model(),
         prompt: prompt_text,
         n: n_local,
         size,
-        // Only add quality if not null or 'auto' (let API default if auto)
         ...(quality !== null && quality !== "auto" ? { quality } : {}),
-        // Only add background param if not default
         ...(background !== "auto" ? { background } : {}),
       };
-      // If user explicitly chose null (empty string), set quality: null
       if (quality === null) request_body.quality = null;
 
-      const response = await fetch("https://api.openai.com/v1/images/generations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${Database_store.get_api_key()}`,
-        },
-        body: JSON.stringify(request_body),
-      });
+      if (enable_streaming) {
+        request_body.stream = true;
+        request_body.partial_images = partial_images;
 
-      if (!response.ok) {
-        let errObj = null;
-        try {
-          errObj = await response.json();
-        } catch (_) {
-          errObj = { message: `API request failed: ${response.status} ${response.statusText}` };
-        }
-        Error_modal.show(errObj);
-        for (const ph of placeholders) {
-          gallery.update_placeholder(ph, null, true, prompt_text);
-        }
-        return;
-      }
-
-      const data = await response.json();
-      if (!Array.isArray(data.data) || data.data.length === 0) {
-        Error_modal.show({ message: "No images returned from API." });
-        for (const ph of placeholders) {
-          gallery.update_placeholder(ph, null, true, prompt_text);
-        }
-        return;
-      }
-
-      // If n > 1, add all images to gallery, else use placeholder logic
-      const created = Math.floor(Date.now() / 1000);
-      if (data.data.length === 1) {
-        // --- Single image (original logic) ---
-        let base64Data = data.data[0].b64_json;
-        let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
-
-        // Optionally strip metadata if enabled in config
-        const strip_metadata = localStorage.getItem("imaginer.strip_metadata") === "true";
-        if (strip_metadata) {
-          const arrayBuffer = await blob.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-          try {
-            blob = strip_metadata_from_PNG(uint8Array);
-          } catch (err) {
-            console.warn("Failed to strip PNG metadata:", err);
-          }
-        }
-
-        // Optionally add prompt to image if enabled in config
-        const embed_itxt = embed_options.embed_itxt ?? localStorage.getItem("imaginer.add_prompt_to_image") === "true";
-        const embed_xmp = embed_options.embed_xmp ?? localStorage.getItem("imaginer.add_prompt_to_image_xmp") === "true";
-        if (embed_itxt || embed_xmp) {
-          const reader = new FileReader();
-          const data_url = await new Promise((resolve, reject) => {
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-          try {
-            if (embed_itxt) {
-              blob = await add_iTXt_chunk_to_png(data_url, prompt_text, "prompt_text");
-            }
-            if (embed_xmp) {
-              blob = await embed_XMP_description(
-                embed_itxt
-                  ? await (async () => {
-                      const r2 = new FileReader();
-                      return await new Promise((resolve, reject) => {
-                        r2.onload = () => resolve(r2.result);
-                        r2.onerror = reject;
-                        r2.readAsDataURL(blob);
-                      });
-                    })()
-                  : data_url,
-                prompt_text
-              );
-            }
-          } catch (err) {
-            console.warn("Failed to embed prompt metadata:", err);
-          }
-        }
-
-        const record_id = await database_store.save({
-          created,
-          image_blob: blob,
-          prompt_text: prompt_text,
-          prompt_imgs: [],
-        });
-        if (gallery.records_by_created) {
-          gallery.records_by_created[created] = {
-            id: record_id,
-            created,
-            image_blob: blob,
-            prompt_text: prompt_text,
-            prompt_imgs: [],
-          };
-        }
-        // Update the first placeholder, remove any extras
-        gallery.update_placeholder(placeholders[0], blob, false, prompt_text, created);
-        for (let i = 1; i < placeholders.length; i++) {
-          if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
+        for (let i = 0; i < n_local; i++) {
+          const single_request = { ...request_body, n: 1 };
+          await generate_image_with_streaming(single_request, placeholders[i], prompt_text, embed_options);
         }
       } else {
-        // --- Multiple images ---
-        // Update each placeholder with the corresponding image, or remove if not enough images returned
-        for (let i = 0; i < data.data.length; i++) {
-          let base64Data = data.data[i].b64_json;
+        const response = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Database_store.get_api_key()}`,
+          },
+          body: JSON.stringify(request_body),
+        });
+
+        if (!response.ok) {
+          let errObj = null;
+          try {
+            errObj = await response.json();
+          } catch (_) {
+            errObj = { message: `API request failed: ${response.status} ${response.statusText}` };
+          }
+          Error_modal.show(errObj);
+          for (const ph of placeholders) {
+            gallery.update_placeholder(ph, null, true, prompt_text);
+          }
+          return;
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data.data) || data.data.length === 0) {
+          Error_modal.show({ message: "No images returned from API." });
+          for (const ph of placeholders) {
+            gallery.update_placeholder(ph, null, true, prompt_text);
+          }
+          return;
+        }
+
+        const created = Math.floor(Date.now() / 1000);
+        if (data.data.length === 1) {
+          let base64Data = data.data[0].b64_json;
           let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
 
-          // Optionally strip metadata if enabled in config
-          const strip_metadata = localStorage.getItem("imaginer.strip_metadata") === "true";
-          if (strip_metadata) {
-            const arrayBuffer = await blob.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            try {
-              blob = strip_metadata_from_PNG(uint8Array);
-            } catch (err) {
-              console.warn("Failed to strip PNG metadata:", err);
-            }
-          }
-
-          // Optionally add prompt to image if enabled in config
-          const embed_itxt = embed_options.embed_itxt ?? localStorage.getItem("imaginer.add_prompt_to_image") === "true";
-          const embed_xmp = embed_options.embed_xmp ?? localStorage.getItem("imaginer.add_prompt_to_image_xmp") === "true";
-          if (embed_itxt || embed_xmp) {
-            const reader = new FileReader();
-            const data_url = await new Promise((resolve, reject) => {
-              reader.onload = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-            try {
-              if (embed_itxt) {
-                blob = await add_iTXt_chunk_to_png(data_url, prompt_text, "prompt_text");
-              }
-              if (embed_xmp) {
-                blob = await embed_XMP_description(
-                  embed_itxt
-                    ? await (async () => {
-                        const r2 = new FileReader();
-                        return await new Promise((resolve, reject) => {
-                          r2.onload = () => resolve(r2.result);
-                          r2.onerror = reject;
-                          r2.readAsDataURL(blob);
-                        });
-                      })()
-                    : data_url,
-                  prompt_text
-                );
-              }
-            } catch (err) {
-              console.warn("Failed to embed prompt metadata:", err);
-            }
-          }
+          blob = await process_image_metadata(blob, prompt_text, embed_options);
 
           const record_id = await database_store.save({
             created,
@@ -529,32 +548,59 @@ window.addEventListener("DOMContentLoaded", async () => {
             prompt_text: prompt_text,
             prompt_imgs: [],
           });
-          console.debug("[App] Saved with ID =", record_id, "created =", created);
-
-          if (placeholders[i]) {
-            gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created);
-          } else {
-            // Create a record object with the ID for the gallery
-            const record = {
+          if (gallery.records_by_created) {
+            gallery.records_by_created[created] = {
               id: record_id,
               created,
               image_blob: blob,
               prompt_text: prompt_text,
               prompt_imgs: [],
             };
-            gallery.addThumbnail(blob, prompt_text, created);
-            // Add to gallery's mapping with the correct ID
-            if (gallery.records_by_created) {
-              gallery.records_by_created[created] = record;
-              console.debug("[App] Added to gallery mapping: created =", created, "id =", record_id);
+          }
+          // Update the first placeholder, remove any extras
+          gallery.update_placeholder(placeholders[0], blob, false, prompt_text, created);
+          for (let i = 1; i < placeholders.length; i++) {
+            if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
+          }
+        } else {
+          for (let i = 0; i < data.data.length; i++) {
+            let base64Data = data.data[i].b64_json;
+            let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
+
+            blob = await process_image_metadata(blob, prompt_text, embed_options);
+
+            const record_id = await database_store.save({
+              created,
+              image_blob: blob,
+              prompt_text: prompt_text,
+              prompt_imgs: [],
+            });
+            console.debug("[App] Saved with ID =", record_id, "created =", created);
+
+            if (placeholders[i]) {
+              gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created);
             } else {
-              console.debug("[App] ERROR: gallery.records_by_created is NULL");
+              // Create a record object with the ID for the gallery
+              const record = {
+                id: record_id,
+                created,
+                image_blob: blob,
+                prompt_text: prompt_text,
+                prompt_imgs: [],
+              };
+              gallery.addThumbnail(blob, prompt_text, created);
+              // Add to gallery's mapping with the correct ID
+              if (gallery.records_by_created) {
+                gallery.records_by_created[created] = record;
+                console.debug("[App] Added to gallery mapping: created =", created, "id =", record_id);
+              } else {
+                console.debug("[App] ERROR: gallery.records_by_created is NULL");
+              }
             }
           }
-        }
-        // Remove any extra placeholders if fewer images returned than requested
-        for (let i = data.data.length; i < placeholders.length; i++) {
-          if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
+          for (let i = data.data.length; i < placeholders.length; i++) {
+            if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
+          }
         }
       }
     } catch (error) {

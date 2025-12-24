@@ -53,6 +53,8 @@ export class Config_dialog {
     this.show_mask_mode_checkbox = this.overlay.querySelector("#show_mask_mode_checkbox");
     this.prompt_checkbox = this.overlay.querySelector("#prompt_checkbox");
     this.prompt_xmp_checkbox = this.overlay.querySelector("#prompt_xmp_checkbox");
+    this.enable_streaming_checkbox = this.overlay.querySelector("#enable_streaming_checkbox");
+    this.partial_images_input = this.overlay.querySelector("#partial_images_input");
 
     this.button_download_all = this.overlay.querySelector("#download_all_button");
     this.button_cancel = this.overlay.querySelector("#cancel_button");
@@ -308,6 +310,8 @@ export class Config_dialog {
 
     // Show Mask Mode Button checkbox
     this.show_mask_mode_checkbox.checked = localStorage.getItem("imaginer.show_mask_mode_button") === "true";
+    this.enable_streaming_checkbox.checked = localStorage.getItem("imaginer.enable_streaming") !== "false";
+    this.partial_images_input.value = localStorage.getItem("imaginer.partial_images") || "2";
     // Use Database_store to get the decoded API key
     this.input.value = "";
     import("../../storage/database_store.js")
@@ -348,6 +352,8 @@ export class Config_dialog {
     const strip = this.strip_checkbox.checked;
     const add_prompt = this.prompt_checkbox.checked;
     const add_prompt_xmp = this.prompt_xmp_checkbox?.checked;
+    const enable_streaming = this.enable_streaming_checkbox.checked;
+    const partial_images = Math.max(0, Math.min(5, parseInt(this.partial_images_input.value)));
 
     // Use Database_store to set the scrambled API key - wait for it to complete
     const { Database_store } = await import("../../storage/database_store.js");
@@ -366,6 +372,8 @@ export class Config_dialog {
     localStorage.setItem("imaginer.add_prompt_to_image", String(add_prompt));
     localStorage.setItem("imaginer.add_prompt_to_image_xmp", String(add_prompt_xmp));
     localStorage.setItem("imaginer.show_mask_mode_button", String(this.show_mask_mode_checkbox.checked));
+    localStorage.setItem("imaginer.enable_streaming", String(enable_streaming));
+    localStorage.setItem("imaginer.partial_images", String(partial_images));
     this.close();
     this.onSave(key, max, n, strip, add_prompt, quality);
   }

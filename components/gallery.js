@@ -427,12 +427,64 @@ export class Gallery {
     return placeholder;
   }
 
+  update_placeholder_with_partial_image(placeholder, blob, partial_index) {
+    const existing_image = placeholder.querySelector("img.partial-preview");
+    if (existing_image) {
+      URL.revokeObjectURL(existing_image.src);
+      existing_image.remove();
+    }
+
+    const image = document.createElement("img");
+    image.className = "partial-preview";
+    const url = URL.createObjectURL(blob);
+    image.src = url;
+    Object.assign(image.style, {
+      width: "100%",
+      height: "100%",
+      objectFit: "contain",
+      opacity: "0.7",
+      filter: "brightness(0.9)",
+      position: "absolute",
+      top: "0",
+      left: "0",
+    });
+
+    let label = placeholder.querySelector(".partial-label");
+    if (!label) {
+      label = document.createElement("div");
+      label.className = "partial-label";
+      Object.assign(label.style, {
+        position: "absolute",
+        top: "6px",
+        left: "8px",
+        fontSize: "0.75rem",
+        color: "#fff",
+        background: "rgba(0,0,0,0.6)",
+        borderRadius: "3px",
+        padding: "2px 6px",
+        zIndex: "3",
+      });
+      placeholder.appendChild(label);
+    }
+    label.textContent = `Preview ${partial_index + 1}`;
+
+    placeholder.appendChild(image);
+  }
+
   update_placeholder(placeholder, blob, isError = false, promptText = "", created = null) {
-    // Remove timer interval tracking for this placeholder
     if (Gallery._activePlaceholders) {
       const idx = Gallery._activePlaceholders.indexOf(placeholder);
       if (idx !== -1) Gallery._activePlaceholders.splice(idx, 1);
     }
+
+    const partial_image = placeholder.querySelector("img.partial-preview");
+    if (partial_image) {
+      URL.revokeObjectURL(partial_image.src);
+      partial_image.remove();
+    }
+    const partial_label = placeholder.querySelector(".partial-label");
+    if (partial_label) partial_label.remove();
+
     if (isError) {
       placeholder.style.background = "#f88";
       // Remove timer if present
