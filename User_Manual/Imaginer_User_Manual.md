@@ -89,8 +89,9 @@ The menu bar spans the top of the screen and contains all your controls and sett
   
 - **Model dropdown**: Select which AI model to use for generation
   - Shows available image generation models from your OpenAI account
-  - Defaults to `gpt-image-1` (OpenAI's primary image generation model)
   - Auto-populates when you add an API key
+  - Use **Refresh Models** in Config → Advanced to update the list
+
 
 **Right side:**
 - 🗑️ **Delete Mode button**: Toggle deletion mode to remove images from gallery (starts dimmed)
