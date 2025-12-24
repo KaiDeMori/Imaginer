@@ -48,7 +48,7 @@
       <div class="field field_inline">
         <label class="label">Image quality</label>
         <select class="input" id="quality_select">
-          <option value="auto">Automatic (default)</option>
+          <option value="auto">Automatic</option>
           <option value="high">High</option>
           <option value="medium">Medium</option>
           <option value="low">Low</option>
@@ -110,8 +110,10 @@
 
     <div class="button_row">
       <button class="button download_button" id="download_all_button">Download All Images</button>
-      <button class="button cancel_button" id="cancel_button">Cancel</button>
-      <button class="button save_button" id="save_button">Save</button>
+      <div class="button_group">
+        <button class="button cancel_button" id="cancel_button">Cancel</button>
+        <button class="button save_button" id="save_button">Save</button>
+      </div>
     </div>
   </div>
 </div>

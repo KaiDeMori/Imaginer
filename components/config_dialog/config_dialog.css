@@ -122,10 +122,12 @@
 .field_inline .input {
   width: auto;
   flex-shrink: 1;
+  margin-left: auto;
 }
 
 .field_inline .form {
   flex: 1;
+  margin-left: auto;
 }
 
 /* Labels and Containers */
@@ -159,7 +161,11 @@
 /* Button Row */
 .button_row {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+}
+
+.button_group {
+  display: flex;
 }
 
 .download_button {
