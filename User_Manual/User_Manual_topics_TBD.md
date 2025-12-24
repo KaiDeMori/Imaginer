@@ -2,8 +2,6 @@
 
 *This file tracks remaining documentation work. As topics are completed and added to the main manual, they are removed from here.*
 
-**Workflow and style guidelines**: Always start with reading `User_Manual_styleguide.md` for writing standards.
-
 ---
 
 ## Documentation Workflow
@@ -15,6 +13,7 @@
 3. **Create a todo list** using `manage_todo_list` with specific, granular tasks for the topic
    - Each todo should represent checking/documenting ONE specific feature or aspect
    - Example todos: "Verify orientation button locations", "Document Generate button behavior", "Check image storage mechanism"
+   - Add the final task "Rework section according to styleguide" that instructs to fully read the `User_Manual_styleguide.md` (again) and then rework the current section using the fresh knowledge from the styleguide.
 4. **Work through todos one at a time:**
    - Mark todo as in-progress
    - Read source code to verify the feature
