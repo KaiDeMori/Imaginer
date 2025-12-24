@@ -261,7 +261,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
       // Add input_fidelity for non-mini models to ensure proper image editing
       const selected_model = get_selected_model();
-      if (selected_model === "gpt-image-1") {
+      if (selected_model === "gpt-image-1" || selected_model === "gpt-image-1.5") {
         form_data.append("input_fidelity", "high");
       }
 

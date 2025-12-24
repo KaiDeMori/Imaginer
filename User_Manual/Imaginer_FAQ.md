@@ -18,6 +18,7 @@
 
 ## Frequently Asked Questions
 - **How can I edit an image?** Drag a gallery thumbnail into the prompt panel, add a prompt, and click **Generate**.
+- **Why doesn't the mini model work well for editing?** The mini model accepts input images but does not support the `input_fidelity` parameter and produces poor editing results. Use `gpt-image-1` or `gpt-image-1.5` for image editing.
 - **How can I import an external image?** Drag a PNG or JPEG into the gallery.
 - **How can I save an image?** Hover a thumbnail and click ⬇️, or use Config → **Download All Images**.
 - **How can I backup my images?** Use Config → **Download All Images** for a ZIP file.
