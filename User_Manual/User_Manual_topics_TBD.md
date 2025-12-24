@@ -34,6 +34,10 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 
 **Never assume** a feature works as outlined - always verify in the codebase first. This step-by-step approach ensures accuracy.
 
+### Formatting Rule: No Numbering
+
+**Do not add section numbers or letter prefixes** to topics in this file unless order is absolutely critical (e.g., sequential steps that must be followed in a specific order). Keep topics clean and unnumbered for easier maintenance and reorganization.
+
 ### Related Files
 
 - **`Imaginer_User_Manual.md`** - The actual user manual where completed documentation lives
@@ -84,15 +88,15 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 
 ---
 
-## I. Getting Started
+## Getting Started
 
 *DONE*
 
 ---
 
-## II. Core Features
+## Core Features
 
-### 2. The Gallery
+### The Gallery
 
 #### Basic Gallery Usage
 - Viewing your image collection as thumbnails
@@ -105,7 +109,7 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - Downloading individual images
 - Downloading all images as ZIP (mention briefly, link to Config section)
 
-### 3. The Viewer
+### The Viewer
 
 #### Viewing and Navigating
 - Opening and closing images
@@ -113,25 +117,25 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - Panning by dragging
 - Fitting image to screen
 
-### 4. Image Editing
+### Image Editing
 - How to use images as edit references (drag from gallery to prompt panel)
 - Visual feedback in drop area
 - Editing with prompts
 - Removing input images
 
-### 5. Model Selection
+### Model Selection
 - Selecting models from dropdown
 - What models are (brief, simple explanation)
 
 ---
 
-## III. Configuration & Settings
+## Configuration & Settings
 
-### 1. Accessing Configuration
+### Accessing Configuration
 - Config button (gear icon)
 - Basic vs Advanced tabs
 
-### 2. Basic Settings
+### Basic Settings
 
 #### API Key
 - Entering your OpenAI API key
@@ -148,7 +152,7 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - Generate multiple variations
 - Cost considerations
 
-### 3. Advanced Settings
+### Advanced Settings
 
 #### Background
 - Auto, Transparent, Opaque options
@@ -173,7 +177,7 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - Show/hide mask mode in Viewer
 - When to enable
 
-### 4. Data Management
+### Data Management
 
 #### Delete Mode
 - How to enable delete mode (trash button in menu bar)
@@ -195,16 +199,16 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 
 ---
 
-## IV. Advanced Features
+## Advanced Features
 
-### 1. Conversation Mode (Experimental)
+### Conversation Mode (Experimental)
 - What is Conversation Mode?
 - Switching between Generation and Conversation modes
 - Multi-turn image refinement
 - Conversation history
 - Adding images to gallery from conversations
 
-### 2. PNG Metadata
+### PNG Metadata
 
 #### Reading metadata from imported images
 - Prompts embedded in PNGs
@@ -215,42 +219,42 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - XMP metadata
 - Compatibility considerations
 
-### 3. Keyboard Shortcuts (Main App Only)
+### Keyboard Shortcuts (Main App Only)
 - **Viewer**: 
   - `D` key: Toggle debug overlay
   - (Document other shortcuts as they exist in the main app)
 - **Note**: Intro sequence has separate keyboard controls documented in Appendix E
 
-### 4. Debug Features
+### Debug Features
 - Debug overlay (if enabled)
 - Understanding debug information
 
 ---
 
-## V. Understanding Image Generation
+## Understanding Image Generation
 
-### 1. The Generation Process
+### The Generation Process
 - From prompt to image
 - Role of the API
 - What happens during generation
 - Error handling
 
-### 2. Quality and Performance
+### Quality and Performance
 - Factors affecting generation time
 - Quality settings impact
 - Network considerations
 - Browser performance
 
-### 3. Costs
+### Costs
 - How API usage is billed
 - Impact of settings on cost (quality, n parameter)
 - Monitoring usage (outside app)
 
 ---
 
-## VI. Troubleshooting & FAQ
+## Troubleshooting & FAQ
 
-### 1. Common Issues
+### Common Issues
 
 #### API Key Problems
 - Invalid key errors
@@ -267,7 +271,7 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - Storage limitations
 - Clearing browser data impact
 
-### 2. Frequently Asked Questions
+### Frequently Asked Questions
 - How can I edit an image?
 - How can I import an external image? (and what does "import" and "external" mean?)
 - How can I save an image?
@@ -282,52 +286,52 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 
 ---
 
-## VII. Technical Information
+## Technical Information
 
-### 1. Architecture Overview
+### Architecture Overview
 - Client-side only application
 - No server-side storage
 - IndexedDB for image persistence
 - localStorage for settings
 
-### 2. Data Storage
+### Data Storage
 - What's stored in IndexedDB
 - What's stored in localStorage
 - Browser storage limits
 - Privacy considerations
 - **Technical note**: API key hashing (cryptographically non-secure hash used for basic obfuscation)
 
-### 3. Image Formats
+### Image Formats
 - Why PNG only?
 - Automatic conversion process
 - Metadata preservation
 
-### 4. OpenAI Integration
+### OpenAI Integration
 - Which APIs are used
 - gpt-image-1 model specifics
 - Response API (for conversation mode)
 
 ---
 
-## VIII. Appendices
+## Appendices
 
-### A. Glossary
+### Glossary
 - Key terms explained (inpainting, mask, iTXt, XMP, etc.)
 
-### B. Keyboard Reference (Main App)
+### Keyboard Reference (Main App)
 - Complete list of keyboard shortcuts for the main application
-- (Intro sequence shortcuts are in Appendix E)
+- (Intro sequence shortcuts are in The Intro Sequence appendix)
 
-### C. Default Values
+### Default Values
 - All default configuration settings
 - Initial prompt
 
-### D. Version History
+### Version History
 - How to check current version
 - Understanding version messages
 - What's new (link to version messages)
 
-### E. The Intro Sequence (Advanced)
+### The Intro Sequence (Advanced)
 - What is the intro sequence?
   - Epic cinematic experience completely separate from the main app
   - Plays AFTER API key entry on first launch only
