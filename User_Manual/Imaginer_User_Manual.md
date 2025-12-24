@@ -98,7 +98,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
 - ⚙️ **Config button**: Open configuration dialog for settings and API key management
 - 🛈 **About button**: View app information and version
 
-The menu bar also manages your orientation selection, which persists between sessions.
+The menu bar also manages your image orientation selection, which persists between sessions.
 
 #### The Gallery (Left)
 
