@@ -136,3 +136,41 @@ Between the Gallery and Prompt Panel is a thin vertical divider:
 - Your preferred width is saved automatically and restored next time you use Imaginer
 
 The interface is designed to be flexible—adjust the layout to match your workflow and screen size.
+
+---
+
+## II. Core Features
+
+### 1. Image Generation
+
+#### Basic Generation
+
+Creating images in Imaginer is straightforward:
+
+1. **Type your prompt** in the text area at the top of the Prompt Panel
+   - Describe what you want to see (e.g., "A robot playing chess in a park")
+   - Your prompt saves automatically as you type
+
+2. **Click the ▶️ Generate button** at the bottom of the Prompt Panel
+   - The button spans the full width and has a blue background
+
+3. **Watch as your image generates**:
+   - A placeholder appears instantly in the Gallery with a timer showing elapsed time
+   - The placeholder has a gray background while generation is in progress
+   - Generation typically takes 10-30 seconds
+
+4. **View your completed image**:
+   - When generation finishes, the placeholder is replaced with your image thumbnail
+   - The thumbnail appears at the top of the Gallery grid
+   - Click the thumbnail to view it full-screen in the Viewer
+
+**If generation fails**, the placeholder turns red. Click the 💬 button on the error placeholder to reload the prompt into the text area and try again.
+
+#### Multiple Images
+
+Generate several variations of your prompt at once:
+
+- **How to enable**: Adjust **Number of Images (n)** in Config → Basic (default is 1, maximum is 10)
+- **How it works**: When you click Generate, Imaginer creates the specified number of placeholders and requests that many images from the API
+- **Display**: All images appear as separate thumbnails in the Gallery as they complete
+- **Generation limit**: The **Maximum Parallel Generations** setting (default: 3) controls how many Generate requests can run simultaneously. If you reach this limit, the Generate button becomes disabled until a generation completes.

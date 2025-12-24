@@ -7,16 +7,17 @@
 This file serves as your working backlog for writing the Imaginer User Manual. Here's the workflow:
 
 1. **Start a conversation** by attaching this file and specifying which topic(s) you want to work on
-2. **Create a todo list** using `manage_todo_list` with specific, granular tasks for the topic
+2. **Check what's already documented**: Read the relevant sections of `Imaginer_User_Manual.md` to avoid duplicating content
+3. **Create a todo list** using `manage_todo_list` with specific, granular tasks for the topic
    - Each todo should represent checking/documenting ONE specific feature or aspect
    - Example todos: "Verify orientation button locations", "Document Generate button behavior", "Check image storage mechanism"
-3. **Work through todos one at a time:**
+4. **Work through todos one at a time:**
    - Mark todo as in-progress
    - Research the codebase to verify that specific feature
    - Write the documentation for that feature
    - Mark todo as completed
    - Move to next todo
-4. **After all todos are complete:**
+5. **After all todos are complete:**
    - Add the compiled content to `Imaginer_User_Manual.md`
    - Remove the completed topic from this TBD file
 
@@ -90,21 +91,6 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 ---
 
 ## II. Core Features
-
-### 1. Image Generation
-
-#### Basic Generation
-- The prompt text field (where to type your description)
-- The Generate button (location, what happens when clicked)
-- Visual feedback during generation (progress indicators, status)
-- Where generated images appear (Gallery)
-- Brief note: Image orientation is selected using buttons in the menu bar (landscape, portrait, square)
-
-#### Multiple Images
-- Brief explanation: generating multiple variations at once
-- How to change: 'Number of Images (n)' setting in Config → Basic
-- How multiple generations are displayed in the Gallery
-- Brief note: Parallel generation limits  (see 'Maximum Parallel Generations' in Config → Basic)
 
 ### 2. The Gallery
 
