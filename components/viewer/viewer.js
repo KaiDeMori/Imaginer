@@ -324,21 +324,26 @@ export class Viewer {
   }
 
   on_mouse_down(e) {
-    if (!this.mask_mode || e.button !== 0) return;
-    this.is_painting = true;
-    this.is_shift = e.shiftKey;
-    const { ix, iy } = this.get_image_coords_from_event(e);
-    this.last_paint_ix = ix;
-    this.last_paint_iy = iy;
-    this.paint_at_event(e);
+    if (!this.mask_mode) return;
+    // Left-click paints, right-click erases
+    if (e.button === 0 || e.button === 2) {
+      this.is_painting = true;
+      this.is_shift = e.button === 2 ? true : e.shiftKey;
+      const { ix, iy } = this.get_image_coords_from_event(e);
+      this.last_paint_ix = ix;
+      this.last_paint_iy = iy;
+      this.paint_at_event(e);
+    }
   }
 
   on_mouse_move(e) {
     if (this.mask_mode) {
       this.update_brush_cursor(e);
       if (this.is_painting) {
+        // If right mouse button is held, always erase
+        const erase = e.buttons === 2 ? true : this.is_shift;
         const { ix, iy } = this.get_image_coords_from_event(e);
-        this.paint_line_to(ix, iy, this.is_shift);
+        this.paint_line_to(ix, iy, erase);
         this.last_paint_ix = ix;
         this.last_paint_iy = iy;
         this.redraw();
@@ -361,6 +366,8 @@ export class Viewer {
 
   on_mouse_up(e) {
     if (!this.mask_mode) return;
+    // Prevent context menu on right mouse up
+    if (e.button === 2) e.preventDefault();
     this.is_painting = false;
     this.last_paint_ix = null;
     this.last_paint_iy = null;
