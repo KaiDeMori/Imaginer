@@ -25,6 +25,16 @@
 - Avoid technical jargon unless necessary
 - When technical terms are needed, explain them simply
 
+### Section Numbering Rule
+
+**Do not use section numbers or letter prefixes** in any documentation (manual, TBD file, etc.) unless order is absolutely critical (e.g., sequential steps that must be followed in a specific order). Keep sections clean and unnumbered for easier maintenance and reorganization.
+
+**For cross-references**: Use descriptive navigation instead of section numbers:
+- ✅ "See Config → Advanced for details"
+- ✅ "Explained in the Configuration section"
+- ❌ "See Section III.2"
+- ❌ "Covered in 3.4.1"
+
 ---
 
 ## Target Audience
@@ -80,3 +90,12 @@ This keeps the reading flow natural while maintaining a single source of truth f
 - Note any discrepancies between the topic outline and actual implementation
 
 **Never assume** a feature works as outlined - always verify in the codebase first. This step-by-step approach ensures accuracy.
+
+---
+
+## Related Documentation Files
+
+- **`User_Manual_topics_TBD.md`** - Working list of topics that need to be documented
+- **`Imaginer_User_Manual.md`** - The actual user manual where completed documentation lives
+- **`User_Manual_roadmap.md`** - Content structure, priorities, workflow, and strategic planning
+- **`User_Manual_styleguide.md`** - This file: Writing guidelines and style standards
