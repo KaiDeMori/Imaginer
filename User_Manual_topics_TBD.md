@@ -53,11 +53,6 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 
 ## I. Getting Started
 
-### 3. Understanding the Interface
-- The three main areas: Menu Bar, Gallery, Prompt Panel
-- Resizable divider between Gallery and Prompt Panel
-- Overview of what each area does
-
 ---
 
 ## II. Core Features
