@@ -457,25 +457,6 @@ export class Gallery {
       left: "0",
     });
 
-    let label = placeholder.querySelector(".partial-label");
-    if (!label) {
-      label = document.createElement("div");
-      label.className = "partial-label";
-      Object.assign(label.style, {
-        position: "absolute",
-        top: "6px",
-        left: "8px",
-        fontSize: "0.75rem",
-        color: "#fff",
-        background: "rgba(0,0,0,0.6)",
-        borderRadius: "3px",
-        padding: "2px 6px",
-        zIndex: "3",
-      });
-      placeholder.appendChild(label);
-    }
-    label.textContent = `Preview ${partial_index + 1}`;
-
     placeholder.appendChild(image);
   }
 
