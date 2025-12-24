@@ -175,7 +175,7 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 #### Importing Images
 
 **Drag and drop image files** from your computer into the gallery area.  
-Images with embedded prompts are automatically detected.
+Images with embedded prompts are automatically detected. Images over 4 MB are rejected.
 
 #### Deleting Images
 
@@ -379,29 +379,9 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 - If found, the 💬 button appears to load the prompt.
 - JPEG imports are converted to PNG and lose original metadata.
 
-### Keyboard Shortcuts
-- `Escape`: Close viewer or exit mask mode.
-- `D`: Toggle debug overlay in viewer.
-- `Ctrl` + `D`: Toggle debug overlay in mask mode.
-- `Ctrl` + mouse wheel: Adjust brush size.
-
 ### Debug Features
 - Toggle debug overlay with `D` (viewer) or `Ctrl` + `D` (mask mode).
 - The overlay draws a red outline of the rendered image and shows live stats: bitmap size, fit scale, zoom factor, and pan offsets.
-
-
-## Understanding Image Generation
-
-### The Generation Process
-- Write your prompt and click **▶️ Generate**. Placeholders appear in the gallery with a timer while requests run.
-- Imaginer sends /v1/images/generations requests when no input images are dropped. When images are dropped and the model supports editing, it sends /v1/images/edits with the first mask attached if one exists.
-- Generated images are stored in IndexedDB with their prompt and shown as thumbnails. The 💬 button copies the stored prompt back into the prompt box.
-- If a request fails, the placeholder turns red and keeps a 💬 button so you can retry with the same prompt.
-
-### Quality and Performance
-- Edits send `input_fidelity=high` for `gpt-image-1` to preserve input detail.
-- JPEG imports are converted to PNG; images over 4 MB are rejected on drop.
-- A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
 
 
 ## Technical Information
@@ -415,6 +395,7 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 - Images, prompts, masks, creation timestamps, and UUIDs are stored in IndexedDB (`imaginer-db`, `images` object store). Masks save when you close the viewer if you loaded the image from the gallery.
 - Settings (prompt text, orientation, quality, background, n, maximum parallel jobs, metadata options, mask button visibility, model selection) live in `localStorage`.
 - The API key is XOR-obfuscated and base64-encoded in `localStorage`. The debug function (`window.tabula_rasa()`) clears all local data.
+- A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
 
 ### Image Formats
 - All stored images are PNG. JPEG imports are converted to PNG on drop.
@@ -422,6 +403,7 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 
 ### OpenAI Integration
 - Default model fallback is `gpt-image-1.5`; the dropdown shows cached or refreshed `gpt-image-*` models.
+- When no input images are dropped, Imaginer sends `/v1/images/generations` requests. When images are dropped and the model supports editing, it sends `/v1/images/edits` with the first mask attached if one exists.
 - Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background` values. Edits send dropped images, prompt, `n`, `size`, optional `quality`/`background`, and `input_fidelity=high` for `gpt-image-1`.
 - Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`.
 
