@@ -2,6 +2,8 @@
 // Usage:
 //   Error_modal.show(errorObj)
 //   Error_modal.show('Some error message')
+import { versioned_url } from "../version_manager.js";
+
 export class Error_modal {
   static show(error) {
     // Remove any existing error modal
@@ -177,7 +179,7 @@ export class Error_modal {
     dialog.style.overflow = "hidden";
 
     const iframe = document.createElement("iframe");
-    iframe.src = "components/moderation_error.html";
+    iframe.src = versioned_url("components/moderation_error.html");
     Object.assign(iframe.style, {
       width: "100%",
       height: "100%",

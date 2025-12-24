@@ -1,4 +1,4 @@
-import { get_version_history } from "../../version_manager.js";
+import { get_version_history, versioned_url } from "../../version_manager.js";
 
 export class About_dialog {
   constructor() {
@@ -15,7 +15,7 @@ export class About_dialog {
     }
 
     // 2. Fetch HTML
-    const response = await fetch("components/about_dialog/about_dialog.html");
+    const response = await fetch(versioned_url("components/about_dialog/about_dialog.html"));
     const html = await response.text();
 
     // 3. Inject
@@ -42,7 +42,7 @@ export class About_dialog {
         const li = document.createElement("li");
         li.className = "about_list_item";
         const link = document.createElement("a");
-        link.href = path;
+        link.href = versioned_url(path);
         link.target = "_blank";
         link.textContent = `Version ${version}`;
         link.className = "about_link";

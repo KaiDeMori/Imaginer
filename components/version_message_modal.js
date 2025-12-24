@@ -15,6 +15,7 @@ This system is designed for flexibility, maintainability, and a clean user exper
 // version_message_modal.js
 // Modal for displaying version messages using standalone HTML snippets
 // Uses loose_snake_case naming throughout
+import { versioned_url } from "../version_manager.js";
 
 export class version_message_modal {
   constructor() {
@@ -38,7 +39,7 @@ export class version_message_modal {
     this.modal_element.addEventListener("click", (e) => e.stopPropagation());
     // Load HTML snippet
     try {
-      const response = await fetch(version_html_path);
+      const response = await fetch(versioned_url(version_html_path));
       if (!response.ok) throw new Error("Failed to load version message");
       const html_text = await response.text();
       // Extract body content if present

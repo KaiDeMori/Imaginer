@@ -1,3 +1,5 @@
+import { versioned_url } from "../../version_manager.js";
+
 export class Performance_limit_warning {
   constructor() {
     this.init_promise = this.init();
@@ -13,7 +15,7 @@ export class Performance_limit_warning {
     }
 
     // 2. Fetch HTML
-    const response = await fetch("components/performance_limit_warning/performance_limit_warning.html");
+    const response = await fetch(versioned_url("components/performance_limit_warning/performance_limit_warning.html"));
     const html = await response.text();
 
     // 3. Create container

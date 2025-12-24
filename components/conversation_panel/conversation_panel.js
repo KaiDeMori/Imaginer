@@ -1,3 +1,5 @@
+import { versioned_url } from "../../version_manager.js";
+
 export class Conversation_panel {
   constructor(container) {
     this.container = container;
@@ -12,7 +14,7 @@ export class Conversation_panel {
     document.head.appendChild(link);
 
     // Load HTML
-    const response = await fetch("./components/conversation_panel/conversation_panel.html");
+    const response = await fetch(versioned_url("./components/conversation_panel/conversation_panel.html"));
     const html = await response.text();
     this.container.innerHTML = html;
 

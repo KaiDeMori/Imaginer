@@ -4,6 +4,8 @@
 //   const cfg = new Config_dialog();
 //   cfg.open();
 // ---------------------------------------------------------------------
+import { versioned_url } from "../../version_manager.js";
+
 export class Config_dialog {
   constructor(onSave = () => {}) {
     this.onSave = onSave;
@@ -20,7 +22,7 @@ export class Config_dialog {
     }
 
     // 2. Fetch HTML
-    const response = await fetch("components/config_dialog/config_dialog.html");
+    const response = await fetch(versioned_url("components/config_dialog/config_dialog.html"));
     const html = await response.text();
 
     // 3. Create a temporary container to parse the HTML

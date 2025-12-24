@@ -4,6 +4,7 @@ import { About_dialog } from "../about_dialog/about_dialog.js";
 import { Database_store } from "../../storage/database_store.js";
 import { Error_modal } from "../error_modal.js";
 import { get_models_for_dropdown, get_selected_model, set_selected_model, refresh_models } from "../../model_fetcher.js";
+import { versioned_url } from "../../version_manager.js";
 
 export class Menu_bar {
   constructor(root) {
@@ -22,7 +23,7 @@ export class Menu_bar {
     }
 
     // 2. Fetch HTML
-    const response = await fetch("components/menu_bar/menu_bar.html");
+    const response = await fetch(versioned_url("components/menu_bar/menu_bar.html"));
     const html = await response.text();
 
     // 3. Inject

@@ -12,7 +12,7 @@ import { Error_modal } from "./components/error_modal.js";
 import { strip_metadata_from_PNG } from "./strip_metadata_from_PNG/strip_metadata_from_PNG.js";
 import { add_iTXt_chunk_to_png } from "./png_iTXt/png_iTXt.js";
 import { embed_XMP_description } from "./png_XMP_via_iTXt/png-XMP-embedder.js";
-import { check_and_show_update_message } from "./version_manager.js";
+import { check_and_show_update_message, versioned_url } from "./version_manager.js";
 import { ensure_config_defaults } from "./default_config.js";
 import { get_selected_model } from "./model_fetcher.js";
 
@@ -82,7 +82,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   // Ensure all config defaults are set in localStorage
   ensure_config_defaults();
   // --- Check for API key on load (using scrambled key logic) ---
-  import("./storage/database_store.js").then(({ Database_store }) => {
+  import(versioned_url("./storage/database_store.js")).then(({ Database_store }) => {
     const apiKey = Database_store.get_api_key();
     if (!apiKey) {
       // Show a message and open the config dialog
@@ -104,7 +104,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
       document.body.appendChild(msg);
       // Dynamically import and open config dialog
-      import("./components/config_dialog/config_dialog.js").then(({ Config_dialog }) => {
+      import(versioned_url("./components/config_dialog/config_dialog.js")).then(({ Config_dialog }) => {
         const cfg = new Config_dialog(() => {
           msg.remove();
           window.dispatchEvent(new Event("imaginer.config_changed"));
@@ -139,7 +139,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     on_loading_complete: async () => {
       const duration = performance.now() - start_time;
       if (duration > MAX_GALLERY_LOAD_DURATION_MS) {
-        const { Performance_limit_warning } = await import("./components/performance_limit_warning/performance_limit_warning.js");
+        const { Performance_limit_warning } = await import(versioned_url("./components/performance_limit_warning/performance_limit_warning.js"));
         const warning = new Performance_limit_warning();
         warning.open();
       }
@@ -183,7 +183,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   let conversation_panel_instance = null;
   if (mode === "conversation") {
-    const { Conversation_panel } = await import("./components/conversation_panel/conversation_panel.js");
+    const { Conversation_panel } = await import(versioned_url("./components/conversation_panel/conversation_panel.js"));
     conversation_panel_instance = new Conversation_panel(document.getElementById("generation-panel"));
   }
 
@@ -652,7 +652,7 @@ window.tabula_rasa = function tabula_rasa() {
 
 // --- Debug function to trigger performance warning ---
 window.debug_trigger_performance_warning = async function () {
-  const { Performance_limit_warning } = await import("./components/performance_limit_warning/performance_limit_warning.js");
+  const { Performance_limit_warning } = await import(versioned_url("./components/performance_limit_warning/performance_limit_warning.js"));
   const warning = new Performance_limit_warning();
   warning.open();
 };

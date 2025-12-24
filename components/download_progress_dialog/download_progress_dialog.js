@@ -1,3 +1,5 @@
+import { versioned_url } from "../../version_manager.js";
+
 export class Download_progress_dialog {
   constructor() {
     this.init_promise = this.init();
@@ -11,7 +13,7 @@ export class Download_progress_dialog {
       document.head.appendChild(link);
     }
 
-    const response = await fetch("components/download_progress_dialog/download_progress_dialog.html");
+    const response = await fetch(versioned_url("components/download_progress_dialog/download_progress_dialog.html"));
     const html = await response.text();
 
     const temp = document.createElement("div");

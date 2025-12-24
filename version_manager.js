@@ -5,6 +5,22 @@ import { version_message_modal } from "./components/version_message_modal.js";
 
 const VERSION_STORAGE_KEY = "imaginer_app_version";
 
+let CURRENT_VERSION = null;
+
+function versioned_url(url) {
+  if (!url || typeof url !== "string") {
+    return url;
+  }
+
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+
+  const version = CURRENT_VERSION || Date.now();
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}v=${version}`;
+}
+
 // Fetch version config from server (cache-busted)
 async function get_version_config() {
   try {
@@ -41,6 +57,7 @@ async function check_and_show_update_message(suppress_modal = false) {
   if (!config) return;
 
   const current_app_version = config.version;
+  CURRENT_VERSION = current_app_version;
   const previous_version = localStorage.getItem(VERSION_STORAGE_KEY);
   const normalized_previous_version = previous_version || "0";
   const version_comparison_result = compare_versions(current_app_version, normalized_previous_version);
@@ -96,4 +113,4 @@ async function get_version_history() {
   return config ? config.history : {};
 }
 
-export { check_and_show_update_message, compare_versions, get_version_history };
+export { check_and_show_update_message, compare_versions, get_version_history, versioned_url };
