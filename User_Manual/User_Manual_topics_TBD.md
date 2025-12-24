@@ -54,6 +54,8 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 
 ## I. Getting Started
 
+*DONE*
+
 ---
 
 ## II. Core Features
