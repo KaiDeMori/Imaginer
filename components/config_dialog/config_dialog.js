@@ -47,6 +47,7 @@ export class Config_dialog {
     this.n_input = this.overlay.querySelector("#n_input");
     this.background_select = this.overlay.querySelector("#background_select");
     this.quality_select = this.overlay.querySelector("#quality_select");
+    this.input_fidelity_select = this.overlay.querySelector("#input_fidelity_select");
 
     this.strip_checkbox = this.overlay.querySelector("#strip_checkbox");
     this.show_mask_mode_checkbox = this.overlay.querySelector("#show_mask_mode_checkbox");
@@ -320,6 +321,7 @@ export class Config_dialog {
     this.n_input.value = localStorage.getItem("imaginer.n");
     this.quality_select.value = localStorage.getItem("imaginer.quality");
     this.background_select.value = localStorage.getItem("imaginer.background");
+    this.input_fidelity_select.value = localStorage.getItem("imaginer.input_fidelity");
     this.strip_checkbox.checked = localStorage.getItem("imaginer.strip_metadata") === "true";
     // iTXt embedding is off by default
     this.prompt_checkbox.checked = localStorage.getItem("imaginer.add_prompt_to_image") === "true";
@@ -342,6 +344,7 @@ export class Config_dialog {
     const n = Math.max(1, Math.min(10, parseInt(this.n_input.value)));
     const quality = this.quality_select.value;
     const background = this.background_select.value;
+    const input_fidelity = this.input_fidelity_select.value;
     const strip = this.strip_checkbox.checked;
     const add_prompt = this.prompt_checkbox.checked;
     const add_prompt_xmp = this.prompt_xmp_checkbox?.checked;
@@ -358,6 +361,7 @@ export class Config_dialog {
     localStorage.setItem("imaginer.n", String(n));
     localStorage.setItem("imaginer.background", background);
     localStorage.setItem("imaginer.quality", quality);
+    localStorage.setItem("imaginer.input_fidelity", input_fidelity);
     localStorage.setItem("imaginer.strip_metadata", String(strip));
     localStorage.setItem("imaginer.add_prompt_to_image", String(add_prompt));
     localStorage.setItem("imaginer.add_prompt_to_image_xmp", String(add_prompt_xmp));

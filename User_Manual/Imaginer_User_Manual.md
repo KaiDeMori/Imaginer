@@ -318,6 +318,14 @@ Transparency works best for isolated objects like logos and icons.
 - **Medium**: Balanced quality.
 - **Low**: Lower quality rendering.
 
+#### Input Fidelity
+
+**Input fidelity** controls how much effort the model exerts to preserve style and features (especially facial features) from input images during edits. Only applies to `gpt-image-1` and `gpt-image-1.5`. Not supported by `gpt-image-1-mini`.
+
+**Options**:
+- **Low** (default): Standard editing with moderate input preservation.
+- **High**: Enhanced preservation of details like faces and logos from input images.
+
 #### Orientation and Size
 
 Use Menu Bar → **Orientation buttons** to choose the canvas shape for generation and edits.

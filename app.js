@@ -259,10 +259,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (quality !== null && quality !== "auto") form_data.append("quality", quality);
       if (background !== "auto") form_data.append("background", background);
 
-      // Add input_fidelity for non-mini models to ensure proper image editing
       const selected_model = get_selected_model();
       if (selected_model === "gpt-image-1" || selected_model === "gpt-image-1.5") {
-        form_data.append("input_fidelity", "high");
+        const input_fidelity = localStorage.getItem("imaginer.input_fidelity");
+        if (input_fidelity) form_data.append("input_fidelity", input_fidelity);
       }
 
       function debug_mask(mask) {
