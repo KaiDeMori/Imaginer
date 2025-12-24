@@ -41,8 +41,7 @@ When documenting topics from `User_Manual_topics_TBD.md`:
 1. **In feature sections** (Core Features, Advanced Features):
    - Brief practical mention of the setting in context
    - Focus on "what" and "why" for the user's immediate task
-   - Reference Configuration & Settings section for full details using arrow format
-   - Example: "To generate multiple images at once, adjust Config → Basic → **Number of Images (n)**"
+   - Reference Configuration & Settings section for full details (see **Navigation Path Format** in style guide)
 
 2. **In Configuration section**:
    - Complete technical documentation of each setting
