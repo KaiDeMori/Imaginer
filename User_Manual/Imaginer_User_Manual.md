@@ -228,3 +228,23 @@ Mask Mode lets you paint on images to control which areas get regenerated during
 **Remove Mask** button clears all masks (appears only when masks exist).
 
 Masks save automatically when you close the Viewer. Gallery thumbnails with masks show a red border.
+
+
+### Image Editing
+
+**Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery.
+
+The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them.
+
+**For precise edits**, create a mask in the Viewer (see **The Viewer → Mask Mode**), then drag that masked image to the drop area. Only masked areas will be modified.
+
+**When using multiple images**: If you drop several images with masks, only the first image's mask is used. The first thumbnail shows a red border when its mask is active. Other masked images show a regular border.
+
+
+### Model Selection
+
+The dropdown in the menu bar (next to the orientation buttons) lets you choose which AI model generates your images.
+
+Different models offer trade-offs between quality, speed, and cost.
+
+Use Config → Advanced → **Refresh Models** to update the list when new models become available.

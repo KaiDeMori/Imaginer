@@ -14,15 +14,7 @@
 
 ## Core Features
 
-### Image Editing
-- How to use images as edit references (drag from gallery to prompt panel)
-- Visual feedback in drop area
-- Editing with prompts
-- Removing input images
-
-### Model Selection
-- Selecting models from dropdown
-- What models are (brief, simple explanation)
+*DONE*
 
 ---
 
