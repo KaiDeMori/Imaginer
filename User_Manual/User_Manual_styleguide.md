@@ -51,6 +51,21 @@ Keep the text meant for humans short and non-technical and prefer to add technic
 
 ---
 
+## Avoiding Content Duplication
+
+When a topic (like a configuration setting) is relevant in multiple places:
+
+- **Document it fully once** in its primary location (usually the most technical or comprehensive section)
+- **Reference it briefly** in other sections where it's relevant, with a pointer to the full documentation
+- Include just enough context so readers understand what it does in that specific situation
+- **Do NOT use section number references** (e.g., "see Section III.2") - these are difficult to maintain as the manual evolves
+
+Example: "You can adjust this setting in Config → Advanced."
+
+This keeps the reading flow natural while maintaining a single source of truth for technical details.
+
+---
+
 ## Documentation Focus
 
 **⚠️ CRITICAL**: This style guide is exclusively for documenting existing features. The goal is to get it right and not forget anything. Do NOT invent new features or interactive elements while writing documentation.

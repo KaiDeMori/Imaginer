@@ -30,6 +30,28 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 - **`User_Manual_roadmap.md`** - Content structure, priorities, and strategic planning
 - **`User_Manual_styleguide.md`** - Writing guidelines and style standards
 
+### Configuration Settings Documentation Strategy
+
+**Hybrid Approach** - avoiding duplication while maintaining readability:
+
+1. **In feature sections** (II. Core Features, IV. Advanced Features):
+   - Brief practical mention of the setting in context
+   - Simple explanation of what it does for this specific feature
+   - Reference to Config section for full details
+   - Example: "To generate multiple images at once, increase 'Number of Images (n)' in Config → Basic (see Section III.2 for details)"
+
+2. **In Configuration section** (III. Configuration & Settings):
+   - Complete technical documentation of each setting
+   - Default values, all options, implications
+   - Cross-references back to where the setting is used
+   - This is the single source of truth for technical details
+
+3. **Benefits**:
+   - Users reading feature sections get practical, contextual guidance
+   - Config section serves as comprehensive reference
+   - Help Chat AI has access to full technical details in Section III
+   - No content duplication
+
 ### Additional Context for Documentation
 
 **Target Audience**: This manual serves both children and adults. The app is designed to be accessible for kids, but documentation should be clear and helpful for all ages.
@@ -63,16 +85,17 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 ### 1. Image Generation
 
 #### Basic Generation
-- Writing effective prompts
-- Choosing image orientation (landscape, portrait, square)
-- The Generate button
-- Understanding the generation process
-- Viewing generated images
+- The prompt text field (where to type your description)
+- The Generate button (location, what happens when clicked)
+- Visual feedback during generation (progress indicators, status)
+- Where generated images appear (Gallery)
+- Brief note: Image orientation can be changed in Config → Advanced (see Section III.3)
 
 #### Multiple Images
-- Generating multiple images at once (n parameter)
-- Parallel generation limits
-- Managing generation queue
+- Brief explanation: generating multiple variations at once
+- How to enable: 'Number of Images (n)' setting in Config → Basic (see Section III.2)
+- How multiple generations are displayed in the Gallery
+- Brief note: Parallel generation limits prevent browser overload (see Section III.2)
 
 ### 2. The Gallery
 
