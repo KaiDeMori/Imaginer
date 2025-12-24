@@ -89,7 +89,7 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - The Generate button (location, what happens when clicked)
 - Visual feedback during generation (progress indicators, status)
 - Where generated images appear (Gallery)
-- Brief note: Image orientation can be changed in Config → Advanced (see Section III.3)
+- Brief note: Image orientation can be changed in Config → Advanced
 
 #### Multiple Images
 - Brief explanation: generating multiple variations at once
