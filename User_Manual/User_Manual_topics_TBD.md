@@ -10,8 +10,6 @@
 
 ### How to Work on Documentation
 
-When documenting topics from `User_Manual_topics_TBD.md`:
-
 1. **Start a conversation** by attaching the TBD file and specifying which topic(s) you want to work on
 2. **Check what's already documented**: Read the relevant sections of `Imaginer_User_Manual.md` to avoid duplicating content
 3. **Create a todo list** using `manage_todo_list` with specific, granular tasks for the topic
