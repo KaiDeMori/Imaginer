@@ -23,7 +23,9 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 
 **Important**: Use `manage_todo_list` to break topics into small, verifiable chunks. This prevents overwhelming analysis and ensures each feature is properly verified before documenting.
 
-### Critical Rule: Verify Before Writing
+### Critical Rule: Document Only What Exists
+
+**⚠️ CRITICAL**: This document is exclusively for documenting existing features. The goal is to get it right and not forget anything. Do NOT invent new features or interactive elements while writing documentation.
 
 **Before writing any documentation, the assistant MUST:**
 - Read relevant source files to verify features exist as described
@@ -32,7 +34,7 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 - Confirm technical details (storage mechanisms, API endpoints, etc.)
 - Note any discrepancies between the topic outline and actual implementation
 
-**Never assume** a feature works as outlined - always verify in the codebase first. This step-by-step approach ensures accuracy.
+**Never assume** a feature works as outlined - always verify in the codebase first.
 
 ### Formatting Rule: No Numbering
 
@@ -46,15 +48,16 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 
 ### Configuration Settings Documentation Strategy
 
-**Hybrid Approach** - avoiding duplication while maintaining readability:
+**Avoiding duplication while maintaining readability:**
 
-1. **In feature sections** (II. Core Features, IV. Advanced Features):
+1. **In feature sections** (Core Features, Advanced Features):
    - Brief practical mention of the setting in context
    - Simple explanation of what it does for this specific feature
-   - Reference to Config section for full details
+   - Reference to Config section for full details (e.g., "You can adjust this in Config → Advanced")
+   - **Do NOT use section numbers** - they're difficult to maintain as the manual evolves
    - Example: "To generate multiple images at once, increase 'Number of Images (n)' in Config → Basic"
 
-2. **In Configuration section** (III. Configuration & Settings):
+2. **In Configuration section**:
    - Complete technical documentation of each setting
    - Default values, all options, implications
    - Cross-references back to where the setting is used
@@ -63,7 +66,7 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 3. **Benefits**:
    - Users reading feature sections get practical, contextual guidance
    - Config section serves as comprehensive reference
-   - Help Chat AI has access to full technical details in Section III
+   - Help Chat AI has access to full technical details
    - No content duplication
 
 ### Additional Context for Documentation
@@ -76,13 +79,25 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 - Explain technical concepts in plain terms without being patronizing
 - Focus on being helpful and approachable, not age-specific
 
+**Formatting**:
+- **UI elements** in bold: "Click the **Config** button"
+- **User actions** as steps: numbered lists for procedures
+- **File names and technical terms** in code format: `image.png`, `localStorage`
+- Keep paragraphs short (2-4 sentences)
+
+**Tone & Voice**:
+- Clear and direct using simple, everyday language
+- Friendly but professional - approachable without being casual
+- Action-oriented focusing on what users can do
+- Timeless - avoid version numbers, dates, or temporary references in main content
+
 **AI Help Chat Consideration**: This manual will be the knowledge base for the integrated help chat AI. Write content that:
 - Can be easily referenced by an AI assistant
 - Provides complete, accurate information
 - Uses consistent terminology throughout
 - Is structured logically for question-answering
-
-Keep the text meant for humans short and non-technical and prefer to add technical details that the Help Chat AI might need to the end of the manual in separate sections.
+- Keeps text for humans short and non-technical
+- Adds technical details the Help Chat AI might need in separate sections at the end of the manual
 
 The assistant will use the `manage_todo_list` tool to track verification and writing progress within each conversation.
 
