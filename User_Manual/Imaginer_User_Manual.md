@@ -367,26 +367,19 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 ### PNG Metadata
 
 #### Reading metadata from imported images
-- Imaginer reads PNG iTXt chunks with the `prompt_text` keyword and XMP descriptions when you drop a PNG into the gallery.
-- If metadata is found, the prompt is stored with the image and the 💬 button appears on the thumbnail to load it into the prompt box.
-- JPEG imports are converted to PNG before storage. Non-PNG files lose any original metadata during conversion.
+- Imaginer reads prompts from PNG metadata when you drop an image into the gallery.
+- If found, the 💬 button appears to load the prompt.
+- JPEG imports are converted to PNG and lose original metadata.
 
-#### Writing metadata to generated images
-- Config → Advanced → **Strip Server-Side metadata** removes metadata from API responses before saving (default on).
-- Config → Advanced → **Embed prompt as iTXt** adds the prompt to a `prompt_text` iTXt chunk (default off).
-- Config → Advanced → **Embed prompt as XMP** writes the prompt into XMP metadata (default on). If both options are on, iTXt is written first, then XMP.
-- Metadata embedding applies to both single and multi-image generations. Imported images are not modified unless you regenerate them.
-
-### Keyboard Shortcuts (Main App Only)
-- Viewer: `Escape` closes the viewer or exits mask mode.
-- Viewer: `D` toggles the debug overlay while the viewer is open.
-- Mask mode: `Ctrl` + `D` toggles the debug overlay while painting.
-- Mask mode: `Ctrl` + mouse wheel adjusts brush size.
+### Keyboard Shortcuts
+- `Escape`: Close viewer or exit mask mode.
+- `D`: Toggle debug overlay in viewer.
+- `Ctrl` + `D`: Toggle debug overlay in mask mode.
+- `Ctrl` + mouse wheel: Adjust brush size.
 
 ### Debug Features
-- The debug overlay is available in the viewer. Toggle it with `D` (viewer mode) or `Ctrl` + `D` (mask mode).
+- Toggle debug overlay with `D` (viewer) or `Ctrl` + `D` (mask mode).
 - The overlay draws a red outline of the rendered image and shows live stats: bitmap size, fit scale, zoom factor, and pan offsets.
-- Debug view appears only while the viewer overlay is visible.
 
 
 ## Understanding Image Generation
@@ -394,63 +387,26 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 ### The Generation Process
 - Write your prompt and click **▶️ Generate**. Placeholders appear in the gallery with a timer while requests run.
 - Imaginer sends /v1/images/generations requests when no input images are dropped. When images are dropped and the model supports editing, it sends /v1/images/edits with the first mask attached if one exists.
-- Orientation buttons set the `size` (square 1024×1024, landscape 1536×1024, portrait 1024×1536). Background, quality, and `n` come from Config.
 - Generated images are stored in IndexedDB with their prompt and shown as thumbnails. The 💬 button copies the stored prompt back into the prompt box.
 - If a request fails, the placeholder turns red and keeps a 💬 button so you can retry with the same prompt.
 
 ### Quality and Performance
-- **Quality** passes directly to the API; leave it on Automatic to let the model choose.
-- **Background** can be Automatic, Transparent, or Opaque and is sent with each request.
-- **Number of Images (n)** creates multiple images per click; **Maximum Parallel Generations** limits how many requests run at once (Generate disables when you hit the limit).
-- Edits send `input_fidelity=high` for `gpt-image-1` to preserve input detail. JPEG imports are converted to PNG; images over 4 MB are rejected on drop.
+- Edits send `input_fidelity=high` for `gpt-image-1` to preserve input detail.
+- JPEG imports are converted to PNG; images over 4 MB are rejected on drop.
 - A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
-
-### Costs
-- Each generated image is billed by OpenAI according to the selected model and `n`. Edits and generations are both billable per image.
-- Parallel requests and multiple images multiply usage; there is no in-app usage meter. Track spending in your OpenAI account dashboard.
-
-
-## Troubleshooting & FAQ
-
-### Common Issues
-
-#### API Key Problems
-- If no key is saved, Imaginer shows a banner and opens Config → Basic → **OpenAI API Key**.
-- The **Test** button calls `/v1/models` and shows 👍 (valid with image access), 😢 (valid but no image model access), or 👎 (invalid/failed). Error details appear in the modal.
-- Keys are stored scrambled in `localStorage`. Clearing browser data removes the key and requires re-entry.
-
-#### Generation Failures
-- API errors or empty responses show in the error modal and turn placeholders red. Use the 💬 button on the red tile to reload the prompt.
-- Hitting Maximum Parallel Generations disables **Generate** until a running job finishes.
-- If models are missing after adding a key, use Config → Advanced → **Refresh Image Models**.
-
-#### Browser Issues
-- Imaginer is web-only and keeps everything in the browser. Clearing site data deletes images, masks, prompts, and the API key.
-- PNG and JPEG imports are supported; files above 4 MB are rejected. Non-PNG files are converted to PNG before storage.
-- The intro sequence and viewer require WebGL. The app is tuned for Firefox but works in other modern browsers.
-
-### Frequently Asked Questions
-- **How can I edit an image?** Drag a gallery thumbnail into the prompt panel drop area, add a prompt, and click **Generate**. Enable Config → Advanced → **Show Mask Mode Button** if you need masking.
-- **How can I import an external image?** Drag a PNG or JPEG into the gallery. Prompts embedded as iTXt/XMP are detected automatically.
-- **How can I save an image?** Hover a thumbnail and click ⬇️. For all images, use Config → **Download All Images**.
-- **How can I backup/export my images?** Use Config → **Download All Images** (ZIP). Each filename includes a timestamp and part of the prompt.
-- **How can I delete images or clear the gallery?** Use the 🗑️ Delete Mode button for single images, or Config → Advanced → **Delete Gallery** to wipe everything.
-- **Where are my images stored?** In your browser’s IndexedDB. Each browser/device keeps its own copy; data does not sync across devices.
-- **Can I use Imaginer offline?** No. An internet connection and a valid OpenAI API key are required for generation and model refresh.
-- **Why can’t I see the Mask Mode button?** Enable it in Config → Advanced → **Show Mask Mode Button**. Masks are hidden by default.
 
 
 ## Technical Information
 
 ### Architecture Overview
 - Imaginer runs entirely in the browser. There is no server-side storage.
-- Image generation uses OpenAI’s `/v1/images/generations` and `/v1/images/edits` endpoints. Model lists come from `/v1/models`.
+- Image generation uses OpenAI's `/v1/images/generations` and `/v1/images/edits` endpoints. Model lists come from `/v1/models`.
 - The conversation panel is a local mock; it does not call the Responses API.
 
 ### Data Storage
 - Images, prompts, masks, creation timestamps, and UUIDs are stored in IndexedDB (`imaginer-db`, `images` object store). Masks save when you close the viewer if you loaded the image from the gallery.
 - Settings (prompt text, orientation, quality, background, n, maximum parallel jobs, metadata options, mask button visibility, model selection) live in `localStorage`.
-- The API key is XOR-obfuscated and base64-encoded in `localStorage`. Tabula rasa (`window.tabula_rasa`) clears all local data.
+- The API key is XOR-obfuscated and base64-encoded in `localStorage`. The debug function (`window.tabula_rasa()`) clears all local data.
 
 ### Image Formats
 - All stored images are PNG. JPEG imports are converted to PNG on drop.
@@ -465,36 +421,37 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 ## Appendices
 
 ### Glossary
-- **Mask**: A painted area in the viewer that marks which pixels may change during an edit. Red overlay = editable area.
-- **Inpainting**: Editing only the masked regions of an image while preserving the rest.
-- **iTXt**: A PNG text chunk that stores UTF-8 metadata alongside the image.
-- **XMP**: A metadata format embedded in images; used here to store prompts for compatible tools.
-- **Input fidelity**: API hint that preserves input detail when sending edits (used with `gpt-image-1`).
+- **Mask**: Painted area marking which pixels can change during an edit (shown as red overlay).
+- **Inpainting**: Editing only masked regions while preserving the rest.
+- **iTXt**: PNG metadata chunk for storing text data.
+- **XMP**: Metadata format for embedding information in images.
 
-### Keyboard Reference (Main App)
-- `Escape`: Close viewer / exit mask mode.
-- `D`: Toggle debug overlay in viewer mode.
-- `Ctrl` + `D`: Toggle debug overlay while in mask mode.
-- `Ctrl` + mouse wheel: Increase or decrease brush size in mask mode.
+### Keyboard Reference
+- `Escape`: Close viewer or exit mask mode.
+- `D`: Toggle debug overlay (viewer).
+- `Ctrl` + `D`: Toggle debug overlay (mask mode).
+- `Ctrl` + mouse wheel: Adjust brush size.
 
 ### Default Values
-- Initial prompt text: “A unicorn-dinosaur.”
+- Initial prompt: "A unicorn-dinosaur."
 - Maximum Parallel Generations: 3
-- Number of Images (n): 1
-- Orientation: Square 1024×1024 (Landscape 1536×1024 and Portrait 1024×1536 available via orientation buttons)
+- Number of Images: 1
+- Orientation: Square 1024×1024
 - Background: Automatic
-- Image Quality: Automatic
+- Quality: Automatic
 - Strip Server-Side metadata: On
 - Embed prompt as iTXt: Off
 - Embed prompt as XMP: On
 - Show Mask Mode Button: Off
 
 ### Version History
-- Version info lives in `version.json`. Release notes are stored as HTML files in `version_messages/`.
-- On update, Imaginer shows a version message modal and stores the current version in `localStorage` so the message appears once per update.
+- Version info is stored in `version.json`.
+- Release notes appear as modals on updates and are shown once per version.
 
-### The Intro Sequence (Advanced)
-- First launch redirects to `intro/00/cinematic_starfield_and_the_great_everywhere_shake.html` after API key entry. WebGL is required; if unavailable, the intro is skipped and you go to the app.
-- The intro preload screen lets you test audio, toggle fullscreen, and pick a font. Saved controls: `1`–`5` switch fonts, `+`/`-` (or `=`/`-`) change font scale, Arrow Up/Down adjust audio volume. Settings persist in `localStorage` and carry into the cinematic.
-- If the intro is interrupted, the next start asks whether to replay. Completing or skipping it sets `imaginer.intro.first_start` to false so the app opens normally.
+### The Intro Sequence
+- First launch shows a cinematic intro after API key entry (requires WebGL).
+- The preload screen offers audio test, fullscreen, and font selection.
+- Controls: `1`–`5` switch fonts, `+`/`-` adjust font scale, Arrow Up/Down control volume.
+- Settings are saved and carry into the cinematic.
+- Completing or skipping the intro bypasses it on future launches.
 
