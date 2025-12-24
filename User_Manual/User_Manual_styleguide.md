@@ -37,6 +37,28 @@
 
 **Do not use section numbers or letter prefixes** in any documentation (manual, TBD file, etc.) unless order is absolutely critical (e.g., sequential steps that must be followed in a specific order). Keep sections clean and unnumbered for easier maintenance and reorganization.
 
+### Configuration Settings Documentation Strategy
+
+**Avoiding duplication while maintaining readability:**
+
+1. **In feature sections** (Core Features, Advanced Features):
+   - Brief practical mention of the setting in context
+   - Focus on "what" and "why" for the user's immediate task
+   - Reference Configuration & Settings section for full details (see **Navigation Path Format** in style guide)
+
+2. **In Configuration section**:
+   - Complete technical documentation of each setting
+   - All available values/options
+   - Default values and behavior
+   - Impact on cost, performance, quality, etc.
+   - This is the single source of truth for technical details
+
+3. **Benefits**:
+   - Users reading feature sections get practical, contextual guidance
+   - Users in Config section get comprehensive reference
+   - Changes only need to be made in one place (Config section)
+   - No content duplication
+
 ---
 
 ## Target Audience
