@@ -1,4 +1,6 @@
 // generation_panel.js - Prompt panel component (updated with generate button logic)
+import { versioned_url } from "../version_manager.js";
+
 export class Generation_panel {
   _update_input_image_thumbnails() {
     const drop_area = this.root.querySelector("#input-image-drop-area");
@@ -7,7 +9,7 @@ export class Generation_panel {
     drop_area.querySelectorAll(".input-image-thumb").forEach((el) => el.remove());
     // Remove placeholder if present
     let placeholder = drop_area.querySelector("#input-image-drop-placeholder");
-    import("./drop_area_manager.js").then(({ default: drop_area_manager }) => {
+    import(versioned_url("./drop_area_manager.js")).then(({ default: drop_area_manager }) => {
       const images = drop_area_manager.get_images();
       if (images.length > 0) {
         if (placeholder) placeholder.style.display = "none";
@@ -145,7 +147,7 @@ export class Generation_panel {
     });
 
     // Set initial visibility based on current model
-    import("../model_fetcher.js").then(({ get_selected_model }) => {
+    import(versioned_url("../model_fetcher.js")).then(({ get_selected_model }) => {
       this.update_drop_area_visibility(get_selected_model());
     });
 
@@ -194,7 +196,7 @@ export class Generation_panel {
           if (mask_blob instanceof Blob) {
             mask_file = new File([mask_blob], "mask.png", { type: "image/png" });
           }
-          import("./drop_area_manager.js").then(({ default: drop_area_manager }) => {
+          import(versioned_url("./drop_area_manager.js")).then(({ default: drop_area_manager }) => {
             drop_area_manager.add_image(blob, mask_file, uuid);
             this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
             this._update_input_image_thumbnails();
@@ -208,7 +210,7 @@ export class Generation_panel {
       // --- Fallback: external file drop (original logic) ---
       const files = Array.from(event.dataTransfer.files);
       if (files.length > 0) {
-        import("./error_modal.js").then(({ Error_modal }) => {
+        import(versioned_url("./error_modal.js")).then(({ Error_modal }) => {
           let any_error = false;
           const valid_files = [];
           for (const file of files) {
@@ -226,7 +228,7 @@ export class Generation_panel {
           }
           if (!any_error) {
             // Use new drop area logic for image/mask management
-            import("./drop_area_manager.js").then(({ default: drop_area_manager }) => {
+            import(versioned_url("./drop_area_manager.js")).then(({ default: drop_area_manager }) => {
               // Only add files if drop_area_manager is empty or matches this.dropped_images
               if (
                 drop_area_manager.get_images().length === 0 ||

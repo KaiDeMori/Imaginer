@@ -121,7 +121,7 @@ export class Config_dialog {
           } catch (_) {
             errObj = { message: `API request failed: ${resp.status} ${resp.statusText}` };
           }
-          import("../error_modal.js").then(({ Error_modal }) => {
+          import(versioned_url("../error_modal.js")).then(({ Error_modal }) => {
             Error_modal.show(errObj);
           });
           this.testFeedback.textContent = "👎";
@@ -146,7 +146,7 @@ export class Config_dialog {
             this.testFeedback.textContent = "👍";
           } else {
             this.testFeedback.textContent = "😢";
-            import("../error_modal.js").then(({ Error_modal }) => {
+            import(versioned_url("../error_modal.js")).then(({ Error_modal }) => {
               Error_modal.show({
                 message: "API key is valid, but you do not have access to the gpt-image-1 model.",
                 hint: "Check your OpenAI account or organization permissions.",
@@ -155,13 +155,13 @@ export class Config_dialog {
           }
         } else {
           this.testFeedback.textContent = "👎";
-          import("../error_modal.js").then(({ Error_modal }) => {
+          import(versioned_url("../error_modal.js")).then(({ Error_modal }) => {
             Error_modal.show({ message: "Unexpected response from API." });
           });
         }
       } catch (err) {
         this.testFeedback.textContent = "👎";
-        import("../error_modal.js").then(({ Error_modal }) => {
+        import(versioned_url("../error_modal.js")).then(({ Error_modal }) => {
           Error_modal.show(err && err.message ? err.message : err);
         });
       } finally {
@@ -185,7 +185,7 @@ export class Config_dialog {
 
     // Download All Images button
     this.button_download_all.addEventListener("click", async () => {
-      const { Download_progress_dialog } = await import("../../components/download_progress_dialog/download_progress_dialog.js");
+      const { Download_progress_dialog } = await import(versioned_url("../../components/download_progress_dialog/download_progress_dialog.js"));
       const progress = new Download_progress_dialog();
       await progress.init_promise;
 
@@ -193,9 +193,9 @@ export class Config_dialog {
         progress.show();
         progress.set_status("Preparing download...");
 
-        const { get_jszip } = await import("../../static_imports/jszip_loader.js");
+        const { get_jszip } = await import(versioned_url("../../static_imports/jszip_loader.js"));
         const JSZip = await get_jszip();
-        const { Database_store } = await import("../../storage/database_store.js");
+        const { Database_store } = await import(versioned_url("../../storage/database_store.js"));
 
         const store = new Database_store();
         const records = await store.get_all({ reverse: false });
@@ -316,7 +316,7 @@ export class Config_dialog {
     this.partial_images_input.value = localStorage.getItem("imaginer.partial_images") || "2";
     // Use Database_store to get the decoded API key
     this.input.value = "";
-    import("../../storage/database_store.js")
+    import(versioned_url("../../storage/database_store.js"))
       .then(({ Database_store }) => {
         this.input.value = Database_store.get_api_key() || "";
       })
@@ -358,7 +358,7 @@ export class Config_dialog {
     const partial_images = Math.max(1, Math.min(3, parseInt(this.partial_images_input.value)));
 
     // Use Database_store to set the scrambled API key - wait for it to complete
-    const { Database_store } = await import("../../storage/database_store.js");
+    const { Database_store } = await import(versioned_url("../../storage/database_store.js"));
     if (key) {
       Database_store.set_api_key(key);
     } else {

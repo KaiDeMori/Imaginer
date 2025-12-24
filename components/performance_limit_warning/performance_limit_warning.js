@@ -7,10 +7,11 @@ export class Performance_limit_warning {
 
   async init() {
     // 1. Load CSS
-    if (!document.querySelector('link[href="components/performance_limit_warning/performance_limit_warning.css"]')) {
+    const css_path = versioned_url("components/performance_limit_warning/performance_limit_warning.css");
+    if (!document.querySelector(`link[href="${css_path}"]`)) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "components/performance_limit_warning/performance_limit_warning.css";
+      link.href = css_path;
       document.head.appendChild(link);
     }
 
@@ -53,11 +54,11 @@ export class Performance_limit_warning {
     this.button_download_all.textContent = "Preparing...";
     try {
       // Dynamically import JSZip
-      const { get_jszip } = await import("../../static_imports/jszip_loader.js");
+      const { get_jszip } = await import(versioned_url("../../static_imports/jszip_loader.js"));
       const JSZip = await get_jszip();
 
       // Get all images from database store
-      const { Database_store } = await import("../../storage/database_store.js");
+      const { Database_store } = await import(versioned_url("../../storage/database_store.js"));
       const store = new Database_store();
       const records = await store.get_all({ reverse: false });
 
@@ -111,7 +112,7 @@ export class Performance_limit_warning {
 
     if (confirmation && confirmation.toUpperCase() === "YES") {
       try {
-        const { Database_store } = await import("../../storage/database_store.js");
+        const { Database_store } = await import(versioned_url("../../storage/database_store.js"));
         const store = new Database_store();
         await store.clear();
         location.reload();

@@ -210,7 +210,7 @@ export class Menu_bar {
     const help_button = this.root.querySelector("#help-btn");
     if (help_button) {
       help_button.addEventListener("click", () => {
-        window.open("User_Manual/Imaginer_User_Manual.html", "_blank");
+        window.open(versioned_url("User_Manual/Imaginer_User_Manual.html"), "_blank");
       });
     }
 
