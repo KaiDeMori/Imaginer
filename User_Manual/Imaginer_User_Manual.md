@@ -180,7 +180,8 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Importing Images
 
-**Drag and drop image files** from your computer into the gallery area. Images with embedded prompts are automatically detected.
+**Drag and drop image files** from your computer into the gallery area.  
+Images with embedded prompts are automatically detected.
 
 #### Deleting Images
 
