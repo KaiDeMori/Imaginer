@@ -114,7 +114,10 @@
             current_level--;
           }
 
-          const toggle = has_children ? `<span class="toc_toggle">▼</span>` : `<span class="toc_toggle" style="visibility:hidden">▼</span>`;
+          const should_collapse = item.level >= 3 && has_children;
+          const toggle = has_children
+            ? `<span class="toc_toggle">${should_collapse ? "▶" : "▼"}</span>`
+            : `<span class="toc_toggle" style="visibility:hidden">▼</span>`;
           html += `<li>${toggle}<a href="#${item.id}">${item.text}</a>`;
 
           if (!has_children || (next_item && next_item.level <= item.level)) {
@@ -122,7 +125,8 @@
           }
 
           if (has_children) {
-            html += "<ul>";
+            const collapsed_class = should_collapse ? ' class="toc_collapsed"' : "";
+            html += `<ul${collapsed_class}>`;
             current_level = next_item.level;
           }
         }
