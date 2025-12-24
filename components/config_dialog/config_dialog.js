@@ -180,21 +180,29 @@ export class Config_dialog {
 
     // Download All Images button
     this.button_download_all.addEventListener("click", async () => {
-      this.button_download_all.disabled = true;
-      this.button_download_all.textContent = "Preparing...";
+      const { Download_progress_dialog } = await import("../../components/download_progress_dialog/download_progress_dialog.js");
+      const progress = new Download_progress_dialog();
+      await progress.init_promise;
+
       try {
-        // Dynamically import JSZip
+        progress.show();
+        progress.set_status("Preparing download...");
+
         const { get_jszip } = await import("../../static_imports/jszip_loader.js");
         const JSZip = await get_jszip();
-        // Get all images from database store
         const { Database_store } = await import("../../storage/database_store.js");
+
         const store = new Database_store();
         const records = await store.get_all({ reverse: false });
+
         if (!records.length) throw new Error("No images to download.");
+
         const zip = new JSZip();
-        for (const rec of records) {
+        progress.set_status("Processing images...");
+
+        for (let i = 0; i < records.length; i++) {
+          const rec = records[i];
           if (rec.image_blob instanceof Blob) {
-            // Use the same naming as gallery.js: first 20 chars of prompt, plus timestamp
             let base = (rec.prompt_text || "image")
               .replace(/\s+/g, "_")
               .replace(/[^a-zA-Z0-9_\-]/g, "")
@@ -202,12 +210,16 @@ export class Config_dialog {
             if (!base) base = "image";
             const ts = rec.created ? String(rec.created) : String(Math.floor(Date.now() / 1000));
             const filename = `${base}_${ts}.png`;
+
             zip.file(filename, rec.image_blob);
+            progress.update_progress(i + 1, records.length);
           }
         }
+
+        progress.set_status("Saving to disk...");
         const blob = await zip.generateAsync({ type: "blob" });
+
         const url = URL.createObjectURL(blob);
-        // Use export name: Imaginer_Export_<timestamp>.zip
         const export_ts = new Date()
           .toISOString()
           .replace(/[-:T.]/g, "")
@@ -218,15 +230,13 @@ export class Config_dialog {
         a.download = zip_name;
         document.body.appendChild(a);
         a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 1000);
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        progress.close();
       } catch (err) {
-        alert("Download failed: " + (err && err.message ? err.message : err));
-      } finally {
-        this.button_download_all.disabled = false;
-        this.button_download_all.textContent = "Download All Images";
+        progress.show_error(err.message || String(err));
       }
     });
 
