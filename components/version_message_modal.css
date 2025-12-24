@@ -17,10 +17,12 @@
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
   max-width: 600px;
   width: 90%;
+  max-height: 85vh;
   padding: 2em 1.5em 1.5em 1.5em;
   position: relative;
   font-family: inherit;
   animation: fadeIn 0.2s;
+  overflow-y: auto;
 }
 .version_message_close_btn {
   position: absolute;
