@@ -8,59 +8,71 @@
     </div>
 
     <div class="tab_content" id="basic_tab_content">
-      <label class="label">OpenAI API Key</label>
-      <form class="form" autocomplete="off" id="api_key_form">
-        <input
-          type="text"
-          name="username"
-          autocomplete="username"
-          value="user"
-          tabindex="-1"
-          aria-hidden="true"
-          style="position: absolute; opacity: 0; height: 0; width: 0; pointer-events: none"
-        />
-        <input type="text" placeholder="sk-..." autocomplete="off" data-lpignore="true" data-form-type="other" class="input" id="api_key_input" />
-        <button type="submit" class="button test_button" id="test_button">Test</button>
-        <span class="feedback" id="test_feedback"></span>
-      </form>
+      <div class="field field_stacked">
+        <label class="label">OpenAI API Key</label>
+        <form class="form" autocomplete="off" id="api_key_form">
+          <input
+            type="text"
+            name="username"
+            autocomplete="username"
+            value="user"
+            tabindex="-1"
+            aria-hidden="true"
+            style="position: absolute; opacity: 0; height: 0; width: 0; pointer-events: none"
+          />
+          <input type="text" placeholder="sk-..." autocomplete="off" data-lpignore="true" data-form-type="other" class="input" id="api_key_input" />
+          <button type="submit" class="button test_button" id="test_button">Test</button>
+          <span class="feedback" id="test_feedback"></span>
+        </form>
+      </div>
 
-      <label class="label">Maximum number of parallel generations</label>
-      <input type="number" min="1" max="10" step="1" class="input" id="max_input" />
+      <div class="field field_inline">
+        <label class="label">Maximum number of parallel generations</label>
+        <input type="number" min="1" max="10" step="1" class="input" id="max_input" />
+      </div>
 
-      <label class="label">Number of images to generate (n)</label>
-      <input type="number" min="1" max="10" step="1" class="input" id="n_input" />
+      <div class="field field_inline">
+        <label class="label">Number of images to generate (n)</label>
+        <input type="number" min="1" max="10" step="1" class="input" id="n_input" />
+      </div>
 
-      <label class="label">Background</label>
-      <select class="input" id="background_select">
-        <option value="auto">Automatic</option>
-        <option value="transparent">Transparent</option>
-        <option value="opaque">Opaque</option>
-      </select>
+      <div class="field field_inline">
+        <label class="label">Background</label>
+        <select class="input" id="background_select">
+          <option value="auto">Automatic</option>
+          <option value="transparent">Transparent</option>
+          <option value="opaque">Opaque</option>
+        </select>
+      </div>
 
-      <label class="label">Image quality</label>
-      <select class="input" id="quality_select">
-        <option value="auto">Automatic (default)</option>
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="low">Low</option>
-      </select>
+      <div class="field field_inline">
+        <label class="label">Image quality</label>
+        <select class="input" id="quality_select">
+          <option value="auto">Automatic (default)</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
 
-      <label class="label">Input fidelity (for image edits)</label>
-      <select class="input" id="input_fidelity_select">
-        <option value="low">Low (default)</option>
-        <option value="high">High</option>
-      </select>
+      <div class="field field_inline">
+        <label class="label">Input fidelity (for image edits)</label>
+        <select class="input" id="input_fidelity_select">
+          <option value="low">Low (default)</option>
+          <option value="high">High</option>
+        </select>
+      </div>
     </div>
 
     <div class="tab_content" id="advanced_tab_content" style="display: none">
-      <div class="strip_container">
+      <div class="section">
         <label class="checkbox_label">
           <input type="checkbox" id="strip_checkbox" />
           <span>Strip Server-Side metadata</span>
         </label>
       </div>
 
-      <div class="prompt_container">
+      <div class="section_column">
         <div class="prompt_group_label">Embed prompt:</div>
         <label class="checkbox_label">
           <input type="checkbox" id="prompt_checkbox" />
@@ -72,29 +84,28 @@
         </label>
       </div>
 
-      <div class="mask_mode_container" style="display: flex; align-items: center; margin: 8px 0 0 0; min-height: 32px">
+      <div class="section">
         <label class="checkbox_label">
           <input type="checkbox" id="show_mask_mode_checkbox" />
           <span>Show Mask Mode Button</span>
         </label>
       </div>
 
-      <div class="streaming_container" style="margin-top: 16px">
+      <div class="section">
         <label class="checkbox_label">
           <input type="checkbox" id="enable_streaming_checkbox" />
           <span>Enable Image Streaming Preview</span>
         </label>
-        <div style="margin-left: 24px; margin-top: 8px">
-          <label class="label">Number of partial images (0-5)</label>
-          <input type="number" min="0" max="5" step="1" class="input" id="partial_images_input" />
-          <small style="color: #666; font-size: 0.85rem; margin-top: 4px; display: block">
-            0 = no partials (only final), 1-5 = progressive previews during generation
-          </small>
+        <div class="indent">
+          <div class="field field_inline">
+            <label class="label">Number of partial images</label>
+            <input type="number" min="0" max="5" step="1" class="input input_narrow" id="partial_images_input" />
+          </div>
         </div>
       </div>
 
-      <button class="button refresh_models_button" id="refresh_models_button" style="margin-top: 16px; margin-bottom: 8px">Refresh Image Models</button>
-      <button class="button" id="clear_gallery_button" style="margin-top: 8px; background-color: #d32f2f; color: white">Delete Gallery</button>
+      <button class="button refresh_models_button action_button" id="refresh_models_button">Refresh Image Models</button>
+      <button class="button button_delete" id="clear_gallery_button">Delete Gallery</button>
     </div>
 
     <div class="button_row">

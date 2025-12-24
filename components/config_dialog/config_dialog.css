@@ -1,8 +1,6 @@
 /* Tab Bar Styles */
 .tab_bar {
   display: flex;
-  gap: 0;
-  margin-bottom: 0;
   border-bottom: 1.5px solid #e0e0e0;
 }
 .tab_button {
@@ -11,7 +9,6 @@
   outline: none;
   font-size: 1.05rem;
   font-weight: bold;
-  padding: 8px 24px 8px 24px;
   cursor: pointer;
   color: #1976d2;
   border-bottom: 2.5px solid transparent;
@@ -25,20 +22,15 @@
 .tab_content {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  margin-bottom: 5px;
   overflow-y: auto;
   flex: 0 1 auto;
   min-height: 0;
-  padding-right: 4px;
   box-sizing: border-box;
 }
 /* Mask Mode Container (styled like strip_container) */
 .mask_mode_container {
   display: flex;
   align-items: center;
-  margin: 8px 0 0 0;
-  min-height: 32px;
 }
 /* General Styles */
 .overlay {
@@ -62,35 +54,29 @@
   box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  padding: 28px 28px 20px 28px;
   box-sizing: border-box;
   border: 1.5px solid #e0e0e0;
 }
 
 .title {
-  margin: 0 0 16px 0;
+  margin: 0;
 }
 
 /* Form Elements */
 .form {
   display: flex;
-  gap: 8px;
   align-items: center;
 }
 
 .input {
-  width: 100%;
-  padding: 8px;
   font-family: monospace;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
-  flex: 1 1 0;
 }
 
 .button {
-  padding: 8px 16px;
   font-size: 1rem;
   border: none;
   border-radius: 4px;
@@ -102,20 +88,44 @@
   background: #1976d2;
   color: #fff;
   flex-shrink: 0;
-  margin-left: 0;
-  margin-right: 0;
-  height: 40px;
   display: flex;
   align-items: center;
-  gap: 6px;
 }
 
 .feedback {
-  margin-left: 8px;
   font-size: 1.3rem;
   min-width: 1.5em;
   display: inline-block;
   vertical-align: middle;
+}
+
+/* Field Layouts */
+.field {
+  display: flex;
+}
+
+.field_stacked {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.field_inline {
+  flex-direction: row;
+  align-items: center;
+}
+
+.field_inline .label {
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.field_inline .input {
+  width: auto;
+  flex-shrink: 1;
+}
+
+.field_inline .form {
+  flex: 1;
 }
 
 /* Labels and Containers */
@@ -126,39 +136,30 @@
 
 .label {
   font-size: 0.95rem;
-  margin-top: var(--config-label-margin-top);
-  margin-bottom: var(--config-label-margin-bottom);
+  margin: 0;
   display: block;
 }
 
 .strip_container {
   display: flex;
   align-items: center;
-  margin: 8px 0 0 0;
-  min-height: 32px;
 }
 
 .prompt_container {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin: 4px 0 12px 0;
-  min-height: 32px;
-  gap: 2px;
 }
 
 .prompt_group_label {
   font-size: 0.95rem;
   font-weight: bold;
-  margin-bottom: 2px;
 }
 
 /* Button Row */
 .button_row {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 2px;
 }
 
 .download_button {
@@ -180,11 +181,9 @@
 
 /* Checkbox Label Styles */
 .checkbox_label {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
   font-size: 0.97rem;
-  margin: 4px 0;
   cursor: pointer;
 }
 
@@ -203,4 +202,34 @@
 
 .glow-animation {
   animation: glow 1.5s infinite;
+}
+
+/* Compact utility classes */
+.section {
+}
+
+.section_column {
+  display: flex;
+  flex-direction: column;
+}
+
+.indent {
+}
+
+.input_narrow {
+  width: 60px !important;
+}
+
+.help_text {
+  color: #666;
+  font-size: 0.85rem;
+  display: block;
+}
+
+.action_button {
+}
+
+.button_delete {
+  background-color: #d32f2f;
+  color: white;
 }
