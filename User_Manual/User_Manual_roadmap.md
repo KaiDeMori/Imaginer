@@ -3,32 +3,11 @@
 *Planning document for the comprehensive user manual*
 
 ## Purpose
-This document serves as the master plan for creating the Imaginer User Manual. It contains the feature inventory, content structure, writing guidelines, and topics to cover.
+This document serves as the master plan for creating the Imaginer User Manual. It contains the feature inventory, content structure, priorities, and topics to cover.
 
 **⚠️ DOCUMENTATION FOCUS**: This roadmap is exclusively for documenting existing features. The goal is to get it right and not forget anything. Do NOT invent new features or interactive elements while writing documentation.
 
----
-
-## Writing Style & Standards
-
-### Tone & Voice
-- **Clear and direct**: Use simple, everyday language
-- **Friendly but professional**: Approachable without being casual
-- **Action-oriented**: Focus on what users can do, not technical implementation
-- **Timeless**: Avoid version numbers, dates, or temporary references in main content
-
-### Formatting Conventions
-- **UI elements** in bold: "Click the **Config** button"
-- **User actions** as steps: numbered lists for procedures
-- **File names and technical terms** in code format: `image.png`, `localStorage`
-- **Important notes** in callout boxes
-
-### Writing Rules
-- Use second person ("you") for user instructions
-- Keep paragraphs short (2-4 sentences)
-- Use active voice
-- Avoid technical jargon unless necessary
-- When technical terms are needed, explain them simply
+**Writing Style**: See `User_Manual_styleguide.md` for detailed writing guidelines and standards.
 
 ---
 

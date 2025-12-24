@@ -1,0 +1,67 @@
+# Imaginer User Manual Style Guide
+
+*Standards and conventions for writing consistent, clear documentation*
+
+---
+
+## Writing Style & Standards
+
+### Tone & Voice
+- **Clear and direct**: Use simple, everyday language
+- **Friendly but professional**: Approachable without being casual
+- **Action-oriented**: Focus on what users can do, not technical implementation
+- **Timeless**: Avoid version numbers, dates, or temporary references in main content
+
+### Formatting Conventions
+- **UI elements** in bold: "Click the **Config** button"
+- **User actions** as steps: numbered lists for procedures
+- **File names and technical terms** in code format: `image.png`, `localStorage`
+- **Important notes** in callout boxes
+
+### Writing Rules
+- Use second person ("you") for user instructions
+- Keep paragraphs short (2-4 sentences)
+- Use active voice
+- Avoid technical jargon unless necessary
+- When technical terms are needed, explain them simply
+
+---
+
+## Target Audience
+
+**This manual serves both children and adults.** The app is designed to be accessible for kids, but documentation should be clear and helpful for all ages.
+
+### Writing Balance
+- Use simple, clear language that anyone can understand
+- Avoid condescending or overly childish tone
+- Explain technical concepts in plain terms without being patronizing
+- Focus on being helpful and approachable, not age-specific
+
+---
+
+## AI Help Chat Consideration
+
+This manual will be the knowledge base for the integrated help chat AI. Write content that:
+- Can be easily referenced by an AI assistant
+- Provides complete, accurate information
+- Uses consistent terminology throughout
+- Is structured logically for question-answering
+
+Keep the text meant for humans short and non-technical and prefer to add technical details that the Help Chat AI might need to the end of the manual in separate sections.
+
+---
+
+## Documentation Focus
+
+**⚠️ CRITICAL**: This style guide is exclusively for documenting existing features. The goal is to get it right and not forget anything. Do NOT invent new features or interactive elements while writing documentation.
+
+### Verification Before Writing
+
+**Before writing any documentation, the assistant MUST:**
+- Read relevant source files to verify features exist as described
+- Check configuration keys and default values in the actual code
+- Verify UI elements, button labels, and behavior
+- Confirm technical details (storage mechanisms, API endpoints, etc.)
+- Note any discrepancies between the topic outline and actual implementation
+
+**Never assume** a feature works as outlined - always verify in the codebase first. This step-by-step approach ensures accuracy.

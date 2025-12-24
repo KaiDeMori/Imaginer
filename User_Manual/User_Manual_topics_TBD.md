@@ -8,7 +8,7 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 
 1. **Start a conversation** by attaching this file and specifying which topic(s) you want to work on
 2. **The assistant researches** the codebase to verify every statement and feature mentioned in the topic
-3. **The assistant writes** complete, polished documentation following the guidelines in `User_Manual_roadmap.md`
+3. **The assistant writes** complete, polished documentation following the guidelines in `User_Manual_styleguide.md`
 4. **Content is added** to `Imaginer_User_Manual.md` (the actual user manual)
 5. **Topic is removed** from this TBD file once completed
 6. **Repeat** until all topics are documented
@@ -27,7 +27,8 @@ This file serves as your working backlog for writing the Imaginer User Manual. H
 ### Related Files
 
 - **`Imaginer_User_Manual.md`** - The actual user manual where completed documentation lives
-- **`User_Manual_roadmap.md`** - Writing guidelines, style standards, priorities, and strategic planning
+- **`User_Manual_roadmap.md`** - Content structure, priorities, and strategic planning
+- **`User_Manual_styleguide.md`** - Writing guidelines and style standards
 
 ### Additional Context for Documentation
 
