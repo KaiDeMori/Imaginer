@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moderation Error</title>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: system-ui, sans-serif;
+        background-color: #fff;
+        padding: 24px 20px 16px 20px; /* Match modal padding */
+        box-sizing: border-box;
+      }
+      .header {
+        font-size: 4rem;
+        margin-bottom: 2rem;
+        cursor: default;
+        user-select: none;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+      .header span {
+        transition: transform 0.3s ease;
+        display: inline-block;
+      }
+      .header span:hover {
+        transform: rotate(180deg);
+      }
+      .error-image {
+        max-width: 80vw;
+        max-height: 60vh;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        object-fit: contain;
+        animation: fade-in 0.5s ease-out;
+      }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .close-btn {
+        padding: 8px 16px;
+        font-size: 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        background: #1976d2;
+        color: #fff;
+        margin-top: 12px;
+        font-family: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span>🙈</span>
+      <span>🤷</span>
+      <span>🔄</span>
+    </div>
+    <img id="random-image" class="error-image" alt="" />
+    <button id="close-btn" class="close-btn">Close</button>
+
+    <script>
+      const images = [
+        "../assets/error/error_monster_01.webp",
+        "../assets/error/error_monster_02.webp",
+        "../assets/error/error_robot_01.webp",
+        "../assets/error/error_robot_02.webp",
+      ];
+
+      const randomIndex = Math.floor(Math.random() * images.length);
+      document.getElementById("random-image").src = images[randomIndex];
+
+      // Close functionality
+      function closeDialog() {
+        try {
+          const overlay = window.parent.document.getElementById("imaginer-error-modal-overlay");
+          if (overlay) overlay.remove();
+        } catch (e) {
+          console.warn("Could not close parent dialog", e);
+        }
+      }
+
+      document.getElementById("close-btn").addEventListener("click", closeDialog);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeDialog();
+      });
+    </script>
+  </body>
+</html>

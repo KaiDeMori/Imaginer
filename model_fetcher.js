@@ -5,6 +5,9 @@ import { Database_store } from "./storage/database_store.js";
 
 const CACHE_KEY = "imaginer.available_image_models";
 const SELECTED_KEY = "imaginer.selected_image_model";
+const IMAGE_MODEL_FILTER = "gpt-image-";
+
+const DEFAULT_MODEL = "gpt-image-1.5";
 
 /**
  * Fetch available image models from OpenAI API
@@ -20,7 +23,7 @@ export async function fetch_available_models() {
   const response = await fetch("https://api.openai.com/v1/models", {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${api_key}`,
+      "Authorization": `Bearer ${api_key}`,
       "Content-Type": "application/json",
     },
   });
@@ -42,7 +45,7 @@ export async function fetch_available_models() {
 
   // Filter for gpt-image models and sort lexically
   const image_model_ids = data.data
-    .filter((model) => model.id && model.id.startsWith("gpt-image"))
+    .filter((model) => model.id && model.id.startsWith(IMAGE_MODEL_FILTER))
     .map((model) => model.id)
     .sort();
 
@@ -89,13 +92,14 @@ export function get_selected_model() {
   // Fallback to first available model from cache
   const cached_model_ids = get_cached_models();
   if (cached_model_ids.length > 0) {
-    const first_model = cached_model_ids[0];
-    localStorage.setItem(SELECTED_KEY, first_model);
-    return first_model;
+    const has_default_model = cached_model_ids.includes(DEFAULT_MODEL);
+    const fallback_model = has_default_model ? DEFAULT_MODEL : cached_model_ids[0];
+    localStorage.setItem(SELECTED_KEY, fallback_model);
+    return fallback_model;
   }
 
   // Ultimate fallback
-  return "gpt-image-1";
+  return DEFAULT_MODEL;
 }
 
 /**

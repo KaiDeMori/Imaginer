@@ -44,6 +44,7 @@ export class version_message_modal {
       // Extract body content if present
       const body_match = html_text.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
       this.modal_element.innerHTML = body_match ? body_match[1] : html_text;
+      this._activate_embedded_scripts();
     } catch (err) {
       this.modal_element.innerHTML = `<div class='version_message_error'>Could not load version message.</div>`;
     }
@@ -56,6 +57,27 @@ export class version_message_modal {
     // Add to DOM
     this.overlay_element.appendChild(this.modal_element);
     document.body.appendChild(this.overlay_element);
+  }
+
+  _activate_embedded_scripts() {
+    if (!this.modal_element) {
+      return;
+    }
+
+    const script_nodes = Array.from(this.modal_element.querySelectorAll("script"));
+    for (const original_script of script_nodes) {
+      const executable_script = document.createElement("script");
+      const type_attribute = original_script.getAttribute("type");
+      if (type_attribute) {
+        executable_script.setAttribute("type", type_attribute);
+      }
+      if (original_script.src) {
+        executable_script.src = original_script.src;
+      } else {
+        executable_script.textContent = original_script.textContent;
+      }
+      original_script.parentNode.replaceChild(executable_script, original_script);
+    }
   }
 
   close() {

@@ -2,8 +2,10 @@
 // Central configuration management for Imaginer
 // Ensures all config keys have default values in localStorage
 
+const INITIAL_PROMPT = "A unicorn-dinosaur.";
+
 const DEFAULT_CONFIG = {
-  "imaginer.prompt": "A unicorn-dinosaur.",
+  "imaginer.prompt": INITIAL_PROMPT,
   "imaginer.max_parallel_generations": "3",
   "imaginer.n": "1",
   "imaginer.background": "auto",
@@ -19,15 +21,16 @@ const DEFAULT_CONFIG = {
 
 /**
  * Ensures all default config values are set in localStorage.
- * Only sets values that don't already exist.
- * Call this once at app startup to guarantee all config keys exist.
+ * Sets missing keys and missing or empty values.
+ * Call this once at app startup to guarantee all config keys exist and have valid defaults.
  */
 function ensure_config_defaults() {
   for (const [key, default_value] of Object.entries(DEFAULT_CONFIG)) {
-    if (localStorage.getItem(key) === null) {
+    const current_value = localStorage.getItem(key);
+    if (current_value === null || current_value === "") {
       localStorage.setItem(key, default_value);
     }
   }
 }
 
-export { DEFAULT_CONFIG, ensure_config_defaults };
+export { INITIAL_PROMPT, DEFAULT_CONFIG, ensure_config_defaults };

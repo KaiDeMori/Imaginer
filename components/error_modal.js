@@ -39,6 +39,28 @@ export class Error_modal {
       color: "#222",
     });
 
+    // Check for moderation error
+    const errObj = error && (error.error || error);
+    if (errObj && errObj.code === "moderation_blocked") {
+      Error_modal.show_moderation_content(dialog);
+      overlay.appendChild(dialog);
+      document.body.appendChild(overlay);
+      // Focus for escape key
+      overlay.tabIndex = -1;
+      overlay.focus();
+
+      // Escape key closes
+      overlay.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") Error_modal.close();
+      });
+
+      // Click outside dialog closes
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) Error_modal.close();
+      });
+      return;
+    }
+
     // Title
     const title = document.createElement("h2");
     title.textContent = "Error";
@@ -147,5 +169,23 @@ export class Error_modal {
   static close() {
     const overlay = document.getElementById("imaginer-error-modal-overlay");
     if (overlay) overlay.remove();
+  }
+
+  static show_moderation_content(dialog) {
+    // Clear dialog styling that might interfere
+    dialog.style.padding = "0";
+    dialog.style.overflow = "hidden";
+
+    const iframe = document.createElement("iframe");
+    iframe.src = "components/moderation_error.html";
+    Object.assign(iframe.style, {
+      width: "100%",
+      height: "100%",
+      minHeight: "500px",
+      border: "none",
+      display: "block",
+    });
+
+    dialog.appendChild(iframe);
   }
 }

@@ -9,6 +9,10 @@ The goal is to integrate the new OpenAI Responses API (Conversational API) into 
 
 The application will display **either** the Generation Panel **or** the Conversation Panel based on the `imaginer.mode` configuration key. They will never be shown simultaneously.
 
+## 1.1. Model Strategy (Exclusive `gpt-image` Support)
+
+We will exclusively support **`gpt-image`** models (e.g., `gpt-image-1`) for all image generation and editing tasks within the Conversation Mode. We will **ignore** legacy DALL-E models (`dall-e-2`, `dall-e-3`). The Responses API integration will be built specifically around the capabilities of `gpt-image` models, including their advanced instruction following and masking capabilities.
+
 ## 2. Detailed Breakdown
 
 ### 2.1. User Interface (UI)
@@ -36,7 +40,8 @@ This new component will replace the `Generation_panel` when in conversation mode
         -   Displayed inline within the chat bubble.
         -   **"Add to Gallery" Button**: Each generated image in the chat will have a button to save it to the main application gallery (and `Database_store`).
 -   **Image Input Area**:
-    -   Reuses the current drag-and-drop component (likely leveraging `drop_area_manager.js` or similar logic) to handle image uploads for the conversation context.
+    -   **Logic**: Reuses the existing `drop_area_manager.js` singleton to manage file state, mask association (first image only), and UUIDs. This ensures consistent behavior for mask handling across the app.
+    -   **UI**: Uses a new component `conversation_drop_area.js` (instead of `drop_area.js`) to render the drop zone and thumbnails specifically for the conversation layout. This decouples the visual presentation from the Generation Panel while sharing the robust underlying logic.
 -   **Conversation Prompt**:
     -   Compact text input area with a "Send" button.
 
@@ -74,7 +79,9 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
         -   We need to parse this response, update the UI, and store the `conversation_id` if it's new.
 
 2.  **Image Handling**:
-    -   **Input**: Images dropped into the input area need to be uploaded or passed as base64/URLs. The Responses API supports `file_ids` (via the Files API) or direct image inputs. Using the Files API might be cleaner for multi-turn edits.
+    -   **Input**: Images dropped into the input area are handled via the Files API.
+        -   **Gallery Images**: We check if the image record already has an `openai_file_id`. If yes, we reuse it. If no, we upload it and update the record with the new ID.
+        -   **External Images**: Always uploaded as new files.
     -   **Output**: Generated images come back in the response. We render them as `blob` URLs.
     -   **Saving**: When "Add to Gallery" is clicked, we take the image blob and pass it to the existing `Database_store.save()` and `Gallery.addThumbnail()` methods.
 
@@ -88,6 +95,7 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
     -   `conversation_panel.js`
     -   `conversation_panel.html`
     -   `conversation_panel.css`
+    -   `conversation_drop_area.js` (New UI logic for drop zone)
 -   `components/conversation_history/`:
     -   `conversation_history.js`
     -   `conversation_history.html`
@@ -115,8 +123,9 @@ Since we are not using the OpenAI Node SDK, we will implement raw `fetch` calls 
 To provide access to past conversations without a dedicated sidebar, we will integrate conversation history directly into the Gallery.
 
 ### 4.1. Data Model Updates
--   **`Database_store`**: Update the schema (implicitly) to store `conversation_id` alongside existing image metadata.
+-   **`Database_store`**: Update the schema (implicitly) to store `conversation_id` and `openai_file_id` alongside existing image metadata.
     -   New field: `conversation_id` (string, optional).
+    -   New field: `openai_file_id` (string, optional). Stores the ID returned by OpenAI's Files API to avoid re-uploading the same image.
     -   **`prompt_text`**: For images generated in Conversation Mode, this field will be left **empty** or `null`. We do not attempt to infer a single prompt from a multi-turn conversation.
     -   **Exclusivity Rule**: An image should ideally have EITHER `prompt_text` OR `conversation_id`. If both are present (e.g. due to a bug or migration), `conversation_id` takes precedence, and `prompt_text` is removed.
 

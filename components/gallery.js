@@ -1,6 +1,10 @@
 // gallery.js – Thumbnail grid with placeholder support
+import { read_png_metadata } from "./png_metadata_reader.js";
+import { convert_image_to_png } from "./image_converter.js";
+
 export class Gallery {
-  constructor(root, viewer) {
+  constructor(root, viewer, options = {}) {
+    this.on_loading_complete = options.on_loading_complete;
     // Listen for mask updates to synchronize in-memory records and update UI
     window.addEventListener("imaginer.mask-updated", (e) => {
       const { created, mask_blob, uuid } = e.detail || {};
@@ -57,6 +61,25 @@ export class Gallery {
     `;
     this.root.appendChild(style);
 
+    // Placeholder for empty state
+    this.root.style.position = "relative";
+    this.empty_placeholder = document.createElement("div");
+    this.empty_placeholder.textContent = "Drop image(s) for import";
+    Object.assign(this.empty_placeholder.style, {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      color: "#bbb",
+      fontSize: "1.1rem",
+      pointerEvents: "none",
+      textAlign: "center",
+      width: "100%",
+      display: "none",
+    });
+    this.root.appendChild(this.empty_placeholder);
+
+    this.enable_drag_and_drop();
     this.loadImages();
   }
 
@@ -80,6 +103,11 @@ export class Gallery {
       }
       this.addThumbnail(rec.image_blob, rec.prompt_text, rec.created);
     }
+    this.update_empty_state();
+
+    if (this.on_loading_complete) {
+      setTimeout(() => this.on_loading_complete(), 0);
+    }
   }
 
   async loadDummyImages() {
@@ -95,6 +123,70 @@ export class Gallery {
       );
     }
     return (await Promise.all(promises)).filter(Boolean);
+  }
+
+  enable_drag_and_drop() {
+    this.root.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      this.root.style.backgroundColor = "#e6f7ff"; // Visual feedback
+      this.root.style.borderColor = "#1890ff";
+    });
+
+    this.root.addEventListener("dragleave", (e) => {
+      this.root.style.backgroundColor = "";
+      this.root.style.borderColor = "";
+    });
+
+    this.root.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      this.root.style.backgroundColor = "";
+      this.root.style.borderColor = "";
+
+      for (const file of e.dataTransfer.files) {
+        if (file.type.startsWith("image/")) {
+          let blob = file;
+          let prompt = null;
+
+          if (file.type === "image/png") {
+            const text = await read_png_metadata(file);
+            if (text) prompt = text;
+          } else {
+            try {
+              blob = await convert_image_to_png(file);
+            } catch (err) {
+              console.error("Failed to convert image:", file.name, err);
+              alert(`Failed to convert image: ${file.name}\n${err.message || "Unknown error"}`);
+              continue;
+            }
+          }
+
+          const created = Math.floor(Date.now() / 1000);
+
+          // Save to DB
+          if (window.database_store) {
+            const record = {
+              created,
+              image_blob: blob,
+              prompt_imgs: [],
+            };
+            if (prompt) record.prompt_text = prompt;
+
+            const id = await window.database_store.save(record);
+
+            // Update internal record
+            if (this.records_by_created) {
+              this.records_by_created[created] = {
+                id,
+                ...record,
+              };
+            }
+          }
+
+          // Update UI
+          this.addThumbnail(blob, prompt, created);
+        }
+      }
+    });
   }
 
   addThumbnail(blob, promptText = "", created = null) {
@@ -186,6 +278,7 @@ export class Gallery {
           }
           // Remove from UI
           container.remove();
+          this.update_empty_state();
         }
         return;
       }
@@ -240,50 +333,53 @@ export class Gallery {
     });
 
     // Prompt-to-box button (upper right)
-    const btnPrompt = document.createElement("button");
-    btnPrompt.textContent = "💬";
-    Object.assign(btnPrompt.style, {
-      position: "absolute",
-      top: "6px",
-      right: "6px",
-      zIndex: 2,
-      background: "#fff",
-      border: "none",
-      borderRadius: "4px",
-      padding: "2px 6px",
-      fontSize: "1.1rem",
-      cursor: "pointer",
-      opacity: 0,
-      transition: "opacity 0.1s",
-    });
-    btnPrompt.title = "Load this prompt into the prompt box";
+    let btnPrompt = null;
+    if (promptText) {
+      btnPrompt = document.createElement("button");
+      btnPrompt.textContent = "💬";
+      Object.assign(btnPrompt.style, {
+        position: "absolute",
+        top: "6px",
+        right: "6px",
+        zIndex: 2,
+        background: "#fff",
+        border: "none",
+        borderRadius: "4px",
+        padding: "2px 6px",
+        fontSize: "1.1rem",
+        cursor: "pointer",
+        opacity: 0,
+        transition: "opacity 0.1s",
+      });
+      btnPrompt.title = "Load this prompt into the prompt box";
 
-    btnPrompt.addEventListener("click", (e) => {
-      e.stopPropagation();
-      // Find the prompt input box and set its value
-      const promptInput = document.querySelector("#prompt-input");
-      if (promptInput) {
-        promptInput.value = promptText || "";
-        // Save to localStorage for persistence
-        localStorage.setItem("imaginer.prompt", promptText || "");
-        // Optionally, trigger input event for listeners
-        promptInput.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-    });
+      btnPrompt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // Find the prompt input box and set its value
+        const promptInput = document.querySelector("#prompt-input");
+        if (promptInput) {
+          promptInput.value = promptText || "";
+          // Save to localStorage for persistence
+          localStorage.setItem("imaginer.prompt", promptText || "");
+          // Optionally, trigger input event for listeners
+          promptInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
+    }
 
     // Show buttons on hover
     container.addEventListener("mouseenter", () => {
       btnDownload.style.opacity = 1;
-      btnPrompt.style.opacity = 1;
+      if (btnPrompt) btnPrompt.style.opacity = 1;
     });
     container.addEventListener("mouseleave", () => {
       btnDownload.style.opacity = 0;
-      btnPrompt.style.opacity = 0;
+      if (btnPrompt) btnPrompt.style.opacity = 0;
     });
 
     container.appendChild(imgEl);
     container.appendChild(btnDownload);
-    container.appendChild(btnPrompt);
+    if (btnPrompt) container.appendChild(btnPrompt);
 
     // --- Insert at the beginning to keep descending order ---
     if (this.grid.firstChild) {
@@ -291,6 +387,7 @@ export class Gallery {
     } else {
       this.grid.appendChild(container);
     }
+    this.update_empty_state();
   }
 
   addPlaceholder(startTime = Math.floor(Date.now() / 1000)) {
@@ -326,6 +423,7 @@ export class Gallery {
     Gallery._activePlaceholders = Gallery._activePlaceholders || [];
     Gallery._activePlaceholders.push(placeholder);
     Gallery._ensureTimerInterval();
+    this.update_empty_state();
     return placeholder;
   }
 
@@ -339,11 +437,48 @@ export class Gallery {
       placeholder.style.background = "#f88";
       // Remove timer if present
       if (placeholder._timer) placeholder._timer.remove();
+
+      // Add "Use Prompt" button to the error placeholder so the prompt isn't lost
+      const btnPrompt = document.createElement("button");
+      btnPrompt.textContent = "💬";
+      Object.assign(btnPrompt.style, {
+        position: "absolute",
+        top: "6px",
+        right: "6px",
+        zIndex: 2,
+        background: "#fff",
+        border: "none",
+        borderRadius: "4px",
+        padding: "2px 6px",
+        fontSize: "1.1rem",
+        cursor: "pointer",
+        opacity: 1, // Always visible on error for clarity
+      });
+      btnPrompt.title = "Load this prompt into the prompt box";
+
+      btnPrompt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const promptInput = document.querySelector("#prompt-input");
+        if (promptInput) {
+          promptInput.value = promptText || "";
+          localStorage.setItem("imaginer.prompt", promptText || "");
+          promptInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
+      placeholder.appendChild(btnPrompt);
       return;
     }
     // Replace placeholder with a thumbnail (with download button)
     this.addThumbnail(blob, promptText, created);
     placeholder.remove();
+    this.update_empty_state();
+  }
+
+  update_empty_state() {
+    const has_images = this.grid.children.length > 0;
+    if (this.empty_placeholder) {
+      this.empty_placeholder.style.display = has_images ? "none" : "block";
+    }
   }
 
   // --- Timer update logic (static, shared for all Gallery instances) ---

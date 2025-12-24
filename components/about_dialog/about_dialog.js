@@ -1,4 +1,4 @@
-import { VERSION_HTML_FILES } from "../../version_manager.js";
+import { get_version_history } from "../../version_manager.js";
 
 export class About_dialog {
   constructor() {
@@ -25,7 +25,7 @@ export class About_dialog {
     document.body.appendChild(this.overlay);
 
     // 4. Populate Dynamic Content
-    this.populate_versions();
+    await this.populate_versions();
     this.populate_credits();
     this.load_font();
 
@@ -33,9 +33,10 @@ export class About_dialog {
     this.wire_events();
   }
 
-  populate_versions() {
+  async populate_versions() {
     const version_list = this.overlay.querySelector("#version_list");
-    Object.entries(VERSION_HTML_FILES)
+    const history = await get_version_history();
+    Object.entries(history)
       .reverse()
       .forEach(([version, path]) => {
         const li = document.createElement("li");

@@ -131,7 +131,20 @@ window.addEventListener("DOMContentLoaded", async () => {
   const menu_bar = new Menu_bar(document.getElementById("menu-bar"));
 
   const viewer = new Viewer();
-  const gallery = new Gallery(document.getElementById("gallery"), viewer);
+
+  const MAX_GALLERY_LOAD_DURATION_MS = 15000;
+  const start_time = performance.now();
+
+  const gallery = new Gallery(document.getElementById("gallery"), viewer, {
+    on_loading_complete: async () => {
+      const duration = performance.now() - start_time;
+      if (duration > MAX_GALLERY_LOAD_DURATION_MS) {
+        const { Performance_limit_warning } = await import("./components/performance_limit_warning/performance_limit_warning.js");
+        const warning = new Performance_limit_warning();
+        warning.open();
+      }
+    },
+  });
   // Initialize the resizable divider component, which allows resizing between the gallery and generation panel.
   const divider = new Resizable_divider(document.getElementById("divider"), document.getElementById("gallery"), document.getElementById("generation-panel"));
 
@@ -290,7 +303,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           }
           Error_modal.show(errObj);
           for (const ph of placeholders) {
-            if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+            if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
           }
           return;
         }
@@ -299,7 +312,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (!Array.isArray(data.data) || data.data.length === 0) {
           Error_modal.show({ message: "No images returned from API." });
           for (const ph of placeholders) {
-            if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+            if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
           }
           return;
         }
@@ -329,7 +342,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         console.error("Error editing image:", error);
         Error_modal.show(error && error.message ? error.message : error);
         for (const ph of placeholders) {
-          if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+          if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
         }
       } finally {
         activeGenerations--;
@@ -356,7 +369,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Database_store.get_api_key()}`,
+          "Authorization": `Bearer ${Database_store.get_api_key()}`,
         },
         body: JSON.stringify(request_body),
       });
@@ -370,7 +383,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
         Error_modal.show(errObj);
         for (const ph of placeholders) {
-          gallery.update_placeholder(ph, null, true);
+          gallery.update_placeholder(ph, null, true, prompt_text);
         }
         return;
       }
@@ -379,7 +392,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (!Array.isArray(data.data) || data.data.length === 0) {
         Error_modal.show({ message: "No images returned from API." });
         for (const ph of placeholders) {
-          gallery.update_placeholder(ph, null, true);
+          gallery.update_placeholder(ph, null, true, prompt_text);
         }
         return;
       }
@@ -549,7 +562,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       Error_modal.show(error && error.message ? error.message : error);
       // Remove all placeholders on error
       for (const ph of placeholders) {
-        if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+        if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
       }
     } finally {
       activeGenerations--;
@@ -589,4 +602,11 @@ window.tabula_rasa = function tabula_rasa() {
   } catch (e) {
     console.error("Error during tabula rasa:", e);
   }
+};
+
+// --- Debug function to trigger performance warning ---
+window.debug_trigger_performance_warning = async function () {
+  const { Performance_limit_warning } = await import("./components/performance_limit_warning/performance_limit_warning.js");
+  const warning = new Performance_limit_warning();
+  warning.open();
 };

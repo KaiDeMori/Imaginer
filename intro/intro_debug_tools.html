@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Imaginer Intro Debug Tools</title>
+    <!-- Preload fonts to prevent delay when switching -->
+    <link rel="preload" href="fonts/Andika/Andika-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="fonts/Comic_Neue/ComicNeue-Bold.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="fonts/Noto_Sans/NotoSans-VariableFont_wdth,wght.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="fonts/Orbitron/Orbitron-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="fonts/Quicksand/static/Quicksand-SemiBold.ttf" as="font" type="font/ttf" crossorigin />
+    <style>
+      /* ==========================================================================
+           BASE STYLES & TYPOGRAPHY
+           ========================================================================== */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        color: #111;
+        font-family: "Segoe UI", sans-serif;
+        min-height: 100vh;
+        transition: font-size 0.1s ease-out;
+      }
+
+      body {
+        padding: 2rem;
+        box-sizing: border-box;
+        max-width: 1200px;
+        margin: 0 auto;
+        /* Base size multiplied by scale variable */
+        font-size: calc(var(--font-scale) * 1rem);
+      }
+
+      :root {
+        --font-scale: 1;
+      }
+
+      /* Custom font definitions */
+      @font-face {
+        font-family: "Andika";
+        src: url("fonts/Andika/Andika-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Comic Neue";
+        src: url("fonts/Comic_Neue/ComicNeue-Bold.ttf") format("truetype");
+        font-weight: bold;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Noto Sans";
+        src: url("fonts/Noto_Sans/NotoSans-VariableFont_wdth,wght.ttf") format("truetype");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Orbitron";
+        src: url("fonts/Orbitron/Orbitron-VariableFont_wght.ttf") format("truetype");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Quicksand";
+        src: url("fonts/Quicksand/static/Quicksand-SemiBold.ttf") format("truetype");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
+      /* Font switching classes applied to the body */
+      body.font-1 {
+        font-family: "Andika", monospace;
+      }
+      body.font-2 {
+        font-family: "Comic Neue", monospace;
+      }
+      body.font-3 {
+        font-family: "Noto Sans", monospace;
+      }
+      body.font-4 {
+        font-family: "Orbitron", monospace;
+      }
+      body.font-5 {
+        font-family: "Quicksand", monospace;
+      }
+
+      /* Documentation styles */
+      h1,
+      h2,
+      h3 {
+        color: #0277bd;
+        font-weight: 300;
+      }
+      h1 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5rem;
+        margin-bottom: 2rem;
+      }
+      h2 {
+        margin-top: 0;
+      }
+
+      .section {
+        margin-bottom: 4rem;
+      }
+
+      .link-list {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+      }
+
+      .link-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .link-card {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      .link-card:hover {
+        transform: translateY(-4px);
+        border-color: #0277bd;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .link-card a {
+        color: #0277bd;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.2em;
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+
+      .link-card a:hover {
+        text-decoration: underline;
+      }
+
+      .link-card p {
+        color: #555;
+        margin: 0;
+        font-size: 0.95em;
+        line-height: 1.4;
+      }
+
+      .controls-info {
+        background: #f5f5f5;
+        padding: 1rem 1.5rem;
+        border-radius: 6px;
+        font-family: monospace;
+        margin-top: 1rem;
+        display: inline-block;
+        border-left: 4px solid #0277bd;
+        color: #333;
+        line-height: 2.2;
+      }
+
+      code {
+        background: #e0e0e0;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        color: #01579b;
+        font-size: 1.1em;
+      }
+
+      ul {
+        line-height: 1.6;
+        color: #333;
+        list-style: none;
+        padding-left: 0;
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body class="font-4">
+    <div class="section">
+      <h1>Imaginer Intro Debug Tools</h1>
+      <p style="font-size: 1.2em; color: #555">A quick reference guide to the intro sequence components, styles, and assets.</p>
+
+      <div class="controls-info">
+        <strong>Interactive Controls (Apply to entire page):</strong><br />
+        <code>1</code> - <code>5</code> : Switch Font Family<br />
+        <code>+</code> / <code>-</code> : Adjust Font Size
+      </div>
+
+      <div style="display: inline-block; margin-left: 1rem; vertical-align: top; margin-top: 1rem">
+        <button
+          id="fullscreen_toggle"
+          style="padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; background: #0277bd; color: white; border: none; border-radius: 4px"
+        >
+          Toggle Fullscreen
+        </button>
+        <span style="margin-left: 0.5rem; color: #555">(or press <code>F11</code>)</span>
+      </div>
+
+      <p id="current_settings" style="color: #666; margin-top: 1rem; font-family: monospace; font-size: 1.1em">Current: Orbitron (Font 4) | Scale: 1.00</p>
+    </div>
+
+    <div class="section">
+      <h2>Fonts</h2>
+      <ul>
+        <li style="font-family: 'Andika', monospace"><strong>1 – Andika</strong>: A clear, sans-serif font designed for literacy.</li>
+        <li style="font-family: 'Comic Neue', monospace"><strong>2 – Comic Neue</strong>: A modern, more legible version of Comic Sans.</li>
+        <li style="font-family: 'Noto Sans', monospace"><strong>3 – Noto Sans</strong>: A clean, universal sans-serif font.</li>
+        <li style="font-family: 'Orbitron', monospace">
+          <strong>4 – Orbitron</strong>: The primary cinematic font. Used for the main title and "bloom" effects to give a sci-fi feel.
+        </li>
+        <li style="font-family: 'Quicksand', monospace"><strong>5 – Quicksand</strong>: A rounded sans-serif font with a friendly appearance.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>Standalone Pages</h2>
+      <p>Direct links to the various phases and components of the intro sequence.</p>
+      <div class="link-list">
+        <div class="link-column">
+          <div class="link-card">
+            <a href="00/cinematic_starfield_and_the_great_everywhere_shake.html" target="_blank">The Great Everywhere Shake</a>
+            <p>The full, orchestrated intro experience starting from Phase 00.</p>
+          </div>
+          <div class="link-card">
+            <a href="01/cinematic_starfield_captain.html" target="_blank">Starfield Captain</a>
+            <p>Interactive flight mode (Phase 01) with debug controls.</p>
+          </div>
+          <div class="link-card">
+            <a href="04/infinity_zoom_II.html" target="_blank">Infinity Zoom II</a>
+            <p>The infinite zoom engine (Phase 04).</p>
+            <p>Press <code>d</code> to toggle debug UI.</p>
+          </div>
+        </div>
+        <div class="link-column">
+          <div class="link-card">
+            <a id="early_universe_link" href="03/early_universe_formation_V2.html?t=56" target="_blank">Early Universe Formation</a>
+            <p>Particle simulation of the early universe (Phase 03).</p>
+            <p>Press <code>d</code> to toggle debug UI.</p>
+            <div style="margin-top: 0.5rem; border-top: 1px solid #eee; padding-top: 0.5rem">
+              <div style="margin-bottom: 0.5rem">
+                <label for="early_universe_t" style="font-size: 0.9em; color: #555">Music Start Time (t):</label>
+                <input type="number" id="early_universe_t" value="56" style="width: 50px; padding: 2px; border: 1px solid #ccc; border-radius: 3px" />
+                <span style="font-size: 0.9em; color: #555; margin-left: 0.3rem">seconds</span>
+              </div>
+              <div>
+                <label style="font-size: 0.9em; color: #555; cursor: pointer"> <input type="checkbox" id="early_universe_no_audio" /> Disable Audio </label>
+              </div>
+            </div>
+          </div>
+          <div class="link-card">
+            <a href="intro_music_credits.html" target="_blank">Music Credits</a>
+            <p>Credits page for the audio tracks.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Constants
+      const FONT_SCALE_KEY = "imaginer_font_scale";
+      const FONT_INDEX_KEY = "imaginer_intro_debug_font_index"; // Specific to this debug tools preference
+
+      // State
+      let current_font_index = 4;
+      let current_scale = 1.0;
+
+      const font_names = {
+        1: "Andika",
+        2: "Comic Neue",
+        3: "Noto Sans",
+        4: "Orbitron",
+        5: "Quicksand",
+      };
+
+      const settings_display = document.getElementById("current_settings");
+
+      function load_settings() {
+        // Load Font Scale
+        const saved_scale = localStorage.getItem(FONT_SCALE_KEY);
+        if (saved_scale !== null) {
+          current_scale = parseFloat(saved_scale);
+        } else {
+          // Default if not set
+          current_scale = 1.0;
+          localStorage.setItem(FONT_SCALE_KEY, "1.0");
+        }
+
+        // Load Font Index
+        const saved_index = localStorage.getItem(FONT_INDEX_KEY);
+        if (saved_index !== null) {
+          current_font_index = parseInt(saved_index);
+        } else {
+          // Default to Orbitron
+          current_font_index = 4;
+          localStorage.setItem(FONT_INDEX_KEY, "4");
+        }
+      }
+
+      function update_display() {
+        // Update CSS variable
+        document.documentElement.style.setProperty("--font-scale", current_scale);
+
+        // Update classes on body
+        // Remove all font classes first
+        document.body.classList.remove("font-1", "font-2", "font-3", "font-4", "font-5");
+        document.body.classList.add(`font-${current_font_index}`);
+
+        // Update text info
+        settings_display.textContent = `Current: ${font_names[current_font_index]} (Font ${current_font_index}) | Scale: ${current_scale.toFixed(2)}`;
+      }
+
+      function save_settings() {
+        localStorage.setItem(FONT_SCALE_KEY, current_scale.toString());
+        localStorage.setItem(FONT_INDEX_KEY, current_font_index.toString());
+      }
+
+      document.addEventListener("keydown", (event) => {
+        let changed = false;
+
+        // Font switching
+        if (event.key >= "1" && event.key <= "5") {
+          current_font_index = parseInt(event.key);
+          changed = true;
+        }
+
+        // Font scaling
+        const scale_step = 0.1;
+        if (event.key === "+" || event.key === "=" || event.code === "NumpadAdd") {
+          current_scale = Math.min(current_scale + scale_step, 3.0);
+          changed = true;
+        } else if (event.key === "-" || event.code === "NumpadSubtract") {
+          current_scale = Math.max(current_scale - scale_step, 0.2);
+          changed = true;
+        }
+
+        if (changed) {
+          save_settings();
+          update_display();
+        }
+      });
+
+      // Early Universe Link Logic
+      const eu_link = document.getElementById("early_universe_link");
+      const eu_t_input = document.getElementById("early_universe_t");
+      const eu_no_audio = document.getElementById("early_universe_no_audio");
+
+      function update_eu_link() {
+        const base_url = "03/early_universe_formation_V2.html";
+        let t_val = "";
+
+        eu_t_input.disabled = eu_no_audio.checked;
+
+        if (!eu_no_audio.checked) {
+          t_val = eu_t_input.value;
+        }
+
+        eu_link.href = `${base_url}?t=${t_val}`;
+      }
+
+      if (eu_link && eu_t_input && eu_no_audio) {
+        eu_t_input.addEventListener("input", update_eu_link);
+        eu_no_audio.addEventListener("change", update_eu_link);
+        // Initialize
+        update_eu_link();
+      }
+
+      // Fullscreen Toggle
+      const fullscreen_btn = document.getElementById("fullscreen_toggle");
+      if (fullscreen_btn) {
+        fullscreen_btn.addEventListener("click", () => {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch((err) => {
+              console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        });
+      }
+
+      // Init
+      load_settings();
+      update_display();
+    </script>
+  </body>
+</html>

@@ -105,28 +105,23 @@ export class Menu_bar {
 
       try {
         const models = await get_models_for_dropdown();
-        if (models.length === 0) {
-          // No models available, keep disabled with "—"
-          return;
-        }
+        const selected_model = get_selected_model();
+        const needs_injection = !models.includes(selected_model);
+        const final_models = needs_injection ? [selected_model, ...models] : models;
+        console.log("[menu_bar] populate_models", "api_models", models, "selected", selected_model, "injected", needs_injection);
 
-        // Clear existing options
         model_select.innerHTML = "";
 
-        // Add model options
-        for (const model_id of models) {
+        for (const model_id of final_models) {
           const option = document.createElement("option");
           option.value = model_id;
           option.textContent = model_id;
           model_select.appendChild(option);
         }
 
-        // Set selected value
-        const selected_model = get_selected_model();
         model_select.value = selected_model;
-
-        // Enable dropdown
         model_select.disabled = false;
+        console.log("[menu_bar] model_select ready", model_select.value);
       } catch (error) {
         console.warn("Failed to populate models:", error);
         // Keep dropdown disabled with "—" on error
