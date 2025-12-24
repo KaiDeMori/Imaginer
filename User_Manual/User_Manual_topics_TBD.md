@@ -102,9 +102,9 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 
 #### Multiple Images
 - Brief explanation: generating multiple variations at once
-- How to enable: 'Number of Images (n)' setting in Config → Basic
+- How to change: 'Number of Images (n)' setting in Config → Basic
 - How multiple generations are displayed in the Gallery
-- Brief note: Parallel generation limits prevent browser overload (see 'Maximum Parallel Generations' in Config → Basic)
+- Brief note: Parallel generation limits  (see 'Maximum Parallel Generations' in Config → Basic)
 
 ### 2. The Gallery
 
@@ -182,6 +182,7 @@ The assistant will use the `manage_todo_list` tool to track verification and wri
 - What this controls
 - Recommended values
 - Performance considerations
+- cost considerations (accidentally clicking many times)
 
 #### Number of Images (n)
 - Generate multiple variations
