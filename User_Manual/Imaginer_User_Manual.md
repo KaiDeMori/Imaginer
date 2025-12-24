@@ -2,9 +2,9 @@
 
 ---
 
-## I. Getting Started
+## Getting Started
 
-### 1. What is Imaginer?
+### What is Imaginer?
 
 Imaginer is a browser-based AI image generation tool that lets you create images using text prompts. It connects directly to OpenAI's image generation API, putting powerful AI creativity at your fingertips.
 
@@ -27,7 +27,7 @@ Once set up, you can start creating images immediately. The interface is designe
 
 ---
 
-### 2. First-Time Setup
+### First-Time Setup
 
 When you launch Imaginer for the first time, you'll be prompted to enter your OpenAI API key. This connects Imaginer to OpenAI's image generation service.
 
@@ -73,7 +73,7 @@ Your API key is stored in your browser and stays on your device. It's only sent 
 
 ---
 
-### 3. Understanding the Interface
+### Understanding the Interface
 
 Imaginer's interface is divided into three main areas:
 
@@ -136,9 +136,9 @@ The interface is designed to be flexible—adjust the layout to match your workf
 
 ---
 
-## II. Core Features
+## Core Features
 
-### 1. Image Generation
+### Image Generation
 
 #### Basic Generation
 
@@ -174,7 +174,7 @@ Generate several variations of your prompt at once:
 
 ---
 
-### 2. The Gallery
+### The Gallery
 
 The gallery displays your images as thumbnails (newest at the top). **Click any thumbnail** to view it full-screen in the Viewer.
 
