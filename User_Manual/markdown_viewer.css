@@ -2,7 +2,6 @@
   --toc-width: 300px;
   --toc-padding: 20px;
   --content-padding: 40px;
-  --content-max-width: 900px;
   --border-color: #e0e0e0;
   --text-color: #222;
   --link-color: #1976d2;
@@ -28,6 +27,7 @@ p {
 }
 
 #toc_container {
+  width: 360px;
   min-width: 200px;
   padding: var(--toc-padding);
   border-right: 1px solid var(--border-color);
@@ -97,7 +97,6 @@ p {
   flex: 1;
   padding: var(--content-padding);
   overflow-y: auto;
-  max-width: var(--content-max-width);
   background: var(--background-white);
   box-sizing: border-box;
 }
@@ -127,7 +126,7 @@ p {
 
 #content h3 {
   font-size: 1.4rem;
-  margin-top: 20px;
+  margin-top: 30px;
   margin-bottom: 10px;
   color: rgb(68, 68, 68);
   font-weight: 600;

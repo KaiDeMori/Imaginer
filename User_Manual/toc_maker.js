@@ -15,9 +15,7 @@ export function create_toc(items, target_element, options = {}) {
     }
 
     const should_collapse = item.level > expand_depth && has_children;
-    const toggle = has_children
-      ? `<span class="toc_toggle">${should_collapse ? "▶" : "▼"}</span>`
-      : `<span class="toc_toggle" style="visibility:hidden">▼</span>`;
+    const toggle = has_children ? `<span class="toc_toggle">${should_collapse ? "▶" : "▼"}</span>` : `<span class="toc_toggle" style="display:none">▼</span>`;
     html += `<li>${toggle}<a href="#${item.id}">${item.text}</a>`;
 
     if (!has_children || (next_item && next_item.level <= item.level)) {
