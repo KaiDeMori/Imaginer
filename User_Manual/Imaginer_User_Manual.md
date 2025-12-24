@@ -1,7 +1,5 @@
 # Imaginer User Manual
 
----
-
 ## Getting Started
 
 ### What is Imaginer?
@@ -25,7 +23,6 @@ Imaginer stores everything locally in your browser. Your images, settings, and A
 
 Once set up, you can start creating images immediately. The interface is designed to be straightforward: write a prompt, click generate, and watch your ideas come to life.
 
----
 
 ### First-Time Setup
 
@@ -71,7 +68,6 @@ Your API key is stored in your browser and stays on your device. It's only sent 
 - Clearing your browser data will delete your stored API key.
 - You can change or remove your API key anytime using the **Configuration** dialog (gear icon in the menu bar).
 
----
 
 ### Understanding the Interface
 
@@ -134,7 +130,6 @@ Between the Gallery and Prompt Panel is a thin vertical divider:
 
 The interface is designed to be flexible—adjust the layout to match your workflow and screen size.
 
----
 
 ## Core Features
 
@@ -172,7 +167,6 @@ Generate several variations of your prompt at once:
 - **Display**: All images appear as separate thumbnails in the Gallery as they complete.
 - **Generation limit**: The **Maximum Parallel Generations** setting (default: 3) controls how many Generate requests can run simultaneously. If you reach this limit, the Generate button becomes disabled until a generation completes.
 
----
 
 ### The Gallery
 
@@ -208,3 +202,29 @@ Images are stored in your browser and persist between sessions. Each browser has
 
 **⚠️ Warning**: Clearing browser data deletes all gallery images permanently.
 
+
+### The Viewer
+
+**Click any thumbnail** to open it full-screen in the Viewer.
+
+**Controls:**
+- **Mouse wheel**: Zoom in/out (zoom centers on your cursor).
+- **Escape** or **click outside the image**: Close the Viewer.
+
+#### Mask Mode
+
+Mask Mode lets you paint on images to control which areas get regenerated during editing.
+
+**Enable the button** first in Config → Advanced → **Show Mask Mode Button** (off by default).
+
+**Using Mask Mode:**
+1. Open an image in the Viewer.
+2. Click **Mask Mode** (button turns red when active).
+3. **Left-click and drag** to paint mask areas (red overlay marks areas that will be regenerated).
+4. **Right-click and drag** or **Shift + drag** to erase masks (protect areas from changes).
+5. **Ctrl + mouse wheel** to adjust brush size.
+6. Click **Mask Mode** again to exit.
+
+**Remove Mask** button clears all masks (appears only when masks exist).
+
+Masks save automatically when you close the Viewer. Gallery thumbnails with masks show a red border.

@@ -14,14 +14,6 @@
 
 ## Core Features
 
-### The Viewer
-
-#### Viewing and Navigating
-- Opening and closing images
-- Zooming with mouse wheel
-- Panning by dragging
-- Fitting image to screen
-
 ### Image Editing
 - How to use images as edit references (drag from gallery to prompt panel)
 - Visual feedback in drop area
