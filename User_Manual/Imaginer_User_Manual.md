@@ -28,16 +28,14 @@ Once set up, you can start creating images immediately. The interface is designe
 
 When you launch Imaginer for the first time, you'll be prompted to enter your OpenAI API key. This connects Imaginer to OpenAI's image generation service.
 
-**You'll need an OpenAI API key** to use Imaginer. Keys start with `sk-` (legacy format) or `sk-proj-` (modern format). Both formats work.
+**You'll need an OpenAI API key** to use Imaginer. Keys usually look like `sk-...` (older format) or `sk-proj-...` (newer project keys). Both formats work.
 
 #### Entering Your API Key
 
 On first launch, Imaginer displays an API key entry screen:
 
 1. **Paste your API key** into the input field.
-   - As you type, Imaginer validates the key format.
-   - Modern keys (`sk-proj-...`) should be at least 108 characters.
-   - Legacy keys (`sk-...`) should be exactly 51 characters.
+   - Imaginer checks that the key looks valid (correct prefix and length) on pasting.
 
 2. **Click the Test button** to verify your key.
    - Imaginer checks if the key works and confirms you have access to image generation.
@@ -402,6 +400,9 @@ Config → Advanced → **Refresh Image Models** fetches the latest `gpt-image-*
 - Optional prompt embedding uses iTXt (`prompt_text`) and XMP blocks. Mask PNGs store editable areas with transparent alpha.
 
 ### OpenAI Integration
+- Imaginer accepts two API key formats from OpenAI:
+   - Legacy keys starting with `sk-` and exactly 51 characters in total.
+   - Project keys starting with `sk-proj-` and at least 108 characters (8-character prefix plus 100 or more characters).
 - Default model fallback is `gpt-image-1.5`; the dropdown shows cached or refreshed `gpt-image-*` models.
 - When no input images are dropped, Imaginer sends `/v1/images/generations` requests. When images are dropped and the model supports editing, it sends `/v1/images/edits` with the first mask attached if one exists.
 - Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background` values. Edits send dropped images, prompt, `n`, `size`, optional `quality`/`background`, and `input_fidelity=high` for `gpt-image-1`.
