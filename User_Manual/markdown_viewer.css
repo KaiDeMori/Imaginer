@@ -22,7 +22,6 @@ body {
 }
 
 #toc_container {
-  width: var(--toc-width);
   min-width: 200px;
   padding: var(--toc-padding);
   border-right: 1px solid var(--border-color);

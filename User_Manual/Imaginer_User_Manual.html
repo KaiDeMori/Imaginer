@@ -4,68 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Imaginer User Manual</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: system-ui, -apple-system, sans-serif;
-        display: flex;
-        height: 100vh;
-      }
-
-      #toc_container {
-        width: 300px;
-        padding: 20px;
-        border-right: 1px solid #ccc;
-        overflow-y: auto;
-        flex-shrink: 0;
-      }
-
-      #toc_container ul {
-        list-style: none;
-        padding-left: 0;
-      }
-
-      #toc_container ul ul {
-        padding-left: 20px;
-      }
-
-      #toc_container a {
-        text-decoration: none;
-        color: #333;
-        line-height: 1.6;
-      }
-
-      #toc_container a:hover {
-        text-decoration: underline;
-      }
-
-      #toc_container li {
-        position: relative;
-      }
-
-      .toc_toggle {
-        cursor: pointer;
-        user-select: none;
-        display: inline-block;
-        width: 16px;
-        margin-right: 4px;
-      }
-
-      .toc_toggle:hover {
-        color: #666;
-      }
-
-      .toc_collapsed {
-        display: none;
-      }
-
-      #content {
-        flex: 1;
-        padding: 40px;
-        overflow-y: auto;
-        max-width: 900px;
-      }
-    </style>
+    <link rel="stylesheet" href="markdown_viewer.css" />
   </head>
   <body>
     <div id="toc_container">
