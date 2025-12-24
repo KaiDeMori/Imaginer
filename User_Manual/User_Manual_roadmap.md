@@ -61,21 +61,7 @@ When documenting topics from `User_Manual_topics_TBD.md`:
 
 ## Configuration Keys Reference
 
-Quick reference of all localStorage configuration keys used by Imaginer:
-
-- `imaginer.prompt` - Current prompt text
-- `imaginer.max_parallel_generations` - Concurrency limit
-- `imaginer.n` - Number of images per generation
-- `imaginer.background` - Background setting (auto/transparent/opaque)
-- `imaginer.quality` - Quality setting (auto/high)
-- `imaginer.image_size` - Size/orientation setting
-- `imaginer.strip_metadata` - Strip metadata flag
-- `imaginer.add_prompt_to_image` - iTXt embedding enabled
-- `imaginer.add_prompt_to_image_xmp` - XMP embedding enabled
-- `imaginer.show_mask_mode_button` - Mask mode button visibility
-- `imaginer.dividerWidth` - Gallery panel width
-- `imaginer.mode` - Current mode (generation/conversation)
-- `imaginer.api_key` - Stores the user's OpenAI API key (hashed)
+*see comprehensive list in `localStorage_keys_explained.md`**
 
 ---
 
