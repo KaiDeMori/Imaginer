@@ -353,7 +353,7 @@ export class Config_dialog {
     const add_prompt = this.prompt_checkbox.checked;
     const add_prompt_xmp = this.prompt_xmp_checkbox?.checked;
     const enable_streaming = this.enable_streaming_checkbox.checked;
-    const partial_images = Math.max(0, Math.min(5, parseInt(this.partial_images_input.value)));
+    const partial_images = Math.max(1, Math.min(3, parseInt(this.partial_images_input.value)));
 
     // Use Database_store to set the scrambled API key - wait for it to complete
     const { Database_store } = await import("../../storage/database_store.js");

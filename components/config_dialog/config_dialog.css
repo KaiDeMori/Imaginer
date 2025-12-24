@@ -23,13 +23,17 @@
   --section-label-margin: 6px;
 
   /* Buttons */
-  --button-row-margin-top: 18px;
+  --button-row-margin-top: 8px;
   --button-row-padding: 16px;
   --button-group-gap: 8px;
-  --action-button-gap: 12px;
+  --action-button-gap: 6px;
+  --button-padding-vertical: 8px;
+  --button-padding-horizontal: 8px;
 
   /* Forms */
   --form-element-gap: 8px;
+  --input-padding-vertical: 6px;
+  --input-padding-horizontal: 4px;
 }
 
 /* Tab Bar Styles */
@@ -62,6 +66,7 @@
   overflow-y: auto;
   flex: 0 1 auto;
   min-height: 0;
+  min-width: 0;
   box-sizing: border-box;
 }
 /* Mask Mode Container (styled like strip_container) */
@@ -85,7 +90,7 @@
   background: #fff;
   border-radius: 10px;
   min-width: 340px;
-  width: 400px;
+  width: 420px;
   max-width: 95vw;
   max-height: 95vh;
   box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
@@ -113,6 +118,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
 }
 
 .button {
@@ -121,6 +127,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  padding: var(--button-padding-vertical) var(--button-padding-horizontal);
 }
 
 .test_button {

@@ -349,9 +349,7 @@ Config → Advanced → **Show Mask Mode Button** toggles whether the Viewer sho
 
 Config → Advanced → **Enable Image Streaming Preview** toggles progressive image previews during generation (default: on).
 
-When enabled, you see dimmed preview images as generation progresses instead of waiting for the final result. The **Number of partial images** setting (0-5, default: 2) controls how many preview updates you receive:
-- **0** = No previews, only the final image
-- **1-5** = Progressive previews during generation
+When enabled, you see dimmed preview images as generation progresses instead of waiting for the final result. The **Number of partial images** setting (0-3, default: 3) controls how many preview updates you receive.
 
 Higher preview counts provide more frequent updates but use slightly more API resources. The timer continues running throughout all previews.
 
