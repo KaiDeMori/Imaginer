@@ -39,6 +39,26 @@
         text-decoration: underline;
       }
 
+      #toc_container li {
+        position: relative;
+      }
+
+      .toc_toggle {
+        cursor: pointer;
+        user-select: none;
+        display: inline-block;
+        width: 16px;
+        margin-right: 4px;
+      }
+
+      .toc_toggle:hover {
+        color: #666;
+      }
+
+      .toc_collapsed {
+        display: none;
+      }
+
       #content {
         flex: 1;
         padding: 40px;
@@ -84,26 +104,52 @@
         let html = "<ul>";
         let current_level = 0;
 
-        for (const item of items) {
-          while (current_level < item.level) {
-            html += "<ul>";
-            current_level++;
-          }
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const next_item = items[i + 1];
+          const has_children = next_item && next_item.level > item.level;
+
           while (current_level > item.level) {
-            html += "</ul>";
+            html += "</ul></li>";
             current_level--;
           }
 
-          html += `<li><a href="#${item.id}">${item.text}</a></li>`;
+          const toggle = has_children ? `<span class="toc_toggle">▼</span>` : `<span class="toc_toggle" style="visibility:hidden">▼</span>`;
+          html += `<li>${toggle}<a href="#${item.id}">${item.text}</a>`;
+
+          if (!has_children || (next_item && next_item.level <= item.level)) {
+            html += "</li>";
+          }
+
+          if (has_children) {
+            html += "<ul>";
+            current_level = next_item.level;
+          }
         }
 
-        while (current_level > 0) {
-          html += "</ul>";
+        while (current_level > 1) {
+          html += "</ul></li>";
           current_level--;
         }
         html += "</ul>";
 
         document.getElementById("toc").innerHTML = html;
+        attach_toggle_handlers();
+      }
+
+      function attach_toggle_handlers() {
+        document.querySelectorAll(".toc_toggle").forEach((toggle) => {
+          toggle.addEventListener("click", (e) => {
+            e.preventDefault();
+            const li = toggle.parentElement;
+            const nested_ul = li.querySelector("ul");
+
+            if (nested_ul) {
+              nested_ul.classList.toggle("toc_collapsed");
+              toggle.textContent = nested_ul.classList.contains("toc_collapsed") ? "▶" : "▼";
+            }
+          });
+        });
       }
 
       load_manual();
