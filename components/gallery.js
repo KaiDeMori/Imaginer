@@ -37,26 +37,46 @@ export class Gallery {
     this.root.appendChild(this.grid);
     this.records_by_created = {};
     this.delete_mode = false;
+    this.selected_for_deletion = new Set();
 
     // Listen for delete mode toggle
     window.addEventListener("imaginer.delete_mode_toggled", (e) => {
       this.delete_mode = e.detail.active;
       if (this.delete_mode) {
+        this._clear_selection();
         this.grid.classList.add("delete-mode");
       } else {
         this.grid.classList.remove("delete-mode");
+        if (this.selected_for_deletion.size > 0) {
+          this._confirm_and_delete_selected();
+        } else {
+          this._clear_selection();
+        }
       }
     });
 
-    // Add style for delete mode cursor
+    // Add style for delete mode
     const style = document.createElement("style");
     style.textContent = `
       .delete-mode img {
-        cursor: not-allowed !important;
+        cursor: pointer !important;
       }
       .delete-mode .gallery-thumb:hover {
         opacity: 0.7;
         transition: opacity 0.2s;
+      }
+      .gallery-thumb.selected-for-deletion {
+        outline: 3px solid #ff5252;
+        border-radius: 4px;
+      }
+      .gallery-thumb.selected-for-deletion::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(220, 40, 40, 0.45);
+        border-radius: 4px;
+        pointer-events: none;
+        z-index: 3;
       }
     `;
     this.root.appendChild(style);
@@ -119,7 +139,7 @@ export class Gallery {
         fetch(path)
           .then((r) => (r.ok ? r.blob() : Promise.reject()))
           .then((blob) => ({ image_blob: blob }))
-          .catch(() => null)
+          .catch(() => null),
       );
     }
     return (await Promise.all(promises)).filter(Boolean);
@@ -206,9 +226,13 @@ export class Gallery {
 
     image_element.addEventListener("click", async () => {
       if (this.delete_mode) {
-        if (confirm("Delete this image?")) {
-          const container = image_element.closest(".gallery-thumb");
-          await this._delete_image(created, container);
+        const container = image_element.closest(".gallery-thumb");
+        if (this.selected_for_deletion.has(created)) {
+          this.selected_for_deletion.delete(created);
+          container.classList.remove("selected-for-deletion");
+        } else {
+          this.selected_for_deletion.add(created);
+          container.classList.add("selected-for-deletion");
         }
         return;
       }
@@ -337,6 +361,72 @@ export class Gallery {
     }
     container.remove();
     this.update_empty_state();
+  }
+
+  _clear_selection() {
+    for (const created of this.selected_for_deletion) {
+      const container = this._thumbnail_containers?.[created];
+      if (container) container.classList.remove("selected-for-deletion");
+    }
+    this.selected_for_deletion.clear();
+  }
+
+  _confirm_and_delete_selected() {
+    const count = this.selected_for_deletion.size;
+    if (!confirm(`Delete ${count} image${count !== 1 ? "s" : ""}? This cannot be undone.`)) {
+      this._clear_selection();
+      return;
+    }
+    this._delete_selected_images();
+  }
+
+  async _delete_selected_images() {
+    const count = this.selected_for_deletion.size;
+    this._show_deletion_overlay(count);
+
+    const deletions = [...this.selected_for_deletion].map(async (created) => {
+      const container = this._thumbnail_containers?.[created];
+      const rec = this.records_by_created?.[created];
+      if (rec?.id !== undefined) {
+        await window.database_store.delete(rec.id);
+        delete this.records_by_created[created];
+        if (this._thumbnail_containers) {
+          delete this._thumbnail_containers[created];
+        }
+      }
+      if (container) container.remove();
+    });
+
+    await Promise.all(deletions);
+
+    this._remove_deletion_overlay();
+    this._clear_selection();
+    this.update_empty_state();
+  }
+
+  _show_deletion_overlay(count) {
+    const overlay = document.createElement("div");
+    overlay.id = "imaginer-deletion-overlay";
+    Object.assign(overlay.style, {
+      position: "fixed",
+      inset: "0",
+      background: "rgba(0,0,0,0.45)",
+      zIndex: "9999",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      pointerEvents: "all",
+    });
+    overlay.innerHTML = `<div style="background:#fff;border-radius:8px;padding:24px 36px;font-size:1.1rem;display:flex;gap:12px;align-items:center;">
+      <span style="font-size:1.5rem">⏳</span> Deleting ${count} image${count !== 1 ? "s" : ""}…
+    </div>`;
+    document.body.appendChild(overlay);
+    this._deletion_overlay = overlay;
+  }
+
+  _remove_deletion_overlay() {
+    this._deletion_overlay?.remove();
+    this._deletion_overlay = null;
   }
 
   create_or_update_thumbnail(container, blob, prompt_text, created) {
