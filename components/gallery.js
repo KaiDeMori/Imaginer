@@ -7,16 +7,15 @@ export class Gallery {
     this.on_loading_complete = options.on_loading_complete;
     // Listen for mask updates to synchronize in-memory records and update UI
     window.addEventListener("imaginer.mask-updated", (e) => {
-      const { created, mask_blob, uuid } = e.detail || {};
+      const { image_id, mask_blob, uuid } = e.detail || {};
 
-      if (created && this.records_by_created && this.records_by_created[created]) {
-        const rec = this.records_by_created[created];
+      if (image_id != null && this.records_by_id[image_id]) {
+        const rec = this.records_by_id[image_id];
         rec.mask_blob = mask_blob;
         rec.uuid = uuid;
 
-        // Update mask-active attribute on the thumbnail container
-        if (this._thumbnail_containers && this._thumbnail_containers[created]) {
-          const container = this._thumbnail_containers[created];
+        const container = this._thumbnail_containers[image_id];
+        if (container) {
           if (mask_blob instanceof Blob) {
             container.setAttribute("mask-active", "");
           } else {
@@ -35,22 +34,22 @@ export class Gallery {
       padding: "8px",
     });
     this.root.appendChild(this.grid);
-    this.records_by_created = {};
+    this.records_by_id = {};
+    this._thumbnail_containers = {};
     this.delete_mode = false;
     this.selected_for_deletion = new Set();
 
     // Listen for delete mode toggle
     window.addEventListener("imaginer.delete_mode_toggled", (e) => {
-      this.delete_mode = e.detail.active;
-      if (this.delete_mode) {
+      if (e.detail.active) {
+        this.delete_mode = true;
         this._clear_selection();
         this.grid.classList.add("delete-mode");
       } else {
-        this.grid.classList.remove("delete-mode");
         if (this.selected_for_deletion.size > 0) {
           this._confirm_and_delete_selected();
         } else {
-          this._clear_selection();
+          this._exit_delete_mode();
         }
       }
     });
@@ -111,17 +110,15 @@ export class Gallery {
     } else {
       records = await this.loadDummyImages();
     }
-    // Build mapping from created timestamp to record (for id lookup)
-    this.records_by_created = {};
+    this.records_by_id = {};
     for (const rec of records) {
-      if (rec && typeof rec.created === "number") {
-        this.records_by_created[rec.created] = rec;
+      if (rec && rec.id != null) {
+        this.records_by_id[rec.id] = rec;
       }
-      // Attach uuid in memory to blob for DnD
       if (rec && rec.image_blob && rec.uuid) {
         rec.image_blob.imaginer_uuid = rec.uuid;
       }
-      this.create_or_update_thumbnail(null, rec.image_blob, rec.prompt_text, rec.created);
+      this.create_or_update_thumbnail(null, rec.image_blob, rec.prompt_text, rec.created, rec.id);
     }
     this.update_empty_state();
 
@@ -182,6 +179,7 @@ export class Gallery {
 
           const created = Math.floor(Date.now() / 1000);
 
+          let id = null;
           // Save to DB
           if (window.database_store) {
             const record = {
@@ -191,25 +189,19 @@ export class Gallery {
             };
             if (prompt) record.prompt_text = prompt;
 
-            const id = await window.database_store.save(record);
+            id = await window.database_store.save(record);
 
-            // Update internal record
-            if (this.records_by_created) {
-              this.records_by_created[created] = {
-                id,
-                ...record,
-              };
-            }
+            this.records_by_id[id] = { id, ...record };
           }
 
           // Update UI
-          this.create_or_update_thumbnail(null, blob, prompt, created);
+          this.create_or_update_thumbnail(null, blob, prompt, created, id);
         }
       }
     });
   }
 
-  _build_thumbnail_content(blob, prompt_text, created) {
+  _build_thumbnail_content(blob, prompt_text, created, record_id) {
     const url = URL.createObjectURL(blob);
 
     const image_element = document.createElement("img");
@@ -227,22 +219,21 @@ export class Gallery {
     image_element.addEventListener("click", async () => {
       if (this.delete_mode) {
         const container = image_element.closest(".gallery-thumb");
-        if (this.selected_for_deletion.has(created)) {
-          this.selected_for_deletion.delete(created);
+        const id = Number(container.dataset.recordId);
+        if (isNaN(id)) return;
+        if (this.selected_for_deletion.has(id)) {
+          this.selected_for_deletion.delete(id);
           container.classList.remove("selected-for-deletion");
         } else {
-          this.selected_for_deletion.add(created);
+          this.selected_for_deletion.add(id);
           container.classList.add("selected-for-deletion");
         }
         return;
       }
 
-      if (typeof created === "number" && this.records_by_created) {
-        const rec = this.records_by_created[created];
-        if (rec && rec.id !== undefined) {
-          this.viewer.open(blob, { image_id: rec.id });
-          return;
-        }
+      if (record_id != null) {
+        this.viewer.open(blob, { image_id: record_id });
+        return;
       }
       this.viewer.open(blob);
     });
@@ -316,7 +307,7 @@ export class Gallery {
     return { image_element, button_download, button_prompt };
   }
 
-  _make_draggable(container, blob, prompt_text, created) {
+  _make_draggable(container, blob, prompt_text, record_id) {
     container.draggable = true;
     container.addEventListener("dragstart", (event) => {
       event.dataTransfer.setData("application/x-imaginer-blob", "gallery-thumbnail");
@@ -329,11 +320,13 @@ export class Gallery {
 
       let mask_blob = null;
       let uuid = null;
-      if (typeof created === "number" && this.records_by_created) {
-        const rec = this.records_by_created[created];
+      let created = null;
+      if (record_id != null && this.records_by_id) {
+        const rec = this.records_by_id[record_id];
         if (rec) {
           if (rec.mask_blob instanceof Blob) mask_blob = rec.mask_blob;
           if (rec.uuid) uuid = rec.uuid;
+          if (rec.created) created = rec.created;
         }
       }
 
@@ -342,30 +335,16 @@ export class Gallery {
     });
   }
 
-  async _delete_image(created, container) {
-    if (typeof created === "number" && this.records_by_created) {
-      const rec = this.records_by_created[created];
-      if (rec && rec.id !== undefined) {
-        try {
-          await window.database_store.delete(rec.id);
-        } catch (err) {
-          console.error("Failed to delete image:", err);
-          alert("Failed to delete image.");
-          return;
-        }
-        delete this.records_by_created[created];
-        if (this._thumbnail_containers) {
-          delete this._thumbnail_containers[created];
-        }
-      }
-    }
-    container.remove();
-    this.update_empty_state();
+  _exit_delete_mode() {
+    this.delete_mode = false;
+    this._clear_selection();
+    this.grid.classList.remove("delete-mode");
+    window.dispatchEvent(new CustomEvent("imaginer.delete_mode_exited"));
   }
 
   _clear_selection() {
-    for (const created of this.selected_for_deletion) {
-      const container = this._thumbnail_containers?.[created];
+    for (const id of this.selected_for_deletion) {
+      const container = this._thumbnail_containers[id];
       if (container) container.classList.remove("selected-for-deletion");
     }
     this.selected_for_deletion.clear();
@@ -374,62 +353,28 @@ export class Gallery {
   _confirm_and_delete_selected() {
     const count = this.selected_for_deletion.size;
     if (!confirm(`Delete ${count} image${count !== 1 ? "s" : ""}? This cannot be undone.`)) {
-      this._clear_selection();
       return;
     }
     this._delete_selected_images();
   }
 
   async _delete_selected_images() {
-    const count = this.selected_for_deletion.size;
-    this._show_deletion_overlay(count);
+    const ids_to_delete = [...this.selected_for_deletion];
 
-    const deletions = [...this.selected_for_deletion].map(async (created) => {
-      const container = this._thumbnail_containers?.[created];
-      const rec = this.records_by_created?.[created];
-      if (rec?.id !== undefined) {
-        await window.database_store.delete(rec.id);
-        delete this.records_by_created[created];
-        if (this._thumbnail_containers) {
-          delete this._thumbnail_containers[created];
-        }
-      }
+    for (const id of ids_to_delete) {
+      await window.database_store.delete(id);
+      const container = this._thumbnail_containers[id];
       if (container) container.remove();
-    });
+      delete this.records_by_id[id];
+      delete this._thumbnail_containers[id];
+      this.selected_for_deletion.delete(id);
+    }
 
-    await Promise.all(deletions);
-
-    this._remove_deletion_overlay();
-    this._clear_selection();
+    this._exit_delete_mode();
     this.update_empty_state();
   }
 
-  _show_deletion_overlay(count) {
-    const overlay = document.createElement("div");
-    overlay.id = "imaginer-deletion-overlay";
-    Object.assign(overlay.style, {
-      position: "fixed",
-      inset: "0",
-      background: "rgba(0,0,0,0.45)",
-      zIndex: "9999",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      pointerEvents: "all",
-    });
-    overlay.innerHTML = `<div style="background:#fff;border-radius:8px;padding:24px 36px;font-size:1.1rem;display:flex;gap:12px;align-items:center;">
-      <span style="font-size:1.5rem">⏳</span> Deleting ${count} image${count !== 1 ? "s" : ""}…
-    </div>`;
-    document.body.appendChild(overlay);
-    this._deletion_overlay = overlay;
-  }
-
-  _remove_deletion_overlay() {
-    this._deletion_overlay?.remove();
-    this._deletion_overlay = null;
-  }
-
-  create_or_update_thumbnail(container, blob, prompt_text, created) {
+  create_or_update_thumbnail(container, blob, prompt_text, created, record_id = null) {
     if (!container) {
       container = document.createElement("div");
     }
@@ -447,21 +392,18 @@ export class Gallery {
       justifyContent: "",
     });
 
-    if (typeof created === "number" && this.records_by_created && this.records_by_created[created]) {
-      const rec = this.records_by_created[created];
+    if (record_id != null) {
+      container.dataset.recordId = record_id;
+      const rec = this.records_by_id[record_id];
       if (rec && rec.mask_blob instanceof Blob) {
         container.setAttribute("mask-active", "");
       }
+      this._thumbnail_containers[record_id] = container;
     }
 
-    if (typeof created === "number") {
-      if (!this._thumbnail_containers) this._thumbnail_containers = {};
-      this._thumbnail_containers[created] = container;
-    }
+    this._make_draggable(container, blob, prompt_text, record_id);
 
-    this._make_draggable(container, blob, prompt_text, created);
-
-    const { image_element, button_download, button_prompt } = this._build_thumbnail_content(blob, prompt_text, created);
+    const { image_element, button_download, button_prompt } = this._build_thumbnail_content(blob, prompt_text, created, record_id);
 
     container.appendChild(image_element);
     container.appendChild(button_download);
@@ -548,7 +490,7 @@ export class Gallery {
     placeholder.appendChild(image);
   }
 
-  update_placeholder(placeholder, blob, is_error = false, prompt_text = "", created = null) {
+  update_placeholder(placeholder, blob, is_error = false, prompt_text = "", created = null, record_id = null) {
     if (Gallery.tracked_placeholders) {
       const idx = Gallery.tracked_placeholders.indexOf(placeholder);
       if (idx !== -1) Gallery.tracked_placeholders.splice(idx, 1);
@@ -598,7 +540,7 @@ export class Gallery {
 
     if (placeholder._timer) placeholder._timer.remove();
 
-    this.create_or_update_thumbnail(placeholder, blob, prompt_text, created);
+    this.create_or_update_thumbnail(placeholder, blob, prompt_text, created, record_id);
     this.update_empty_state();
   }
 

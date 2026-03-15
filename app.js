@@ -240,7 +240,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                   r2.readAsDataURL(blob);
                 })
               : data_url,
-            prompt_text
+            prompt_text,
           );
         }
       } catch (err) {
@@ -312,16 +312,14 @@ window.addEventListener("DOMContentLoaded", async () => {
                 prompt_text,
                 prompt_imgs: [],
               });
-              if (gallery.records_by_created) {
-                gallery.records_by_created[created] = {
-                  id: record_id,
-                  created,
-                  image_blob: blob,
-                  prompt_text,
-                  prompt_imgs: [],
-                };
-              }
-              gallery.update_placeholder(placeholder, blob, false, prompt_text, created);
+              gallery.records_by_id[record_id] = {
+                id: record_id,
+                created,
+                image_blob: blob,
+                prompt_text,
+                prompt_imgs: [],
+              };
+              gallery.update_placeholder(placeholder, blob, false, prompt_text, created, record_id);
               return;
             }
           } catch (parse_err) {
@@ -451,16 +449,23 @@ window.addEventListener("DOMContentLoaded", async () => {
         for (let i = 0; i < data.data.length; i++) {
           let base64Data = data.data[i].b64_json;
           let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
-          await database_store.save({
+          const record_id = await database_store.save({
             created,
             image_blob: blob,
             prompt_text,
             prompt_imgs: [],
           });
+          gallery.records_by_id[record_id] = {
+            id: record_id,
+            created,
+            image_blob: blob,
+            prompt_text,
+            prompt_imgs: [],
+          };
           if (placeholders[i]) {
-            gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created);
+            gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created, record_id);
           } else {
-            gallery.create_or_update_thumbnail(null, blob, prompt_text, created);
+            gallery.create_or_update_thumbnail(null, blob, prompt_text, created, record_id);
           }
         }
         // Remove any extra placeholders if fewer images returned than requested
@@ -548,17 +553,15 @@ window.addEventListener("DOMContentLoaded", async () => {
             prompt_text: prompt_text,
             prompt_imgs: [],
           });
-          if (gallery.records_by_created) {
-            gallery.records_by_created[created] = {
-              id: record_id,
-              created,
-              image_blob: blob,
-              prompt_text: prompt_text,
-              prompt_imgs: [],
-            };
-          }
+          gallery.records_by_id[record_id] = {
+            id: record_id,
+            created,
+            image_blob: blob,
+            prompt_text: prompt_text,
+            prompt_imgs: [],
+          };
           // Update the first placeholder, remove any extras
-          gallery.update_placeholder(placeholders[0], blob, false, prompt_text, created);
+          gallery.update_placeholder(placeholders[0], blob, false, prompt_text, created, record_id);
           for (let i = 1; i < placeholders.length; i++) {
             if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
           }
@@ -577,25 +580,18 @@ window.addEventListener("DOMContentLoaded", async () => {
             });
             console.debug("[App] Saved with ID =", record_id, "created =", created);
 
+            gallery.records_by_id[record_id] = {
+              id: record_id,
+              created,
+              image_blob: blob,
+              prompt_text: prompt_text,
+              prompt_imgs: [],
+            };
+
             if (placeholders[i]) {
-              gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created);
+              gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created, record_id);
             } else {
-              // Create a record object with the ID for the gallery
-              const record = {
-                id: record_id,
-                created,
-                image_blob: blob,
-                prompt_text: prompt_text,
-                prompt_imgs: [],
-              };
-              gallery.create_or_update_thumbnail(null, blob, prompt_text, created);
-              // Add to gallery's mapping with the correct ID
-              if (gallery.records_by_created) {
-                gallery.records_by_created[created] = record;
-                console.debug("[App] Added to gallery mapping: created =", created, "id =", record_id);
-              } else {
-                console.debug("[App] ERROR: gallery.records_by_created is NULL");
-              }
+              gallery.create_or_update_thumbnail(null, blob, prompt_text, created, record_id);
             }
           }
           for (let i = data.data.length; i < placeholders.length; i++) {

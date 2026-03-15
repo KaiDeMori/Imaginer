@@ -48,15 +48,20 @@ export class Menu_bar {
           delete_btn.style.background = "none";
         } else {
           delete_btn.style.opacity = "1";
-          delete_btn.style.background = "rgb(255, 82, 82)"; // Light red background to indicate danger/delete
+          delete_btn.style.background = "rgb(255, 82, 82)";
           delete_btn.style.borderRadius = "4px";
         }
 
         window.dispatchEvent(
           new CustomEvent("imaginer.delete_mode_toggled", {
             detail: { active: !is_active },
-          })
+          }),
         );
+      });
+
+      window.addEventListener("imaginer.delete_mode_exited", () => {
+        delete_btn.style.opacity = "0.5";
+        delete_btn.style.background = "none";
       });
     }
 
@@ -87,7 +92,7 @@ export class Menu_bar {
           window.dispatchEvent(
             new CustomEvent("imaginer.config_changed", {
               detail: { apiKey: api_key, max },
-            })
+            }),
           );
         });
       }
@@ -153,7 +158,7 @@ export class Menu_bar {
           window.dispatchEvent(
             new CustomEvent("imaginer.model_changed", {
               detail: { model: selected_model },
-            })
+            }),
           );
         }
       });
