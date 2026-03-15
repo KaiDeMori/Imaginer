@@ -176,11 +176,11 @@ Images with embedded prompts are automatically detected. Images over 4 MB are re
 #### Deleting Images
 
 1. Click the 🗑️ button in the menu bar to enable delete mode (the button turns red).
-2. Move your cursor over thumbnails. A special “no” cursor and dimmed hover state show that delete mode is active.
-3. Click any thumbnail to delete it. Imaginer asks you to confirm before removal.
-4. Click 🗑️ again to exit delete mode.
+2. Click thumbnails to select them for deletion — selected images get a red highlight and border. Click again to deselect.
+3. Click 🗑️ again to confirm. A dialog shows how many images will be deleted. Confirm to proceed or cancel to clear the selection and exit delete mode.
+4. A loading overlay is shown while deletion is in progress. All other interactions are blocked until it completes.
 
-**⚠️ Warning**: Deletion is permanent and removes the image from the gallery and local storage.
+**⚠️ Warning**: Deletion is permanent and removes the images from the gallery and local storage.
 
 #### Thumbnail Actions
 
