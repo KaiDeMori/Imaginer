@@ -1,5 +1,6 @@
 /**
  * Scans a PNG Blob for embedded prompts in iTXt chunks or XMP metadata.
+ * Prefers the custom "prompt_text" keyword over XMP Description.
  * @param {Blob} blob
  * @returns {Promise<string>} The found prompt or an empty string.
  */
@@ -10,12 +11,13 @@ export async function read_png_metadata(blob) {
 
   // Check PNG signature
   if (uint8[0] !== 137 || uint8[1] !== 80 || uint8[2] !== 78 || uint8[3] !== 71) {
-    return ""; // Not a PNG
+    return "";
   }
+
+  let xmp_fallback = "";
 
   let offset = 8;
   while (offset < buffer.byteLength) {
-    // Ensure we have enough bytes for length (4) and type (4)
     if (offset + 8 > buffer.byteLength) break;
 
     const length = view.getUint32(offset);
@@ -29,49 +31,41 @@ export async function read_png_metadata(blob) {
 
       let pos = data_offset;
 
-      // 1. Keyword
       let keyword = "";
       while (pos < data_end && uint8[pos] !== 0) {
         keyword += String.fromCharCode(uint8[pos]);
         pos++;
       }
-      pos++; // Skip null
+      pos++; // null separator
 
-      // 2. Compression flag & method (skip 2 bytes)
+      // compression flag + method
       pos += 2;
 
-      // 3. Language tag (skip until null)
+      // language tag
       while (pos < data_end && uint8[pos] !== 0) pos++;
       pos++;
 
-      // 4. Translated keyword (skip until null)
+      // translated keyword
       while (pos < data_end && uint8[pos] !== 0) pos++;
       pos++;
 
-      // 5. Text
       const text_bytes = uint8.subarray(pos, data_end);
       const text = new TextDecoder().decode(text_bytes);
 
-      // Check for our custom keyword
       if (keyword === "prompt_text") {
         return text;
       }
 
-      // Check for XMP
-      if (keyword === "XML:com.adobe.xmp") {
-        // Simple regex to find the description in XMP
-        // Matches <dc:description>...<rdf:li ...>CONTENT</rdf:li>...</dc:description>
-        // We use a slightly more robust regex to capture the content inside the rdf:li
+      if (keyword === "XML:com.adobe.xmp" && !xmp_fallback) {
         const match = text.match(/<dc:description>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>[\s\S]*?<\/dc:description>/);
         if (match && match[1]) {
-          return match[1];
+          xmp_fallback = match[1];
         }
       }
     }
 
-    // Move to next chunk (Length + Type + Data + CRC)
     offset += 8 + length + 4;
   }
 
-  return "";
+  return xmp_fallback;
 }

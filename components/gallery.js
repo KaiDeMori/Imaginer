@@ -164,10 +164,11 @@ export class Gallery {
           let blob = file;
           let prompt = null;
 
-          if (file.type === "image/png") {
-            const text = await read_png_metadata(file);
-            if (text) prompt = text;
-          } else {
+          // Always try metadata extraction first (checks PNG signature internally)
+          const text = await read_png_metadata(file);
+          if (text) prompt = text;
+
+          if (file.type !== "image/png") {
             try {
               blob = await convert_image_to_png(file);
             } catch (err) {
