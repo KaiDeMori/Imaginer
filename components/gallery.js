@@ -256,7 +256,7 @@ export class Gallery {
     });
     button_download.title = "Download image";
 
-    button_download.addEventListener("click", (e) => {
+    button_download.addEventListener("click", async (e) => {
       e.stopPropagation();
       let base = (prompt_text || "image")
         .replace(/\s+/g, "_")
@@ -265,12 +265,14 @@ export class Gallery {
       if (!base) base = "image";
       const ts = created ? String(created) : String(Math.floor(Date.now() / 1000));
       const filename = `${base}_${ts}.png`;
+      const processed_blob = await window.process_image_metadata(blob, prompt_text || "", {});
+      const download_url = URL.createObjectURL(processed_blob);
       const a = document.createElement("a");
-      a.href = url;
+      a.href = download_url;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
-      setTimeout(() => a.remove(), 100);
+      setTimeout(() => { a.remove(); URL.revokeObjectURL(download_url); }, 100);
     });
 
     let button_prompt = null;

@@ -157,15 +157,7 @@ export class Viewer {
     this.image_id = opts.image_id || null;
     // Strict check for valid Blob
     if (!(blob instanceof Blob) || blob.size === 0) {
-      // Show dialog to user
-      const do_cleanup = window.confirm(
-        "This image cannot be opened because it was saved in an old or invalid format.\n" +
-          "Would you like to clean up all old/bad images? (This will delete all saved images.)"
-      );
-      if (do_cleanup && window.database_store) {
-        await window.database_store.clear();
-        if (window.location) window.location.reload();
-      }
+      alert("This image cannot be opened because it is empty or in an invalid format.");
       return;
     }
 

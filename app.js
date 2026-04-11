@@ -203,6 +203,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     alert("History feature coming soon!");
   });
 
+  window.process_image_metadata = process_image_metadata;
   async function process_image_metadata(blob, prompt_text, embed_options) {
     const strip_metadata = localStorage.getItem("imaginer.strip_metadata") === "true";
     if (strip_metadata) {
