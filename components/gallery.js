@@ -1,6 +1,23 @@
 // gallery.js – Thumbnail grid with placeholder support
 import { read_png_metadata } from "./png_metadata_reader.js";
+import { read_jpeg_metadata } from "./jpeg_metadata_reader.js";
+import { read_webp_metadata } from "./webp_metadata_reader.js";
 import { convert_image_to_png } from "./image_converter.js";
+
+/**
+ * @param {File|Blob} file
+ * @returns {Promise<string>}
+ */
+async function read_image_prompt(file) {
+  const type = file.type;
+  if (type === "image/png")  return read_png_metadata(file);
+  if (type === "image/jpeg") return read_jpeg_metadata(file);
+  if (type === "image/webp") return read_webp_metadata(file);
+  // Signature-based fallback for unknown/empty MIME types
+  return (await read_png_metadata(file))
+      || (await read_jpeg_metadata(file))
+      || (await read_webp_metadata(file));
+}
 
 export class Gallery {
   constructor(root, viewer, options = {}) {
@@ -164,8 +181,8 @@ export class Gallery {
           let blob = file;
           let prompt = null;
 
-          // Always try metadata extraction first (checks PNG signature internally)
-          const text = await read_png_metadata(file);
+          // Extract metadata before any conversion (which strips it)
+          const text = await read_image_prompt(file);
           if (text) prompt = text;
 
           if (file.type !== "image/png") {
