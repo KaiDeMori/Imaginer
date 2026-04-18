@@ -3,6 +3,7 @@ import { read_png_metadata } from "./png_metadata_reader.js";
 import { read_jpeg_metadata } from "./jpeg_metadata_reader.js";
 import { read_webp_metadata } from "./webp_metadata_reader.js";
 import { convert_image_to_png } from "./image_converter.js";
+import { process_image_metadata } from "../process_image_metadata.js";
 
 /**
  * @param {File|Blob} file
@@ -283,7 +284,7 @@ export class Gallery {
       if (!base) base = "image";
       const ts = created ? String(created) : String(Math.floor(Date.now() / 1000));
       const filename = `${base}_${ts}.png`;
-      const processed_blob = await window.process_image_metadata(blob, prompt_text || "", {});
+      const processed_blob = await process_image_metadata(blob, prompt_text || "", {});
       const download_url = URL.createObjectURL(processed_blob);
       const a = document.createElement("a");
       a.href = download_url;
