@@ -68,9 +68,9 @@
         font-size: 0.85em;
         color: #666;
       }
-      .refresh_hint {
+      .resolution_hint {
         margin-top: 0.8em;
-        font-size: 0.75em;
+        font-size: 16px;
         color: #999;
       }
       .feature_grid {
@@ -112,7 +112,7 @@
         <div class="model_intro">Now powered by</div>
         <span class="model_name">gpt-image-2</span>
         <div class="model_tagline">OpenAI's most capable image model yet.</div>
-        <div class="refresh_hint">Model Refresh: <strong>Settings (⚙️) › Advanced › Refresh Models</strong></div>
+        <div class="resolution_hint">Pick any<sup>✳</sup> resolution: <strong>⚙️ › Advanced › Advanced size setting</strong>.</div>
       </div>
 
       <div class="feature_grid">
@@ -121,34 +121,21 @@
           <strong>Insane Detail</strong>
         </div>
         <div class="feature_item">
+          <span class="feature_icon">📐</span>
+          <strong>Free Sizes</strong>
+        </div>
+        <div class="feature_item">
           <span class="feature_icon">🔤</span>
           <strong>Readable Text</strong>
         </div>
-        <div class="feature_item">
-          <span class="feature_icon">🎭</span>
-          <strong>Style Range</strong>
-        </div>
-        <div class="feature_item">
-          <span class="feature_icon">⚡</span>
-          <strong>Faster</strong>
-        </div>
       </div>
 
-      <h3 style="margin-top: 1.4em">📐 New: Free image sizes</h3>
-      <p>
-        <code>gpt-image-2</code> can render at any resolution that meets the model's constraints — not just the three classic Portrait / Landscape / Square
-        presets.
-      </p>
-      <p>
-        Turn on <strong>Settings (⚙️) › Advanced › Advanced size setting</strong> to swap the orientation icons for a size dropdown. Pick from popular presets
-        (<code>1024×1024</code>, <code>1024×1536</code>, <code>1536×1024</code>, <code>2560×1440</code>, <code>3824×2144</code>) or choose
-        <em>Add custom size…</em> to enter your own. Custom sizes are remembered for next time, and you can prune them anytime via <em>Remove custom size…</em>.
-      </p>
-      <p style="font-size: 0.85em; color: #777">
-        Constraints: edges multiples of 16, each &lt; 3840 px, aspect ratio ≤ 3:1, total pixels between 655,360 and 8,294,400. Above 2560×1440 is experimental.
+      <p style="font-size: 8pt; color: #666; text-align: center; margin: -0.4em 0 1em">
+        Model Refresh: <strong>Settings (⚙️) › Advanced › Refresh Models</strong>
       </p>
 
       <div class="subtle_note">Same Imaginer you know. Wildly better images. ✨</div>
+      <div class="subtle_note"><sup>✳</sup> <a href="../User_Manual/Imaginer_User_Manual.html?v=1.6#advanced-size-setting">Terms and Conditions apply.</a></div>
     </div>
     <script type="module">
       (function () {
