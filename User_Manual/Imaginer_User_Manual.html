@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -22,8 +22,17 @@
       async function load_manual() {
         const { html_content, toc_items } = await parse_markdown_with_toc("Imaginer_User_Manual.md");
 
-        document.getElementById("content").innerHTML = html_content;
+        const contentEl = document.getElementById("content");
+        contentEl.innerHTML = html_content;
         create_toc(toc_items, "toc", { expand_depth: 2 });
+
+        if (window.location.hash) {
+          const targetId = window.location.hash.slice(1);
+          const target = document.getElementById(targetId);
+          if (target) {
+            target.scrollIntoView();
+          }
+        }
       }
 
       load_manual();
