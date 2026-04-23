@@ -76,7 +76,8 @@ Imaginer's interface is divided into three main areas:
 The menu bar spans the top of the screen and contains all your controls and settings:
 
 **Left side:**
-- **Orientation buttons**: Three icon buttons to select image orientation.
+- **Orientation buttons**: Three icon buttons to select image orientation (Landscape / Portrait / Square).
+  - Replaced by an **image-size dropdown** when **Advanced size setting** is enabled in Config (see _Advanced size setting_ below).
   
 - **Model dropdown**: Select which AI model to use for generation.
   - Shows available image generation models from your OpenAI account.
@@ -332,6 +333,31 @@ Use Menu Bar → **Orientation buttons** to choose the canvas shape for generati
 
 Your selection persists between sessions and applies to the next generation or edit request.
 
+##### Advanced size setting (free resolutions for `gpt-image-2`)
+
+`gpt-image-2` supports any resolution that satisfies the model's constraints, not just the three orientation presets. To work with arbitrary sizes:
+
+1. Open **Config → Advanced** and tick **Advanced size setting**.
+2. Save. The three orientation icons in the menu bar are replaced by an **image-size dropdown**.
+
+The dropdown contains:
+
+- **Popular sizes**: `1024×1024`, `1024×1536`, `1536×1024`, `2560×1440`, `3824×2144`.
+- **Your custom sizes**: any custom sizes you have added (most-recent first, capped at 20).
+- **Add custom size…**: opens a modal where you can enter a width and height. The Save button stays disabled until your input is valid; warnings appear for experimental sizes.
+- **Remove custom size…**: only shown when you have at least one custom size. Lists your custom sizes; click an entry and confirm to delete it.
+
+**Constraints checked by the modal**:
+- Both edges must be a multiple of **16** pixels.
+- Each edge must be **less than 3840 px**.
+- Aspect ratio (long edge ÷ short edge) must be **≤ 3:1**.
+- Total pixels must be between **655,360** and **8,294,400**.
+- Above **2560×1440** (≈ 3.69 megapixels) is **experimental** — results can be more variable.
+
+Turning **Advanced size setting** off again restores the orientation icons and snaps the active size back to the closest preset (Landscape / Portrait / Square) based on the current aspect ratio. Custom sizes you have saved are preserved and reappear when you re-enable the advanced mode.
+
+> **Note:** Other models (e.g. `gpt-image-1`) do not officially support arbitrary resolutions. Stick with the three presets, or with the popular `1024×…` / `…×1024` sizes, when generating with those models.
+
 
 ### Advanced Settings
 
@@ -344,6 +370,10 @@ Your selection persists between sessions and applies to the next generation or e
 #### Mask Mode Button
 
 Config → Advanced → **Show Mask Mode Button** toggles whether the Viewer shows the mask tools. Enable it when you need to paint or remove masks; disable it to keep the Viewer simpler by hiding the mask buttons.
+
+#### Advanced size setting
+
+Config → Advanced → **Advanced size setting** swaps the three orientation icon buttons in the menu bar for a free-resolution dropdown that lets you pick popular `gpt-image-2` sizes or define your own custom sizes. See _Basic Settings → Orientation and Size → Advanced size setting_ for full details, validation rules, and how to add or remove custom sizes.
 
 #### Image Streaming Preview
 

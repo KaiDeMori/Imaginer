@@ -19,7 +19,7 @@
 - Imaginer accepts two API key formats from OpenAI:
    - Legacy keys starting with `sk-` and exactly 51 characters in total.
    - Project keys starting with `sk-proj-` and at least 108 characters (8-character prefix plus 100 or more characters).
-- Default model fallback is `gpt-image-1.5`; the dropdown shows cached or refreshed `gpt-image-*` models.
+- Default model fallback is `gpt-image-2`; the dropdown shows cached or refreshed `gpt-image-*` models.
 - When no input images are dropped, Imaginer sends `/v1/images/generations` requests. When images are dropped and the model supports editing, it sends `/v1/images/edits` with the first mask attached if one exists.
 - Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background` values. Edits send dropped images, prompt, `n`, `size`, optional `quality`/`background`, and `input_fidelity=high` for `gpt-image-1`.
 - Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`.
