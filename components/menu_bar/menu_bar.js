@@ -207,6 +207,18 @@ export class Menu_bar {
       return "1024x1024";
     }
 
+    // gpt-image-1 family models (1.0, 1.5, dated, mini variants) only support
+    // the three legacy sizes. gpt-image-2 supports arbitrary sizes.
+    const LEGACY_SIZES = new Set(["1024x1024", "1024x1536", "1536x1024"]);
+    function is_legacy_size_only_model(model_id) {
+      return typeof model_id === "string" && model_id.startsWith("gpt-image-1");
+    }
+    function clamp_size_for_model(value, model_id) {
+      if (!is_legacy_size_only_model(model_id)) return value;
+      if (LEGACY_SIZES.has(value)) return value;
+      return size_for_orientation(orientation_for_size(value));
+    }
+
     function select_orientation(orientation) {
       orientation_buttons.forEach((btn) => {
         if (btn.dataset.orientation === orientation) {
@@ -219,6 +231,8 @@ export class Menu_bar {
 
     function build_size_select_options(current_value) {
       if (!image_size_select) return;
+      const model_id = get_selected_model();
+      const legacy_only = is_legacy_size_only_model(model_id);
       image_size_select.innerHTML = "";
       const seen = new Set();
       const append_option = (value, label) => {
@@ -234,6 +248,7 @@ export class Menu_bar {
       popular_group.label = "Popular sizes";
       image_size_select.appendChild(popular_group);
       for (const entry of POPULAR_SIZES) {
+        if (legacy_only && !LEGACY_SIZES.has(entry.value)) continue;
         if (seen.has(entry.value)) continue;
         seen.add(entry.value);
         const opt = document.createElement("option");
@@ -242,41 +257,44 @@ export class Menu_bar {
         popular_group.appendChild(opt);
       }
 
-      const customs = get_custom_sizes();
-      if (customs.length > 0) {
-        const custom_group = document.createElement("optgroup");
-        custom_group.label = "Your custom sizes";
-        image_size_select.appendChild(custom_group);
-        for (const value of customs) {
-          if (seen.has(value)) continue;
-          seen.add(value);
-          const parsed = parse_size(value);
-          if (!parsed) continue;
-          const opt = document.createElement("option");
-          opt.value = value;
-          opt.textContent = format_size_label(parsed.width, parsed.height);
-          custom_group.appendChild(opt);
+      // Skip Your custom sizes / Add / Remove entries entirely for legacy-only models.
+      if (!legacy_only) {
+        const customs = get_custom_sizes();
+        if (customs.length > 0) {
+          const custom_group = document.createElement("optgroup");
+          custom_group.label = "Your custom sizes";
+          image_size_select.appendChild(custom_group);
+          for (const value of customs) {
+            if (seen.has(value)) continue;
+            seen.add(value);
+            const parsed = parse_size(value);
+            if (!parsed) continue;
+            const opt = document.createElement("option");
+            opt.value = value;
+            opt.textContent = format_size_label(parsed.width, parsed.height);
+            custom_group.appendChild(opt);
+          }
         }
-      }
 
-      // Make sure the current value is selectable even if not in either list.
-      if (current_value && !seen.has(current_value)) {
-        const parsed = parse_size(current_value);
-        if (parsed) {
-          append_option(current_value, format_size_label(parsed.width, parsed.height));
+        // Make sure the current value is selectable even if not in either list.
+        if (current_value && !seen.has(current_value)) {
+          const parsed = parse_size(current_value);
+          if (parsed) {
+            append_option(current_value, format_size_label(parsed.width, parsed.height));
+          }
         }
-      }
 
-      const add_opt = document.createElement("option");
-      add_opt.value = ADD_CUSTOM_SIZE_VALUE;
-      add_opt.textContent = "Add custom size\u2026";
-      image_size_select.appendChild(add_opt);
+        const add_opt = document.createElement("option");
+        add_opt.value = ADD_CUSTOM_SIZE_VALUE;
+        add_opt.textContent = "Add custom size\u2026";
+        image_size_select.appendChild(add_opt);
 
-      if (customs.length > 0) {
-        const remove_opt = document.createElement("option");
-        remove_opt.value = REMOVE_CUSTOM_SIZE_VALUE;
-        remove_opt.textContent = "Remove custom size\u2026";
-        image_size_select.appendChild(remove_opt);
+        if (customs.length > 0) {
+          const remove_opt = document.createElement("option");
+          remove_opt.value = REMOVE_CUSTOM_SIZE_VALUE;
+          remove_opt.textContent = "Remove custom size\u2026";
+          image_size_select.appendChild(remove_opt);
+        }
       }
 
       if (current_value && seen.has(current_value)) {
@@ -293,7 +311,12 @@ export class Menu_bar {
         image_size_select.style.display = advanced ? "" : "none";
       }
       if (advanced) {
-        const current = localStorage.getItem("imaginer.image_size") || "1024x1024";
+        let current = localStorage.getItem("imaginer.image_size") || "1024x1024";
+        const clamped = clamp_size_for_model(current, get_selected_model());
+        if (clamped !== current) {
+          current = clamped;
+          localStorage.setItem("imaginer.image_size", current);
+        }
         build_size_select_options(current);
       } else {
         // Snap orientation from current size
@@ -354,6 +377,8 @@ export class Menu_bar {
 
     apply_size_mode();
     window.addEventListener("imaginer.advanced_size_mode_changed", apply_size_mode);
+    window.addEventListener("imaginer.model_changed", apply_size_mode);
+    window.addEventListener("imaginer.models_refreshed", apply_size_mode);
     // Help button
     const help_button = this.root.querySelector("#help-btn");
     if (help_button) {
