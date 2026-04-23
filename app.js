@@ -339,9 +339,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (background !== "auto") form_data.append("background", background);
 
       const selected_model = get_selected_model();
-      // input_fidelity is only supported on the gpt-image-1 family (gpt-image-1, gpt-image-1.5,
-      // and dated variants). gpt-image-2 disables it and the request hangs if we send it.
-      if (selected_model.startsWith("gpt-image-1")) {
+      if (selected_model === "gpt-image-1" || selected_model === "gpt-image-1.5") {
         const input_fidelity = localStorage.getItem("imaginer.input_fidelity");
         if (input_fidelity) form_data.append("input_fidelity", input_fidelity);
       }
