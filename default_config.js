@@ -12,6 +12,8 @@ const DEFAULT_CONFIG = {
   "imaginer.quality": "auto",
   "imaginer.input_fidelity": "low",
   "imaginer.image_size": "1024x1024",
+  "imaginer.advanced_size_mode": "false",
+  "imaginer.custom_sizes": "[]",
   "imaginer.strip_metadata": "true",
   "imaginer.add_prompt_to_image": "false",
   "imaginer.add_prompt_to_image_xmp": "true",

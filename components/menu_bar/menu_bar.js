@@ -5,6 +5,18 @@ import { Database_store } from "../../storage/database_store.js";
 import { Error_modal } from "../error_modal.js";
 import { get_models_for_dropdown, get_selected_model, set_selected_model, refresh_models } from "../../model_fetcher.js";
 import { versioned_url } from "../../version_manager.js";
+import {
+  POPULAR_SIZES,
+  get_custom_sizes,
+  add_custom_size,
+  is_advanced_size_mode,
+  orientation_for_size,
+  parse_size,
+  format_size,
+  format_size_label,
+} from "../size_picker/size_picker.js";
+import { Custom_size_modal } from "../custom_size_modal/custom_size_modal.js";
+import { Remove_custom_size_modal } from "../remove_custom_size_modal/remove_custom_size_modal.js";
 
 export class Menu_bar {
   constructor(root) {
@@ -182,19 +194,120 @@ export class Menu_bar {
     // UI elements
     // Orientation radio group logic
     const orientation_radio_group = this.root.querySelector("#orientation-radio-group");
+    const image_size_select = this.root.querySelector("#image-size-select");
+    const ADD_CUSTOM_SIZE_VALUE = "__add_custom__";
+    const REMOVE_CUSTOM_SIZE_VALUE = "__remove_custom__";
+    let custom_size_modal = null;
+    let remove_custom_size_modal = null;
     let orientation_buttons = [];
+
+    function size_for_orientation(o) {
+      if (o === "landscape") return "1536x1024";
+      if (o === "portrait") return "1024x1536";
+      return "1024x1024";
+    }
+
+    function select_orientation(orientation) {
+      orientation_buttons.forEach((btn) => {
+        if (btn.dataset.orientation === orientation) {
+          btn.classList.add("selected");
+        } else {
+          btn.classList.remove("selected");
+        }
+      });
+    }
+
+    function build_size_select_options(current_value) {
+      if (!image_size_select) return;
+      image_size_select.innerHTML = "";
+      const seen = new Set();
+      const append_option = (value, label) => {
+        if (seen.has(value)) return;
+        seen.add(value);
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = label;
+        image_size_select.appendChild(opt);
+      };
+
+      const popular_group = document.createElement("optgroup");
+      popular_group.label = "Popular sizes";
+      image_size_select.appendChild(popular_group);
+      for (const entry of POPULAR_SIZES) {
+        if (seen.has(entry.value)) continue;
+        seen.add(entry.value);
+        const opt = document.createElement("option");
+        opt.value = entry.value;
+        opt.textContent = entry.label;
+        popular_group.appendChild(opt);
+      }
+
+      const customs = get_custom_sizes();
+      if (customs.length > 0) {
+        const custom_group = document.createElement("optgroup");
+        custom_group.label = "Your custom sizes";
+        image_size_select.appendChild(custom_group);
+        for (const value of customs) {
+          if (seen.has(value)) continue;
+          seen.add(value);
+          const parsed = parse_size(value);
+          if (!parsed) continue;
+          const opt = document.createElement("option");
+          opt.value = value;
+          opt.textContent = format_size_label(parsed.width, parsed.height);
+          custom_group.appendChild(opt);
+        }
+      }
+
+      // Make sure the current value is selectable even if not in either list.
+      if (current_value && !seen.has(current_value)) {
+        const parsed = parse_size(current_value);
+        if (parsed) {
+          append_option(current_value, format_size_label(parsed.width, parsed.height));
+        }
+      }
+
+      const add_opt = document.createElement("option");
+      add_opt.value = ADD_CUSTOM_SIZE_VALUE;
+      add_opt.textContent = "Add custom size\u2026";
+      image_size_select.appendChild(add_opt);
+
+      if (customs.length > 0) {
+        const remove_opt = document.createElement("option");
+        remove_opt.value = REMOVE_CUSTOM_SIZE_VALUE;
+        remove_opt.textContent = "Remove custom size\u2026";
+        image_size_select.appendChild(remove_opt);
+      }
+
+      if (current_value && seen.has(current_value)) {
+        image_size_select.value = current_value;
+      }
+    }
+
+    const apply_size_mode = () => {
+      const advanced = is_advanced_size_mode();
+      if (orientation_radio_group) {
+        orientation_radio_group.style.display = advanced ? "none" : "flex";
+      }
+      if (image_size_select) {
+        image_size_select.style.display = advanced ? "" : "none";
+      }
+      if (advanced) {
+        const current = localStorage.getItem("imaginer.image_size") || "1024x1024";
+        build_size_select_options(current);
+      } else {
+        // Snap orientation from current size
+        const current = localStorage.getItem("imaginer.image_size") || "1024x1024";
+        const orientation = orientation_for_size(current);
+        settings.orientation = orientation;
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        localStorage.setItem("imaginer.image_size", size_for_orientation(orientation));
+        select_orientation(orientation);
+      }
+    };
+
     if (orientation_radio_group) {
       orientation_buttons = Array.from(orientation_radio_group.querySelectorAll(".orientation-btn"));
-
-      function select_orientation(orientation) {
-        orientation_buttons.forEach((btn) => {
-          if (btn.dataset.orientation === orientation) {
-            btn.classList.add("selected");
-          } else {
-            btn.classList.remove("selected");
-          }
-        });
-      }
       // Initial selection
       select_orientation(settings.orientation);
       // Click event
@@ -202,15 +315,45 @@ export class Menu_bar {
         btn.addEventListener("click", () => {
           settings.orientation = btn.dataset.orientation;
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-          // For backward compatibility, also update old keys
-          let size = "1024x1024";
-          if (settings.orientation === "landscape") size = "1536x1024";
-          else if (settings.orientation === "portrait") size = "1024x1536";
-          localStorage.setItem("imaginer.image_size", size);
+          localStorage.setItem("imaginer.image_size", size_for_orientation(settings.orientation));
           select_orientation(settings.orientation);
         });
       });
     }
+
+    if (image_size_select) {
+      image_size_select.addEventListener("change", async () => {
+        const value = image_size_select.value;
+        if (value === ADD_CUSTOM_SIZE_VALUE) {
+          if (!custom_size_modal) custom_size_modal = new Custom_size_modal();
+          const current = localStorage.getItem("imaginer.image_size") || "1024x1024";
+          const result = await custom_size_modal.open(current);
+          if (result) {
+            add_custom_size(result);
+            localStorage.setItem("imaginer.image_size", result);
+            build_size_select_options(result);
+          } else {
+            build_size_select_options(localStorage.getItem("imaginer.image_size") || "1024x1024");
+          }
+          return;
+        }
+        if (value === REMOVE_CUSTOM_SIZE_VALUE) {
+          if (!remove_custom_size_modal) remove_custom_size_modal = new Remove_custom_size_modal();
+          await remove_custom_size_modal.open();
+          // After removal(s), if current image_size was removed it stays valid
+          // (still parses) and will appear under the dropdown via the
+          // "current_value not in seen" fallback.
+          build_size_select_options(localStorage.getItem("imaginer.image_size") || "1024x1024");
+          return;
+        }
+        if (parse_size(value)) {
+          localStorage.setItem("imaginer.image_size", value);
+        }
+      });
+    }
+
+    apply_size_mode();
+    window.addEventListener("imaginer.advanced_size_mode_changed", apply_size_mode);
     // Help button
     const help_button = this.root.querySelector("#help-btn");
     if (help_button) {
@@ -234,11 +377,10 @@ export class Menu_bar {
     // Remove background select logic (now in config dialog)
     // Initial save to ensure settings are present
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    // For backward compatibility, also update old keys (optional, can be removed in future)
-    let size = "1024x1024";
-    if (settings.orientation === "landscape") size = "1536x1024";
-    else if (settings.orientation === "portrait") size = "1024x1536";
-    localStorage.setItem("imaginer.image_size", size);
+    // For backward compatibility, mirror orientation -> image_size only in basic mode.
+    if (!is_advanced_size_mode()) {
+      localStorage.setItem("imaginer.image_size", size_for_orientation(settings.orientation));
+    }
   }
 
   set_conversation_mode(is_conversation) {

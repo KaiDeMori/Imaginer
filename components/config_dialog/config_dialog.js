@@ -53,6 +53,7 @@ export class Config_dialog {
 
     this.strip_checkbox = this.overlay.querySelector("#strip_checkbox");
     this.show_mask_mode_checkbox = this.overlay.querySelector("#show_mask_mode_checkbox");
+    this.advanced_size_mode_checkbox = this.overlay.querySelector("#advanced_size_mode_checkbox");
     this.prompt_checkbox = this.overlay.querySelector("#prompt_checkbox");
     this.prompt_xmp_checkbox = this.overlay.querySelector("#prompt_xmp_checkbox");
     this.enable_streaming_checkbox = this.overlay.querySelector("#enable_streaming_checkbox");
@@ -312,6 +313,9 @@ export class Config_dialog {
 
     // Show Mask Mode Button checkbox
     this.show_mask_mode_checkbox.checked = localStorage.getItem("imaginer.show_mask_mode_button") === "true";
+    if (this.advanced_size_mode_checkbox) {
+      this.advanced_size_mode_checkbox.checked = localStorage.getItem("imaginer.advanced_size_mode") === "true";
+    }
     this.enable_streaming_checkbox.checked = localStorage.getItem("imaginer.enable_streaming") !== "false";
     this.partial_images_input.value = localStorage.getItem("imaginer.partial_images") || "2";
     // Use Database_store to get the decoded API key
@@ -374,6 +378,14 @@ export class Config_dialog {
     localStorage.setItem("imaginer.add_prompt_to_image", String(add_prompt));
     localStorage.setItem("imaginer.add_prompt_to_image_xmp", String(add_prompt_xmp));
     localStorage.setItem("imaginer.show_mask_mode_button", String(this.show_mask_mode_checkbox.checked));
+    if (this.advanced_size_mode_checkbox) {
+      const new_advanced = this.advanced_size_mode_checkbox.checked;
+      const prev_advanced = localStorage.getItem("imaginer.advanced_size_mode") === "true";
+      localStorage.setItem("imaginer.advanced_size_mode", String(new_advanced));
+      if (new_advanced !== prev_advanced) {
+        window.dispatchEvent(new CustomEvent("imaginer.advanced_size_mode_changed", { detail: { advanced: new_advanced } }));
+      }
+    }
     localStorage.setItem("imaginer.enable_streaming", String(enable_streaming));
     localStorage.setItem("imaginer.partial_images", String(partial_images));
     this.close();

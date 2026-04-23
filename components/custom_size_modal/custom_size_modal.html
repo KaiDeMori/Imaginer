@@ -1,0 +1,30 @@
+<div class="custom_size_overlay">
+  <div class="custom_size_dialog">
+    <h2 class="custom_size_title">Custom image size</h2>
+
+    <div class="custom_size_fields">
+      <label class="custom_size_field">
+        <span class="custom_size_label">Width (px)</span>
+        <input type="number" id="custom_size_width" class="custom_size_input" min="16" step="16" />
+      </label>
+      <span class="custom_size_x">×</span>
+      <label class="custom_size_field">
+        <span class="custom_size_label">Height (px)</span>
+        <input type="number" id="custom_size_height" class="custom_size_input" min="16" step="16" />
+      </label>
+    </div>
+
+    <div class="custom_size_constraints">
+      <div>Both edges multiples of 16, each &lt; 3840 px.</div>
+      <div>Aspect ratio &le; 3:1. Total pixels 655,360 – 8,294,400.</div>
+      <div>Above 2560×1440 is experimental.</div>
+    </div>
+
+    <div id="custom_size_feedback" class="custom_size_feedback"></div>
+
+    <div class="custom_size_button_row">
+      <button type="button" class="custom_size_button custom_size_cancel" id="custom_size_cancel">Cancel</button>
+      <button type="button" class="custom_size_button custom_size_save" id="custom_size_save" disabled>Use this size</button>
+    </div>
+  </div>
+</div>
