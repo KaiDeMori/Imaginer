@@ -7,7 +7,7 @@ const CACHE_KEY = "imaginer.available_image_models";
 const SELECTED_KEY = "imaginer.selected_image_model";
 const IMAGE_MODEL_FILTER = "gpt-image-";
 
-const DEFAULT_MODEL = "gpt-image-1.5";
+const DEFAULT_MODEL = "gpt-image-2";
 
 /**
  * Fetch available image models from OpenAI API
