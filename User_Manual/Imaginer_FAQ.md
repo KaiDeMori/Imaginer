@@ -26,3 +26,4 @@
 - **Where are my images stored?** In your browser's storage. Each browser/device keeps its own copy.
 - **Can I use Imaginer offline?** No. An internet connection and OpenAI API key are required.
 - **Why can't I see the Mask Mode button?** Enable Config → Advanced → **Show Mask Mode Button**.
+- **Why are new features not visible after an update?** Use Config → Basic → **Refresh Cache**. Imaginer refreshes its app files and reloads, without deleting your images or settings.

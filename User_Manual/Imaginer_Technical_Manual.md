@@ -36,6 +36,7 @@
 ## Version History
 - Version info is stored in `version.json`.
 - Release notes appear as modals on updates and are shown once per version.
+- Update-time and manual cache refresh use `cache_manifest.json` plus `fetch(..., { cache: "reload" })` for core JS, JSON, and HTML app files.
 
 ## The Intro Sequence
 - First launch shows a cinematic intro after API key entry (requires WebGL).

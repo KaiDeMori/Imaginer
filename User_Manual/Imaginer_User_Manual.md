@@ -256,7 +256,7 @@ Click the **⚙️ Config button** (gear icon) in the menu bar to open the Confi
 
 The Configuration dialog has two tabs:
 
-- **Basic**: API key, generation settings, image quality, and background options.
+- **Basic**: API key, generation settings, image quality, background options, and cache refresh.
 - **Advanced**: PNG metadata options, mask mode settings, data management, and model refresh.
 
 Click between tabs to access different settings. Changes save automatically when you close the dialog.
@@ -321,6 +321,12 @@ Transparency works best for isolated objects like logos and icons.
 **Options**:
 - **Low** (default): Standard editing with moderate input preservation.
 - **High**: Enhanced preservation of details like faces and logos from input images.
+
+#### Refresh Cache
+
+Use Config → Basic → **Refresh Cache** if Imaginer still looks or behaves like an older version after an update.
+
+The app refreshes its saved app files and reloads the page. Your images, settings, and API key are not deleted.
 
 #### Orientation and Size
 
