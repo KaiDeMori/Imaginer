@@ -91,7 +91,7 @@ async function check_and_show_update_message(suppress_modal = false) {
         }
 
         modal_instance.set_close_enabled(false);
-        modal_instance.set_status("Refreshing cache...");
+  modal_instance.show_status_only("Refreshing cache...");
 
         try {
           const { format_cache_refresh_failures, refresh_application_cache } = await import(versioned_url("./cache_refresh_manager.js"));

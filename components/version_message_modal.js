@@ -100,6 +100,17 @@ export class version_message_modal {
     this.status_element.textContent = message;
   }
 
+  show_status_only(message, state = "progress") {
+    if (!this.modal_element) {
+      return;
+    }
+
+    this.modal_element.innerHTML = "";
+    this.close_button = null;
+    this.status_element = null;
+    this.set_status(message, state);
+  }
+
   set_close_enabled(is_enabled) {
     if (this.close_button) {
       this.close_button.disabled = !is_enabled;
