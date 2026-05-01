@@ -10,6 +10,7 @@ Additionally, we need a button in the config UI "Refresh Cache" that triggers th
 What do you think? read the code, understand the current "version update hack" and plan the implementation.
 
 # Lock-In decisions
+Search the web and find common approaches to cache busting. Make suggestions.
 Guide the user through the decisions using the askQuestions tool. ask questions and find out what they want.
 
 # Cleanup
