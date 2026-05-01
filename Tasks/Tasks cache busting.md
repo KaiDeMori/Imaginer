@@ -24,6 +24,3 @@ clear the todo list.
 plan the implementation and divide the task into manageable steps.
 add a todo list item for each step.
 implement each step.
-
-
-
