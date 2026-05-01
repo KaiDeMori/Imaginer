@@ -61,6 +61,7 @@ async function check_and_show_update_message(suppress_modal = false) {
   const normalized_previous_version = previous_version || "0";
   const version_comparison_result = compare_versions(current_app_version, normalized_previous_version);
   const is_new_version = version_comparison_result !== 0;
+  const should_refresh_cache = previous_version ? version_comparison_result === 1 : false;
 
   // Helper to finalize OOBE (mark complete & exit fullscreen)
   const finalize_oobe = () => {
@@ -81,14 +82,42 @@ async function check_and_show_update_message(suppress_modal = false) {
     const html_path = config.history[current_app_version];
     if (html_path) {
       const modal = new version_message_modal();
-      await modal.open(html_path, () => {
+      await modal.open(html_path, async (modal_instance) => {
         finalize_oobe();
+        localStorage.setItem(VERSION_STORAGE_KEY, current_app_version);
+
+        if (!should_refresh_cache) {
+          return true;
+        }
+
+        modal_instance.set_close_enabled(false);
+        modal_instance.set_status("Refreshing cache...");
+
+        try {
+          const { format_cache_refresh_failures, refresh_application_cache } = await import(versioned_url("./cache_refresh_manager.js"));
+          const result = await refresh_application_cache({
+            on_status: (status) => modal_instance.set_status(status.message),
+          });
+          const failure_message = format_cache_refresh_failures(result.failures);
+          if (failure_message) {
+            modal_instance.set_status("Cache refresh completed with errors.", "error");
+            alert(failure_message);
+          }
+        } catch (error) {
+          const message = error && error.message ? error.message : String(error);
+          modal_instance.set_status("Cache refresh failed.", "error");
+          alert(`Cache refresh failed:\n\n${message}`);
+        }
+
+        modal_instance.set_status("Reloading...");
+        location.reload();
+        return false;
       });
     } else {
       alert(`Error: Release notes for version ${current_app_version} not found.`);
       finalize_oobe();
+      localStorage.setItem(VERSION_STORAGE_KEY, current_app_version);
     }
-    localStorage.setItem(VERSION_STORAGE_KEY, current_app_version);
   } else {
     // If no new version OR suppressed:
     // We still need to mark OOBE as complete so we don't get stuck in a loop/prompt.

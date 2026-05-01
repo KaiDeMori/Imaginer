@@ -22,6 +22,9 @@ export class version_message_modal {
     this.modal_element = null;
     this.overlay_element = null;
     this.on_close_callback = null;
+    this.close_button = null;
+    this.status_element = null;
+    this.is_closing = false;
   }
 
   async open(version_html_path, on_close = null) {
@@ -55,6 +58,7 @@ export class version_message_modal {
     close_btn.innerText = "Close";
     close_btn.addEventListener("click", () => this.close());
     this.modal_element.appendChild(close_btn);
+    this.close_button = close_btn;
     // Add to DOM
     this.overlay_element.appendChild(this.modal_element);
     document.body.appendChild(this.overlay_element);
@@ -81,17 +85,51 @@ export class version_message_modal {
     }
   }
 
-  close() {
+  set_status(message, state = "progress") {
+    if (!this.modal_element) {
+      return;
+    }
+
+    if (!this.status_element) {
+      this.status_element = document.createElement("div");
+      this.status_element.className = "version_message_status";
+      this.modal_element.appendChild(this.status_element);
+    }
+
+    this.status_element.dataset.state = state;
+    this.status_element.textContent = message;
+  }
+
+  set_close_enabled(is_enabled) {
+    if (this.close_button) {
+      this.close_button.disabled = !is_enabled;
+    }
+  }
+
+  async close() {
+    if (this.is_closing) {
+      return;
+    }
+
+    this.is_closing = true;
+
+    if (this.on_close_callback) {
+      const callback = this.on_close_callback;
+      this.on_close_callback = null;
+      const should_close = await callback(this);
+      if (should_close === false) {
+        return;
+      }
+    }
+
     if (this.overlay_element && this.overlay_element.parentNode) {
       this.overlay_element.parentNode.removeChild(this.overlay_element);
     }
     this.overlay_element = null;
     this.modal_element = null;
-
-    if (this.on_close_callback) {
-      this.on_close_callback();
-      this.on_close_callback = null;
-    }
+    this.close_button = null;
+    this.status_element = null;
+    this.is_closing = false;
   }
 }
 

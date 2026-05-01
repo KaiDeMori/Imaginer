@@ -63,6 +63,7 @@ export class Config_dialog {
     this.button_cancel = this.overlay.querySelector("#cancel_button");
     this.button_save = this.overlay.querySelector("#save_button");
     this.refresh_models_button = this.overlay.querySelector("#refresh_models_button");
+    this.refresh_cache_button = this.overlay.querySelector("#refresh_cache_button");
     this.clear_gallery_button = this.overlay.querySelector("#clear_gallery_button");
 
     // 6. Wire events
@@ -281,6 +282,31 @@ export class Config_dialog {
       } finally {
         this.refresh_models_button.disabled = false;
       }
+    });
+
+    // Refresh Cache button
+    this.refresh_cache_button.addEventListener("click", async () => {
+      this.refresh_cache_button.disabled = true;
+      this.refresh_cache_button.textContent = "Refreshing cache...";
+
+      try {
+        const { format_cache_refresh_failures, refresh_application_cache } = await import(versioned_url("../../cache_refresh_manager.js"));
+        const result = await refresh_application_cache({
+          on_status: (status) => {
+            this.refresh_cache_button.textContent = status.message;
+          },
+        });
+        const failure_message = format_cache_refresh_failures(result.failures);
+        if (failure_message) {
+          alert(failure_message);
+        }
+      } catch (error) {
+        const message = error && error.message ? error.message : String(error);
+        alert(`Cache refresh failed:\n\n${message}`);
+      }
+
+      this.refresh_cache_button.textContent = "Reloading...";
+      location.reload();
     });
 
     // Clear Gallery button
