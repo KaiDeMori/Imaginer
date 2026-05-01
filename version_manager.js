@@ -16,15 +16,14 @@ function versioned_url(url) {
     return url;
   }
 
-  const version = CURRENT_VERSION || Date.now();
+  const version = CURRENT_VERSION || "unversioned";
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}v=${version}`;
 }
 
-// Fetch version config from server (cache-busted)
 async function get_version_config() {
   try {
-    const response = await fetch(`version.json?t=${Date.now()}`);
+    const response = await fetch("version.json", { cache: "no-cache" });
     if (!response.ok) throw new Error("Failed to fetch version.json");
     return await response.json();
   } catch (e) {
@@ -62,7 +61,6 @@ async function check_and_show_update_message(suppress_modal = false) {
   const normalized_previous_version = previous_version || "0";
   const version_comparison_result = compare_versions(current_app_version, normalized_previous_version);
   const is_new_version = version_comparison_result !== 0;
-  const is_upgrade = previous_version ? version_comparison_result === 1 : false;
 
   // Helper to finalize OOBE (mark complete & exit fullscreen)
   const finalize_oobe = () => {
@@ -85,11 +83,6 @@ async function check_and_show_update_message(suppress_modal = false) {
       const modal = new version_message_modal();
       await modal.open(html_path, () => {
         finalize_oobe();
-        // Force reload to ensure fresh assets (especially for Firefox)
-        // Only reload if this was an update (previous_version exists).
-        if (is_upgrade) {
-          location.reload(true);
-        }
       });
     } else {
       alert(`Error: Release notes for version ${current_app_version} not found.`);
