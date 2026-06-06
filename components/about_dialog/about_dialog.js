@@ -64,9 +64,12 @@ export class About_dialog {
   populate_credits() {
     const credits_paragraph = this.overlay.querySelector("#credits_paragraph");
     const credits_data = [
-      { name: "claude-3-7-sonnet-latest", bold: true },
+      { name: "claude-sonnet-3-7", bold: true },
+      { name: "claude-opus-4-7 [1M]", bold: false },
+      { name: "claude-opus-4-8 [1M]", bold: false },
       { name: "claude-sonnet-4-0", bold: true },
       { name: "claude-sonnet-4-5", bold: false },
+      { name: "claude-sonnet-4-6 [1M]", bold: false },
       { name: "gemini-2.5-pro", bold: false },
       { name: "gemini-3-pro-preview", bold: true },
       { name: "gpt-4.1", bold: true },
@@ -75,6 +78,7 @@ export class About_dialog {
       { name: "gpt-5-codex", bold: false },
       { name: "gpt-5.1", bold: false },
       { name: "gpt-5.1-codex", bold: false },
+      { name: "gpt-5.5", bold: false },
       { name: "Kai De–Mori", bold: true },
       { name: "o3-pro", bold: false },
       { name: "VSCode", bold: false },
