@@ -15,6 +15,8 @@
   min-width: 340px;
   width: 400px;
   max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
@@ -40,19 +42,41 @@
   margin-bottom: 4px;
 }
 
-.about_list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 12px 0;
-}
-
-.about_list_item {
-  margin-bottom: 4px;
-}
-
 .about_link {
   color: #1976d2;
   text-decoration: none;
+}
+
+/* Most recent version: highlighted hero at the top center. */
+.about_version_latest {
+  margin: 0 0 12px 0;
+}
+
+.about_version_latest_link {
+  font-size: 1.05rem;
+  font-weight: bold;
+}
+
+/* Older versions: compact grid of chips. */
+.about_version_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 6px;
+  margin: 0 0 12px 0;
+}
+
+.about_version_chip {
+  padding: 4px 6px;
+  font-size: 0.85rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #f7f9fc;
+  text-align: center;
+}
+
+.about_version_chip:hover {
+  background: #eef3fb;
+  border-color: #1976d2;
 }
 
 .about_paragraph {

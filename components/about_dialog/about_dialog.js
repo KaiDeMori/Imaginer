@@ -34,21 +34,31 @@ export class About_dialog {
   }
 
   async populate_versions() {
-    const version_list = this.overlay.querySelector("#version_list");
+    const latest_container = this.overlay.querySelector("#version_latest");
+    const grid_container = this.overlay.querySelector("#version_grid");
     const history = await get_version_history();
-    Object.entries(history)
-      .reverse()
-      .forEach(([version, path]) => {
-        const li = document.createElement("li");
-        li.className = "about_list_item";
-        const link = document.createElement("a");
-        link.href = versioned_url(path);
-        link.target = "_blank";
-        link.textContent = `Version ${version}`;
-        link.className = "about_link";
-        li.appendChild(link);
-        version_list.appendChild(li);
-      });
+    const entries = Object.entries(history).reverse(); // newest first
+
+    if (entries.length === 0) return;
+
+    // Most recent version: highlighted hero link at the top.
+    const [latest_version, latest_path] = entries[0];
+    const latest_link = document.createElement("a");
+    latest_link.href = versioned_url(latest_path);
+    latest_link.target = "_blank";
+    latest_link.textContent = `Version ${latest_version}`;
+    latest_link.className = "about_link about_version_latest_link";
+    latest_container.appendChild(latest_link);
+
+    // Older versions: compact grid of chips.
+    entries.slice(1).forEach(([version, path]) => {
+      const link = document.createElement("a");
+      link.href = versioned_url(path);
+      link.target = "_blank";
+      link.textContent = version;
+      link.className = "about_link about_version_chip";
+      grid_container.appendChild(link);
+    });
   }
 
   populate_credits() {
