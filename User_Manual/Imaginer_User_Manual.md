@@ -207,7 +207,8 @@ Images are stored in your browser and persist between sessions. Each browser has
 
 **Controls:**
 - **Mouse wheel**: Zoom in/out (zoom centers on your cursor).
-- **Escape** or **click outside the image**: Close the Viewer.
+- **Left-click and drag**: Pan around the image once you're zoomed in. The image always stays partially on screen, so you can't lose it.
+- **Escape** or **click** (without dragging): Close the Viewer.
 
 #### Mask Mode
 
