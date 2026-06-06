@@ -75,10 +75,42 @@ export class zoom_pan_manager {
             this.viewer.pan_Y = 0;
         }
 
+        this.clamp_pan();
         this.viewer.redraw();
     }
 
     clamp(v, min, max) {
         return Math.max(min, Math.min(max, v));
+    }
+
+    /**
+     * Clamp pan_X / pan_Y so the image can never be dragged completely off
+     * screen — at least a margin of it stays visible on every edge.
+     */
+    clamp_pan() {
+        if (!this.viewer.bitmap) return;
+
+        const view_W = window.innerWidth;
+        const view_H = window.innerHeight;
+        const scale = this.viewer.fit_scale * this.viewer.zoom_factor;
+        const draw_W = this.viewer.bitmap.width * scale;
+        const draw_H = this.viewer.bitmap.height * scale;
+
+        // Keep at least this many px of the image on screen at any edge.
+        const margin_X = Math.min(view_W * 0.15, draw_W);
+        const margin_Y = Math.min(view_H * 0.15, draw_H);
+
+        // img_X = center_X + pan_X, with center_X = (view_W - draw_W) / 2
+        const center_X = (view_W - draw_W) / 2;
+        const center_Y = (view_H - draw_H) / 2;
+
+        // pan range that keeps `margin` px of image past each opposite edge
+        const min_pan_X = margin_X - draw_W - center_X;
+        const max_pan_X = view_W - margin_X - center_X;
+        const min_pan_Y = margin_Y - draw_H - center_Y;
+        const max_pan_Y = view_H - margin_Y - center_Y;
+
+        this.viewer.pan_X = this.clamp(this.viewer.pan_X, min_pan_X, max_pan_X);
+        this.viewer.pan_Y = this.clamp(this.viewer.pan_Y, min_pan_Y, max_pan_Y);
     }
 }
