@@ -15,7 +15,7 @@ const DEFAULT_CONFIG = {
   "imaginer.advanced_size_mode": "false",
   "imaginer.custom_sizes": "[]",
   "imaginer.strip_metadata": "true",
-  "imaginer.add_prompt_to_image": "false",
+  "imaginer.add_prompt_to_image": "true",
   "imaginer.add_prompt_to_image_xmp": "true",
   "imaginer.show_mask_mode_button": "false",
   "imaginer.enable_streaming": "true",
