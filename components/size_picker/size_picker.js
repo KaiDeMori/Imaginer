@@ -25,7 +25,7 @@ export const POPULAR_SIZES = [
   { value: "2048x1152", label: "2048×1152 2K landscape" }, // 2K landscape
   { value: "1152x2048", label: "1152×2048 2K portrait" }, // 2K portrait
   { value: "2560x1440", label: "2560×1440 2K / QHD" }, // 2K / QHD
-  { value: "3840x3840", label: "3840×3840 4K square" }, // 4K square
+  //{ value: "3840x3840", label: "3840×3840 4K square" }, // 4K square
   { value: "3840x2160", label: "3840×2160 4K landscape" }, // 4K landscape
   { value: "2160x3840", label: "2160×3840 4K portrait" }, // 4K portrait
 ];
