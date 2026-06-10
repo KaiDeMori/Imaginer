@@ -18,11 +18,16 @@ export const MAX_RATIO = 3;
 export const MAX_CUSTOM_SIZES = 20;
 
 export const POPULAR_SIZES = [
-  { value: "1024x1536", label: "1024×1536" }, // HD portrait
-  { value: "1536x1024", label: "1536×1024" }, // HD landscape
-  { value: "1024x1024", label: "1024×1024" }, // square default
-  { value: "2560x1440", label: "2560×1440" }, // 2K / QHD
-  { value: "3824x2144", label: "3824×2144" }, // 4K-ish, experimental
+  { value: "1024x1024", label: "1024×1024 square" }, // square default
+  { value: "1536x1024", label: "1536×1024 landscape" }, // HD landscape
+  { value: "1024x1536", label: "1024×1536 portrait" }, // HD portrait
+  { value: "2048x2048", label: "2048×2048 2K square" }, // 2K square
+  { value: "2048x1152", label: "2048×1152 2K landscape" }, // 2K landscape
+  { value: "1152x2048", label: "1152×2048 2K portrait" }, // 2K portrait
+  { value: "2560x1440", label: "2560×1440 2K / QHD" }, // 2K / QHD
+  { value: "3840x3840", label: "3840×3840 4K square" }, // 4K square
+  { value: "3840x2160", label: "3840×2160 4K landscape" }, // 4K landscape
+  { value: "2160x3840", label: "2160×3840 4K portrait" }, // 4K portrait
 ];
 
 export function parse_size(value) {
