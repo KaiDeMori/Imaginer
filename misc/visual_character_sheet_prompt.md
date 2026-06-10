@@ -12,4 +12,4 @@ Using the provided character image as a reference, create a detailed visual char
 8. **Detailed view of accessories or special items**
 9. **Character in an environment or context relevant to their story or theme**
 
-Maintain consistent art style, color palette, and character design throughout all images. Ensure clarity, high-quality rendering, and visual coherence.
+Maintain consistent art style, color palette, and character design throughout all images. Ensure clarity, high-quality rendering, and visual coherence. Do not add any labels to the images.
