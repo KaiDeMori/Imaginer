@@ -228,57 +228,71 @@ window.addEventListener("DOMContentLoaded", async () => {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let completed = false;
 
     while (true) {
       const { done, value } = await reader.read();
-
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
-
       const lines = buffer.split("\n");
       buffer = lines.pop();
 
       for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const json_str = line.slice(6);
-          if (json_str === "[DONE]") continue;
+        if (!line.startsWith("data: ")) continue;
+        const json_str = line.slice(6);
+        if (json_str === "[DONE]") continue;
 
-          try {
-            const event = JSON.parse(json_str);
+        // Only JSON.parse is guarded here. Event handling below must NOT be
+        // swallowed, so processing errors surface to the caller.
+        let event;
+        try {
+          event = JSON.parse(json_str);
+        } catch (parse_err) {
+          console.error("[stream] Could not parse SSE data line; skipping it.", { line, error: parse_err });
+          continue;
+        }
 
-            if (event.type === "image_generation.partial_image") {
-              const base64_data = event.b64_json;
-              const blob = await fetch(`data:image/png;base64,${base64_data}`).then((res) => res.blob());
-              gallery.update_placeholder_with_partial_image(placeholder, blob, event.partial_image_index);
-            } else if (event.type === "image_generation.completed") {
-              const base64_data = event.b64_json;
-              let blob = await fetch(`data:image/png;base64,${base64_data}`).then((res) => res.blob());
+        if (event.type === "image_generation.partial_image") {
+          const blob = await fetch(`data:image/png;base64,${event.b64_json}`).then((res) => res.blob());
+          gallery.update_placeholder_with_partial_image(placeholder, blob, event.partial_image_index);
+        } else if (event.type === "image_generation.completed") {
+          let blob = await fetch(`data:image/png;base64,${event.b64_json}`).then((res) => res.blob());
 
-              blob = await process_image_metadata(blob, prompt_text, embed_options);
+          blob = await process_image_metadata(blob, prompt_text, embed_options);
 
-              const created = Math.floor(Date.now() / 1000);
-              const record_id = await database_store.save({
-                created,
-                image_blob: blob,
-                prompt_text,
-                prompt_imgs: [],
-              });
-              gallery.records_by_id[record_id] = {
-                id: record_id,
-                created,
-                image_blob: blob,
-                prompt_text,
-                prompt_imgs: [],
-              };
-              gallery.update_placeholder(placeholder, blob, false, prompt_text, created, record_id);
-              return;
-            }
-          } catch (parse_err) {
-            console.warn("Failed to parse SSE event:", parse_err);
-          }
+          const created = Math.floor(Date.now() / 1000);
+          const record_id = await database_store.save({
+            created,
+            image_blob: blob,
+            prompt_text,
+            prompt_imgs: [],
+          });
+          gallery.records_by_id[record_id] = {
+            id: record_id,
+            created,
+            image_blob: blob,
+            prompt_text,
+            prompt_imgs: [],
+          };
+          gallery.update_placeholder(placeholder, blob, false, prompt_text, created, record_id);
+          completed = true;
+          return;
+        } else if (event.type === "error") {
+          // In-band error (e.g. moderation_blocked) delivered over the 200 stream.
+          console.error("[stream] OpenAI returned an in-band error event:", event.error || event);
+          throw event.error || event;
+        } else {
+          console.warn("[stream] Unhandled SSE event type:", event.type, event);
         }
       }
+    }
+
+    // The stream closed (done) without ever delivering a completion event.
+    // This is a real terminal condition, not a time limit -- surface it instead
+    // of silently leaving a spinner running.
+    if (!completed) {
+      throw new Error("Image stream closed before a completion event was received.");
     }
   }
 
@@ -380,6 +394,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           } catch (_) {
             errObj = { message: `API request failed: ${response.status} ${response.statusText}` };
           }
+          console.error("[Imaginer] Image edit request failed:", response.status, errObj);
           Error_modal.show(errObj);
           for (const ph of placeholders) {
             if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
@@ -389,6 +404,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         const data = await response.json();
         if (!Array.isArray(data.data) || data.data.length === 0) {
+          console.error("[Imaginer] Image edit returned no images:", data);
           Error_modal.show({ message: "No images returned from API." });
           for (const ph of placeholders) {
             if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
@@ -426,7 +442,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
       } catch (error) {
         console.error("Error editing image:", error);
-        Error_modal.show(error && error.message ? error.message : error);
+        Error_modal.show(error);
         for (const ph of placeholders) {
           if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
         }
@@ -457,7 +473,17 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         for (let i = 0; i < n_local; i++) {
           const single_request = { ...request_body, n: 1 };
-          await generate_image_with_streaming(single_request, placeholders[i], prompt_text, embed_options);
+          try {
+            await generate_image_with_streaming(single_request, placeholders[i], prompt_text, embed_options);
+          } catch (err) {
+            // Surface per-image so one failure never wedges the batch or leaves
+            // a spinner running. Pass the original object so Error_modal can
+            // detect moderation_blocked and show the dedicated dialog.
+            console.error(`[Imaginer] Streaming generation failed for image ${i + 1} of ${n_local}:`, err);
+            Error_modal.show(err);
+            const ph = placeholders[i];
+            if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
+          }
         }
       } else {
         const response = await fetch("https://api.openai.com/v1/images/generations", {
@@ -476,6 +502,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           } catch (_) {
             errObj = { message: `API request failed: ${response.status} ${response.statusText}` };
           }
+          console.error("[Imaginer] Non-streaming generation request failed:", response.status, errObj);
           Error_modal.show(errObj);
           for (const ph of placeholders) {
             gallery.update_placeholder(ph, null, true, prompt_text);
@@ -485,6 +512,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         const data = await response.json();
         if (!Array.isArray(data.data) || data.data.length === 0) {
+          console.error("[Imaginer] Non-streaming generation returned no images:", data);
           Error_modal.show({ message: "No images returned from API." });
           for (const ph of placeholders) {
             gallery.update_placeholder(ph, null, true, prompt_text);
@@ -553,7 +581,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     } catch (error) {
       console.error("Error generating image:", error);
-      Error_modal.show(error && error.message ? error.message : error);
+      Error_modal.show(error);
       // Remove all placeholders on error
       for (const ph of placeholders) {
         if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);

@@ -85,6 +85,15 @@ export class Error_modal {
     if (typeof error === "string") {
       content.style.wordBreak = "break-word";
       content.textContent = error;
+    } else if (error instanceof Error) {
+      // Native Error objects keep message/stack non-enumerable, so a key/value
+      // table would render empty. Show the message instead.
+      content.style.wordBreak = "break-word";
+      content.textContent = error.message || String(error);
+    } else if (error && typeof error === "object" && Object.keys(error.error || error).length === 0) {
+      // Object with no enumerable fields: fall back to its message if any.
+      content.style.wordBreak = "break-word";
+      content.textContent = (error.error || error).message || "An unknown error occurred.";
     } else if (error && typeof error === "object") {
       // If error has an 'error' property, use it
       const errObj = error.error || error;
