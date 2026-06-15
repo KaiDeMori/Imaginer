@@ -12,14 +12,17 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 12px; /* spacing between header / image / button */
         font-family: system-ui, sans-serif;
         background-color: #fff;
         padding: 24px 20px 16px 20px; /* Match modal padding */
         box-sizing: border-box;
       }
       .header {
+        flex: 0 0 auto; /* fixed: never shrinks */
         font-size: 4rem;
-        margin-bottom: 2rem;
+        margin: 0;
+        line-height: 1;
         cursor: default;
         user-select: none;
         display: flex;
@@ -33,9 +36,22 @@
       .header span:hover {
         transform: rotate(180deg);
       }
+      /* Flexible middle: takes the leftover height and lets the image scale
+         down into it, so the button below is always visible. */
+      .image-wrap {
+        flex: 1 1 auto;
+        min-height: 0; /* allow shrinking below the image's natural size */
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
       .error-image {
-        max-width: 80vw;
-        max-height: 60vh;
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         object-fit: contain;
@@ -52,6 +68,7 @@
         }
       }
       .close-btn {
+        flex: 0 0 auto; /* fixed: always pinned and visible */
         padding: 8px 16px;
         font-size: 1rem;
         border: none;
@@ -60,8 +77,18 @@
         font-weight: bold;
         background: #1976d2;
         color: #fff;
-        margin-top: 12px;
         font-family: inherit;
+      }
+      /* On short viewports, reclaim space from the big emoji header and padding
+         so the image keeps a usable size. */
+      @media (max-height: 560px) {
+        body {
+          padding: 12px;
+          gap: 8px;
+        }
+        .header {
+          font-size: 2.5rem;
+        }
       }
     </style>
   </head>
@@ -71,7 +98,9 @@
       <span>🤷</span>
       <span>🔄</span>
     </div>
-    <img id="random-image" class="error-image" alt="" />
+    <div class="image-wrap">
+      <img id="random-image" class="error-image" alt="" />
+    </div>
     <button id="close-btn" class="close-btn">Close</button>
 
     <script>

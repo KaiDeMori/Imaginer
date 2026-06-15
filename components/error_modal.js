@@ -191,8 +191,10 @@ export class Error_modal {
     iframe.src = versioned_url("components/moderation_error.html");
     Object.assign(iframe.style, {
       width: "100%",
-      height: "100%",
-      minHeight: "500px",
+      // Responsive height: never taller than the 85vh dialog cap (so the dialog
+      // can't clip the iframe's bottom), comfortable size on tall screens.
+      height: "85vh",
+      maxHeight: "560px",
       border: "none",
       display: "block",
     });
