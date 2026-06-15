@@ -69,3 +69,5 @@ intro_trials/planetwise/zoom_images_planete/
 !intro/audio/
 intro/audio/*
 !intro/audio/*.webm
+
+*.har
