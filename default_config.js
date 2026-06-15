@@ -10,6 +10,7 @@ const DEFAULT_CONFIG = {
   "imaginer.n": "1",
   "imaginer.background": "auto",
   "imaginer.quality": "auto",
+  "imaginer.moderation": "auto",
   "imaginer.input_fidelity": "low",
   "imaginer.image_size": "1024x1024",
   "imaginer.advanced_size_mode": "false",

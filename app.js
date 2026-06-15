@@ -14,6 +14,17 @@ import { check_and_show_update_message, versioned_url } from "./version_manager.
 import { ensure_config_defaults } from "./default_config.js";
 import { get_selected_model } from "./model_fetcher.js";
 
+// Content-moderation level for GPT image models (hidden config, no UI): "auto"
+// (default) or "low" (less restrictive). Any other/invalid value is silently
+// reset to "auto". See API_DOCS for the `moderation` parameter.
+const VALID_MODERATION_VALUES = new Set(["auto", "low"]);
+function get_moderation() {
+  const value = localStorage.getItem("imaginer.moderation");
+  if (VALID_MODERATION_VALUES.has(value)) return value;
+  localStorage.setItem("imaginer.moderation", "auto");
+  return "auto";
+}
+
 // --- OOBE / First Run Check ---
 let is_redirecting = false;
 // Check session storage for intro mode flag (set by intro/04/app_transition_manager.js)
@@ -331,6 +342,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     const background = localStorage.getItem("imaginer.background");
     let quality = localStorage.getItem("imaginer.quality");
     if (quality === "") quality = null;
+    const moderation = get_moderation();
     let n = parseInt(localStorage.getItem("imaginer.n"));
 
     // --- Attach dropped images from generation_panel to API request (if any) ---
@@ -351,6 +363,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       form_data.append("size", size);
       if (quality !== null && quality !== "auto") form_data.append("quality", quality);
       if (background !== "auto") form_data.append("background", background);
+      if (moderation !== "auto") form_data.append("moderation", moderation);
 
       const selected_model = get_selected_model();
       if (selected_model === "gpt-image-1" || selected_model === "gpt-image-1.5") {
@@ -464,6 +477,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         size,
         ...(quality !== null && quality !== "auto" ? { quality } : {}),
         ...(background !== "auto" ? { background } : {}),
+        ...(moderation !== "auto" ? { moderation } : {}),
       };
       if (quality === null) request_body.quality = null;
 
