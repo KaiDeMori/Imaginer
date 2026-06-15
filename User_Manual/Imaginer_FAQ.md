@@ -8,6 +8,7 @@
 
 ### Generation Failures
 - API errors show in the error modal and turn placeholders red. Use 💬 to retry.
+- If OpenAI's content-safety system blocks a prompt, a dedicated dialog appears showing a cute shrugging alien; the placeholder turns red so you can adjust the prompt and retry. Note that moderation can be intermittent — the same prompt may succeed on another attempt.
 - Hitting the parallel generation limit disables **Generate** until a job finishes.
 - If models are missing, use Config → Advanced → **Refresh Image Models**.
 
