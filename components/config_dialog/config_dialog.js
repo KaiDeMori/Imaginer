@@ -5,6 +5,14 @@
 //   cfg.open();
 // ---------------------------------------------------------------------
 import { versioned_url } from "../../version_manager.js";
+import {
+  FILENAME_PROMPT_CHARS_KEY,
+  MAX_FILENAME_PROMPT_CHARS,
+  MIN_FILENAME_PROMPT_CHARS,
+  build_png_filename,
+  clamp_filename_prompt_chars,
+  get_filename_prompt_chars,
+} from "../../filename_helper.js";
 
 export class Config_dialog {
   constructor(onSave = () => {}) {
@@ -58,6 +66,9 @@ export class Config_dialog {
     this.prompt_xmp_checkbox = this.overlay.querySelector("#prompt_xmp_checkbox");
     this.enable_streaming_checkbox = this.overlay.querySelector("#enable_streaming_checkbox");
     this.partial_images_input = this.overlay.querySelector("#partial_images_input");
+    this.filename_prompt_chars_input = this.overlay.querySelector("#filename_prompt_chars_input");
+    this.filename_prompt_chars_input.min = String(MIN_FILENAME_PROMPT_CHARS);
+    this.filename_prompt_chars_input.max = String(MAX_FILENAME_PROMPT_CHARS);
 
     this.button_download_all = this.overlay.querySelector("#download_all_button");
     this.button_cancel = this.overlay.querySelector("#cancel_button");
@@ -210,13 +221,7 @@ export class Config_dialog {
         for (let i = 0; i < records.length; i++) {
           const rec = records[i];
           if (rec.image_blob instanceof Blob) {
-            let base = (rec.prompt_text || "image")
-              .replace(/\s+/g, "_")
-              .replace(/[^a-zA-Z0-9_\-]/g, "")
-              .slice(0, 20);
-            if (!base) base = "image";
-            const ts = rec.created ? String(rec.created) : String(Math.floor(Date.now() / 1000));
-            const filename = `${base}_${ts}.png`;
+            const filename = build_png_filename(rec.prompt_text, rec.created);
 
             zip.file(filename, rec.image_blob);
             progress.update_progress(i + 1, records.length);
@@ -344,6 +349,7 @@ export class Config_dialog {
     }
     this.enable_streaming_checkbox.checked = localStorage.getItem("imaginer.enable_streaming") !== "false";
     this.partial_images_input.value = localStorage.getItem("imaginer.partial_images") || "2";
+    this.filename_prompt_chars_input.value = String(get_filename_prompt_chars());
     // Use Database_store to get the decoded API key
     this.input.value = "";
     import(versioned_url("../../storage/database_store.js"))
@@ -386,6 +392,7 @@ export class Config_dialog {
     const add_prompt_xmp = this.prompt_xmp_checkbox?.checked;
     const enable_streaming = this.enable_streaming_checkbox.checked;
     const partial_images = Math.max(1, Math.min(3, parseInt(this.partial_images_input.value)));
+    const filename_prompt_chars = clamp_filename_prompt_chars(this.filename_prompt_chars_input.value);
 
     // Use Database_store to set the scrambled API key - wait for it to complete
     const { Database_store } = await import(versioned_url("../../storage/database_store.js"));
@@ -414,6 +421,7 @@ export class Config_dialog {
     }
     localStorage.setItem("imaginer.enable_streaming", String(enable_streaming));
     localStorage.setItem("imaginer.partial_images", String(partial_images));
+    localStorage.setItem(FILENAME_PROMPT_CHARS_KEY, String(filename_prompt_chars));
     this.close();
     this.onSave(key, max, n, strip, add_prompt, quality);
   }

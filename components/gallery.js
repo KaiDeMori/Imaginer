@@ -4,6 +4,7 @@ import { read_jpeg_metadata } from "./jpeg_metadata_reader.js";
 import { read_webp_metadata } from "./webp_metadata_reader.js";
 import { convert_image_to_png } from "./image_converter.js";
 import { process_image_metadata } from "../process_image_metadata.js";
+import { build_png_filename } from "../filename_helper.js";
 
 /**
  * @param {File|Blob} file
@@ -277,13 +278,7 @@ export class Gallery {
 
     button_download.addEventListener("click", async (e) => {
       e.stopPropagation();
-      let base = (prompt_text || "image")
-        .replace(/\s+/g, "_")
-        .replace(/[^a-zA-Z0-9_\-]/g, "")
-        .slice(0, 20);
-      if (!base) base = "image";
-      const ts = created ? String(created) : String(Math.floor(Date.now() / 1000));
-      const filename = `${base}_${ts}.png`;
+      const filename = build_png_filename(prompt_text, created);
       const processed_blob = await process_image_metadata(blob, prompt_text || "", {});
       const download_url = URL.createObjectURL(processed_blob);
       const a = document.createElement("a");

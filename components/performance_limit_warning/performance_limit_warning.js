@@ -1,4 +1,5 @@
 import { versioned_url } from "../../version_manager.js";
+import { build_png_filename } from "../../filename_helper.js";
 
 export class Performance_limit_warning {
   constructor() {
@@ -67,14 +68,7 @@ export class Performance_limit_warning {
       const zip = new JSZip();
       for (const rec of records) {
         if (rec.image_blob instanceof Blob) {
-          // Use the same naming as gallery.js: first 20 chars of prompt, plus timestamp
-          let base = (rec.prompt_text || "image")
-            .replace(/\s+/g, "_")
-            .replace(/[^a-zA-Z0-9_\-]/g, "")
-            .slice(0, 20);
-          if (!base) base = "image";
-          const ts = rec.created ? String(rec.created) : String(Math.floor(Date.now() / 1000));
-          const filename = `${base}_${ts}.png`;
+          const filename = build_png_filename(rec.prompt_text, rec.created);
           zip.file(filename, rec.image_blob);
         }
       }

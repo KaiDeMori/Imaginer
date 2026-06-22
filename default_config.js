@@ -21,6 +21,7 @@ const DEFAULT_CONFIG = {
   "imaginer.show_mask_mode_button": "false",
   "imaginer.enable_streaming": "true",
   "imaginer.partial_images": "2",
+  "imaginer.filename_prompt_chars": "110",
   "imaginer.dividerWidth": "300",
   "imaginer.mode": "generation",
 };
