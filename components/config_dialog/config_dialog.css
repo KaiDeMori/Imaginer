@@ -18,6 +18,8 @@
 
   /* Sections */
   --section-gap: 14px;
+  --settings-group-gap: 20px;
+  --dependent-setting-gap: 8px;
   --section-checkbox-gap: 6px;
   --section-indent: 10px;
   --section-label-margin: 6px;
@@ -298,6 +300,19 @@
 /* Compact utility classes */
 .section {
   /* Used to separate groups of fields */
+}
+
+.settings_group + .settings_group {
+  margin-top: var(--settings-group-gap);
+}
+
+.settings_group > .action_button {
+  margin-top: 0;
+}
+
+.dependent_setting {
+  margin-left: calc(var(--section-indent) * 2);
+  margin-top: var(--dependent-setting-gap);
 }
 
 .section + .section {

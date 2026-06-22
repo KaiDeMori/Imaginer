@@ -10,66 +10,72 @@
     </div>
 
     <div class="tab_content" id="account_tab_content">
-      <div class="field field_stacked">
-        <label class="label" for="api_key_input">OpenAI API Key</label>
-        <form class="form" autocomplete="off" id="api_key_form">
-          <input
-            type="text"
-            name="username"
-            autocomplete="username"
-            value="user"
-            tabindex="-1"
-            aria-hidden="true"
-            style="position: absolute; opacity: 0; height: 0; width: 0; pointer-events: none"
-          />
-          <input type="text" placeholder="sk-..." autocomplete="off" data-lpignore="true" data-form-type="other" class="input" id="api_key_input" />
-          <button type="submit" class="button test_button" id="test_button">Test</button>
-          <span class="feedback" id="test_feedback"></span>
-        </form>
+      <div class="settings_group">
+        <div class="field field_stacked">
+          <label class="label" for="api_key_input">OpenAI API Key</label>
+          <form class="form" autocomplete="off" id="api_key_form">
+            <input
+              type="text"
+              name="username"
+              autocomplete="username"
+              value="user"
+              tabindex="-1"
+              aria-hidden="true"
+              style="position: absolute; opacity: 0; height: 0; width: 0; pointer-events: none"
+            />
+            <input type="text" placeholder="sk-..." autocomplete="off" data-lpignore="true" data-form-type="other" class="input" id="api_key_input" />
+            <button type="submit" class="button test_button" id="test_button">Test</button>
+            <span class="feedback" id="test_feedback"></span>
+          </form>
+        </div>
       </div>
 
-      <button class="button refresh_models_button action_button" id="refresh_models_button">Refresh Image Models</button>
+      <div class="settings_group">
+        <button class="button refresh_models_button action_button" id="refresh_models_button">Refresh Image Models</button>
+      </div>
     </div>
 
     <div class="tab_content" id="generation_tab_content" style="display: none">
-      <div class="field field_inline">
-        <label class="label" for="max_input">Maximum number of parallel generations</label>
-        <input type="number" size="3" min="1" max="10" step="1" class="input" id="max_input" />
+      <div class="settings_group">
+        <div class="field field_inline">
+          <label class="label" for="max_input">Maximum number of parallel generations</label>
+          <input type="number" size="3" min="1" max="10" step="1" class="input" id="max_input" />
+        </div>
+
+        <div class="field field_inline">
+          <label class="label" for="n_input">Number of images to generate (n)</label>
+          <input type="number" size="3" min="1" max="10" step="1" class="input" id="n_input" />
+        </div>
+
+        <div class="field field_inline">
+          <label class="label" for="background_select">Background</label>
+          <select class="input" id="background_select">
+            <option value="auto">Automatic</option>
+            <option value="transparent">Transparent</option>
+            <option value="opaque">Opaque</option>
+          </select>
+        </div>
+
+        <div class="field field_inline">
+          <label class="label" for="quality_select">Image quality</label>
+          <select class="input" id="quality_select">
+            <option value="auto">Automatic</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
+        <div class="field field_inline">
+          <label class="label" for="input_fidelity_select">Input fidelity</label>
+          <select class="input" id="input_fidelity_select">
+            <option value="low">Low (default)</option>
+            <option value="high">High</option>
+          </select>
+        </div>
       </div>
 
-      <div class="field field_inline">
-        <label class="label" for="n_input">Number of images to generate (n)</label>
-        <input type="number" size="3" min="1" max="10" step="1" class="input" id="n_input" />
-      </div>
-
-      <div class="field field_inline">
-        <label class="label" for="background_select">Background</label>
-        <select class="input" id="background_select">
-          <option value="auto">Automatic</option>
-          <option value="transparent">Transparent</option>
-          <option value="opaque">Opaque</option>
-        </select>
-      </div>
-
-      <div class="field field_inline">
-        <label class="label" for="quality_select">Image quality</label>
-        <select class="input" id="quality_select">
-          <option value="auto">Automatic</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
-
-      <div class="field field_inline">
-        <label class="label" for="input_fidelity_select">Input fidelity</label>
-        <select class="input" id="input_fidelity_select">
-          <option value="low">Low (default)</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-
-      <div class="section">
+      <div class="settings_group">
         <label class="checkbox_label">
           <input type="checkbox" id="show_mask_mode_checkbox" />
           <span>Show Mask Mode Button</span>
@@ -78,7 +84,7 @@
     </div>
 
     <div class="tab_content" id="files_tab_content" style="display: none">
-      <div class="section">
+      <div class="settings_group">
         <div class="field field_inline">
           <label class="label" for="filename_prompt_chars_input">Filename prompt characters (max. 230)</label>
           <input type="number" min="1" max="230" step="1" class="input input_narrow" id="filename_prompt_chars_input" />
@@ -97,43 +103,45 @@
     </div>
 
     <div class="tab_content" id="advanced_tab_content" style="display: none">
-      <div class="section">
+      <div class="settings_group">
         <label class="checkbox_label">
           <input type="checkbox" id="advanced_size_mode_checkbox" />
           <span>Advanced size setting (<code>gpt-image-2</code> ONLY!)</span>
         </label>
       </div>
 
-      <div class="section">
+      <div class="settings_group">
         <label class="checkbox_label">
           <input type="checkbox" id="enable_streaming_checkbox" />
           <span>Enable Image Streaming Preview</span>
         </label>
-        <div class="indent">
+        <div class="dependent_setting">
           <div class="field field_inline">
-            <label class="label" for="partial_images_input">Number of partial images</label>
+            <label class="label" for="partial_images_input">Number of partial previews</label>
             <input type="number" min="1" max="3" step="1" class="input input_narrow" id="partial_images_input" />
           </div>
         </div>
       </div>
 
-      <div class="section">
-        <label class="checkbox_label">
-          <input type="checkbox" id="strip_checkbox" />
-          <span>Strip Server-Side metadata</span>
-        </label>
-      </div>
+      <div class="settings_group">
+        <div class="section">
+          <label class="checkbox_label">
+            <input type="checkbox" id="strip_checkbox" />
+            <span>Strip Server-Side metadata</span>
+          </label>
+        </div>
 
-      <div class="section_column">
-        <div class="prompt_group_label">Embed prompt:</div>
-        <label class="checkbox_label">
-          <input type="checkbox" id="prompt_checkbox" />
-          <span>as <code>iTXt</code> (standard PNG text chunk)</span>
-        </label>
-        <label class="checkbox_label">
-          <input type="checkbox" id="prompt_xmp_checkbox" />
-          <span>as <code>XMP</code> (for Adobe/metadata-aware tools)</span>
-        </label>
+        <div class="section_column">
+          <div class="prompt_group_label">Embed prompt:</div>
+          <label class="checkbox_label">
+            <input type="checkbox" id="prompt_checkbox" />
+            <span>as <code>iTXt</code> (standard PNG text chunk)</span>
+          </label>
+          <label class="checkbox_label">
+            <input type="checkbox" id="prompt_xmp_checkbox" />
+            <span>as <code>XMP</code> (for Adobe/metadata-aware tools)</span>
+          </label>
+        </div>
       </div>
     </div>
 
