@@ -43,10 +43,8 @@ export class Config_dialog {
 
     // 5. Get references to elements
     this.dialog = this.overlay.querySelector(".dialog");
-    this.basic_tab_button = this.overlay.querySelector("#basic_tab_button");
-    this.advanced_tab_button = this.overlay.querySelector("#advanced_tab_button");
-    this.basic_tab_content = this.overlay.querySelector("#basic_tab_content");
-    this.advanced_tab_content = this.overlay.querySelector("#advanced_tab_content");
+    this.tab_buttons = Array.from(this.overlay.querySelectorAll(".tab_button"));
+    this.tab_contents = Array.from(this.overlay.querySelectorAll(".tab_content"));
 
     this.api_key_form = this.overlay.querySelector("#api_key_form");
     this.input = this.overlay.querySelector("#api_key_input");
@@ -82,18 +80,11 @@ export class Config_dialog {
   }
 
   wire_events() {
-    // Tab switching logic
-    this.basic_tab_button.addEventListener("click", () => {
-      this.basic_tab_button.classList.add("active");
-      this.advanced_tab_button.classList.remove("active");
-      this.basic_tab_content.style.display = "";
-      this.advanced_tab_content.style.display = "none";
-    });
-    this.advanced_tab_button.addEventListener("click", () => {
-      this.advanced_tab_button.classList.add("active");
-      this.basic_tab_button.classList.remove("active");
-      this.basic_tab_content.style.display = "none";
-      this.advanced_tab_content.style.display = "";
+    this.tab_buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const tab_name = button.id.replace("_tab_button", "");
+        this.show_tab(tab_name);
+      });
     });
 
     // Form submit
@@ -335,6 +326,15 @@ export class Config_dialog {
     });
   }
 
+  show_tab(tab_name) {
+    this.tab_buttons.forEach((button) => {
+      button.classList.toggle("active", button.id === `${tab_name}_tab_button`);
+    });
+    this.tab_contents.forEach((content) => {
+      content.style.display = content.id === `${tab_name}_tab_content` ? "" : "none";
+    });
+  }
+
   async open() {
     await this.init_promise;
 
@@ -370,6 +370,7 @@ export class Config_dialog {
     if (this.prompt_xmp_checkbox) {
       this.prompt_xmp_checkbox.checked = localStorage.getItem("imaginer.add_prompt_to_image_xmp") === "true";
     }
+    this.show_tab("account");
     this.overlay.style.display = "flex";
     this.input.focus();
   }

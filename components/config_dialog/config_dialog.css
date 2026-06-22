@@ -219,7 +219,7 @@
 /* Button Row */
 .button_row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: var(--button-row-margin-top);
   padding-top: var(--button-row-padding);
   border-top: 1px solid #e0e0e0;
@@ -311,6 +311,7 @@
   margin-top: var(--section-gap);
 }
 
+.action_button + .action_button,
 .action_button + .button_delete {
   margin-top: var(--action-button-gap);
 }
