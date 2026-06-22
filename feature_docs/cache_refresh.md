@@ -4,10 +4,10 @@ Imaginer keeps normal browser caching enabled during everyday use. Cache refresh
 
 ## Refresh Flow
 
-- `cache_manifest.json` lists the core JS, JSON, and HTML files that should be refreshed.
+- `cache_manifest.json` lists the core JS, JSON, HTML, and selected documentation files that should be refreshed.
 - The refresh flow loads the manifest with `cache: "reload"`.
 - Each listed JS and HTML file is fetched twice: once as the plain path and once with the current version query string.
-- Each listed JSON file is fetched as the plain path only.
+- Each listed JSON, Markdown, and other non-versioned file is fetched as the plain path only.
 - Every refresh request uses `cache: "reload"`, which bypasses the old cached response for that request and updates the browser cache with the fresh response.
 - Images and CSS are intentionally excluded from the first manifest scope.
 

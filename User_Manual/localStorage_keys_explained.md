@@ -23,18 +23,38 @@ Number of images to generate per request.
 
 ### `imaginer.background`
 Background handling for transparent images.  
-**Range:** `"auto"`, `"white"`, `"black"`  
+**Range:** `"auto"`, `"transparent"`, `"opaque"`  
 **Default:** `"auto"`
 
 ### `imaginer.quality`
 Image generation quality setting.  
-**Range:** `"auto"`, `"hd"`, `"standard"`  
+**Range:** `"auto"`, `"high"`, `"medium"`, `"low"`  
+**Default:** `"high"`
+
+### `imaginer.input_fidelity`
+Input preservation setting for image edits.  
+**Range:** `"low"`, `"high"`  
+**Default:** `"high"`
+
+### `imaginer.moderation`
+Hidden content moderation level for GPT image models. Invalid values reset to `"auto"`.  
+**Range:** `"auto"`, `"low"`  
 **Default:** `"auto"`
 
 ### `imaginer.image_size`
 Output image dimensions.  
-**Range:** `"1024x1024"`, `"1792x1024"`, `"1024x1792"`  
+**Range:** Preset or custom size string such as `"1024x1024"`, `"1536x1024"`, or `"1024x1536"`  
 **Default:** `"1024x1024"`
+
+### `imaginer.advanced_size_mode`
+Use the advanced size picker instead of the orientation buttons.  
+**Range:** `"true"`, `"false"`  
+**Default:** `"false"`
+
+### `imaginer.custom_sizes`
+Saved custom image sizes for advanced size mode.  
+**Range:** JSON array of size strings  
+**Default:** `"[]"`
 
 ### `imaginer.strip_metadata`
 Remove metadata from downloaded images.  
@@ -44,7 +64,7 @@ Remove metadata from downloaded images.
 ### `imaginer.add_prompt_to_image`
 Embed prompt as iTXt metadata in PNG.  
 **Range:** `"true"`, `"false"`  
-**Default:** `"false"`
+**Default:** `"true"`
 
 ### `imaginer.add_prompt_to_image_xmp`
 Embed prompt as XMP metadata in PNG.  
@@ -55,6 +75,21 @@ Embed prompt as XMP metadata in PNG.
 Show mask mode button in viewer.  
 **Range:** `"true"`, `"false"`  
 **Default:** `"false"`
+
+### `imaginer.enable_streaming`
+Request streaming image previews during generation.  
+**Range:** `"true"`, `"false"`  
+**Default:** `"true"`
+
+### `imaginer.partial_images`
+Number of partial previews to request while streaming.  
+**Range:** Integer string (`"1"`-`"3"`)  
+**Default:** `"2"`
+
+### `imaginer.filename_prompt_chars`
+Maximum number of sanitized prompt characters used in PNG filenames.  
+**Range:** Integer string (`"1"`-`"230"`)  
+**Default:** `"110"`
 
 ### `imaginer.dividerWidth`
 Width of gallery panel in pixels.  
@@ -78,7 +113,7 @@ Cached list of available image generation models.
 ### `imaginer.selected_image_model`
 Currently selected image generation model.  
 **Range:** Model ID string (e.g., `"gpt-image-1.5"`)  
-**Default:** `"gpt-image-1.5"` (fallback)
+**Default:** `"gpt-image-2"` (fallback)
 
 ---
 

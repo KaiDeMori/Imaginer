@@ -82,7 +82,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
 - **Model dropdown**: Select which AI model to use for generation.
   - Shows available image generation models from your OpenAI account.
   - Auto-populates when you add an API key.
-  - Use Config → Advanced → **Refresh Models** to update the list.
+  - Use Config → Account → **Refresh Image Models** to update the list.
 
 
 **Right side:**
@@ -160,7 +160,7 @@ Creating images in Imaginer is straightforward:
 
 Generate several variations of your prompt at once:
 
- **How to enable**: Adjust Config → Basic → **Number of Images (n)**.
+ **How to enable**: Adjust Config → Generation → **Number of Images (n)**.
  **What it does**: When you click Generate, Imaginer creates that many images.
  **Display**: All images appear as separate thumbnails in the Gallery as they complete.
 
@@ -214,7 +214,7 @@ Images are stored in your browser and persist between sessions. Each browser has
 
 Mask Mode lets you paint on images to control which areas get regenerated during editing.
 
-**Enable the button** first in Config → Advanced → **Show Mask Mode Button** (off by default).
+**Enable the button** first in Config → Generation → **Show Mask Mode Button** (off by default).
 
 **Using Mask Mode:**
 1. Open an image in the Viewer.
@@ -246,7 +246,7 @@ The dropdown in the menu bar (next to the orientation buttons) lets you choose w
 
 Different models offer trade-offs between quality, speed, and cost.
 
-Use Config → Advanced → **Refresh Models** to update the list when new models become available.
+Use Config → Account → **Refresh Image Models** to update the list when new models become available.
 
 
 ## Configuration & Settings
@@ -255,15 +255,17 @@ Use Config → Advanced → **Refresh Models** to update the list when new model
 
 Click the **⚙️ Config button** (gear icon) in the menu bar to open the Configuration dialog.
 
-The Configuration dialog has two tabs:
+The Configuration dialog has four tabs:
 
-- **Basic**: API key, generation settings, image quality, background options, and cache refresh.
-- **Advanced**: PNG metadata options, mask mode settings, data management, and model refresh.
+- **Account**: API key testing and image model refresh.
+- **Generation**: output count, parallel jobs, background, quality, input fidelity, and mask button visibility.
+- **Files**: filename length, gallery export, cache refresh, and full gallery deletion.
+- **Advanced**: expert model, streaming, and metadata options with good defaults.
 
-Click between tabs to access different settings. Changes save automatically when you close the dialog.
+Click between tabs to access different settings. Click **Save** to store changes, or **Cancel** to close without saving.
 
 
-### Basic Settings
+### Account Settings
 
 #### API Key
 
@@ -275,6 +277,13 @@ Click between tabs to access different settings. Changes save automatically when
 - 😢 = Key is valid but lacks access to image models.
 
 Press Enter in the key field to test automatically.
+
+#### Refresh Image Models
+
+Config → Account → **Refresh Image Models** updates the model dropdown from your OpenAI account. Use it when new image models become available or when the dropdown looks incomplete.
+
+
+### Generation Settings
 
 
 #### Maximum Parallel Generations
@@ -310,8 +319,8 @@ Transparency works best for isolated objects like logos and icons.
 **Image quality** controls the rendering quality of generated images.
 
 **Options**:
-- **Automatic** (default): The model selects the best quality based on your prompt.
-- **High**: Higher quality rendering.
+- **Automatic**: The model selects the best quality based on your prompt.
+- **High** (default): Higher quality rendering.
 - **Medium**: Balanced quality.
 - **Low**: Lower quality rendering.
 
@@ -320,14 +329,13 @@ Transparency works best for isolated objects like logos and icons.
 **Input fidelity** controls how much effort the model exerts to preserve style and features (especially facial features) from input images during edits. Only applies to `gpt-image-1` and `gpt-image-1.5`. Not supported by `gpt-image-1-mini`.
 
 **Options**:
-- **Low** (default): Standard editing with moderate input preservation.
-- **High**: Enhanced preservation of details like faces and logos from input images.
+- **Low**: Standard editing with moderate input preservation.
+- **High** (default): Enhanced preservation of details like faces and logos from input images.
 
-#### Refresh Cache
+#### Mask Mode Button
 
-Use Config → Basic → **Refresh Cache** if Imaginer still looks or behaves like an older version after an update.
+Config → Generation → **Show Mask Mode Button** toggles whether the Viewer shows the mask tools. Enable it when you need to paint or remove masks; disable it to keep the Viewer simpler by hiding the mask buttons.
 
-The app refreshes its saved app files and reloads the page. Your images, settings, and API key are not deleted.
 
 #### Orientation and Size
 
@@ -366,27 +374,53 @@ Turning **Advanced size setting** off again restores the orientation icons and s
 > **Note:** Other models (e.g. `gpt-image-1`) do not officially support arbitrary resolutions. Stick with the three presets, or with the popular `1024×…` / `…×1024` sizes, when generating with those models.
 
 
+### Files Settings
+
+#### Filename Prompt Characters
+
+Config → Files → **Filename prompt characters (max. 230)** controls how many sanitized prompt characters are used in PNG download and export filenames.
+
+**Default**: 110 (range: 1-230)
+
+Downloaded PNGs use this pattern:
+
+```text
+<sanitized_prompt>_<unix_seconds>.png
+```
+
+Whitespace becomes underscores, unsupported filename characters are removed, and empty prompts fall back to `image`.
+
+#### Refresh Cache
+
+Use Config → Files → **Refresh Cache** if Imaginer still looks or behaves like an older version after an update.
+
+The app refreshes its saved app files and reloads the page. Your images, settings, and API key are not deleted.
+
+#### Download All Images
+
+Config → Files → **Download All Images** bundles every stored image (generated and imported) into a ZIP. PNG filenames use the configured filename prompt character limit plus the image timestamp; the ZIP is named `Imaginer_Export_<timestamp>.zip`. A progress dialog shows status. If no images are present, you see an error instead of a download.
+
+#### Delete Gallery
+
+Config → Files → **Delete Gallery** wipes all stored images. The first click highlights **Download All Images** as a warning. The second click asks you to type `YES`. Confirming clears the gallery database and reloads the app. This cannot be undone — export first if needed.
+
 ### Advanced Settings
 
 #### PNG Metadata Options
 
 - **Strip Server-Side metadata** (default: on): Removes metadata from OpenAI responses before saving, keeping files lean. Prompt embedding still runs after stripping.
-- **Embed prompt as iTXt** (default: off): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata.
+- **Embed prompt as iTXt** (default: on): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata.
 - **Embed prompt as XMP** (default: on): Writes the prompt in an XMP block for metadata-aware apps. If both options are on, the prompt is written to iTXt first, then XMP.
-
-#### Mask Mode Button
-
-Config → Advanced → **Show Mask Mode Button** toggles whether the Viewer shows the mask tools. Enable it when you need to paint or remove masks; disable it to keep the Viewer simpler by hiding the mask buttons.
 
 #### Advanced size setting
 
-Config → Advanced → **Advanced size setting** swaps the three orientation icon buttons in the menu bar for a free-resolution dropdown that lets you pick popular `gpt-image-2` sizes or define your own custom sizes. See _Basic Settings → Orientation and Size → Advanced size setting_ for full details, validation rules, and how to add or remove custom sizes.
+Config → Advanced → **Advanced size setting** swaps the three orientation icon buttons in the menu bar for a free-resolution dropdown that lets you pick popular `gpt-image-2` sizes or define your own custom sizes. See _Generation Settings → Orientation and Size → Advanced size setting_ for full details, validation rules, and how to add or remove custom sizes.
 
 #### Image Streaming Preview
 
 Config → Advanced → **Enable Image Streaming Preview** toggles progressive image previews during generation (default: on).
 
-When enabled, you see dimmed preview images as generation progresses instead of waiting for the final result. The **Number of partial images** setting (0-3, default: 3) controls how many preview updates you receive.
+When enabled, you see dimmed preview images as generation progresses instead of waiting for the final result. The **Number of partial previews** setting (1-3, default: 2) controls how many preview updates you request.
 
 Higher preview counts provide more frequent updates but use slightly more API resources. The timer continues running throughout all previews.
 
@@ -395,15 +429,6 @@ Higher preview counts provide more frequent updates but use slightly more API re
 
 #### Delete Mode
 Menu Bar → **Delete Mode** toggles whether clicks on gallery thumbnails delete images instead of opening them. See The Gallery → **Deleting Images** for how it looks and behaves.
-
-#### Download All Images
-
-Config → **Download All Images** bundles every stored image (generated and imported) into a ZIP. Filenames use the first 20 characters of the prompt plus the image timestamp; the ZIP is named `Imaginer_Export_<timestamp>.zip`. A progress dialog shows status. If no images are present, you see an error instead of a download.
-
-#### Clear Gallery
-
-Config → Advanced → **Delete Gallery** wipes all stored images. The first click only highlights **Download All Images** as a warning. The second click asks you to type `YES`. Confirming clears the gallery database and reloads the app. This cannot be undone — export first if needed.
-
 
 ## Advanced Features
 

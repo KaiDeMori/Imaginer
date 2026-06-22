@@ -5,6 +5,7 @@
     "app.js",
     "cache_refresh_manager.js",
     "default_config.js",
+    "filename_helper.js",
     "model_fetcher.js",
     "process_image_metadata.js",
     "version_manager.js",
@@ -13,6 +14,7 @@
     "components/about_dialog/about_dialog.html",
     "components/about_dialog/about_dialog.js",
     "components/config_dialog/config_dialog.html",
+    "components/config_dialog/config_dialog.css",
     "components/config_dialog/config_dialog.js",
     "components/conversation_panel/conversation_panel.html",
     "components/conversation_panel/conversation_panel.js",
@@ -63,6 +65,14 @@
     "version_messages/version_1.5.0.html",
     "version_messages/version_1.6.0.html",
     "version_messages/version_1.7.0.html",
-    "version_messages/version_1.8.0.html"
+    "version_messages/version_1.8.0.html",
+    "version_messages/version_1.9.0.html",
+    "User_Manual/Imaginer_User_Manual.html",
+    "User_Manual/Imaginer_User_Manual.md",
+    "User_Manual/Imaginer_FAQ.md",
+    "User_Manual/Imaginer_Technical_Manual.md",
+    "User_Manual/localStorage_keys_explained.md",
+    "User_Manual/markdown_maker.js",
+    "User_Manual/toc_maker.js"
   ]
 }

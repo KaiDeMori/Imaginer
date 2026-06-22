@@ -169,8 +169,8 @@ When referencing UI navigation paths, menu items, or configuration settings, use
 
 **Examples**:
 ```
-Use Config → Advanced → **Refresh Models** to update the list.
-Adjust Config → Basic → **Number of Images (n)** to generate multiple variations.
+Use Config → Account → **Refresh Image Models** to update the list.
+Adjust Config → Generation → **Number of Images (n)** to generate multiple variations.
 See Data Management → **Delete Mode** for full details.
 ```
 

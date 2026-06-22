@@ -7,7 +7,7 @@
 
 ## Data Storage
 - Images, prompts, masks, creation timestamps, and UUIDs are stored in IndexedDB (`imaginer-db`, `images` object store). Masks save when you close the viewer if you loaded the image from the gallery.
-- Settings (prompt text, orientation, quality, background, n, maximum parallel jobs, metadata options, mask button visibility, model selection) live in `localStorage`.
+- Settings (prompt text, orientation/size, quality, background, input fidelity, n, maximum parallel jobs, streaming preview count, metadata options, filename prompt length, mask button visibility, and model selection) live in `localStorage`.
 - The API key is XOR-obfuscated and base64-encoded in `localStorage`. The debug function (`window.tabula_rasa()`) clears all local data.
 - A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
 
@@ -23,6 +23,7 @@
 - When no input images are dropped, Imaginer sends `/v1/images/generations` requests. When images are dropped and the model supports editing, it sends `/v1/images/edits` with the first mask attached if one exists.
 - Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background` values. Edits send dropped images, prompt, `n`, `size`, optional `quality`/`background`, and `input_fidelity=high` for `gpt-image-1`.
 - Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`.
+- Downloaded PNG filenames are built locally from a sanitized prompt prefix plus the image creation timestamp. The prefix length comes from `imaginer.filename_prompt_chars`, defaults to 110, and is clamped to 1-230.
 
 
 # Appendices
@@ -36,7 +37,7 @@
 ## Version History
 - Version info is stored in `version.json`.
 - Release notes appear as modals on updates and are shown once per version.
-- Update-time and manual cache refresh use `cache_manifest.json` plus `fetch(..., { cache: "reload" })` for core JS, JSON, and HTML app files.
+- Update-time and manual cache refresh use `cache_manifest.json` plus `fetch(..., { cache: "reload" })` for core JS, JSON, HTML, and selected documentation files.
 
 ## The Intro Sequence
 - First launch shows a cinematic intro after API key entry (requires WebGL).
