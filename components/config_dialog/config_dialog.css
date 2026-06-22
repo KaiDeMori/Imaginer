@@ -20,7 +20,6 @@
   --section-gap: 14px;
   --settings-group-gap: 20px;
   --dependent-setting-gap: 8px;
-  --section-checkbox-gap: 6px;
   --section-indent: 10px;
   --section-label-margin: 6px;
 
@@ -73,11 +72,7 @@
   box-sizing: border-box;
   padding-bottom: var(--input-padding-horizontal);
 }
-/* Mask Mode Container (styled like strip_container) */
-.mask_mode_container {
-  display: flex;
-  align-items: center;
-}
+
 /* General Styles */
 .overlay {
   position: fixed;
@@ -223,18 +218,6 @@
   display: block;
 }
 
-.strip_container {
-  display: flex;
-  align-items: center;
-}
-
-.prompt_container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--section-checkbox-gap);
-}
-
 .prompt_group_label {
   font-size: 0.95rem;
   font-weight: bold;
@@ -297,17 +280,8 @@
   animation: glow 1.5s infinite;
 }
 
-/* Compact utility classes */
-.section {
-  /* Used to separate groups of fields */
-}
-
 .settings_group + .settings_group {
   margin-top: var(--settings-group-gap);
-}
-
-.settings_group > .action_button {
-  margin-top: 0;
 }
 
 .dependent_setting {
@@ -315,34 +289,17 @@
   margin-top: var(--dependent-setting-gap);
 }
 
-.section + .section {
-  margin-top: var(--section-gap);
-}
-
-.section_column {
+.prompt_embed_options {
   display: flex;
   flex-direction: column;
 }
 
-.section_column + .section,
-.section + .section_column,
-.section_column + .section_column {
+.metadata_toggle + .prompt_embed_options {
   margin-top: var(--section-gap);
-}
-
-.indent {
-  margin-left: var(--section-indent);
-  margin-top: var(--section-checkbox-gap);
 }
 
 .input_narrow {
   width: 60px !important;
-}
-
-.help_text {
-  color: #666;
-  font-size: 0.85rem;
-  display: block;
 }
 
 .files_actions {
@@ -374,13 +331,8 @@
   max-width: 260px;
 }
 
-.action_button {
-  margin-top: var(--section-gap);
-}
-
-.action_button + .action_button,
-.action_button + .button_delete {
-  margin-top: var(--action-button-gap);
+.full_width_button {
+  width: 100%;
 }
 
 .button_delete {
