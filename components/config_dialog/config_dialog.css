@@ -39,6 +39,7 @@
 /* Tab Bar Styles */
 .tab_bar {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--tab-gap);
   border-bottom: 1.5px solid #e0e0e0;
   margin-bottom: var(--tab-bar-margin-bottom);
@@ -90,8 +91,8 @@
 .dialog {
   background: #fff;
   border-radius: 10px;
-  min-width: 340px;
-  width: 420px;
+  min-width: 450px;
+  width: 450px;
   max-width: 95vw;
   max-height: 95vh;
   box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
@@ -114,6 +115,8 @@
 }
 
 #api_key_form {
+  box-sizing: border-box;
+  padding: 2px;
   width: 100%;
 }
 
@@ -330,10 +333,14 @@
 .files_actions {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--action-button-gap);
   margin-top: var(--section-gap);
-  padding: 10px 12px;
+  padding: 10px;
+}
+
+.files_actions > .button:not(.button_delete) {
+  width: 100%;
 }
 
 .danger_action_row {
