@@ -142,6 +142,14 @@ export class Generation_panel {
       localStorage.setItem("imaginer.prompt", prompt_input.value);
     });
 
+    // Ctrl+Enter (or Cmd+Enter) sends the prompt, mirroring a Generate click.
+    prompt_input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        generate_btn.click();
+      }
+    });
+
     // Listen for model changes to show/hide drop area
     window.addEventListener("imaginer.model_changed", (e) => {
       this.update_drop_area_visibility(e.detail.model);
