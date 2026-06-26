@@ -61,6 +61,27 @@ export class Viewer {
     this.overlay.appendChild(this.mask_mode_button);
     this.overlay.appendChild(this.remove_mask_button);
 
+    this.navigation_source = null;
+
+    this.prev_button = document.createElement("button");
+    this.prev_button.textContent = "‹";
+    this.prev_button.classList.add("viewer_flip_button", "viewer_flip_prev");
+    this.prev_button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.flip(-1);
+    });
+
+    this.next_button = document.createElement("button");
+    this.next_button.textContent = "›";
+    this.next_button.classList.add("viewer_flip_button", "viewer_flip_next");
+    this.next_button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.flip(1);
+    });
+
+    this.overlay.appendChild(this.prev_button);
+    this.overlay.appendChild(this.next_button);
+
     // Dynamically manage mask mode button visibility
     this.update_mask_mode_button_visibility();
 
@@ -210,6 +231,8 @@ export class Viewer {
     }
     this.redraw();
     this._update_remove_mask_button_visibility();
+    this.update_flip_buttons();
+    if (this.navigation_source) this.navigation_source.mark_current(this.image_id);
   }
 
   /**
@@ -283,10 +306,34 @@ export class Viewer {
     }
 
     this.overlay.classList.toggle("viewer_overlay_visible", false);
+    if (this.navigation_source) this.navigation_source.clear_current();
     this.bitmap?.close?.();
     this.bitmap = null;
     this.mask_data = null;
     this.image_id = null;
+  }
+
+  attach_navigation(navigation_source) {
+    this.navigation_source = navigation_source;
+  }
+
+  /**
+   * Show the neighbouring gallery image.
+   * @param {number} direction - Positive flips toward older images, negative toward newer ones.
+   */
+  flip(direction) {
+    if (this.mask_mode) return;
+    if (!this.navigation_source) return;
+    const neighbor = this.navigation_source.get_neighbor(this.image_id, direction);
+    if (!neighbor) return;
+    this.open(neighbor.blob, { image_id: neighbor.image_id });
+  }
+
+  update_flip_buttons() {
+    const has_prev = !!(this.navigation_source && this.navigation_source.get_neighbor(this.image_id, -1));
+    const has_next = !!(this.navigation_source && this.navigation_source.get_neighbor(this.image_id, 1));
+    this.prev_button.classList.toggle("viewer_flip_button_disabled", !has_prev);
+    this.next_button.classList.toggle("viewer_flip_button_disabled", !has_next);
   }
 
   /* ==================================================================

@@ -8,6 +8,8 @@ export class mask_mode_behaviour {
     this.viewer.overlay.classList.add("viewer_overlay");
     this.viewer.mask_mode_button.classList.add("mask_mode_button");
     this.viewer.mask_mode_button.classList.add("mask_mode_button_active"); // Added class to make the button red in mask mode
+    this.viewer.prev_button.style.display = "none";
+    this.viewer.next_button.style.display = "none";
     this.viewer.set_brush_cursor_visible(true);
     // Hide default cursor, only show brush cursor
     this.viewer.canvas.style.cursor = "none";

@@ -154,6 +154,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     },
   });
+  // The gallery owns image ordering, so it serves as the viewer's prev/next source.
+  viewer.attach_navigation(gallery);
   // Initialize the resizable divider component, which allows resizing between the gallery and generation panel.
   const divider = new Resizable_divider(document.getElementById("divider"), document.getElementById("gallery"), document.getElementById("generation-panel"));
 

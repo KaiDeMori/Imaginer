@@ -18,6 +18,8 @@ export class viewer_mode_behaviour {
         // Set cursor and button state for viewer mode
         this.viewer.overlay.classList.add('viewer_overlay');
         this.viewer.mask_mode_button.classList.add('mask_mode_button');
+        this.viewer.prev_button.style.display = '';
+        this.viewer.next_button.style.display = '';
         this.viewer.set_brush_cursor_visible(false);
         this._update_cursor();
         // Bind events (no wheel event here)
@@ -97,6 +99,14 @@ export class viewer_mode_behaviour {
                 // Only toggle debug if overlay is visible
                 if (this.viewer.overlay.classList.contains('viewer_overlay_visible')) {
                     this.viewer.debug_manager.toggle_debug();
+                }
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                // Only flip while the viewer is actually showing, so arrow keys
+                // typed elsewhere (e.g. the prompt box) are not hijacked.
+                if (this.viewer.overlay.classList.contains('viewer_overlay_visible')) {
+                    e.preventDefault();
+                    this.viewer.flip(e.key === 'ArrowRight' ? 1 : -1);
                 }
             }
         };

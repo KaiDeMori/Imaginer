@@ -42,6 +42,44 @@
   background: #e33;
 }
 
+/* Flip buttons - previous/next image, positioned in upper left */
+.viewer_flip_button {
+  position: absolute;
+  top: 16px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  border-radius: 6px;
+  border: none;
+  background: #888;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: background 0.15s, opacity 0.15s;
+  z-index: 10;
+}
+
+.viewer_flip_prev {
+  left: 24px;
+}
+
+.viewer_flip_next {
+  left: 72px;
+}
+
+.viewer_flip_button:hover {
+  background: #2d7ef7;
+}
+
+.viewer_flip_button_disabled,
+.viewer_flip_button_disabled:hover {
+  opacity: 0.3;
+  background: #888;
+  cursor: default;
+}
+
 /* Overlay styles */
 .viewer_overlay {
   position: fixed;

@@ -55,6 +55,7 @@ export class Gallery {
     this.root.appendChild(this.grid);
     this.records_by_id = {};
     this._thumbnail_containers = {};
+    this.current_viewed_id = null;
     this.delete_mode = false;
     this.selected_for_deletion = new Set();
 
@@ -95,6 +96,11 @@ export class Gallery {
         border-radius: 4px;
         pointer-events: none;
         z-index: 3;
+      }
+      .gallery-thumb.current-viewed {
+        outline: 3px solid #2d7ef7;
+        outline-offset: -1px;
+        border-radius: 4px;
       }
     `;
     this.root.appendChild(style);
@@ -565,6 +571,50 @@ export class Gallery {
     if (this.empty_placeholder) {
       this.empty_placeholder.style.display = has_images ? "none" : "block";
     }
+  }
+
+  /**
+   * Resolve the image adjacent to the given one in visual gallery order.
+   * Positive direction moves toward older images (further down the grid),
+   * negative toward newer ones. In-flight placeholders without a record are skipped.
+   * @returns {{ blob: Blob, image_id: number }|null} The neighbour, or null at the ends.
+   */
+  get_neighbor(image_id, direction) {
+    if (image_id == null) return null;
+    const container = this._thumbnail_containers[image_id];
+    if (!container) return null;
+    const step = direction > 0 ? "nextElementSibling" : "previousElementSibling";
+    let sibling = container[step];
+    while (sibling && sibling.dataset.recordId == null) {
+      sibling = sibling[step];
+    }
+    if (!sibling) return null;
+    const neighbor_id = Number(sibling.dataset.recordId);
+    const record = this.records_by_id[neighbor_id];
+    if (!record || !(record.image_blob instanceof Blob)) return null;
+    return { blob: record.image_blob, image_id: neighbor_id };
+  }
+
+  /**
+   * Highlight the thumbnail of the image currently shown in the viewer and scroll
+   * it into view. Passing null clears any existing highlight.
+   */
+  mark_current(image_id) {
+    if (this.current_viewed_id != null) {
+      const previous = this._thumbnail_containers[this.current_viewed_id];
+      if (previous) previous.classList.remove("current-viewed");
+    }
+    this.current_viewed_id = null;
+    if (image_id == null) return;
+    const container = this._thumbnail_containers[image_id];
+    if (!container) return;
+    container.classList.add("current-viewed");
+    container.scrollIntoView({ block: "nearest" });
+    this.current_viewed_id = image_id;
+  }
+
+  clear_current() {
+    this.mark_current(null);
   }
 
   // --- Timer update logic (static, shared for all Gallery instances) ---
