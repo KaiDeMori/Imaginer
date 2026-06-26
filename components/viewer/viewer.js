@@ -64,7 +64,7 @@ export class Viewer {
     this.navigation_source = null;
 
     this.prev_button = document.createElement("button");
-    this.prev_button.textContent = "‹";
+    this.prev_button.textContent = "←";
     this.prev_button.classList.add("viewer_flip_button", "viewer_flip_prev");
     this.prev_button.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -72,7 +72,7 @@ export class Viewer {
     });
 
     this.next_button = document.createElement("button");
-    this.next_button.textContent = "›";
+    this.next_button.textContent = "→";
     this.next_button.classList.add("viewer_flip_button", "viewer_flip_next");
     this.next_button.addEventListener("click", (e) => {
       e.stopPropagation();
