@@ -227,6 +227,38 @@ export class Gallery {
     });
   }
 
+  _build_prompt_button(prompt_text, { visible = false } = {}) {
+    const button_prompt = document.createElement("button");
+    button_prompt.textContent = "💬";
+    Object.assign(button_prompt.style, {
+      position: "absolute",
+      top: "6px",
+      right: "6px",
+      zIndex: 2,
+      background: "#fff",
+      border: "none",
+      borderRadius: "4px",
+      padding: "2px 6px",
+      fontSize: "1.1rem",
+      cursor: "pointer",
+      opacity: visible ? 1 : 0,
+      transition: "opacity 0.1s",
+    });
+    button_prompt.title = "Load this prompt into the prompt box";
+
+    button_prompt.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const promptInput = document.querySelector("#prompt-input");
+      if (promptInput) {
+        promptInput.value = prompt_text || "";
+        localStorage.setItem("imaginer.prompt", prompt_text || "");
+        promptInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
+
+    return button_prompt;
+  }
+
   _build_thumbnail_content(blob, prompt_text, created, record_id) {
     const url = URL.createObjectURL(blob);
 
@@ -295,36 +327,7 @@ export class Gallery {
       setTimeout(() => { a.remove(); URL.revokeObjectURL(download_url); }, 100);
     });
 
-    let button_prompt = null;
-    if (prompt_text) {
-      button_prompt = document.createElement("button");
-      button_prompt.textContent = "💬";
-      Object.assign(button_prompt.style, {
-        position: "absolute",
-        top: "6px",
-        right: "6px",
-        zIndex: 2,
-        background: "#fff",
-        border: "none",
-        borderRadius: "4px",
-        padding: "2px 6px",
-        fontSize: "1.1rem",
-        cursor: "pointer",
-        opacity: 0,
-        transition: "opacity 0.1s",
-      });
-      button_prompt.title = "Load this prompt into the prompt box";
-
-      button_prompt.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const promptInput = document.querySelector("#prompt-input");
-        if (promptInput) {
-          promptInput.value = prompt_text || "";
-          localStorage.setItem("imaginer.prompt", prompt_text || "");
-          promptInput.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-      });
-    }
+    const button_prompt = prompt_text ? this._build_prompt_button(prompt_text) : null;
 
     return { image_element, button_download, button_prompt };
   }
@@ -453,7 +456,7 @@ export class Gallery {
     return container;
   }
 
-  create_placeholder(start_time = Math.floor(Date.now() / 1000)) {
+  create_placeholder(prompt_text = "", start_time = Math.floor(Date.now() / 1000)) {
     const placeholder = document.createElement("div");
     Object.assign(placeholder.style, {
       width: "100%",
@@ -481,6 +484,13 @@ export class Gallery {
     placeholder.appendChild(timer);
     placeholder._timer = timer;
     placeholder._start_time = start_time;
+
+    if (prompt_text) {
+      const button_prompt = this._build_prompt_button(prompt_text, { visible: true });
+      placeholder._prompt_button = button_prompt;
+      placeholder.appendChild(button_prompt);
+    }
+
     this.grid.prepend(placeholder);
     Gallery.tracked_placeholders = Gallery.tracked_placeholders || [];
     Gallery.tracked_placeholders.push(placeholder);
@@ -526,36 +536,16 @@ export class Gallery {
     const partial_label = placeholder.querySelector(".partial-label");
     if (partial_label) partial_label.remove();
 
+    if (placeholder._prompt_button) {
+      placeholder._prompt_button.remove();
+      placeholder._prompt_button = null;
+    }
+
     if (is_error) {
       placeholder.style.background = "#f88";
       if (placeholder._timer) placeholder._timer.remove();
 
-      const button_prompt = document.createElement("button");
-      button_prompt.textContent = "💬";
-      Object.assign(button_prompt.style, {
-        position: "absolute",
-        top: "6px",
-        right: "6px",
-        zIndex: 2,
-        background: "#fff",
-        border: "none",
-        borderRadius: "4px",
-        padding: "2px 6px",
-        fontSize: "1.1rem",
-        cursor: "pointer",
-        opacity: 1,
-      });
-      button_prompt.title = "Load this prompt into the prompt box";
-
-      button_prompt.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const promptInput = document.querySelector("#prompt-input");
-        if (promptInput) {
-          promptInput.value = prompt_text || "";
-          localStorage.setItem("imaginer.prompt", prompt_text || "");
-          promptInput.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-      });
+      const button_prompt = this._build_prompt_button(prompt_text, { visible: true });
       placeholder.appendChild(button_prompt);
       return;
     }

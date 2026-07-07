@@ -331,7 +331,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     // Add as many placeholders as images requested (for smoother UX)
     const placeholders = [];
     for (let i = 0; i < n_local; i++) {
-      placeholders.push(gallery.create_placeholder());
+      placeholders.push(gallery.create_placeholder(prompt_text));
     }
 
     // --- Read orientation, transparency, quality, and n from localStorage (set by menu bar/config) ---
