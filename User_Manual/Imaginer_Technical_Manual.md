@@ -7,21 +7,24 @@
 
 ## Data Storage
 - Images, prompts, masks, creation timestamps, and UUIDs are stored in IndexedDB (`imaginer-db`, `images` object store). Masks save when you close the viewer if you loaded the image from the gallery.
-- Settings (prompt text, orientation/size, quality, background, input fidelity, n, maximum parallel jobs, streaming preview count, metadata options, filename prompt length, mask button visibility, and model selection) live in `localStorage`.
+- Settings (prompt text, orientation/size, advanced size mode and saved custom sizes, quality, background, input fidelity, hidden moderation level, n, maximum parallel jobs, streaming preview count, metadata options, filename prompt length, mask button visibility, and model selection) live in `localStorage`. See `localStorage_keys_explained.md` for the full list.
 - The API key is XOR-obfuscated and base64-encoded in `localStorage`. The debug function (`window.tabula_rasa()`) clears all local data.
 - A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
 
 ## Image Formats
-- All stored images are PNG. JPEG imports are converted to PNG on drop.
-- Optional prompt embedding uses iTXt (`prompt_text`) and XMP blocks. Mask PNGs store editable areas with transparent alpha.
+- All stored images are PNG. Gallery imports accept any browser-readable image type and are converted to PNG on drop.
+- Embedded prompts are read from PNG (iTXt/XMP), JPEG (XMP/EXIF), and WebP (XMP/EXIF) *before* conversion, so the prompt survives import.
+- Optional prompt embedding on generation and download writes iTXt (`prompt_text`) and/or an XMP block into the PNG; if the strip option is on, server-side metadata is removed first. Mask PNGs store editable areas with transparent alpha.
 
 ## OpenAI Integration
 - Imaginer accepts two API key formats from OpenAI:
    - Legacy keys starting with `sk-` and exactly 51 characters in total.
    - Project keys starting with `sk-proj-` and at least 108 characters (8-character prefix plus 100 or more characters).
 - Default model fallback is `gpt-image-2`; the dropdown shows cached or refreshed `gpt-image-*` models.
-- When no input images are dropped, Imaginer sends `/v1/images/generations` requests. When images are dropped and the model supports editing, it sends `/v1/images/edits` with the first mask attached if one exists.
-- Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background` values. Edits send dropped images, prompt, `n`, `size`, optional `quality`/`background`, and `input_fidelity=high` for `gpt-image-1`.
+- When no input images are dropped, Imaginer sends `/v1/images/generations` requests. When images are dropped and a non-mini model is selected, it sends `/v1/images/edits` with the first image's mask attached if one exists.
+- Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background`/`moderation` values. Streaming previews (`stream: true` with `partial_images`) are requested on generations only, never on edits.
+- Edits send the dropped images, `prompt`, `n`, `size`, optional `quality`/`background`/`moderation`, the first image's `mask` if present, and `input_fidelity` (the user's Low/High choice) — but only for the `gpt-image-1` and `gpt-image-1.5` models.
+- Selecting a `*-mini` model disables editing: dropped images are ignored and the request falls back to a plain generation.
 - Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`.
 - Downloaded PNG filenames are built locally from a sanitized prompt prefix plus the image creation timestamp. The prefix length comes from `imaginer.filename_prompt_chars`, defaults to 110, and is clamped to 1-230.
 
@@ -29,10 +32,12 @@
 # Appendices
 
 ## Keyboard Reference
-- `Escape`: Close viewer or exit mask mode.
-- `D`: Toggle debug overlay (viewer).
+- `Ctrl` + `Enter` / `Cmd` + `Enter`: Generate from the prompt box.
+- `←` / `→`: Flip to the previous/next gallery image while the viewer is open (viewer mode only).
+- `Escape`: Close the viewer (saving the current mask if one was painted).
+- `D`: Toggle debug overlay (viewer mode).
 - `Ctrl` + `D`: Toggle debug overlay (mask mode).
-- `Ctrl` + mouse wheel: Adjust brush size.
+- `Ctrl` + mouse wheel: Adjust brush size (mask mode).
 
 ## Version History
 - Version info is stored in `version.json`.

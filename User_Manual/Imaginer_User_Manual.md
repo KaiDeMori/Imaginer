@@ -54,7 +54,7 @@ After entering your API key successfully:
 
 - **First launch only**: An epic cinematic intro sequence plays (requires WebGL support).
   - The intro features a space-themed animation with a dramatic soundtrack.
-  - See Appendix E for detailed information about the intro sequence.
+  - A preload screen lets you test audio, switch to fullscreen, and pick a font before it starts.
 
 - **You're taken to the main app**, where you can immediately start generating images.
 
@@ -89,6 +89,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
 - 🗑️ **Delete Mode button**: Toggle deletion mode to remove images from gallery.
 - ⚙️ **Config button**: Open configuration dialog for settings and API key management.
 - 🛈 **About button**: View app information and version.
+- ❔ **Help button**: Open this user manual in a new browser tab.
 
 The menu bar also manages your image orientation selection, which persists between sessions.
 
@@ -96,7 +97,7 @@ The menu bar also manages your image orientation selection, which persists betwe
 
 The gallery displays all your generated and imported images as a grid of thumbnails:
 
-- **Thumbnail grid**: Images shown in chronological order (oldest first).
+- **Thumbnail grid**: Images shown newest first, with the most recent at the top.
 - **Click any thumbnail** to open it in the Viewer.
 - **Drag images** from the gallery to the Prompt Panel to use them as reference images for editing.
 - **Import images**: Drag-and-drop images from your computer directly into the gallery.
@@ -117,7 +118,7 @@ The prompt panel is where you describe what you want to generate or edit:
   - Displays thumbnails of images you've dragged from the gallery.
   - Images with masks show a red border indicator.
   - Click any thumbnail to remove it from the input.
-  - When empty, shows "Drop image(s) for edit reference".
+  - When empty, shows "Drop image(s) for editing".
 
 #### The Resizable Divider
 
@@ -144,6 +145,7 @@ Creating images in Imaginer is straightforward:
 
 2. **Click the ▶️ Generate button** at the bottom of the Prompt Panel.
    - The button spans the full width and has a blue background.
+   - **Keyboard shortcut**: Press **Ctrl+Enter** (or **Cmd+Enter** on a Mac) while typing in the prompt box to generate without reaching for the mouse.
 
 3. **Watch as your image generates**:
    - A placeholder appears instantly in the Gallery with a timer showing elapsed time.
@@ -160,9 +162,9 @@ Creating images in Imaginer is straightforward:
 
 Generate several variations of your prompt at once:
 
- **How to enable**: Adjust Config → Generation → **Number of Images (n)**.
- **What it does**: When you click Generate, Imaginer creates that many images.
- **Display**: All images appear as separate thumbnails in the Gallery as they complete.
+- **How to enable**: Adjust Config → Generation → **Number of Images (n)**.
+- **What it does**: When you click Generate, Imaginer creates that many images.
+- **Display**: All images appear as separate thumbnails in the Gallery as they complete.
 
 
 ### The Gallery
@@ -171,8 +173,9 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Importing Images
 
-**Drag and drop image files** from your computer into the gallery area to import them.  
-Images with embedded prompts are automatically detected. Images over 4 MB are rejected.
+**Drag and drop image files** from your computer into the gallery area to import them. Any image format your browser can read is accepted, and non-PNG images are converted to PNG on import.
+
+Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata. The prompt is read *before* conversion, so a re-imported image keeps its 💬 prompt.
 
 #### Deleting Images
 
@@ -210,6 +213,16 @@ Images are stored in your browser and persist between sessions. Each browser has
 - **Left-click and drag**: Pan around the image once you're zoomed in. The image always stays partially on screen, so you can't lose it.
 - **Escape** or **click** (without dragging): Close the Viewer.
 
+#### Flipping Between Images
+
+You don't have to return to the gallery to browse your images:
+
+- **◀ / ▶ arrow buttons** at the left and right edges step to the previous or next gallery image. The **left and right arrow keys** do the same.
+- The buttons **dim** when you reach the first or last image.
+- The gallery **highlights the image you're viewing** with a blue outline and scrolls it into view, so you never lose your place.
+
+Flipping is disabled while **Mask Mode** is active (the arrow buttons hide), so painting a mask never jumps you to another image.
+
 #### Mask Mode
 
 Mask Mode lets you paint on images to control which areas get regenerated during editing.
@@ -233,7 +246,7 @@ Masks save automatically when you close the Viewer. Gallery thumbnails with mask
 
 **Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery.
 
-The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them.
+The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be **PNG or JPEG** and no larger than **4 MB** each (gallery thumbnails have no such limit).
 
 **For precise edits**, create a mask in the Viewer (see **The Viewer → Mask Mode**), then drag that masked image to the drop area. Only masked areas will be modified.
 
@@ -242,11 +255,11 @@ The drop area highlights in blue when you drag over it. **Click thumbnails in th
 
 
 
-The dropdown in the menu bar (next to the orientation buttons) lets you choose which AI model generates your images.
+### Choosing a Model
 
-Different models offer trade-offs between quality, speed, and cost.
+The **model dropdown** in the menu bar (next to the orientation buttons) lets you choose which AI model generates your images. Different models offer trade-offs between quality, speed, and cost.
 
-Use Config → Account → **Refresh Image Models** to update the list when new models become available.
+The list auto-populates once you add an API key. Use Config → Account → **Refresh Image Models** to update it when new models become available.
 
 
 ## Configuration & Settings
@@ -260,7 +273,7 @@ The Configuration dialog has four tabs:
 - **Account**: API key testing and image model refresh.
 - **Generation**: output count, parallel jobs, background, quality, input fidelity, and mask button visibility.
 - **Files**: filename length, gallery export, cache refresh, and full gallery deletion.
-- **Advanced**: expert model, streaming, and metadata options with good defaults.
+- **Advanced**: advanced image-size setting, streaming preview, and PNG metadata options — all with sensible defaults.
 
 Click between tabs to access different settings. Click **Save** to store changes, or **Cancel** to close without saving.
 
@@ -326,7 +339,7 @@ Transparency works best for isolated objects like logos and icons.
 
 #### Input Fidelity
 
-**Input fidelity** controls how much effort the model exerts to preserve style and features (especially facial features) from input images during edits. Only applies to `gpt-image-1` and `gpt-image-1.5`. Not supported by `gpt-image-1-mini`.
+**Input fidelity** controls how much effort the model exerts to preserve style and features (especially facial features) from input images during edits. It applies only when editing with the `gpt-image-1` or `gpt-image-1.5` model. The default `gpt-image-2` model and the `gpt-image-1-mini` model ignore this setting.
 
 **Options**:
 - **Low**: Standard editing with moderate input preservation.
@@ -357,7 +370,7 @@ Your selection persists between sessions and applies to the next generation or e
 
 The dropdown contains:
 
-- **Popular sizes**: `1024×1024`, `1024×1536`, `1536×1024`, `2560×1440`, `3824×2144`.
+- **Popular sizes**: `1024×1024`, `1536×1024`, `1024×1536`, `2048×2048`, `2048×1152`, `1152×2048`, `2560×1440`, `3840×2160`, and `2160×3840` — square, landscape, and portrait presets up to 4K.
 - **Your custom sizes**: any custom sizes you have added (most-recent first, capped at 20).
 - **Add custom size…**: opens a modal where you can enter a width and height. The Save button stays disabled until your input is valid; warnings appear for experimental sizes.
 - **Remove custom size…**: only shown when you have at least one custom size. Lists your custom sizes; click an entry and confirm to delete it.
@@ -432,12 +445,12 @@ Menu Bar → **Delete Mode** toggles whether clicks on gallery thumbnails delete
 
 ## Advanced Features
 
-### PNG Metadata
+### Image Metadata
 
 #### Reading metadata from imported images
-- Imaginer reads prompts from PNG metadata when you drop an image into the gallery.
-- If found, the 💬 button appears to load the prompt.
-- JPEG imports are converted to PNG and lose original metadata.
+- When you drop an image into the gallery, Imaginer reads any embedded prompt from PNG, JPEG, or WebP metadata.
+- The prompt is read *before* conversion, so importing a JPEG or WebP still recovers its prompt even though the stored copy becomes a PNG.
+- If a prompt is found, the 💬 button appears on the thumbnail to load it into the prompt box.
 
 ### Debug Features
 - Toggle debug overlay with `D` (viewer) or `Ctrl` + `D` (mask mode).
