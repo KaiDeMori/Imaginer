@@ -43,7 +43,7 @@ export async function validate_file_readable(file) {
     if (err?.name === "NotFoundError") {
       return {
         valid: false,
-        error: `"${file.name}" could not be read by the browser — this is a known drag-and-drop issue on some Linux systems. Try Firefox instead, or copy the file to a local folder before dragging it in.`,
+        error: `"${file.name}" could not be read by the browser — this is a known drag-and-drop issue on some Linux systems. Try Firefox instead.`,
       };
     }
     if (err?.name === "NotReadableError") {

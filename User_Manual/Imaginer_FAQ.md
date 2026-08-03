@@ -21,6 +21,7 @@
 - **How can I edit an image?** Drag a gallery thumbnail into the prompt panel, add a prompt, and click **Generate**.
 - **Why can't I edit with the mini model?** When a `*-mini` model is selected, dropped images are ignored and Imaginer generates a brand-new image from your prompt instead of editing. For image editing, switch to `gpt-image-1` or `gpt-image-1.5` (these also support the **Input fidelity** setting).
 - **How can I import an external image?** Drag a supported image file into the gallery — the app tells you if the format, size, or count doesn't qualify.
+- **Why won't Chrome on Linux import my images?** This is a known Linux/Chromium drag-and-drop bug — the browser reports the file as valid but can't actually read its bytes. Try Firefox instead.
 - **How can I save an image?** Hover a thumbnail and click ⬇️, or use Config → Files → **Download All Images**.
 - **How can I backup my images?** Use Config → Files → **Download All Images** for a ZIP file.
 - **How can I delete images?** Use 🗑️ Delete Mode for single images, or Config → Files → **Delete Gallery** to clear everything.

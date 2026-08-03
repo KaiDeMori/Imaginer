@@ -19,6 +19,11 @@
   - Maximum file size: 50 MB.
   - Maximum count: 16 files per drop.
   - A dropped batch containing one unsupported format, one oversized file, or exceeding the count of 16 is rejected in full — nothing from that batch is imported.
+- Both drop targets also verify the file is actually readable before adding it, via `validate_file_readable()` (`components/image_validation.js`), which decodes the file with `createImageBitmap()`. This catches files whose type and size pass validation but whose content the browser cannot read — most notably a known Linux/Chromium drag-and-drop bug where a dropped file's bytes become inaccessible after the drop. The failure message depends on the DOM exception name:
+  - `NotFoundError`: the file's bytes are gone (the Linux/Chromium drag-and-drop bug) — the message suggests trying Firefox.
+  - `NotReadableError`: the file is locked by another program, or unreadable due to permissions.
+  - `EncodingError`: the bytes were read, but the content is not a valid image (corrupt or mislabeled file).
+  - Any other error: a generic "could not be imported" message.
 - The edit drop area's mask (from an image dragged out of the gallery) has separate limits, also enforced by `components/image_validation.js`:
   - Format: PNG.
   - Maximum file size: 4 MB.
