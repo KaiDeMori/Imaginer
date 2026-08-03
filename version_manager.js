@@ -109,6 +109,14 @@ async function check_and_show_update_message(suppress_modal = false) {
           alert(`Cache refresh failed:\n\n${message}`);
         }
 
+        modal_instance.set_status("Refreshing available models...");
+        try {
+          const { refresh_models } = await import(versioned_url("./model_fetcher.js"));
+          await refresh_models();
+        } catch (error) {
+          console.warn("Could not refresh available models:", error);
+        }
+
         modal_instance.set_status("Reloading...");
         location.reload();
         return false;
