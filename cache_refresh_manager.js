@@ -1,7 +1,7 @@
 import { versioned_url } from "./version_manager.js";
 
 const CACHE_MANIFEST_PATH = "cache_manifest.json";
-const VERSIONED_EXTENSIONS = new Set([".html", ".js"]);
+const VERSIONED_EXTENSIONS = new Set([".html", ".js", ".md"]);
 
 function get_extension(path) {
   const clean_path = path.split("?")[0].split("#")[0];

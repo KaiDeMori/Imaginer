@@ -32,6 +32,19 @@ async function get_version_config() {
   }
 }
 
+async function init_current_version() {
+  if (CURRENT_VERSION) {
+    return CURRENT_VERSION;
+  }
+
+  const config = await get_version_config();
+  if (config) {
+    CURRENT_VERSION = config.version;
+  }
+
+  return CURRENT_VERSION;
+}
+
 function compare_versions(left_version, right_version) {
   const left_segments = left_version.split(".").map((segment) => parseInt(segment, 10));
   const right_segments = right_version.split(".").map((segment) => parseInt(segment, 10));
@@ -143,4 +156,4 @@ async function get_version_history() {
   return config ? config.history : {};
 }
 
-export { check_and_show_update_message, compare_versions, get_version_history, versioned_url };
+export { check_and_show_update_message, compare_versions, get_version_history, init_current_version, versioned_url };

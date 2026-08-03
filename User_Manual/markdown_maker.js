@@ -1,6 +1,7 @@
-import { versioned_url } from "../version_manager.js";
+import { init_current_version, versioned_url } from "../version_manager.js";
 
 export async function parse_markdown_with_toc(filename) {
+  await init_current_version();
   const response = await fetch(versioned_url(filename));
   const markdown_text = await response.text();
 
