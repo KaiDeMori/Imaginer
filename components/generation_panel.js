@@ -193,72 +193,50 @@ export class Generation_panel {
       // --- Check for internal gallery drag ---
       const drag_id = event.dataTransfer.getData("application/x-imaginer-blob-id");
       if (drag_id && window.imaginer_gallery_drag_store && window.imaginer_gallery_drag_store[drag_id]) {
-        const { blob, promptText, created, mask_blob, uuid } = window.imaginer_gallery_drag_store[drag_id];
-        // Only accept PNGs for now
-        if (blob && blob.type === "image/png") {
-          // Give the blob a name for thumbnail UI (only if it's not a File, which has a read-only name)
-          if (!(blob instanceof File)) {
-            blob.name = `${sanitize_prompt_for_filename(promptText, "gallery_image")}.png`;
-          }
-          // Convert mask_blob (Blob) to File if present
-          let mask_file = null;
-          if (mask_blob instanceof Blob) {
-            mask_file = new File([mask_blob], "mask.png", { type: "image/png" });
-          }
-          import(versioned_url("./drop_area_manager.js")).then(({ default: drop_area_manager }) => {
-            drop_area_manager.add_image(blob, mask_file, uuid);
-            this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
-            this._update_input_image_thumbnails();
-          });
-        }
-        // Clean up the drag store
+        const { blob, promptText, mask_blob, uuid } = window.imaginer_gallery_drag_store[drag_id];
         delete window.imaginer_gallery_drag_store[drag_id];
+        if (blob) {
+          Promise.all([import(versioned_url("./drop_area_manager.js")), import(versioned_url("./error_modal.js")), import(versioned_url("./image_validation.js"))]).then(
+            ([{ default: drop_area_manager }, { Error_modal }, { extension_for_type }]) => {
+              // Give the blob a name for thumbnail UI (only if it's not a File, which has a read-only name)
+              if (!(blob instanceof File)) {
+                blob.name = `${sanitize_prompt_for_filename(promptText, "gallery_image")}.${extension_for_type(blob.type)}`;
+              }
+              // Convert mask_blob (Blob) to File if present
+              let mask_file = null;
+              if (mask_blob instanceof Blob) {
+                mask_file = new File([mask_blob], "mask.png", { type: "image/png" });
+              }
+              drop_area_manager.try_add_images([{ image: blob, mask: mask_file, uuid }]).then((result) => {
+                if (!result.ok) {
+                  Error_modal.show(result.error);
+                  return;
+                }
+                result.mask_discard_reasons.forEach((reason) => Error_modal.show(reason));
+                this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
+                this._update_input_image_thumbnails();
+              });
+            },
+          );
+        }
         return;
       }
 
-      // --- Fallback: external file drop (original logic) ---
+      // --- Fallback: external file drop ---
       const files = Array.from(event.dataTransfer.files);
       if (files.length > 0) {
-        import(versioned_url("./error_modal.js")).then(({ Error_modal }) => {
-          let any_error = false;
-          const valid_files = [];
-          for (const file of files) {
-            if (file.type !== "image/png" && file.type !== "image/jpeg") {
-              Error_modal.show(`File "${file.name}" is not a PNG or JPEG image.`);
-              any_error = true;
-              break;
-            }
-            if (file.size > 4 * 1024 * 1024) {
-              Error_modal.show(`File "${file.name}" exceeds the 4MB size limit.`);
-              any_error = true;
-              break;
-            }
-            valid_files.push(file);
-          }
-          if (!any_error) {
-            // Use new drop area logic for image/mask management
-            import(versioned_url("./drop_area_manager.js")).then(({ default: drop_area_manager }) => {
-              // Only add files if drop_area_manager is empty or matches this.dropped_images
-              if (
-                drop_area_manager.get_images().length === 0 ||
-                drop_area_manager
-                  .get_images()
-                  .map((e) => e.image)
-                  .join(",") === (this.dropped_images || []).join(",")
-              ) {
-                valid_files.forEach((file) => {
-                  drop_area_manager.add_image(file, null);
-                });
-                this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
-                this._update_input_image_thumbnails();
-                console.log("Stored valid PNG files in drop_area_manager:", drop_area_manager.get_images());
-              } else {
-                // fallback: just update thumbnails from drop_area_manager
-                this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
-                this._update_input_image_thumbnails();
+        Promise.all([import(versioned_url("./drop_area_manager.js")), import(versioned_url("./error_modal.js"))]).then(([{ default: drop_area_manager }, { Error_modal }]) => {
+          import(versioned_url("./image_validation.js")).then(({ with_batch_hint }) => {
+            const entries = files.map((file) => ({ image: file, mask: null, uuid: null }));
+            drop_area_manager.try_add_images(entries).then((result) => {
+              if (!result.ok) {
+                Error_modal.show(with_batch_hint(result.error, files.length > 1));
+                return;
               }
+              this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
+              this._update_input_image_thumbnails();
             });
-          }
+          });
         });
       }
     });

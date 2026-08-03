@@ -1,5 +1,6 @@
 import { versioned_url } from "../../version_manager.js";
-import { build_png_filename } from "../../filename_helper.js";
+import { build_image_filename } from "../../filename_helper.js";
+import { extension_for_type } from "../image_validation.js";
 
 export class Performance_limit_warning {
   constructor() {
@@ -68,7 +69,7 @@ export class Performance_limit_warning {
       const zip = new JSZip();
       for (const rec of records) {
         if (rec.image_blob instanceof Blob) {
-          const filename = build_png_filename(rec.prompt_text, rec.created);
+          const filename = build_image_filename(rec.prompt_text, rec.created, extension_for_type(rec.image_blob.type));
           zip.file(filename, rec.image_blob);
         }
       }

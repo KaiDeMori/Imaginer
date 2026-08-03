@@ -29,6 +29,7 @@
     "components/generation_panel.js",
     "components/generation_panel.options.js",
     "components/image_converter.js",
+    "components/image_validation.js",
     "components/jpeg_metadata_reader.js",
     "components/menu_bar/menu_bar.html",
     "components/menu_bar/menu_bar.js",

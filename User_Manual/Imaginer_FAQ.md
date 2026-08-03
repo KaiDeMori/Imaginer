@@ -14,13 +14,13 @@
 
 ### Browser Issues
 - Imaginer is web-only. Clearing browser data deletes images, masks, prompts, and your API key.
-- The gallery accepts any image type your browser can read and converts it to PNG on import (no size limit). The edit drop area (for editing references) accepts PNG or JPEG only, up to 4 MB per file.
+- The gallery and the edit drop area both accept PNG, WEBP, or JPEG files, up to 50 MB each and 16 per drop. If a dropped batch has one invalid file, or exceeds 16, none of the files are imported.
 - WebGL is required for the intro and viewer.
 
 ## Frequently Asked Questions
 - **How can I edit an image?** Drag a gallery thumbnail into the prompt panel, add a prompt, and click **Generate**.
 - **Why can't I edit with the mini model?** When a `*-mini` model is selected, dropped images are ignored and Imaginer generates a brand-new image from your prompt instead of editing. For image editing, switch to `gpt-image-1` or `gpt-image-1.5` (these also support the **Input fidelity** setting).
-- **How can I import an external image?** Drag a PNG or JPEG into the gallery.
+- **How can I import an external image?** Drag a PNG, WEBP, or JPEG file into the gallery.
 - **How can I save an image?** Hover a thumbnail and click ⬇️, or use Config → Files → **Download All Images**.
 - **How can I backup my images?** Use Config → Files → **Download All Images** for a ZIP file.
 - **How can I delete images?** Use 🗑️ Delete Mode for single images, or Config → Files → **Delete Gallery** to clear everything.

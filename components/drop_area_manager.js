@@ -2,6 +2,8 @@
 // Logic for managing the image drop area, including mask association and selection.
 // Naming follows loose_snake_case as per project standards.
 
+import { validate_image_count, validate_image_file, validate_mask_file } from "./image_validation.js";
+
 /**
  * Manages dropped images and their associated masks and UUIDs for the image edit feature.
  * Only the mask of the first image is used for the API request.
@@ -13,6 +15,43 @@ class drop_area_manager {
      * Each entry: { image: File, mask: File|null, uuid?: string }
      */
     this.dropped_images = [];
+  }
+
+  /**
+   * Validates and adds a batch of images atomically: either every entry is added, or none are.
+   * A failing mask does not fail the batch — it is dropped, and its image is added without it.
+   * @param {Array<{ image: File, mask: File|null, uuid?: string|null }>} entries
+   * @returns {Promise<{ ok: true, mask_discard_reasons: string[] } | { ok: false, error: string }>}
+   */
+  async try_add_images(entries) {
+    const count_check = validate_image_count(this.dropped_images.length, entries.length);
+    if (!count_check.valid) {
+      return { ok: false, error: count_check.error };
+    }
+
+    for (const entry of entries) {
+      const file_check = validate_image_file(entry.image);
+      if (!file_check.valid) {
+        return { ok: false, error: file_check.error };
+      }
+    }
+
+    const mask_discard_reasons = [];
+    for (const entry of entries) {
+      if (entry.mask) {
+        const mask_check = await validate_mask_file(entry.mask, entry.image);
+        if (!mask_check.valid) {
+          entry.mask = null;
+          mask_discard_reasons.push(mask_check.error);
+        }
+      }
+    }
+
+    for (const entry of entries) {
+      this.add_image(entry.image, entry.mask, entry.uuid);
+    }
+
+    return { ok: true, mask_discard_reasons };
   }
 
   /**

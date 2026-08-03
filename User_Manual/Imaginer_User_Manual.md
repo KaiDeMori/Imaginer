@@ -101,7 +101,7 @@ The gallery displays all your generated and imported images as a grid of thumbna
 - **Click any thumbnail** to open it in the Viewer.
 - **Drag images** from the gallery to the Prompt Panel to use them as reference images for editing.
 - **Import images**: Drag-and-drop images from your computer directly into the gallery.
-  - Non-PNG images are automatically converted to PNG format.
+  - Accepted formats are PNG, WEBP, and JPEG, each under 50 MB.
 - **Empty state**: When the gallery is empty, you'll see "Drop image(s) for import".
 
 The gallery stores all images in your browser using IndexedDB. Images persist between sessions unless you clear browser data or manually delete them.
@@ -173,9 +173,9 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Importing Images
 
-**Drag and drop image files** from your computer into the gallery area to import them. Any image format your browser can read is accepted, and non-PNG images are converted to PNG on import.
+**Drag and drop image files** from your computer into the gallery area to import them. Accepted formats are PNG, WEBP, and JPEG, each under 50 MB, with at most 16 files per drop. If you drop several files at once and any one of them is invalid, or the drop would exceed 16 images, none of the files are imported; an error explains why — drop files individually if you need to import a mix.
 
-Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata. The prompt is read *before* conversion, so a re-imported image keeps its 💬 prompt.
+Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata, so an imported image keeps its 💬 prompt.
 
 #### Deleting Images
 
@@ -246,7 +246,7 @@ Masks save automatically when you close the Viewer. Gallery thumbnails with mask
 
 **Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery.
 
-The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be **PNG or JPEG** and no larger than **4 MB** each (gallery thumbnails have no such limit).
+The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be **PNG, WEBP, or JPEG**, no larger than **50 MB** each, and **16 images** total at most. If you drop several files at once and any one of them is invalid, or the drop would exceed 16 images, none of the files are added; an error explains why — drop files individually if you need to import a mix.
 
 **For precise edits**, create a mask in the Viewer (see **The Viewer → Mask Mode**), then drag that masked image to the drop area. Only masked areas will be modified.
 

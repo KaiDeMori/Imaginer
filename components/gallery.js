@@ -2,9 +2,10 @@
 import { read_png_metadata } from "./png_metadata_reader.js";
 import { read_jpeg_metadata } from "./jpeg_metadata_reader.js";
 import { read_webp_metadata } from "./webp_metadata_reader.js";
-import { convert_image_to_png } from "./image_converter.js";
 import { process_image_metadata } from "../process_image_metadata.js";
-import { build_png_filename } from "../filename_helper.js";
+import { build_image_filename } from "../filename_helper.js";
+import { Error_modal } from "./error_modal.js";
+import { extension_for_type, validate_image_count, validate_image_file, with_batch_hint } from "./image_validation.js";
 
 /**
  * @param {File|Blob} file
@@ -184,45 +185,44 @@ export class Gallery {
       this.root.style.backgroundColor = "";
       this.root.style.borderColor = "";
 
-      for (const file of e.dataTransfer.files) {
-        if (file.type.startsWith("image/")) {
-          let blob = file;
-          let prompt = null;
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length === 0) return;
+      const is_batch = files.length > 1;
 
-          // Extract metadata before any conversion (which strips it)
-          const text = await read_image_prompt(file);
-          if (text) prompt = text;
-
-          if (file.type !== "image/png") {
-            try {
-              blob = await convert_image_to_png(file);
-            } catch (err) {
-              console.error("Failed to convert image:", file.name, err);
-              alert(`Failed to convert image: ${file.name}\n${err.message || "Unknown error"}`);
-              continue;
-            }
-          }
-
-          const created = Math.floor(Date.now() / 1000);
-
-          let id = null;
-          // Save to DB
-          if (window.database_store) {
-            const record = {
-              created,
-              image_blob: blob,
-              prompt_imgs: [],
-            };
-            if (prompt) record.prompt_text = prompt;
-
-            id = await window.database_store.save(record);
-
-            this.records_by_id[id] = { id, ...record };
-          }
-
-          // Update UI
-          this.create_or_update_thumbnail(null, blob, prompt, created, id);
+      const count_check = validate_image_count(0, files.length);
+      if (!count_check.valid) {
+        Error_modal.show(with_batch_hint(count_check.error, is_batch));
+        return;
+      }
+      for (const file of files) {
+        const file_check = validate_image_file(file);
+        if (!file_check.valid) {
+          Error_modal.show(with_batch_hint(file_check.error, is_batch));
+          return;
         }
+      }
+
+      for (const file of files) {
+        const prompt = await read_image_prompt(file);
+        const created = Math.floor(Date.now() / 1000);
+
+        let id = null;
+        // Save to DB
+        if (window.database_store) {
+          const record = {
+            created,
+            image_blob: file,
+            prompt_imgs: [],
+          };
+          if (prompt) record.prompt_text = prompt;
+
+          id = await window.database_store.save(record);
+
+          this.records_by_id[id] = { id, ...record };
+        }
+
+        // Update UI
+        this.create_or_update_thumbnail(null, file, prompt, created, id);
       }
     });
   }
@@ -316,8 +316,9 @@ export class Gallery {
 
     button_download.addEventListener("click", async (e) => {
       e.stopPropagation();
-      const filename = build_png_filename(prompt_text, created);
-      const processed_blob = await process_image_metadata(blob, prompt_text || "", {});
+      const filename = build_image_filename(prompt_text, created, extension_for_type(blob.type));
+      // Metadata embedding writes PNG chunks (iTXt/XMP); imported non-PNG images keep their original bytes.
+      const processed_blob = blob.type === "image/png" ? await process_image_metadata(blob, prompt_text || "", {}) : blob;
       const download_url = URL.createObjectURL(processed_blob);
       const a = document.createElement("a");
       a.href = download_url;

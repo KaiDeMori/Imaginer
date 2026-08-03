@@ -9,10 +9,11 @@ import {
   FILENAME_PROMPT_CHARS_KEY,
   MAX_FILENAME_PROMPT_CHARS,
   MIN_FILENAME_PROMPT_CHARS,
-  build_png_filename,
+  build_image_filename,
   clamp_filename_prompt_chars,
   get_filename_prompt_chars,
 } from "../../filename_helper.js";
+import { extension_for_type } from "../image_validation.js";
 
 export class Config_dialog {
   constructor(onSave = () => {}) {
@@ -212,7 +213,7 @@ export class Config_dialog {
         for (let i = 0; i < records.length; i++) {
           const rec = records[i];
           if (rec.image_blob instanceof Blob) {
-            const filename = build_png_filename(rec.prompt_text, rec.created);
+            const filename = build_image_filename(rec.prompt_text, rec.created, extension_for_type(rec.image_blob.type));
 
             zip.file(filename, rec.image_blob);
             progress.update_progress(i + 1, records.length);

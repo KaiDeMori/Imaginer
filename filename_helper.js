@@ -22,10 +22,10 @@ function sanitize_prompt_for_filename(prompt_text, fallback_text = "image") {
   return base;
 }
 
-function build_png_filename(prompt_text, created) {
+function build_image_filename(prompt_text, created, extension) {
   const base = sanitize_prompt_for_filename(prompt_text);
   const ts = created ? String(created) : String(Math.floor(Date.now() / 1000));
-  return `${base}_${ts}.png`;
+  return `${base}_${ts}.${extension}`;
 }
 
 export {
@@ -33,7 +33,7 @@ export {
   FILENAME_PROMPT_CHARS_KEY,
   MAX_FILENAME_PROMPT_CHARS,
   MIN_FILENAME_PROMPT_CHARS,
-  build_png_filename,
+  build_image_filename,
   clamp_filename_prompt_chars,
   get_filename_prompt_chars,
   sanitize_prompt_for_filename,
