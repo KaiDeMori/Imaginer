@@ -27,6 +27,7 @@ export class About_dialog {
     // 4. Populate Dynamic Content
     await this.populate_versions();
     this.populate_credits();
+    this.populate_doc_links();
     this.load_font();
 
     // 5. Wire Events
@@ -59,6 +60,11 @@ export class About_dialog {
       link.className = "about_link about_version_chip";
       grid_container.appendChild(link);
     });
+  }
+
+  populate_doc_links() {
+    const faq_link = this.overlay.querySelector("#faq_link");
+    faq_link.href = versioned_url("User_Manual/Imaginer_FAQ.html");
   }
 
   populate_credits() {

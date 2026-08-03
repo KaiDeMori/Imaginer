@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Imaginer User Manual</title>
+    <title>Imaginer FAQ</title>
     <link rel="stylesheet" href="markdown_viewer.css" />
   </head>
   <body>
@@ -20,7 +20,7 @@
       import { parse_markdown_with_toc } from "./markdown_maker.js";
 
       async function load_document() {
-        const { html_content, toc_items } = await parse_markdown_with_toc("Imaginer_User_Manual.md");
+        const { html_content, toc_items } = await parse_markdown_with_toc("Imaginer_FAQ.md");
 
         const contentEl = document.getElementById("content");
         contentEl.innerHTML = html_content;
