@@ -1,4 +1,3 @@
-eslint_output.txt
 ###############################
 # Node & Editor Junk
 ###############################
@@ -35,12 +34,6 @@ temp/
 *.rej
 
 ###############################
-# System Files
-###############################
-ehthumbs.db
-Desktop.ini
-
-###############################
 # Project-specific
 ###############################
 eslint_output.txt
@@ -51,19 +44,12 @@ project_status.md
 png metadata.md
 assets/conversion_stuff
 api_trials/
-png_exif/add_exif_chunk_to_png.js
-png_exif/add_EXIF_UserComment_to_png.js
-png_exif/exif_usercomment.js
-png_exif/png_exif.md
-png_exif/test_png_exif.html
+png_exif/
 png_itxt/test_png_itxt.html
 png_XMP_via_iTXt/demo-xmp-embedder.html
 png_XMP_via_iTXt/XMP embedded via iTXt.md
 strip_metadata_from_PNG/demo_strip_metadata.html
-refactoring_steps.md
-config_dialog_refactor_plan.md
-intro_trials/planetwise/zoom_images
-intro_trials/planetwise/zoom_images_planete/
+intro_trials/
 
 # Ignore everything in intro/audio except webm
 !intro/audio/
