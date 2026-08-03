@@ -1,5 +1,5 @@
 {
-  "version": "1.10",
+  "version": "1.11",
   "history": {
     "1.0": "version_messages/version_1.0.0.html",
     "1.1": "version_messages/version_1.1.0.html",
@@ -12,6 +12,7 @@
     "1.7": "version_messages/version_1.7.0.html",
     "1.8": "version_messages/version_1.8.0.html",
     "1.9": "version_messages/version_1.9.0.html",
-    "1.10": "version_messages/version_1.10.0.html"
+    "1.10": "version_messages/version_1.10.0.html",
+    "1.11": "version_messages/version_1.11.0.html"
   }
 }
