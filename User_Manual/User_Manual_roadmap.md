@@ -7,39 +7,7 @@
 
 ## Supported Image Formats
 
-### Generation Output
-- **PNG only** - All AI-generated images are returned as PNG format
-  - API returns base64-encoded PNG data
-  - Images saved to database as PNG Blobs
-  - No format selection available (API limitation)
-
-### Image Editing Input
-- **PNG** - Primary format, fully supported
-- **JPEG** - Also accepted by OpenAI `/v1/images/edits` endpoint
-- **Other formats** - Automatically converted to PNG before sending to API
-  - Includes GIF, WebP, and any format browser can handle
-  - Conversion happens transparently via `image_converter.js`
-
-### Drag & Drop
-- **From Gallery (Internal)**: PNG only
-  - Gallery images are always stored as PNG
-  - Includes associated masks if present
-- **From External Files**: Any image format browser supports
-  - PNG, JPEG, GIF, WebP, etc.
-  - Non-PNG/JPEG files automatically converted to PNG for editing
-  - Validation occurs in `generation_panel.js`
-
-### Downloads
-- **PNG only** - All downloaded images are PNG format
-  - Original format preserved from database storage
-  - Filename pattern: `imaginer_<timestamp>.png`
-  - Includes embedded metadata if enabled in configuration
-
-### Masks
-- **PNG only** - Mask images must be PNG format
-  - Generated from viewer canvas as PNG
-  - Stored in database as PNG Blobs
-  - Required format for OpenAI API
+See `Imaginer_Technical_Manual.md` → "Image Formats" for the authoritative, exact list (accepted formats, size/count limits, mask limits). Don't restate the figures here — keep this roadmap pointing at that section so the two can't drift apart.
 
 ---
 

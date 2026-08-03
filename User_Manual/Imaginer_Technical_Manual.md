@@ -12,8 +12,18 @@
 - A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
 
 ## Image Formats
-- AI-generated images are always PNG. Imported images (gallery drop, or the Prompt Panel's edit drop area) keep their native format — PNG, WEBP, or JPEG — with no conversion. Both drop targets share the same limits, enforced by `components/image_validation.js`: each file under 50 MB, at most 16 files per drop. If a dropped batch contains one unsupported format, one oversized file, or exceeds a count of 16, the whole batch is rejected and nothing is imported.
-- The edit drop area's mask (from an image dragged out of the gallery) is validated separately: it must be a PNG under 4 MB with the same pixel dimensions as its image. This can only fail from a corrupted `mask_blob` record, since masks are always generated at exactly their source image's dimensions (see `components/viewer/viewer.js` `close()`) — on failure the mask is discarded and the image is added without it, with an error shown.
+- AI-generated images are always PNG.
+- Imported images (gallery drop, or the Prompt Panel's edit drop area) keep their native format — no conversion.
+- Both drop targets share the same import limits, enforced by `components/image_validation.js`:
+  - Accepted formats: PNG, WEBP, JPEG.
+  - Maximum file size: 50 MB.
+  - Maximum count: 16 files per drop.
+  - A dropped batch containing one unsupported format, one oversized file, or exceeding the count of 16 is rejected in full — nothing from that batch is imported.
+- The edit drop area's mask (from an image dragged out of the gallery) has separate limits, also enforced by `components/image_validation.js`:
+  - Format: PNG.
+  - Maximum file size: 4 MB.
+  - Dimensions: must match its image's pixel dimensions exactly.
+  - A mask failing any of these is discarded and an error is shown; the image itself is still added. This can only happen from a corrupted `mask_blob` record — masks are always generated at exactly their source image's dimensions (see `components/viewer/viewer.js` `close()`).
 - Embedded prompts are read from PNG (iTXt/XMP), JPEG (XMP/EXIF), and WebP (XMP/EXIF) on import.
 - Optional prompt embedding on generation and download writes iTXt (`prompt_text`) and/or an XMP block into the PNG; if the strip option is on, server-side metadata is removed first. Mask PNGs store editable areas with transparent alpha.
 

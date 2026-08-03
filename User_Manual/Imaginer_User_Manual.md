@@ -101,7 +101,6 @@ The gallery displays all your generated and imported images as a grid of thumbna
 - **Click any thumbnail** to open it in the Viewer.
 - **Drag images** from the gallery to the Prompt Panel to use them as reference images for editing.
 - **Import images**: Drag-and-drop images from your computer directly into the gallery.
-  - Accepted formats are PNG, WEBP, and JPEG, each under 50 MB.
 - **Empty state**: When the gallery is empty, you'll see "Drop image(s) for import".
 
 The gallery stores all images in your browser using IndexedDB. Images persist between sessions unless you clear browser data or manually delete them.
@@ -173,7 +172,7 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Importing Images
 
-**Drag and drop image files** from your computer into the gallery area to import them. Accepted formats are PNG, WEBP, and JPEG, each under 50 MB, with at most 16 files per drop. If you drop several files at once and any one of them is invalid, or the drop would exceed 16 images, none of the files are imported; an error explains why — drop files individually if you need to import a mix.
+**Drag and drop image files** from your computer into the gallery area to import them. Only common image formats are accepted, up to a certain size and count per drop (see the Technical Manual for exact figures). If you drop several files at once and any one of them doesn't qualify, none of the files are imported; an error explains why — drop files individually if you need to import a mix.
 
 Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata, so an imported image keeps its 💬 prompt.
 
@@ -246,7 +245,7 @@ Masks save automatically when you close the Viewer. Gallery thumbnails with mask
 
 **Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery.
 
-The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be **PNG, WEBP, or JPEG**, no larger than **50 MB** each, and **16 images** total at most. If you drop several files at once and any one of them is invalid, or the drop would exceed 16 images, none of the files are added; an error explains why — drop files individually if you need to import a mix.
+The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be a common image format, under a certain size and count (see the Technical Manual for exact figures). If you drop several files at once and any one of them doesn't qualify, none of the files are added; an error explains why — drop files individually if you need to import a mix.
 
 **For precise edits**, create a mask in the Viewer (see **The Viewer → Mask Mode**), then drag that masked image to the drop area. Only masked areas will be modified.
 
