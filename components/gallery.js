@@ -5,7 +5,7 @@ import { read_webp_metadata } from "./webp_metadata_reader.js";
 import { process_image_metadata } from "../process_image_metadata.js";
 import { build_image_filename } from "../filename_helper.js";
 import { Error_modal } from "./error_modal.js";
-import { extension_for_type, validate_image_count, validate_image_file, with_batch_hint } from "./image_validation.js";
+import { extension_for_type, validate_file_readable, validate_image_count, validate_image_file, with_batch_hint } from "./image_validation.js";
 
 /**
  * @param {File|Blob} file
@@ -198,6 +198,14 @@ export class Gallery {
         const file_check = validate_image_file(file);
         if (!file_check.valid) {
           Error_modal.show(with_batch_hint(file_check.error, is_batch));
+          return;
+        }
+      }
+
+      for (const file of files) {
+        const readable_check = await validate_file_readable(file);
+        if (!readable_check.valid) {
+          Error_modal.show(with_batch_hint(readable_check.error, is_batch));
           return;
         }
       }

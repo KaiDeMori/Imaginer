@@ -34,6 +34,36 @@ export function validate_image_file(file) {
   return { valid: true };
 }
 
+export async function validate_file_readable(file) {
+  let bitmap = null;
+  try {
+    bitmap = await createImageBitmap(file);
+    return { valid: true };
+  } catch (err) {
+    if (err?.name === "NotFoundError") {
+      return {
+        valid: false,
+        error: `"${file.name}" could not be read by the browser — this is a known drag-and-drop issue on some Linux systems. Try Firefox instead, or copy the file to a local folder before dragging it in.`,
+      };
+    }
+    if (err?.name === "NotReadableError") {
+      return {
+        valid: false,
+        error: `"${file.name}" could not be read — it may be locked by another program or you don't have permission to access it.`,
+      };
+    }
+    if (err?.name === "EncodingError") {
+      return {
+        valid: false,
+        error: `"${file.name}" doesn't look like a valid image — it may be corrupted or mislabeled.`,
+      };
+    }
+    return { valid: false, error: `"${file.name}" could not be imported.` };
+  } finally {
+    bitmap?.close?.();
+  }
+}
+
 export function validate_image_count(current_count, incoming_count) {
   const total = current_count + incoming_count;
   if (total > MAX_IMAGE_COUNT) {

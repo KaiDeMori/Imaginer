@@ -2,7 +2,7 @@
 // Logic for managing the image drop area, including mask association and selection.
 // Naming follows loose_snake_case as per project standards.
 
-import { validate_image_count, validate_image_file, validate_mask_file } from "./image_validation.js";
+import { validate_file_readable, validate_image_count, validate_image_file, validate_mask_file } from "./image_validation.js";
 
 /**
  * Manages dropped images and their associated masks and UUIDs for the image edit feature.
@@ -33,6 +33,13 @@ class drop_area_manager {
       const file_check = validate_image_file(entry.image);
       if (!file_check.valid) {
         return { ok: false, error: file_check.error };
+      }
+    }
+
+    for (const entry of entries) {
+      const readable_check = await validate_file_readable(entry.image);
+      if (!readable_check.valid) {
+        return { ok: false, error: readable_check.error };
       }
     }
 
