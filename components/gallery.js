@@ -5,6 +5,7 @@ import { read_webp_metadata } from "./webp_metadata_reader.js";
 import { process_image_metadata } from "../process_image_metadata.js";
 import { build_image_filename } from "../filename_helper.js";
 import { Error_modal } from "./error_modal.js";
+import { Delete_confirm_modal } from "./delete_confirm_modal.js";
 import { extension_for_type, validate_file_readable, validate_image_count, validate_image_file, with_batch_hint } from "./image_validation.js";
 
 /**
@@ -68,7 +69,7 @@ export class Gallery {
         this.grid.classList.add("delete-mode");
       } else {
         if (this.selected_for_deletion.size > 0) {
-          this._confirm_and_delete_selected();
+          this._prompt_delete_selection();
         } else {
           this._exit_delete_mode();
         }
@@ -384,12 +385,14 @@ export class Gallery {
     this.selected_for_deletion.clear();
   }
 
-  _confirm_and_delete_selected() {
+  async _prompt_delete_selection() {
     const count = this.selected_for_deletion.size;
-    if (!confirm(`Delete ${count} image${count !== 1 ? "s" : ""}? This cannot be undone.`)) {
-      return;
+    const action = await Delete_confirm_modal.show(count);
+    if (action === "delete") {
+      this._delete_selected_images();
+    } else {
+      this._exit_delete_mode();
     }
-    this._delete_selected_images();
   }
 
   async _delete_selected_images() {

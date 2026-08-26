@@ -20,6 +20,7 @@
     "components/conversation_panel/conversation_panel.js",
     "components/custom_size_modal/custom_size_modal.html",
     "components/custom_size_modal/custom_size_modal.js",
+    "components/delete_confirm_modal.js",
     "components/download_progress_dialog/download_progress_dialog.html",
     "components/download_progress_dialog/download_progress_dialog.js",
     "components/drop_area.js",
