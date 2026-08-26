@@ -52,26 +52,32 @@ export class Menu_bar {
   async attach_events() {
     const delete_btn = this.root.querySelector("#delete-mode-btn");
     if (delete_btn) {
+      let delete_mode_active = false;
+
       delete_btn.addEventListener("click", () => {
-        const is_active = delete_btn.style.opacity === "1";
-        // Toggle state
-        if (is_active) {
-          delete_btn.style.opacity = "0.5";
-          delete_btn.style.background = "none";
-        } else {
-          delete_btn.style.opacity = "1";
-          delete_btn.style.background = "rgb(255, 82, 82)";
-          delete_btn.style.borderRadius = "4px";
+        if (delete_mode_active) {
+          window.dispatchEvent(
+            new CustomEvent("imaginer.delete_mode_toggled", {
+              detail: { active: false },
+            }),
+          );
+          return;
         }
+
+        delete_mode_active = true;
+        delete_btn.style.opacity = "1";
+        delete_btn.style.background = "rgb(255, 82, 82)";
+        delete_btn.style.borderRadius = "4px";
 
         window.dispatchEvent(
           new CustomEvent("imaginer.delete_mode_toggled", {
-            detail: { active: !is_active },
+            detail: { active: true },
           }),
         );
       });
 
       window.addEventListener("imaginer.delete_mode_exited", () => {
+        delete_mode_active = false;
         delete_btn.style.opacity = "0.5";
         delete_btn.style.background = "none";
       });
