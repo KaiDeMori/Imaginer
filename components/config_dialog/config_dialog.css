@@ -198,10 +198,8 @@
   text-align-last: right;
 }
 
-/* Alignment properties inherit into the dropdown list, where the entries must keep the default alignment. */
 .field_grid select.input option {
-  text-align: left;
-  text-align-last: auto;
+  text-align: right;
 }
 
 .field_grid input[type="number"].input {

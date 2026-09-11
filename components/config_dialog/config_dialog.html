@@ -33,13 +33,6 @@
       <div class="settings_group">
         <button class="button refresh_models_button full_width_button" id="refresh_models_button">Refresh Image Models</button>
       </div>
-
-      <div class="settings_group">
-        <label class="checkbox_label">
-          <input type="checkbox" id="show_older_models_checkbox" />
-          <span>Show older models</span>
-        </label>
-      </div>
     </div>
 
     <div class="tab_content" id="generation_tab_content" style="display: none">
@@ -102,8 +95,15 @@
     <div class="tab_content" id="advanced_tab_content" style="display: none">
       <div class="settings_group">
         <label class="checkbox_label">
+          <input type="checkbox" id="show_older_models_checkbox" />
+          <span>Show older models</span>
+        </label>
+      </div>
+
+      <div class="settings_group">
+        <label class="checkbox_label">
           <input type="checkbox" id="advanced_size_mode_checkbox" />
-          <span>Advanced size setting (<code>gpt-image-2</code> and <code>gpt-image-2.5</code> models only)</span>
+          <span>Advanced size setting (<code>2 & 2.5</code> only)</span>
         </label>
       </div>
 

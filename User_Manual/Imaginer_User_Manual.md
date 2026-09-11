@@ -80,7 +80,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
   - Replaced by an **image-size dropdown** when **Advanced size setting** is enabled in Config (see _Advanced size setting_ below).
   
 - **Model dropdown**: Select which AI model to use for generation and editing.
-  - Shows the two recommended models. Enable Config → Account → **Show older models** to list every image model of your OpenAI account.
+  - Shows the two recommended models. Enable Config → Advanced → **Show older models** to list every image model of your OpenAI account.
   - Auto-populates when you add an API key.
   - Use Config → Account → **Refresh Image Models** to update the list.
   - Hover the dropdown for a short summary of the recommended models.
@@ -271,7 +271,7 @@ The dropdown shows two models. Both generate images from text and edit images, w
 
 - **Start with Flare.** It is fast and handles most generations and edits well.
 - **Switch to Sunburst** when an edit changes things it should keep, or when a result lacks detail.
-- **Older models are hidden** by default. Enable Config → Account → **Show older models** to list every image model of your account. Some settings behave differently on older models; the setting descriptions in **Configuration & Settings** name the affected models.
+- **Older models are hidden** by default. Enable Config → Advanced → **Show older models** to list every image model of your account. Some settings behave differently on older models; the setting descriptions in **Configuration & Settings** name the affected models.
 
 #### Model Names With and Without Dates
 
@@ -284,7 +284,7 @@ Use the alias unless your results must stay reproducible over a long time.
 
 #### Older Models
 
-Every model except Flare and Sunburst counts as an older model. Older models stay hidden until you enable Config → Account → **Show older models**. When you disable the setting while an older model is selected, the selection switches to Flare.
+Every model except Flare and Sunburst counts as an older model. Older models stay hidden until you enable Config → Advanced → **Show older models**. When you disable the setting while an older model is selected, the selection switches to Flare.
 
 OpenAI retires older models over time. A retired model disappears from the dropdown after the next Config → Account → **Refresh Image Models**.
 
@@ -303,10 +303,10 @@ Click the **⚙️ Config button** (gear icon) in the menu bar to open the Confi
 
 The Configuration dialog has four tabs:
 
-- **Account**: API key testing, image model refresh, and visibility of older models.
+- **Account**: API key testing and image model refresh.
 - **Generation**: output count, parallel jobs, background, quality, input fidelity, and mask button visibility.
 - **Files**: filename length, gallery export, cache refresh, and full gallery deletion.
-- **Advanced**: advanced image-size setting, streaming preview, and PNG metadata options — all with sensible defaults.
+- **Advanced**: visibility of older models, advanced image-size setting, streaming preview, and PNG metadata options — all with sensible defaults.
 
 Click between tabs to access different settings. Click **Save** to store changes, or **Cancel** to close without saving.
 
@@ -329,15 +329,6 @@ Press Enter in the key field to test automatically.
 #### Refresh Image Models
 
 Config → Account → **Refresh Image Models** updates the model dropdown from your OpenAI account. Use it when new image models become available or when the dropdown looks incomplete.
-
-#### Show Older Models
-
-Config → Account → **Show older models** controls which models the model dropdown lists.
-
-**Default**: off. The dropdown shows the two recommended models, `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst`.
-
-When enabled, the dropdown lists every image model of your OpenAI account, including older models and dated snapshots. When you disable the setting while an older model is selected, the selection switches to `gpt-image-2.5-flare`. See **Choosing a Model** for the differences between the models.
-
 
 ### Generation Settings
 
@@ -467,6 +458,14 @@ Config → Files → **Download All Images** bundles every stored image (generat
 Config → Files → **Delete Gallery** wipes all stored images. The first click highlights **Download All Images** as a warning. The second click asks you to type `YES`. Confirming clears the gallery database and reloads the app. This cannot be undone — export first if needed.
 
 ### Advanced Settings
+
+#### Show Older Models
+
+Config → Advanced → **Show older models** controls which models the model dropdown lists.
+
+**Default**: off. The dropdown shows the two recommended models, `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst`.
+
+When enabled, the dropdown lists every image model of your OpenAI account, including older models and dated snapshots. When you disable the setting while an older model is selected, the selection switches to `gpt-image-2.5-flare`. See **Choosing a Model** for the differences between the models.
 
 #### PNG Metadata Options
 

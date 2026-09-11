@@ -393,14 +393,6 @@ export class Menu_bar {
       });
     }
 
-    // Model help link
-    const model_help_link = this.root.querySelector("#model_help_link");
-    if (model_help_link) {
-      model_help_link.addEventListener("click", () => {
-        window.open(versioned_url("User_Manual/Imaginer_User_Manual.html") + "#choosing-a-model", "_blank");
-      });
-    }
-
     // About Dialog
     const about_button = this.root.querySelector("#about-btn");
     if (about_button) {
