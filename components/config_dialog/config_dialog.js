@@ -14,6 +14,7 @@ import {
   get_filename_prompt_chars,
 } from "../../filename_helper.js";
 import { extension_for_type } from "../image_validation.js";
+import { get_selected_model, get_show_older_models, set_show_older_models } from "../../model_fetcher.js";
 
 export class Config_dialog {
   constructor(onSave = () => {}) {
@@ -73,6 +74,7 @@ export class Config_dialog {
     this.button_cancel = this.overlay.querySelector("#cancel_button");
     this.button_save = this.overlay.querySelector("#save_button");
     this.refresh_models_button = this.overlay.querySelector("#refresh_models_button");
+    this.show_older_models_checkbox = this.overlay.querySelector("#show_older_models_checkbox");
     this.refresh_cache_button = this.overlay.querySelector("#refresh_cache_button");
     this.clear_gallery_button = this.overlay.querySelector("#clear_gallery_button");
 
@@ -349,6 +351,7 @@ export class Config_dialog {
       this.advanced_size_mode_checkbox.checked = localStorage.getItem("imaginer.advanced_size_mode") === "true";
     }
     this.enable_streaming_checkbox.checked = localStorage.getItem("imaginer.enable_streaming") !== "false";
+    this.show_older_models_checkbox.checked = get_show_older_models();
     this.partial_images_input.value = localStorage.getItem("imaginer.partial_images") || "2";
     this.filename_prompt_chars_input.value = String(get_filename_prompt_chars());
     // Use Database_store to get the decoded API key
@@ -424,7 +427,24 @@ export class Config_dialog {
     localStorage.setItem("imaginer.enable_streaming", String(enable_streaming));
     localStorage.setItem("imaginer.partial_images", String(partial_images));
     localStorage.setItem(FILENAME_PROMPT_CHARS_KEY, String(filename_prompt_chars));
+    this.apply_show_older_models(this.show_older_models_checkbox.checked);
     this.close();
     this.onSave(key, max, n, strip, add_prompt, quality);
+  }
+
+  /**
+   * Hiding the older models can replace the stored selection, so the dropdown and the model dependent UI are notified.
+   */
+  apply_show_older_models(show_older_models) {
+    if (show_older_models === get_show_older_models()) {
+      return;
+    }
+    const previous_selected_model = localStorage.getItem("imaginer.selected_image_model");
+    set_show_older_models(show_older_models);
+    const selected_model = get_selected_model();
+    window.dispatchEvent(new CustomEvent("imaginer.models_refreshed"));
+    if (selected_model !== previous_selected_model) {
+      window.dispatchEvent(new CustomEvent("imaginer.model_changed", { detail: { model: selected_model } }));
+    }
   }
 }

@@ -213,15 +213,15 @@ export class Menu_bar {
       return "1024x1024";
     }
 
-    // gpt-image-1 family models (1.0, 1.5, dated, mini variants) only support the three legacy sizes.
+    // gpt-image-1 family models (1.0, 1.5, dated, mini variants) only support the three orientation preset sizes.
     // gpt-image-2 and the gpt-image-2.5 models support arbitrary sizes.
-    const LEGACY_SIZES = new Set(["1024x1024", "1024x1536", "1536x1024"]);
-    function is_legacy_size_only_model(model_id) {
+    const ORIENTATION_PRESET_SIZES = new Set(["1024x1024", "1024x1536", "1536x1024"]);
+    function is_preset_size_only_model(model_id) {
       return typeof model_id === "string" && model_id.startsWith("gpt-image-1");
     }
     function clamp_size_for_model(value, model_id) {
-      if (!is_legacy_size_only_model(model_id)) return value;
-      if (LEGACY_SIZES.has(value)) return value;
+      if (!is_preset_size_only_model(model_id)) return value;
+      if (ORIENTATION_PRESET_SIZES.has(value)) return value;
       return size_for_orientation(orientation_for_size(value));
     }
 
@@ -238,7 +238,7 @@ export class Menu_bar {
     function build_size_select_options(current_value) {
       if (!image_size_select) return;
       const model_id = get_selected_model();
-      const legacy_only = is_legacy_size_only_model(model_id);
+      const preset_sizes_only = is_preset_size_only_model(model_id);
       image_size_select.innerHTML = "";
       const seen = new Set();
       const append_option = (value, label) => {
@@ -254,7 +254,7 @@ export class Menu_bar {
       popular_group.label = "Popular sizes";
       image_size_select.appendChild(popular_group);
       for (const entry of POPULAR_SIZES) {
-        if (legacy_only && !LEGACY_SIZES.has(entry.value)) continue;
+        if (preset_sizes_only && !ORIENTATION_PRESET_SIZES.has(entry.value)) continue;
         if (seen.has(entry.value)) continue;
         seen.add(entry.value);
         const opt = document.createElement("option");
@@ -263,8 +263,8 @@ export class Menu_bar {
         popular_group.appendChild(opt);
       }
 
-      // Skip Your custom sizes / Add / Remove entries entirely for legacy-only models.
-      if (!legacy_only) {
+      // Custom sizes and the Add / Remove entries are useless for models limited to the preset sizes.
+      if (!preset_sizes_only) {
         const customs = get_custom_sizes();
         if (customs.length > 0) {
           const custom_group = document.createElement("optgroup");

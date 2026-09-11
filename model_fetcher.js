@@ -5,11 +5,13 @@ import { Database_store } from "./storage/database_store.js";
 
 const CACHE_KEY = "imaginer.available_image_models";
 const SELECTED_KEY = "imaginer.selected_image_model";
+const SHOW_OLDER_MODELS_KEY = "imaginer.show_older_models";
 const IMAGE_MODEL_FILTER = "gpt-image-";
 const EXTENDED_QUALITY_MODEL_FILTER = "gpt-image-2.5";
 const EXTENDED_QUALITY_VALUES = new Set(["xhigh", "max"]);
 
 const DEFAULT_MODEL = "gpt-image-2.5-flare";
+const RECOMMENDED_MODEL_IDS = [DEFAULT_MODEL, "gpt-image-2.5-sunburst"];
 
 /**
  * Fetch available image models from OpenAI API
@@ -80,15 +82,45 @@ export async function refresh_models() {
   return model_ids;
 }
 
+export function is_older_model(model_id) {
+  return !RECOMMENDED_MODEL_IDS.includes(model_id);
+}
+
+export function get_show_older_models() {
+  return localStorage.getItem(SHOW_OLDER_MODELS_KEY) === "true";
+}
+
+export function set_show_older_models(show_older_models) {
+  localStorage.setItem(SHOW_OLDER_MODELS_KEY, String(show_older_models));
+}
+
+/**
+ * Reduce a model list to the models the dropdown shows.
+ * Older models are only listed when the user enabled them.
+ * @param {Array} model_ids - Model IDs as returned by the API
+ * @returns {Array} Model IDs to show in the dropdown
+ */
+export function filter_models_for_dropdown(model_ids) {
+  if (get_show_older_models()) {
+    return model_ids;
+  }
+  return model_ids.filter((model_id) => !is_older_model(model_id));
+}
+
 /**
  * Get currently selected model with fallback
+ * A stored selection that the dropdown does not show is replaced by the default model.
  * @returns {string} Selected model ID or a fallback model ID
  */
 export function get_selected_model() {
-  // Check localStorage for user selection
   const selected = localStorage.getItem(SELECTED_KEY);
   if (selected) {
-    return selected;
+    const selected_is_shown = get_show_older_models() || !is_older_model(selected);
+    if (selected_is_shown) {
+      return selected;
+    }
+    set_selected_model(DEFAULT_MODEL);
+    return DEFAULT_MODEL;
   }
 
   // Fallback to first available model from cache
@@ -144,12 +176,12 @@ export function clamp_quality_for_model(quality, model_id) {
 export async function get_models_for_dropdown() {
   const cached = get_cached_models();
   if (cached.length > 0) {
-    return cached;
+    return filter_models_for_dropdown(cached);
   }
 
   // Try to fetch fresh models if cache is empty
   try {
-    return await refresh_models();
+    return filter_models_for_dropdown(await refresh_models());
   } catch (error) {
     console.warn("Failed to fetch models:", error);
     return [];
