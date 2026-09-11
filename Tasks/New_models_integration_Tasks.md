@@ -10,16 +10,26 @@ Focus: UI, user experience, functionality. Cost is not a focus. Documentation me
 ## Progress
 
 Working method:
-- Implementation runs in sequential agents on the Sonnet model, one agent per group. Each agent reads `Tasks/Agent_conventions_brief.md` and this file, implements its group, and reports files, changed functions and deviations.
-- After each agent: read the report, correct the reported deviations directly, update this section. No further checks such as LSP runs or syntax tracing. The user reviews the diff and commits.
+- Implementation runs in sequential agents on the Sonnet model, one agent per group. The chat model stays in the chat and never implements a whole group itself.
+- Each agent prompt names: the brief `Tasks/Agent_conventions_brief.md`, the sections of this file to read, the files to read, the scope, task-specific implementation notes, and the report format from the brief. The only verification instruction for the agent: re-read the changed files once.
+- After an agent finishes: read its report, correct the reported deviations directly in the files, update this section, then write "ready" in the chat and wait for the user. No LSP runs, no syntax tracing, no summaries in the chat. The user reviews the diff in git and commits.
 - The documentation steps of every task belong to group 3, not to the code groups.
 - Manual heading for the models section: "Choosing a Model", anchor `choosing-a-model` (used by T10 and T11).
+
+Group 3 prompt notes:
+- Scope: T11, T12, T13 and the documentation steps of T01 (technical manual, localStorage keys), T03 (manual, technical manual), T05 (manual, API_DOCS), T06 (manual, FAQ), T07 (manual), T09 (manual, FAQ).
+- The facts are in "API facts this plan relies on". The transparency test result is in T07. The implemented behaviour is in "Task status" below.
+- Files to read before writing: `User_Manual/User_Manual_styleguide.md`, `User_Manual/Imaginer_User_Manual.md`, `User_Manual/Imaginer_FAQ.md`, `User_Manual/Imaginer_Technical_Manual.md`, `User_Manual/localStorage_keys_explained.md`, `API_DOCS/gpt-image-2 API capabilities.md`, and for the implemented behaviour `app.js`, `model_fetcher.js`, `components/config_dialog/config_dialog.html`.
+- Cost: one general sentence at most, only in the "Choosing a Model" section.
+
+Group 4 prompt notes:
+- Scope: T14. Files to read: `version.json`, `cache_manifest.json`, `version_messages/version_1.11.0.html` and `version_messages/version_1.10.0.html` as style examples, and "Task status" below for the content of the card.
 
 | Group | Tasks | Status |
 | --- | --- | --- |
 | 1 | T02, T03, T04 | done |
-| 2 | T01, T05, T06, T08, T09, T10, code steps only | next |
-| 3 | T11, T12, T13, plus the documentation steps of T01, T03, T05, T06, T07, T09 | open |
+| 2 | T01, T05, T06, T08, T09, T10, code steps only | done |
+| 3 | T11, T12, T13, plus the documentation steps of T01, T03, T05, T06, T07, T09 | next |
 | 4 | T14 | open |
 
 Task status:
@@ -28,7 +38,13 @@ Task status:
 - T04 done. Non-streaming edit results pass through `process_image_metadata`; the streaming path does so inside `consume_image_stream`.
 - Corrections after group 1: unused import removed from `app.js`, outdated parameter comment block removed, clamping log fires only when the value changed.
 - T07: test done, transparency works on both models. Documentation step open (group 3).
-- T01, T05, T06, T08, T09, T10: open (group 2).
+- T01 code done. `DEFAULT_MODEL` is `gpt-image-2.5-flare`. Documentation step open (group 3).
+- T05 code done. Inclusive edge limit in `validate_size`, label in the config dialog, comment in the menu bar. Manual and API_DOCS steps open (group 3).
+- T06 code done. Input fidelity label. Manual and FAQ steps open (group 3).
+- T08 done. `show_moderation_content` passes `moderation_stage` and `categories` as query parameters; `moderation_error.html` renders the `moderation_details` paragraph.
+- T09 code done. The API key test accepts any model ID starting with `gpt-image-`; the model caching filter in the same method uses the same prefix. Manual and FAQ steps open (group 3).
+- T10 done. Tooltip on the model select and the `model_help_link` button opening the manual at `choosing-a-model`.
+- Corrections after group 2: the model caching filter in the API key test uses the prefix `gpt-image-`. In `error_modal.js` the vague local `details` is gone; `show_moderation_content` reads its `moderation_details` parameter directly and the call site passes an empty object when the API sends no details. In `moderation_error.html` the query value is `categories_comma_separated` and the displayed string is `categories_text`. The line-break rule in the brief is narrowed to code and comments.
 - T11, T12, T13, T14: open.
 
 ---
@@ -271,3 +287,16 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 - API key test with a valid key.
 - Moderation block shows the details line when the API provides details.
 - Version update flow: card, cache refresh, model refresh, reload.
+
+---
+
+## Sources
+
+- https://developers.openai.com/api/docs/guides/image-generation
+- https://developers.openai.com/api/docs/guides/image-prompting
+- https://developers.openai.com/api/docs/models/gpt-image-2.5-flare
+- https://developers.openai.com/api/docs/models/gpt-image-2.5-sunburst
+- https://developers.openai.com/api/docs/deprecations
+- https://developers.openai.com/api/docs/changelog
+- https://github.com/openai/openai-openapi (openapi.yaml on the master branch, the tie-breaker for parameter rules)
+- https://openai.com/index/introducing-chatgpt-images-2-5/

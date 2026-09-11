@@ -36,6 +36,13 @@
       .header span:hover {
         transform: rotate(180deg);
       }
+      .moderation_details_text {
+        flex: 0 0 auto;
+        margin: 0;
+        font-size: 0.85rem;
+        color: #777;
+        text-align: center;
+      }
       /* Flexible middle: takes the leftover height and lets the image scale
          down into it, so the button below is always visible. */
       .image-wrap {
@@ -98,6 +105,7 @@
       <span>🤷</span>
       <span>🔄</span>
     </div>
+    <p id="moderation_details" class="moderation_details_text"></p>
     <div class="image-wrap">
       <img id="random-image" class="error-image" alt="" />
     </div>
@@ -113,6 +121,27 @@
 
       const randomIndex = Math.floor(Math.random() * images.length);
       document.getElementById("random-image").src = images[randomIndex];
+
+      const search_parameters = new URLSearchParams(location.search);
+      const moderation_stage = search_parameters.get("moderation_stage") || "";
+      const categories_comma_separated = search_parameters.get("categories") || "";
+      const categories_text = categories_comma_separated ? categories_comma_separated.split(",").join(", ") : "";
+
+      let moderation_details_text = "";
+      if (moderation_stage === "input") {
+        moderation_details_text = `Blocked at input: ${categories_text}`;
+      } else if (moderation_stage === "output") {
+        moderation_details_text = `Blocked at output: ${categories_text}`;
+      } else if (categories_text) {
+        moderation_details_text = `Blocked: ${categories_text}`;
+      }
+
+      const moderation_details_element = document.getElementById("moderation_details");
+      if (moderation_details_text) {
+        moderation_details_element.textContent = moderation_details_text;
+      } else {
+        moderation_details_element.hidden = true;
+      }
 
       // Close functionality
       function closeDialog() {

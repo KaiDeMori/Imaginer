@@ -3,7 +3,7 @@
 //
 // Constraints (per API_DOCS/gpt-image-2 API capabilities.md):
 //   - Both edges must be a multiple of 16
-//   - Maximum edge length must be < 3840
+//   - Maximum edge length must be <= 3840
 //   - Ratio between long edge and short edge must be <= 3:1
 //   - Total pixels must be in [655_360 .. 8_294_400]
 // Above 2560x1440 (3_686_400 total px) is "experimental" and triggers a warning
@@ -12,7 +12,7 @@
 export const MIN_PIXELS = 655_360;
 export const MAX_PIXELS = 8_294_400;
 export const EXPERIMENTAL_PIXELS = 3_686_400; // 2560 * 1440
-export const MAX_EDGE = 3840; // strict: must be <
+export const MAX_EDGE = 3840; // inclusive: must be <=
 export const EDGE_MULTIPLE = 16;
 export const MAX_RATIO = 3;
 export const MAX_CUSTOM_SIZES = 20;
@@ -59,8 +59,8 @@ export function validate_size(width, height) {
   if (width % EDGE_MULTIPLE !== 0 || height % EDGE_MULTIPLE !== 0) {
     errors.push(`Both edges must be a multiple of ${EDGE_MULTIPLE}.`);
   }
-  if (width >= MAX_EDGE || height >= MAX_EDGE) {
-    errors.push(`Each edge must be smaller than ${MAX_EDGE}px.`);
+  if (width > MAX_EDGE || height > MAX_EDGE) {
+    errors.push(`Each edge must be at most ${MAX_EDGE}px.`);
   }
   const long_edge = Math.max(width, height);
   const short_edge = Math.min(width, height);

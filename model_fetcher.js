@@ -9,7 +9,7 @@ const IMAGE_MODEL_FILTER = "gpt-image-";
 const EXTENDED_QUALITY_MODEL_FILTER = "gpt-image-2.5";
 const EXTENDED_QUALITY_VALUES = new Set(["xhigh", "max"]);
 
-const DEFAULT_MODEL = "gpt-image-2";
+const DEFAULT_MODEL = "gpt-image-2.5-flare";
 
 /**
  * Fetch available image models from OpenAI API
@@ -82,7 +82,7 @@ export async function refresh_models() {
 
 /**
  * Get currently selected model with fallback
- * @returns {string} Selected model ID or fallback to first available or "gpt-image-1"
+ * @returns {string} Selected model ID or a fallback model ID
  */
 export function get_selected_model() {
   // Check localStorage for user selection

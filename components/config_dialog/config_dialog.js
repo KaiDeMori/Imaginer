@@ -138,7 +138,7 @@ export class Config_dialog {
         if (data && Array.isArray(data.data)) {
           // Cache the model IDs from test request to avoid duplicate API calls
           const image_model_ids = data.data
-            .filter((model) => model.id && model.id.startsWith("gpt-image"))
+            .filter((model) => model.id && model.id.startsWith("gpt-image-"))
             .map((model) => model.id)
             .sort();
 
@@ -146,14 +146,14 @@ export class Config_dialog {
             localStorage.setItem("imaginer.available_image_models", JSON.stringify(image_model_ids));
           }
 
-          const found = data.data.some((m) => m.id === "gpt-image-1");
+          const found = data.data.some((m) => m.id && m.id.startsWith("gpt-image-"));
           if (found) {
             this.testFeedback.textContent = "👍";
           } else {
             this.testFeedback.textContent = "😢";
             import(versioned_url("../error_modal.js")).then(({ Error_modal }) => {
               Error_modal.show({
-                message: "API key is valid, but you do not have access to the gpt-image-1 model.",
+                message: "API key is valid, but you do not have access to any GPT image model.",
                 hint: "Check your OpenAI account or organization permissions.",
               });
             });

@@ -46,10 +46,11 @@ Do not write a comment unless it follows these rules.
 
 ## Line breaks
 
+This rule applies to code and code comments only.
 Line breaks separate distinct, self-contained points: a new sentence starting a new remark, a paragraph boundary, or a list item.
 Never split a sentence or clause mid-thought because it reached a column width.
 Break where the meaning breaks, not where the line length breaks.
-This applies to comments, Markdown, HTML text and version cards.
+Do not reflow existing comments unless you change their content.
 
 ## Writing style for documentation, UI texts and version cards
 

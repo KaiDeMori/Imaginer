@@ -213,8 +213,8 @@ export class Menu_bar {
       return "1024x1024";
     }
 
-    // gpt-image-1 family models (1.0, 1.5, dated, mini variants) only support
-    // the three legacy sizes. gpt-image-2 supports arbitrary sizes.
+    // gpt-image-1 family models (1.0, 1.5, dated, mini variants) only support the three legacy sizes.
+    // gpt-image-2 and the gpt-image-2.5 models support arbitrary sizes.
     const LEGACY_SIZES = new Set(["1024x1024", "1024x1536", "1536x1024"]);
     function is_legacy_size_only_model(model_id) {
       return typeof model_id === "string" && model_id.startsWith("gpt-image-1");
@@ -390,6 +390,14 @@ export class Menu_bar {
     if (help_button) {
       help_button.addEventListener("click", () => {
         window.open(versioned_url("User_Manual/Imaginer_User_Manual.html"), "_blank");
+      });
+    }
+
+    // Model help link
+    const model_help_link = this.root.querySelector("#model_help_link");
+    if (model_help_link) {
+      model_help_link.addEventListener("click", () => {
+        window.open(versioned_url("User_Manual/Imaginer_User_Manual.html") + "#choosing-a-model", "_blank");
       });
     }
 

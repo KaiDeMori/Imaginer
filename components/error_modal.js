@@ -44,7 +44,7 @@ export class Error_modal {
     // Check for moderation error
     const errObj = error && (error.error || error);
     if (errObj && errObj.code === "moderation_blocked") {
-      Error_modal.show_moderation_content(dialog);
+      Error_modal.show_moderation_content(dialog, errObj.moderation_details || {});
       overlay.appendChild(dialog);
       document.body.appendChild(overlay);
       // Focus for escape key
@@ -182,13 +182,21 @@ export class Error_modal {
     if (overlay) overlay.remove();
   }
 
-  static show_moderation_content(dialog) {
+  static show_moderation_content(dialog, moderation_details) {
     // Clear dialog styling that might interfere
     dialog.style.padding = "0";
     dialog.style.overflow = "hidden";
 
+    const query_parameters = new URLSearchParams();
+    if (moderation_details.moderation_stage) {
+      query_parameters.set("moderation_stage", moderation_details.moderation_stage);
+    }
+    if (Array.isArray(moderation_details.categories) && moderation_details.categories.length > 0) {
+      query_parameters.set("categories", moderation_details.categories.join(","));
+    }
+
     const iframe = document.createElement("iframe");
-    iframe.src = versioned_url("components/moderation_error.html");
+    iframe.src = versioned_url("components/moderation_error.html?" + query_parameters);
     Object.assign(iframe.style, {
       width: "100%",
       // Responsive height: never taller than the 85vh dialog cap (so the dialog
