@@ -1,94 +1,58 @@
-/* Spacing Variables */
-:root {
-  /* Container */
-  --dialog-padding-vertical: 16px;
-  --dialog-padding-horizontal: 24px;
-  --title-margin-bottom: 12px;
-
-  /* Tab Bar */
-  --tab-bar-margin-bottom: 14px;
-  --tab-padding-vertical: 10px;
-  --tab-padding-horizontal: 12px;
-  --tab-gap: 8px;
-
-  /* Fields */
-  --field-gap: 10px;
-  --field-inline-label-gap: 12px;
-  --field-stacked-label-gap: 5px;
-
-  /* Sections */
-  --section-gap: 14px;
-  --settings-group-gap: 20px;
-  --dependent-setting-gap: 8px;
-  --section-indent: 10px;
-  --section-label-margin: 6px;
-
-  /* Buttons */
-  --button-row-margin-top: 8px;
-  --button-row-padding: 16px;
-  --button-group-gap: 8px;
-  --action-button-gap: 6px;
-  --button-padding-vertical: 8px;
-  --button-padding-horizontal: 8px;
-
-  /* Forms */
-  --form-element-gap: 8px;
-  --input-padding-vertical: 6px;
-  --input-padding-horizontal: 4px;
-}
-
-/* Tab Bar Styles */
-.tab_bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--tab-gap);
-  border-bottom: 1.5px solid #e0e0e0;
-  margin-bottom: var(--tab-bar-margin-bottom);
-}
-.tab_button {
-  background: none;
-  border: none;
-  outline: none;
-  font-size: 1.05rem;
-  font-weight: bold;
-  cursor: pointer;
-  color: #1976d2;
-  padding: var(--tab-padding-vertical) var(--tab-padding-horizontal);
-  border-bottom: 2.5px solid transparent;
-  transition: border-bottom 0.2s, color 0.2s;
-}
-.tab_button.active {
-  color: #222;
-  border-bottom: 2.5px solid #1976d2;
-  background: #f5faff;
-}
-.tab_content {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  flex: 0 1 auto;
-  min-height: 0;
-  min-width: 0;
-  box-sizing: border-box;
-  padding-bottom: var(--input-padding-horizontal);
-}
-
-/* General Styles */
+/* Overlay */
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(4px);
-  display: none; /* hidden by default */
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
+/* Dialog Box */
 .dialog {
+  /* Container */
+  --config_dialog_padding_vertical: 16px;
+  --config_dialog_padding_horizontal: 24px;
+  --config_dialog_title_margin_bottom: 12px;
+
+  /* Tab Bar */
+  --config_dialog_tab_bar_margin_bottom: 14px;
+  --config_dialog_tab_padding_vertical: 10px;
+  --config_dialog_tab_padding_horizontal: 12px;
+  --config_dialog_tab_gap: 8px;
+
+  /* Field Grid */
+  --config_dialog_field_gap: 10px;
+  --config_dialog_label_control_gap: 12px;
+  --config_dialog_stacked_label_gap: 5px;
+
+  /* Sections */
+  --config_dialog_section_gap: 14px;
+  --config_dialog_settings_group_gap: 20px;
+  --config_dialog_dependent_setting_gap: 8px;
+  --config_dialog_section_indent: 10px;
+  --config_dialog_section_label_margin: 6px;
+
+  /* Buttons */
+  --config_dialog_button_row_margin_top: 8px;
+  --config_dialog_button_row_padding_top: 16px;
+  --config_dialog_button_group_gap: 8px;
+  --config_dialog_action_button_gap: 6px;
+  --config_dialog_button_padding_vertical: 8px;
+  --config_dialog_button_padding_horizontal: 8px;
+
+  /* Form Controls */
+  --config_dialog_form_element_gap: 8px;
+  --config_dialog_input_padding_vertical: 6px;
+  --config_dialog_input_padding_horizontal: 8px;
+  --config_dialog_input_border_width: 1px;
+  --config_dialog_number_input_digits: 4ch;
+  --config_dialog_spin_button_allowance: 20px;
+
   background: #fff;
   border-radius: 10px;
-  min-width: 460px;
   width: 460px;
   max-width: 95vw;
   max-height: 95vh;
@@ -97,18 +61,106 @@
   flex-direction: column;
   box-sizing: border-box;
   border: 1.5px solid #e0e0e0;
-  padding: var(--dialog-padding-vertical) var(--dialog-padding-horizontal);
+  padding: var(--config_dialog_padding_vertical) var(--config_dialog_padding_horizontal);
 }
 
 .title {
-  margin: 0 0 var(--title-margin-bottom) 0;
+  margin: 0 0 var(--config_dialog_title_margin_bottom) 0;
 }
 
-/* Form Elements */
+/* Tab Bar */
+.tab_bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--config_dialog_tab_gap);
+  border-bottom: 1.5px solid #e0e0e0;
+  margin-bottom: var(--config_dialog_tab_bar_margin_bottom);
+}
+
+.tab_button {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 1.05rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #1976d2;
+  padding: var(--config_dialog_tab_padding_vertical) var(--config_dialog_tab_padding_horizontal);
+  border-bottom: 2.5px solid transparent;
+  transition: border-bottom 0.2s, color 0.2s;
+}
+
+.tab_button.active {
+  color: #222;
+  border-bottom: 2.5px solid #1976d2;
+  background: #f5faff;
+}
+
+/* Tab Content: the single flexible child of the dialog, scrolls vertically when the dialog reaches its maximum height. */
+.tab_content {
+  display: block;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Settings Groups */
+.settings_group + .settings_group {
+  margin-top: var(--config_dialog_settings_group_gap);
+}
+
+/* Field Grid: label track wraps, control track is sized by the widest control. */
+.field_grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  column-gap: var(--config_dialog_label_control_gap);
+  row-gap: var(--config_dialog_field_gap);
+  align-items: center;
+}
+
+.field_grid .hint_text {
+  grid-column: 1 / -1;
+}
+
+.field_stacked {
+  display: block;
+}
+
+.field_stacked .label {
+  margin-bottom: var(--config_dialog_stacked_label_gap);
+}
+
+.dependent_setting {
+  margin-left: calc(var(--config_dialog_section_indent) * 2);
+  margin-top: var(--config_dialog_dependent_setting_gap);
+}
+
+/* Labels */
+.label {
+  font-size: 0.95rem;
+  margin: 0;
+  display: block;
+}
+
+.prompt_group_label {
+  font-size: 0.95rem;
+  font-weight: bold;
+  margin-bottom: var(--config_dialog_section_label_margin);
+}
+
+.hint_text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Form Controls */
 .form {
   display: flex;
   align-items: baseline;
-  gap: var(--form-element-gap);
+  gap: var(--config_dialog_form_element_gap);
 }
 
 #api_key_form {
@@ -120,12 +172,10 @@
 .input {
   font-family: monospace;
   font-size: 1rem;
-  border: 1px solid #ccc;
+  border: var(--config_dialog_input_border_width) solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
-  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
-  margin-left: var(--input-padding-horizontal);
-  margin-right: var(--input-padding-horizontal);
+  padding: var(--config_dialog_input_padding_vertical) var(--config_dialog_input_padding_horizontal);
 }
 
 .input:focus {
@@ -136,25 +186,46 @@
 #api_key_input {
   flex: 1 1 auto;
   min-width: 0;
-  margin-left: 0;
-  margin-right: 0;
 }
 
+/* Controls in the grid sit at the right edge, so their content is right-aligned as well. */
+.field_grid .input {
+  text-align: right;
+}
+
+.field_grid select.input {
+  width: 100%;
+  text-align-last: right;
+}
+
+/* Alignment properties inherit into the dropdown list, where the entries must keep the default alignment. */
+.field_grid select.input option {
+  text-align: left;
+  text-align-last: auto;
+}
+
+.field_grid input[type="number"].input {
+  width: calc(
+    var(--config_dialog_number_input_digits) + 2 * var(--config_dialog_input_padding_horizontal) + 2 * var(--config_dialog_input_border_width) +
+      var(--config_dialog_spin_button_allowance)
+  );
+  justify-self: end;
+}
+
+/* Buttons */
 .button {
   font-size: 1rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
-  padding: var(--button-padding-vertical) var(--button-padding-horizontal);
+  padding: var(--config_dialog_button_padding_vertical) var(--config_dialog_button_padding_horizontal);
 }
 
 .test_button {
   background: #1976d2;
   color: #fff;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
 }
 
 .feedback {
@@ -164,84 +235,17 @@
   vertical-align: middle;
 }
 
-/* Field Layouts */
-.field {
-  display: flex;
-}
-
-.field + .field {
-  margin-top: var(--field-gap);
-}
-
-.field_stacked {
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--field-stacked-label-gap);
-}
-
-.field_inline {
-  flex-direction: row;
-  align-items: center;
-  gap: var(--field-inline-label-gap);
-}
-
-.field_inline .label {
-  text-align: left;
-  flex-shrink: 0;
-}
-
-.field_inline .input {
-  width: auto;
-  flex-shrink: 1;
-  margin-left: auto;
-  text-align: right;
-}
-
-.field_inline select.input {
-  text-align-last: right;
-}
-
-.field_inline select.input option {
-  text-align: right;
-}
-
-.field_inline .form {
-  flex: 1;
-  margin-left: auto;
-}
-
-/* Labels and Containers */
-
-.label {
-  font-size: 0.95rem;
-  margin: 0;
-  display: block;
-}
-
-.prompt_group_label {
-  font-size: 0.95rem;
-  font-weight: bold;
-  margin-bottom: var(--section-label-margin);
-}
-
-.hint_text {
-  margin: var(--field-gap) 0;
-  font-size: 0.85rem;
-  color: #666;
-}
-
-/* Button Row */
 .button_row {
   display: flex;
   justify-content: flex-end;
-  margin-top: var(--button-row-margin-top);
-  padding-top: var(--button-row-padding);
+  margin-top: var(--config_dialog_button_row_margin_top);
+  padding-top: var(--config_dialog_button_row_padding_top);
   border-top: 1px solid #e0e0e0;
 }
 
 .button_group {
   display: flex;
-  gap: var(--button-group-gap);
+  gap: var(--config_dialog_button_group_gap);
 }
 
 .download_button {
@@ -261,12 +265,58 @@
   box-shadow: 0 1px 4px rgba(25, 118, 210, 0.08);
 }
 
-/* Checkbox Label Styles */
+.full_width_button {
+  width: 100%;
+}
+
+.button_delete {
+  background-color: #d32f2f;
+  color: white;
+}
+
+/* Checkbox Rows */
 .checkbox_label {
   display: flex;
   align-items: center;
   font-size: 0.97rem;
   cursor: pointer;
+}
+
+.prompt_embed_options {
+  display: flex;
+  flex-direction: column;
+}
+
+.metadata_toggle + .prompt_embed_options {
+  margin-top: var(--config_dialog_section_gap);
+}
+
+/* Files Actions */
+.files_actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--config_dialog_action_button_gap);
+  margin-top: var(--config_dialog_section_gap);
+  padding: 10px;
+}
+
+.files_actions > .button:not(.button_delete) {
+  width: 100%;
+}
+
+.danger_action_row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  column-gap: var(--config_dialog_label_control_gap);
+  align-items: center;
+  margin-top: var(--config_dialog_section_gap);
+}
+
+.danger_text {
+  color: #6b1b1b;
+  font-size: 0.86rem;
+  line-height: 1.3;
 }
 
 /* Glow Animation for Download Button */
@@ -284,64 +334,4 @@
 
 .glow-animation {
   animation: glow 1.5s infinite;
-}
-
-.settings_group + .settings_group {
-  margin-top: var(--settings-group-gap);
-}
-
-.dependent_setting {
-  margin-left: calc(var(--section-indent) * 2);
-  margin-top: var(--dependent-setting-gap);
-}
-
-.prompt_embed_options {
-  display: flex;
-  flex-direction: column;
-}
-
-.metadata_toggle + .prompt_embed_options {
-  margin-top: var(--section-gap);
-}
-
-.input_narrow {
-  width: 60px !important;
-}
-
-.files_actions {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--action-button-gap);
-  margin-top: var(--section-gap);
-  padding: 10px;
-}
-
-.files_actions > .button:not(.button_delete) {
-  width: 100%;
-}
-
-.danger_action_row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: var(--section-gap);
-}
-
-.danger_text {
-  color: #6b1b1b;
-  flex: 1 1 180px;
-  font-size: 0.86rem;
-  line-height: 1.3;
-  max-width: 260px;
-}
-
-.full_width_button {
-  width: 100%;
-}
-
-.button_delete {
-  background-color: #d32f2f;
-  color: white;
 }

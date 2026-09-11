@@ -24,10 +24,11 @@ export class Config_dialog {
 
   async init() {
     // 1. Load CSS (if not already there)
-    if (!document.querySelector('link[href="components/config_dialog/config_dialog.css"]')) {
+    const stylesheet_url = versioned_url("components/config_dialog/config_dialog.css");
+    if (!document.querySelector(`link[href="${stylesheet_url}"]`)) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "components/config_dialog/config_dialog.css";
+      link.href = stylesheet_url;
       document.head.appendChild(link);
     }
 

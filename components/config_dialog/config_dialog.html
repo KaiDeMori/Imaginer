@@ -11,7 +11,7 @@
 
     <div class="tab_content" id="account_tab_content">
       <div class="settings_group">
-        <div class="field field_stacked">
+        <div class="field_stacked">
           <label class="label" for="api_key_input">OpenAI API Key</label>
           <form class="form" autocomplete="off" id="api_key_form">
             <input
@@ -43,45 +43,35 @@
     </div>
 
     <div class="tab_content" id="generation_tab_content" style="display: none">
-      <div class="settings_group">
-        <div class="field field_inline">
-          <label class="label" for="max_input">Maximum number of parallel generations</label>
-          <input type="number" size="3" min="1" max="10" step="1" class="input" id="max_input" />
-        </div>
+      <div class="settings_group field_grid">
+        <label class="label" for="max_input">Maximum number of parallel generations</label>
+        <input type="number" min="1" max="10" step="1" class="input" id="max_input" />
 
-        <div class="field field_inline">
-          <label class="label" for="n_input">Number of images to generate (n)</label>
-          <input type="number" size="3" min="1" max="10" step="1" class="input" id="n_input" />
-        </div>
+        <label class="label" for="n_input">Number of images to generate (n)</label>
+        <input type="number" min="1" max="10" step="1" class="input" id="n_input" />
 
-        <div class="field field_inline">
-          <label class="label" for="background_select">Background</label>
-          <select class="input" id="background_select">
-            <option value="auto">Automatic</option>
-            <option value="transparent">Transparent</option>
-            <option value="opaque">Opaque</option>
-          </select>
-        </div>
+        <label class="label" for="background_select">Background</label>
+        <select class="input" id="background_select">
+          <option value="auto">Automatic</option>
+          <option value="transparent">Transparent</option>
+          <option value="opaque">Opaque</option>
+        </select>
 
-        <div class="field field_inline">
-          <label class="label" for="quality_select">Image quality</label>
-          <select class="input" id="quality_select">
-            <option value="auto">Automatic</option>
-            <option value="max">Maximum</option>
-            <option value="xhigh">Extra high</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </div>
+        <label class="label" for="quality_select">Image quality</label>
+        <select class="input" id="quality_select">
+          <option value="auto">Automatic</option>
+          <option value="max">Maximum</option>
+          <option value="xhigh">Extra high</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
 
-        <div class="field field_inline">
-          <label class="label" for="input_fidelity_select">Input fidelity (gpt-image-1 and gpt-image-1.5 only)</label>
-          <select class="input" id="input_fidelity_select">
-            <option value="low">Low</option>
-            <option value="high">High (default)</option>
-          </select>
-        </div>
+        <label class="label" for="input_fidelity_select">Input fidelity (gpt-image-1 and gpt-image-1.5 only)</label>
+        <select class="input" id="input_fidelity_select">
+          <option value="low">Low</option>
+          <option value="high">High (default)</option>
+        </select>
       </div>
 
       <div class="settings_group">
@@ -93,11 +83,9 @@
     </div>
 
     <div class="tab_content" id="files_tab_content" style="display: none">
-      <div class="settings_group">
-        <div class="field field_inline">
-          <label class="label" for="filename_prompt_chars_input">Filename prompt characters (max. 230)</label>
-          <input type="number" min="1" max="230" step="1" class="input input_narrow" id="filename_prompt_chars_input" />
-        </div>
+      <div class="settings_group field_grid">
+        <label class="label" for="filename_prompt_chars_input">Filename prompt characters (max. 230)</label>
+        <input type="number" min="1" max="230" step="1" class="input" id="filename_prompt_chars_input" />
       </div>
 
       <div class="files_actions">
@@ -124,11 +112,9 @@
           <input type="checkbox" id="enable_streaming_checkbox" />
           <span>Enable Image Streaming Preview</span>
         </label>
-        <div class="dependent_setting">
-          <div class="field field_inline">
-            <label class="label" for="partial_images_input">Number of partial previews</label>
-            <input type="number" min="1" max="3" step="1" class="input input_narrow" id="partial_images_input" />
-          </div>
+        <div class="dependent_setting field_grid">
+          <label class="label" for="partial_images_input">Number of partial previews</label>
+          <input type="number" min="1" max="3" step="1" class="input" id="partial_images_input" />
         </div>
       </div>
 
