@@ -40,9 +40,9 @@ On first launch, Imaginer displays an API key entry screen:
 2. **Click the Test button** to verify your key.
    - Imaginer checks if the key works and confirms you have access to image generation.
    - Test results appear below the input field:
-     - ✅ **"API key valid and ready!"** - You're all set.
+     - ✅ **"API key valid and ready!"** - You're all set. Your account has access to at least one GPT image model.
      - ❌ **"Invalid API key"** - Check the key and try again.
-     - ❌ **"Valid key but no gpt-image-1 access"** - Your API key doesn't have permission to generate images.
+     - ❌ **"API key is valid, but you do not have access to any GPT image model."** - Your API key works, but your account cannot use any image generation model. Check your OpenAI account or organization permissions.
      - ❌ **"Connection failed"** - Check your internet connection.
 
 3. **Click OK** once the test succeeds.
@@ -79,10 +79,12 @@ The menu bar spans the top of the screen and contains all your controls and sett
 - **Orientation buttons**: Three icon buttons to select image orientation (Landscape / Portrait / Square).
   - Replaced by an **image-size dropdown** when **Advanced size setting** is enabled in Config (see _Advanced size setting_ below).
   
-- **Model dropdown**: Select which AI model to use for generation.
+- **Model dropdown**: Select which AI model to use for generation and editing.
   - Shows available image generation models from your OpenAI account.
   - Auto-populates when you add an API key.
   - Use Config → Account → **Refresh Image Models** to update the list.
+  - Hover the dropdown for a short summary of the current models.
+- ℹ️ **Model help button**: Opens the **Choosing a Model** section of this manual in a new browser tab.
 
 
 **Right side:**
@@ -148,7 +150,7 @@ Creating images in Imaginer is straightforward:
 
 3. **Watch as your image generates**:
    - A placeholder appears instantly in the Gallery with a timer showing elapsed time.
-   - With streaming preview enabled, you'll see your image forming in real-time.
+   - With streaming preview enabled, you'll see your image forming in real-time. This works for generations and for edits.
    - Generation typically takes about a minute, depending on the selected model and settings.
 
 4. **View your completed image**:
@@ -256,9 +258,39 @@ The drop area highlights in blue when you drag over it. **Click thumbnails in th
 
 ### Choosing a Model
 
-The **model dropdown** in the menu bar (next to the orientation buttons) lets you choose which AI model generates your images. Different models offer trade-offs between quality, speed, and cost.
+The **model dropdown** in the menu bar (next to the orientation buttons) lets you choose which AI model generates and edits your images. The list auto-populates once you add an API key. Use Config → Account → **Refresh Image Models** to update it when new models become available. The ℹ️ button next to the dropdown opens this section.
 
-The list auto-populates once you add an API key. Use Config → Account → **Refresh Image Models** to update it when new models become available.
+#### The Current Models
+
+OpenAI offers two current image models. Both generate images from text and edit images, with and without masks.
+
+- **Flare** (`gpt-image-2.5-flare`): The everyday model and the default choice in Imaginer. It is optimized for speed and produces good results for most prompts.
+- **Sunburst** (`gpt-image-2.5-sunburst`): The larger model, optimized for quality. Choose it for edits that must preserve every detail of the input image and for demanding results. Generation takes longer than with Flare.
+
+#### Which Model to Use
+
+- **Start with Flare.** It is fast and handles most generations and edits well.
+- **Switch to Sunburst** when an edit changes things it should keep, or when a result lacks detail.
+- **Older models remain available** in the dropdown as long as your account has access to them. Some settings behave differently on older models; the setting descriptions in **Configuration & Settings** name the affected models.
+
+#### Model Names With and Without Dates
+
+The dropdown shows every image model that OpenAI returns for your account. This includes pairs like `gpt-image-2.5-flare` and `gpt-image-2.5-flare-2026-09-08`:
+
+- A name **without a date** is an alias. It always points to the newest version of that model. When OpenAI releases an improved version, the alias switches to it automatically.
+- A name **with a date** is a snapshot. It never changes.
+
+Use the alias unless your results must stay reproducible over a long time.
+
+#### Older Models
+
+OpenAI retires older models over time. A retired model disappears from the dropdown after the next Config → Account → **Refresh Image Models**. If your selected model was retired, pick a current model from the dropdown.
+
+#### Quality Levels per Model
+
+The **Extra high** and **Maximum** quality levels exist only for the `gpt-image-2.5` models. On other models, Imaginer sends **High** instead. The same quality label can mean a different amount of detail on different models. See Config → Generation → **Image quality** for details.
+
+Higher quality levels and larger sizes take longer and use more of your API budget.
 
 
 ## Configuration & Settings
@@ -283,10 +315,12 @@ Click between tabs to access different settings. Click **Save** to store changes
 
 **OpenAI API Key** is where you enter or update your API key.
 
-**Test button** verifies your key works and that you have access to image generation. Test results appear as icons below the input field:
-- 👍 = Key is valid and has image generation access.
+**Test button** verifies your key works and that your account has access to at least one GPT image model. Test results appear as icons below the input field:
+- 👍 = Key is valid and has access to at least one GPT image model.
 - 👎 = Key is invalid or connection failed.
-- 😢 = Key is valid but lacks access to image models.
+- 😢 = Key is valid but has no access to any GPT image model. An error dialog explains this and suggests checking your OpenAI account or organization permissions.
+
+A successful test also updates the model dropdown with the image models of your account.
 
 Press Enter in the key field to test automatically.
 
@@ -323,22 +357,28 @@ All images use the same prompt but produce different variations.
 - **Transparent**: Generates images with transparent backgrounds.
 - **Opaque**: Generates images with solid backgrounds.
 
-Transparency works best for isolated objects like logos and icons.
+Transparency works best for isolated objects like logos and icons. The `gpt-image-2.5` models support transparent backgrounds for generations and for edits. Imaginer always saves PNG files, so the transparency is kept in the downloaded image.
 
 
 #### Image Quality
 
-**Image quality** controls the rendering quality of generated images.
+**Image quality** controls the rendering quality of generated and edited images.
 
 **Options**:
-- **Automatic**: The model selects the best quality based on your prompt.
+- **Automatic**: The model selects the quality based on your prompt.
+- **Maximum**: The highest quality level. Available for the `gpt-image-2.5` models only.
+- **Extra high**: Between High and Maximum. Available for the `gpt-image-2.5` models only.
 - **High** (default): Higher quality rendering.
 - **Medium**: Balanced quality.
 - **Low**: Lower quality rendering.
 
+**Extra high** and **Maximum** exist only for the `gpt-image-2.5` models. If you select one of them and generate with another model, Imaginer sends **High** for that request. Your saved setting stays unchanged, so the selected level is used again as soon as you switch back to a `gpt-image-2.5` model.
+
+The same label can mean a different amount of detail on different models. **High** on a `gpt-image-2.5` model renders faster and with less detail than **High** on `gpt-image-2`. **Maximum** on a `gpt-image-2.5` model corresponds to **High** on `gpt-image-2`.
+
 #### Input Fidelity
 
-**Input fidelity** controls how much effort the model exerts to preserve style and features (especially facial features) from input images during edits. It applies only when editing with the `gpt-image-1` or `gpt-image-1.5` model. The default `gpt-image-2` model and the `gpt-image-1-mini` model ignore this setting.
+**Input fidelity (gpt-image-1 and gpt-image-1.5 only)** controls how much effort the model exerts to preserve style and features (especially facial features) from input images during edits. It applies only when editing with the `gpt-image-1` or `gpt-image-1.5` model. `gpt-image-2` and the `gpt-image-2.5` models always keep input details at high fidelity and ignore this setting.
 
 **Options**:
 - **Low**: Standard editing with moderate input preservation.
@@ -360,11 +400,11 @@ Use Menu Bar → **Orientation buttons** to choose the canvas shape for generati
 
 Your selection persists between sessions and applies to the next generation or edit request.
 
-##### Advanced size setting (free resolutions for `gpt-image-2`)
+##### Advanced size setting (free resolutions for `gpt-image-2` and the `gpt-image-2.5` models)
 
-`gpt-image-2` supports any resolution that satisfies the model's constraints, not just the three orientation presets. To work with arbitrary sizes:
+`gpt-image-2` and the `gpt-image-2.5` models support any resolution that satisfies the constraints below, not just the three orientation presets. To work with arbitrary sizes:
 
-1. Open **Config → Advanced** and tick **Advanced size setting**.
+1. Open Config → Advanced and tick **Advanced size setting**.
 2. Save. The three orientation icons in the menu bar are replaced by an **image-size dropdown**.
 
 The dropdown contains:
@@ -376,14 +416,14 @@ The dropdown contains:
 
 **Constraints checked by the modal**:
 - Both edges must be a multiple of **16** pixels.
-- Each edge must be **less than 3840 px**.
+- Each edge must be **at most 3840 px**.
 - Aspect ratio (long edge ÷ short edge) must be **≤ 3:1**.
 - Total pixels must be between **655,360** and **8,294,400**.
 - Above **2560×1440** (≈ 3.69 megapixels) is **experimental** — results can be more variable.
 
 Turning **Advanced size setting** off again restores the orientation icons and snaps the active size back to the closest preset (Landscape / Portrait / Square) based on the current aspect ratio. Custom sizes you have saved are preserved and reappear when you re-enable the advanced mode.
 
-> **Note:** Other models (e.g. `gpt-image-1`) do not officially support arbitrary resolutions. Stick with the three presets, or with the popular `1024×…` / `…×1024` sizes, when generating with those models.
+> **Note:** The `gpt-image-1` family (`gpt-image-1`, `gpt-image-1.5`, `gpt-image-1-mini`) does not support arbitrary resolutions. Stick with the three presets (`1024×1024`, `1536×1024`, `1024×1536`) when generating with those models.
 
 
 ### Files Settings
@@ -426,13 +466,13 @@ Config → Files → **Delete Gallery** wipes all stored images. The first click
 
 #### Advanced size setting
 
-Config → Advanced → **Advanced size setting** swaps the three orientation icon buttons in the menu bar for a free-resolution dropdown that lets you pick popular `gpt-image-2` sizes or define your own custom sizes. See _Generation Settings → Orientation and Size → Advanced size setting_ for full details, validation rules, and how to add or remove custom sizes.
+Config → Advanced → **Advanced size setting** swaps the three orientation icon buttons in the menu bar for a free-resolution dropdown that lets you pick popular sizes or define your own custom sizes. The free sizes work with `gpt-image-2` and the `gpt-image-2.5` models. See Generation Settings → Orientation and Size → **Advanced size setting** for full details, validation rules, and how to add or remove custom sizes.
 
 #### Image Streaming Preview
 
-Config → Advanced → **Enable Image Streaming Preview** toggles progressive image previews during generation (default: on).
+Config → Advanced → **Enable Image Streaming Preview** toggles progressive image previews during generation and editing (default: on).
 
-When enabled, you see dimmed preview images as generation progresses instead of waiting for the final result. The **Number of partial previews** setting (1-3, default: 2) controls how many preview updates you request.
+When enabled, you see dimmed preview images as the image forms instead of waiting for the final result. This applies to generations and to edits alike. The **Number of partial previews** setting (1-3, default: 2) controls how many preview updates you request.
 
 Higher preview counts provide more frequent updates but use slightly more API resources. The timer continues running throughout all previews.
 

@@ -27,8 +27,8 @@ Background handling for transparent images.
 **Default:** `"auto"`
 
 ### `imaginer.quality`
-Image generation quality setting.  
-**Range:** `"auto"`, `"high"`, `"medium"`, `"low"`  
+Image generation quality setting. `"xhigh"` and `"max"` are supported by the `gpt-image-2.5` models only; for other models the request uses `"high"` while the stored value stays unchanged.  
+**Range:** `"auto"`, `"max"`, `"xhigh"`, `"high"`, `"medium"`, `"low"`  
 **Default:** `"high"`
 
 ### `imaginer.input_fidelity`
@@ -111,9 +111,9 @@ Cached list of available image generation models.
 **Default:** None (fetched from API)
 
 ### `imaginer.selected_image_model`
-Currently selected image generation model.  
-**Range:** Model ID string (e.g., `"gpt-image-1.5"`)  
-**Default:** `"gpt-image-2"` (fallback)
+Currently selected image generation model. The app never changes a stored value on its own.  
+**Range:** Model ID string (e.g., `"gpt-image-2.5-sunburst"`)  
+**Default:** `"gpt-image-2.5-flare"` (fallback; if the cached model list does not contain it, the first cached model ID is used)
 
 ---
 

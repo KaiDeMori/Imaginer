@@ -18,8 +18,8 @@ Working method:
 | --- | --- | --- |
 | 1 | T02, T03, T04 | done |
 | 2 | T01, T05, T06, T08, T09, T10, code steps | done |
-| 3 | T11, T12, T13, plus the remaining documentation steps of T01, T03, T05, T06, T07, T09 | next |
-| 4 | T14 | open |
+| 3 | T11, T12, T13, plus the remaining documentation steps of T01, T03, T05, T06, T07, T09 | done (implemented in the chat, no agent) |
+| 4 | T14 | next |
 
 Group 3 prompt notes:
 - Scope: T11, T12, T13 and the remaining steps listed under T01, T03, T05, T06, T07, T09.
@@ -65,9 +65,7 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 
 ### T01 Default model
 
-**Status.** Code done. `DEFAULT_MODEL` in `model_fetcher.js` is `gpt-image-2.5-flare`. A stored selection is not touched.
-
-**Remaining (group 3).** Update the default value in `User_Manual/Imaginer_Technical_Manual.md` and `User_Manual/localStorage_keys_explained.md`.
+**Status.** Done. `DEFAULT_MODEL` in `model_fetcher.js` is `gpt-image-2.5-flare`. A stored selection is not touched. Technical manual and localStorage document name the new default.
 
 ### T02 Quality levels
 
@@ -75,9 +73,7 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 
 ### T03 Partial preview for edits
 
-**Status.** Code done. Edits stream partial previews through `consume_image_stream` in `app.js`, one request per image, controlled by the existing streaming settings.
-
-**Remaining (group 3).** Manual: "Image Streaming Preview" applies to edits too. Technical manual: streaming is requested on both endpoints.
+**Status.** Done. Edits stream partial previews through `consume_image_stream` in `app.js`, one request per image, controlled by the existing streaming settings. Manual and technical manual describe streaming for both endpoints.
 
 ### T04 Metadata processing for edit results
 
@@ -85,21 +81,15 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 
 ### T05 Size limits
 
-**Status.** Code done. `validate_size` accepts an edge of 3840 pixels. The advanced size setting label names the `gpt-image-2` and `gpt-image-2.5` models.
-
-**Remaining (group 3).** Manual: "less than 3840 px" becomes "at most 3840 px"; the note about other models names the `gpt-image-1` family as the one without free sizes. Correct the edge rule in `API_DOCS/gpt-image-2 API capabilities.md`.
+**Status.** Done. `validate_size` accepts an edge of 3840 pixels. The advanced size setting label names the `gpt-image-2` and `gpt-image-2.5` models. Manual and `API_DOCS/gpt-image-2 API capabilities.md` state the inclusive edge limit.
 
 ### T06 Input fidelity texts
 
-**Status.** Code done. The select label reads "Input fidelity (gpt-image-1 and gpt-image-1.5 only)". The parameter is sent for `gpt-image-1` and `gpt-image-1.5` only.
-
-**Remaining (group 3).** Manual paragraph: the setting applies to `gpt-image-1` and `gpt-image-1.5`; `gpt-image-2` and the `gpt-image-2.5` models always keep input details at high fidelity and ignore the setting. FAQ entry on editing: recommend the `gpt-image-2.5` models instead of `gpt-image-1` or `gpt-image-1.5`.
+**Status.** Done. The select label reads "Input fidelity (gpt-image-1 and gpt-image-1.5 only)". The parameter is sent for `gpt-image-1` and `gpt-image-1.5` only. Manual and FAQ updated.
 
 ### T07 Transparency
 
-**Status.** Tested on 2026-09-11 with Flare and Sunburst: transparent backgrounds work on both models. No code change.
-
-**Remaining (group 3).** Manual: transparent backgrounds are supported by the `gpt-image-2.5` models. No FAQ entry.
+**Status.** Done. Tested on 2026-09-11 with Flare and Sunburst: transparent backgrounds work on both models. No code change. The manual names the `gpt-image-2.5` models under "Background".
 
 ### T08 Moderation error details
 
@@ -107,9 +97,7 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 
 ### T09 API key test
 
-**Status.** Code done. The test succeeds when at least one model ID starts with `gpt-image-`. Failure message: "API key is valid, but you do not have access to any GPT image model."
-
-**Remaining (group 3).** Update the test result descriptions in the manual (First-Time Setup and Account Settings) and in the FAQ.
+**Status.** Done. The test succeeds when at least one model ID starts with `gpt-image-`, in the config dialog and in the first-run API key screen (`intro/00/pre_intro_ui.js`). Failure message in both places: "API key is valid, but you do not have access to any GPT image model." Manual and FAQ describe the new test results.
 
 ### T10 Model guidance in the UI
 

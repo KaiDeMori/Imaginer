@@ -36,12 +36,16 @@
 - Imaginer accepts two API key formats from OpenAI:
    - Legacy keys starting with `sk-` and exactly 51 characters in total.
    - Project keys starting with `sk-proj-` and at least 108 characters (8-character prefix plus 100 or more characters).
-- Default model fallback is `gpt-image-2`; the dropdown shows cached or refreshed `gpt-image-*` models.
+- Default model fallback is `gpt-image-2.5-flare`; the dropdown shows cached or refreshed `gpt-image-*` models, including dated snapshots. Imaginer never hides or removes models on its own and never changes a stored model selection.
 - When no input images are dropped, Imaginer sends `/v1/images/generations` requests. When images are dropped and a non-mini model is selected, it sends `/v1/images/edits` with the first image's mask attached if one exists.
-- Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background`/`moderation` values. Streaming previews (`stream: true` with `partial_images`) are requested on generations only, never on edits.
-- Edits send the dropped images, `prompt`, `n`, `size`, optional `quality`/`background`/`moderation`, the first image's `mask` if present, and `input_fidelity` (the user's Low/High choice) — but only for the `gpt-image-1` and `gpt-image-1.5` models.
+- Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background`/`moderation` values.
+- Edits send the dropped images, `prompt`, `n`, `size`, optional `quality`/`background`/`moderation`, the first image's `mask` if present, and `input_fidelity` (the user's Low/High choice) — but only for the `gpt-image-1` and `gpt-image-1.5` models. `gpt-image-2` and the `gpt-image-2.5` models always process image inputs at high fidelity, so the parameter is omitted for them.
+- Streaming previews (`stream: true` with `partial_images`) are requested on both endpoints when the streaming preview is enabled. Generations consume `image_generation.partial_image` and `image_generation.completed` events, edits consume `image_edit.partial_image` and `image_edit.completed` events (`consume_image_stream` in `app.js`). A streamed edit sends one request per requested image with `n` set to 1, so each placeholder receives its own preview sequence.
+- Quality values: all GPT image models accept `low`, `medium`, `high` and `auto`. The `gpt-image-2.5` models additionally accept `xhigh` and `max`. `clamp_quality_for_model` in `model_fetcher.js` replaces `xhigh` and `max` with `high` at request time when the selected model ID does not start with `gpt-image-2.5`. The stored `imaginer.quality` value is not changed.
+- Generation results and edit results pass through the same metadata processing (`process_image_metadata`): optional stripping of server-side metadata, then optional prompt embedding as iTXt and/or XMP.
+- Moderation errors (`code: "moderation_blocked"`) may carry a `moderation_details` object with `moderation_stage` (`input`, `output`, `unknown`) and a `categories` list. The moderation dialog shows the stage and the categories when they are present.
 - Selecting a `*-mini` model disables editing: dropped images are ignored and the request falls back to a plain generation.
-- Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`.
+- Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`. The API key test succeeds when at least one returned model ID starts with `gpt-image-`.
 - Downloaded PNG filenames are built locally from a sanitized prompt prefix plus the image creation timestamp. The prefix length comes from `imaginer.filename_prompt_chars`, defaults to 110, and is clamped to 1-230.
 
 

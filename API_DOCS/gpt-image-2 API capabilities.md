@@ -15,7 +15,7 @@
 
 `gpt-image-2` supports any resolution passed in the `size` parameter as long as all constraints are met:
 
-- Maximum edge length must be less than `3840px`
+- No edge may exceed `3840px` (inclusive: `3840` is allowed)
 - Both edges must be a multiple of `16`
 - Ratio between the long edge and short edge must not be greater than `3:1`
 - Total pixels must not exceed `8,294,400`
@@ -29,7 +29,7 @@ If the output image exceeds `2560x1440` pixels (`3,686,400` total pixels), commo
 - `1536x1024` — HD landscape
 - `1024x1024` — square default
 - `2560x1440` — 2K / QHD, recommended upper reliability boundary for `gpt-image-2`
-- `3840x2160` — 4K / UHD, experimental upper-end target; if the max-edge rule is enforced literally as `< 3840`, round down to a valid size such as `3824x2144`
+- `3840x2160` — 4K / UHD, the documented maximum size; experimental
 
 ## Photorealism
 

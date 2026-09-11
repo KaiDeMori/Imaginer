@@ -124,7 +124,7 @@ function setup_api_key_interface() {
       }
 
       const data = await resp.json();
-      const found = data.data.some((m) => m.id === "gpt-image-1");
+      const found = data.data.some((m) => m.id && m.id.startsWith("gpt-image-"));
 
       if (found) {
         Database_store.set_api_key(key);
@@ -132,7 +132,7 @@ function setup_api_key_interface() {
         message_div.style.color = "#66ff66";
         ok_button.style.visibility = "visible";
       } else {
-        message_div.textContent = "❌ Valid key but no gpt-image-1 access";
+        message_div.textContent = "❌ API key is valid, but you do not have access to any GPT image model.";
         message_div.style.color = "#ffaa66";
         ok_button.style.visibility = "hidden";
       }
