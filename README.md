@@ -112,3 +112,13 @@ No package manager and no build tooling are required.
 Intro music credits are listed in `intro/intro_music_credits.html`.
 
 Apart from that: Basically all frontier AI models in existence.
+
+## License
+
+The Imaginer source code is licensed under the [MIT License](LICENSE).
+Use it, change it, and share it as you like; keep the copyright notice with the author's name in your copy.
+
+The license covers the code and documentation of this repository only.
+The vendored libraries in `static_imports/` carry their own MIT licenses.
+The fonts are distributed under the SIL Open Font License.
+The intro music recordings belong to their respective performers; see `intro/intro_music_credits.html`.
