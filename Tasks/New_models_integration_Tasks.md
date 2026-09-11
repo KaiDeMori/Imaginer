@@ -19,7 +19,7 @@ Working method:
 | 1 | T02, T03, T04 | done |
 | 2 | T01, T05, T06, T08, T09, T10, code steps | done |
 | 3 | T11, T12, T13, plus the remaining documentation steps of T01, T03, T05, T06, T07, T09 | done (implemented in the chat, no agent) |
-| 4 | T14 | next |
+| 4 | T14 | done (implemented in the chat, no agent) |
 
 Group 3 prompt notes:
 - Scope: T11, T12, T13 and the remaining steps listed under T01, T03, T05, T06, T07, T09.
@@ -145,6 +145,8 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 2. Create the `gpt-image-2.5` file from the API facts at the top of this document.
 
 ### T14 Release
+
+**Status.** Files done. `version.json` is at `1.12`, the card `version_messages/version_1.12.0.html` follows the showcase style of the `1.6` card, the card is listed in `cache_manifest.json`. The update flow itself is untested; see the manual test checklist.
 
 **Files.** `version.json`, `version_messages/version_1.12.0.html`, `cache_manifest.json`.
 

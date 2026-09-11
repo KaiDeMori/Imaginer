@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Version 1.12.0 Message</title>
+  </head>
+  <body>
+    <style>
+      body {
+        font-family: "DejaVu Sans", Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      }
+      .version_message_content {
+        font-size: 1em;
+        line-height: 1.6;
+        color: #333;
+      }
+      .model_showcase {
+        margin: 1.2em 0;
+        padding: 1.2em 1em 1em;
+        background: radial-gradient(circle at top, #fff7e6 0%, #fdf0ff 55%, #eaf2ff 100%);
+        border-radius: 14px;
+        box-shadow:
+          inset 0 0 24px rgba(255, 255, 255, 0.9),
+          0 6px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid #fff;
+        text-align: center;
+      }
+      .model_showcase_intro {
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #888;
+        margin-bottom: 0.6em;
+      }
+      .model_pair {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.8em;
+      }
+      .model_card {
+        padding: 0.8em 0.6em;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid #fff;
+      }
+      .model_name {
+        display: inline-block;
+        font-size: 1.7em;
+        font-weight: 900;
+        background-size: 300% auto;
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        animation: gradient_shift 5s linear infinite;
+      }
+      .model_name_flare {
+        background-image: linear-gradient(135deg, #f97316 0%, #ef4444 40%, #f59e0b 70%, #f97316 100%);
+      }
+      .model_name_sunburst {
+        background-image: linear-gradient(135deg, #f59e0b 0%, #fbbf24 30%, #ec4899 65%, #f59e0b 100%);
+      }
+      @keyframes gradient_shift {
+        0% {
+          background-position: 0% 50%;
+        }
+        100% {
+          background-position: 300% 50%;
+        }
+      }
+      .model_id {
+        font-family: "DejaVu Sans Mono", Consolas, monospace;
+        font-size: 0.75em;
+        color: #777;
+        margin-top: 0.2em;
+      }
+      .model_tagline {
+        margin-top: 0.5em;
+        font-size: 0.85em;
+        color: #555;
+      }
+      .default_badge {
+        display: inline-block;
+        margin-top: 0.5em;
+        padding: 0.1em 0.7em;
+        border-radius: 999px;
+        background: #fff1d6;
+        color: #9a5b00;
+        font-size: 0.7em;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .switch_hint {
+        margin: 1em 0;
+        padding: 0.8em 1em;
+        border-radius: 8px;
+        background: #eef6ff;
+        color: #174b7a;
+        font-size: 0.92em;
+      }
+      .feature_list {
+        margin: 1em 0;
+        padding-left: 1.5em;
+      }
+      .feature_list li {
+        margin: 0.6em 0;
+      }
+      .emoji_icon {
+        font-size: 1.2em;
+        margin-right: 0.3em;
+      }
+      .retirement_note {
+        margin: 1.2em 0 0;
+        padding: 0.8em 1em;
+        border-radius: 8px;
+        background: #fafafa;
+        border: 1px solid #eee;
+        font-size: 0.85em;
+        color: #555;
+      }
+      .retirement_note ul {
+        margin: 0.4em 0 0;
+        padding-left: 1.4em;
+      }
+      .subtle_note {
+        font-size: 0.8em;
+        color: #999;
+        text-align: center;
+        margin-top: 1.5em;
+        padding-top: 0.8em;
+        border-top: 1px dashed #eee;
+      }
+    </style>
+    <div class="version_message_content">
+      <h2>🌟 Imaginer 1.12 — Two new models</h2>
+
+      <p>OpenAI released the next generation of image models, and Imaginer supports both from day one. Each one generates and edits images, with and without masks.</p>
+
+      <div class="model_showcase">
+        <div class="model_showcase_intro">Now powered by</div>
+        <div class="model_pair">
+          <div class="model_card">
+            <span class="model_name model_name_flare">Flare</span>
+            <div class="model_id">gpt-image-2.5-flare</div>
+            <div class="model_tagline">Fast. Good results for most prompts.</div>
+            <div class="default_badge">New default</div>
+          </div>
+          <div class="model_card">
+            <span class="model_name model_name_sunburst">Sunburst</span>
+            <div class="model_id">gpt-image-2.5-sunburst</div>
+            <div class="model_tagline">Highest precision for edits and demanding results. Takes longer.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="switch_hint">
+        Your current model selection is unchanged. Pick <strong>gpt-image-2.5-flare</strong> in the model dropdown to use the new default. The ℹ️ button next to the dropdown opens
+        <a href="User_Manual/Imaginer_User_Manual.html#choosing-a-model" target="_blank" rel="noopener noreferrer">Choosing a Model</a> in the manual.
+      </div>
+
+      <ul class="feature_list">
+        <li><span class="emoji_icon">🔬</span><strong>Extra high and Maximum quality</strong> — two new levels in Config → Generation → <strong>Image quality</strong>, available for the gpt-image-2.5 models. Other models use High.</li>
+        <li><span class="emoji_icon">👀</span><strong>Live previews for edits</strong> — partial previews now also appear while an edit is in progress.</li>
+        <li><span class="emoji_icon">🏷️</span><strong>Edited images keep your prompt</strong> — prompt embedding and metadata stripping now apply to edit results as well.</li>
+        <li><span class="emoji_icon">🙈</span><strong>Clearer moderation messages</strong> — when OpenAI provides details, the dialog names whether the input or the output was blocked and lists the categories.</li>
+        <li><span class="emoji_icon">📐</span><strong>Full 4K</strong> — <strong>3840×2160</strong> is accepted as a custom size in the advanced size setting.</li>
+      </ul>
+
+      <div class="retirement_note">
+        <strong>OpenAI removes older models from the API:</strong>
+        <ul>
+          <li><strong>gpt-image-1</strong> on <strong>2026-10-23</strong>.</li>
+          <li><strong>gpt-image-1.5</strong>, <strong>gpt-image-1-mini</strong> and <strong>chatgpt-image-latest</strong> on <strong>2026-12-01</strong>.</li>
+        </ul>
+        If one of these is your selected model, switch to Flare or Sunburst before that date.
+      </div>
+
+      <div class="subtle_note">Same Imaginer you know. Faster and sharper images. ✨</div>
+    </div>
+  </body>
+</html>
