@@ -84,7 +84,6 @@ The menu bar spans the top of the screen and contains all your controls and sett
   - Auto-populates when you add an API key.
   - Use Config → Account → **Refresh Image Models** to update the list.
   - Hover the dropdown for a short summary of the recommended models.
-- ℹ️ **Model help button**: Opens the **Choosing a Model** section of this manual in a new browser tab.
 
 
 **Right side:**
@@ -258,7 +257,7 @@ The drop area highlights in blue when you drag over it. **Click thumbnails in th
 
 ### Choosing a Model
 
-The **model dropdown** in the menu bar (next to the orientation buttons) lets you choose which AI model generates and edits your images. The list auto-populates once you add an API key. Use Config → Account → **Refresh Image Models** to update it when new models become available. The ℹ️ button next to the dropdown opens this section.
+The **model dropdown** in the menu bar (next to the orientation buttons) lets you choose which AI model generates and edits your images. The list auto-populates once you add an API key. Use Config → Account → **Refresh Image Models** to update it when new models become available.
 
 #### The Recommended Models
 
