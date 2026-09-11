@@ -11,7 +11,7 @@ import { Error_modal } from "./components/error_modal.js";
 import { process_image_metadata } from "./process_image_metadata.js";
 import { check_and_show_update_message, versioned_url } from "./version_manager.js";
 import { ensure_config_defaults } from "./default_config.js";
-import { get_selected_model, supports_extended_quality, clamp_quality_for_model } from "./model_fetcher.js";
+import { get_selected_model, clamp_quality_for_model } from "./model_fetcher.js";
 
 // Content-moderation level for GPT image models (hidden config, no UI): "auto"
 // (default) or "low" (less restrictive). Any other/invalid value is silently
@@ -325,11 +325,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
     // --- Read orientation, transparency, quality, and n from localStorage (set by menu bar/config) ---
-    // See OpenAI API docs:
-    //   - 'size' param: 1024x1024 (square), 1536x1024 (landscape), 1024x1536 (portrait)
-    //   - 'background' param: 'transparent', 'opaque', or 'auto' (default)
-    //   - 'quality' param: high, medium, low, auto, or null (for gpt-image-1)
-    //   - 'n' param: number of images to generate (1-10)
     const size = localStorage.getItem("imaginer.image_size");
     const background = localStorage.getItem("imaginer.background");
     let quality = localStorage.getItem("imaginer.quality");
@@ -342,8 +337,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     // --- Attach dropped images from generation_panel to API request (if any) ---
     const dropped_images = generation_panel.dropped_images || [];
     const selected_model = get_selected_model();
+    const stored_quality = quality;
     quality = clamp_quality_for_model(quality, selected_model);
-    console.info("[Imaginer] Quality clamped for request:", quality);
+    if (quality !== stored_quality) {
+      console.info("[Imaginer] Quality clamped for the selected model:", stored_quality, "to", quality);
+    }
     const is_mini_model = selected_model.includes("mini");
     let use_image_edit = dropped_images.length > 0 && !is_mini_model;
 

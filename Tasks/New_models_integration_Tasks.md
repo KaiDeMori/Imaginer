@@ -7,6 +7,32 @@ Focus: UI, user experience, functionality. Cost is not a focus. Documentation me
 
 ---
 
+## Progress
+
+Working method:
+- Implementation runs in sequential agents on the Sonnet model, one agent per group. Each agent reads `Tasks/Agent_conventions_brief.md` and this file, implements its group, and reports files, changed functions and deviations.
+- After each agent: read the report, correct the reported deviations directly, update this section. No further checks such as LSP runs or syntax tracing. The user reviews the diff and commits.
+- The documentation steps of every task belong to group 3, not to the code groups.
+- Manual heading for the models section: "Choosing a Model", anchor `choosing-a-model` (used by T10 and T11).
+
+| Group | Tasks | Status |
+| --- | --- | --- |
+| 1 | T02, T03, T04 | done |
+| 2 | T01, T05, T06, T08, T09, T10, code steps only | next |
+| 3 | T11, T12, T13, plus the documentation steps of T01, T03, T05, T06, T07, T09 | open |
+| 4 | T14 | open |
+
+Task status:
+- T02 done. Quality options and hint text in the config dialog. `supports_extended_quality` and `clamp_quality_for_model` in `model_fetcher.js`. Clamping in `app.js` before both request paths. Stale header comment removed.
+- T03 done. `generate_image_with_streaming` replaced by `consume_image_stream` in `app.js`, used by both endpoints. Streamed edits send one request per image with `n=1`. Streaming settings are read once before the branch.
+- T04 done. Non-streaming edit results pass through `process_image_metadata`; the streaming path does so inside `consume_image_stream`.
+- Corrections after group 1: unused import removed from `app.js`, outdated parameter comment block removed, clamping log fires only when the value changed.
+- T07: test done, transparency works on both models. Documentation step open (group 3).
+- T01, T05, T06, T08, T09, T10: open (group 2).
+- T11, T12, T13, T14: open.
+
+---
+
 ## API facts this plan relies on
 
 Verified against the OpenAI OpenAPI specification, the image generation guide, the model pages and the deprecations page (state of 2026-09-11).
@@ -174,7 +200,7 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 **Steps.**
 1. Set the `title` attribute of the model select: "Flare: fast everyday model. Sunburst: highest editing precision. See Help for details."
 2. Add a small info link next to the select that opens the manual at the models section in a new tab. Build the URL as `versioned_url("User_Manual/Imaginer_User_Manual.html")` followed by the anchor, because `versioned_url` appends the version query parameter and the anchor must come last.
-3. The anchor is derived from the section heading by `markdown_maker.js`: lower case, every run of non-word characters replaced by a hyphen. Fix the heading in T11 first, then derive the anchor.
+3. The heading of the manual section is "Choosing a Model". `markdown_maker.js` derives the anchor as lower case with every run of non-word characters replaced by a hyphen, so the anchor is `choosing-a-model`.
 
 **Acceptance.** Hovering shows the tooltip. The link opens the manual scrolled to the models section.
 
@@ -185,7 +211,7 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 **Files.** `User_Manual/Imaginer_User_Manual.md`.
 
 **Steps.**
-1. Replace the current "Choosing a Model" section with a full section. Content, in this order:
+1. Replace the current "Choosing a Model" section with a full section. Keep the heading "Choosing a Model" unchanged, because T10 links to its anchor. Content, in this order:
    - The two current models: Flare as the everyday default, Sunburst for edits that must preserve every detail and for demanding results, with longer generation time.
    - Which to use when: start with Flare; switch to Sunburst when an edit changes things it should keep or when the result lacks detail; older models remain available.
    - Alias versus dated snapshot: an alias such as `gpt-image-2.5-flare` always points to the newest dated version; a dated ID such as `gpt-image-2.5-flare-2026-09-08` never changes. Use the alias unless results must stay reproducible over a long time. The list shows both because the API returns both.
