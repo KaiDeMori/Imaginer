@@ -129,12 +129,13 @@ Verified against the OpenAI OpenAPI specification, the image generation guide, t
 
 **Files.** `User_Manual/Imaginer_User_Manual.md`, `User_Manual/Imaginer_FAQ.md`.
 
-**Steps.**
-1. Manual test before the release: Flare and Sunburst, generation and edit, background `transparent`, quality `medium` and `high`. Inspect the alpha channel of the saved PNG, not the on-screen appearance.
-2. Transparency works: the manual states that transparent backgrounds are supported by the `gpt-image-2.5` models.
-3. Transparency fails: an FAQ entry describes the observed behaviour and the manual wording stays cautious.
+**Test result.** Tested on 2026-09-11 with Flare and Sunburst: transparent backgrounds work on both models.
 
-**Acceptance.** The manual statement about transparency is backed by the test result.
+**Steps.**
+1. The manual states that transparent backgrounds are supported by the `gpt-image-2.5` models.
+2. No FAQ entry is needed.
+
+**Acceptance.** The manual statement about transparency matches the test result.
 
 ### T08 Moderation error details
 

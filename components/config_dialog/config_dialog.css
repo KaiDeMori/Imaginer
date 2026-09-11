@@ -224,6 +224,12 @@
   margin-bottom: var(--section-label-margin);
 }
 
+.hint_text {
+  margin: var(--field-gap) 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
 /* Button Row */
 .button_row {
   display: flex;

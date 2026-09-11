@@ -1,5 +1,4 @@
 // app.js - Root application logic (updated with image generation logic)
-// NOTE: Only gpt-image-1 is supported, so we ignore response_format (always returns b64_json)
 
 import { Menu_bar } from "./components/menu_bar/menu_bar.js";
 import { Resizable_divider } from "./components/resizable_divider.js";
@@ -12,7 +11,7 @@ import { Error_modal } from "./components/error_modal.js";
 import { process_image_metadata } from "./process_image_metadata.js";
 import { check_and_show_update_message, versioned_url } from "./version_manager.js";
 import { ensure_config_defaults } from "./default_config.js";
-import { get_selected_model } from "./model_fetcher.js";
+import { get_selected_model, supports_extended_quality, clamp_quality_for_model } from "./model_fetcher.js";
 
 // Content-moderation level for GPT image models (hidden config, no UI): "auto"
 // (default) or "low" (less restrictive). Any other/invalid value is silently
@@ -216,17 +215,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   window.process_image_metadata = process_image_metadata;
 
-  async function generate_image_with_streaming(request_body, placeholder, prompt_text, embed_options) {
-    const api_key = Database_store.get_api_key();
-
-    const response = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${api_key}`,
-      },
-      body: JSON.stringify(request_body),
-    });
+  async function consume_image_stream({ endpoint_url, fetch_options, event_prefix, placeholder, prompt_text, embed_options }) {
+    const response = await fetch(endpoint_url, { method: "POST", ...fetch_options });
 
     if (!response.ok) {
       let errObj = null;
@@ -266,10 +256,10 @@ window.addEventListener("DOMContentLoaded", async () => {
           continue;
         }
 
-        if (event.type === "image_generation.partial_image") {
+        if (event.type === `${event_prefix}.partial_image`) {
           const blob = await fetch(`data:image/png;base64,${event.b64_json}`).then((res) => res.blob());
           gallery.update_placeholder_with_partial_image(placeholder, blob, event.partial_image_index);
-        } else if (event.type === "image_generation.completed") {
+        } else if (event.type === `${event_prefix}.completed`) {
           let blob = await fetch(`data:image/png;base64,${event.b64_json}`).then((res) => res.blob());
 
           blob = await process_image_metadata(blob, prompt_text, embed_options);
@@ -346,10 +336,14 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (quality === "") quality = null;
     const moderation = get_moderation();
     let n = parseInt(localStorage.getItem("imaginer.n"));
+    const enable_streaming = localStorage.getItem("imaginer.enable_streaming") === "true";
+    const partial_images = parseInt(localStorage.getItem("imaginer.partial_images")) || 2;
 
     // --- Attach dropped images from generation_panel to API request (if any) ---
     const dropped_images = generation_panel.dropped_images || [];
     const selected_model = get_selected_model();
+    quality = clamp_quality_for_model(quality, selected_model);
+    console.info("[Imaginer] Quality clamped for request:", quality);
     const is_mini_model = selected_model.includes("mini");
     let use_image_edit = dropped_images.length > 0 && !is_mini_model;
 
@@ -361,11 +355,15 @@ window.addEventListener("DOMContentLoaded", async () => {
         form_data.append("image[]", file, file.name);
       }
       form_data.append("prompt", prompt_text);
-      form_data.append("n", n_local);
+      form_data.append("n", enable_streaming ? 1 : n_local);
       form_data.append("size", size);
       if (quality !== null && quality !== "auto") form_data.append("quality", quality);
       if (background !== "auto") form_data.append("background", background);
       if (moderation !== "auto") form_data.append("moderation", moderation);
+      if (enable_streaming) {
+        form_data.append("stream", "true");
+        form_data.append("partial_images", partial_images);
+      }
 
       const selected_model = get_selected_model();
       if (selected_model === "gpt-image-1" || selected_model === "gpt-image-1.5") {
@@ -393,6 +391,32 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
 
       try {
+        if (enable_streaming) {
+          for (let i = 0; i < n_local; i++) {
+            try {
+              await consume_image_stream({
+                endpoint_url: "https://api.openai.com/v1/images/edits",
+                fetch_options: {
+                  headers: {
+                    Authorization: `Bearer ${Database_store.get_api_key()}`,
+                  },
+                  body: form_data,
+                },
+                event_prefix: "image_edit",
+                placeholder: placeholders[i],
+                prompt_text,
+                embed_options,
+              });
+            } catch (err) {
+              console.error(`[Imaginer] Streaming edit failed for image ${i + 1} of ${n_local}:`, err);
+              Error_modal.show(err);
+              const ph = placeholders[i];
+              if (ph && ph.parentNode) gallery.update_placeholder(ph, null, true, prompt_text);
+            }
+          }
+          return;
+        }
+
         const response = await fetch("https://api.openai.com/v1/images/edits", {
           method: "POST",
           headers: {
@@ -432,6 +456,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         for (let i = 0; i < data.data.length; i++) {
           let base64Data = data.data[i].b64_json;
           let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
+
+          blob = await process_image_metadata(blob, prompt_text, embed_options);
+
           const record_id = await database_store.save({
             created,
             image_blob: blob,
@@ -468,9 +495,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const enable_streaming = localStorage.getItem("imaginer.enable_streaming") === "true";
-    const partial_images = parseInt(localStorage.getItem("imaginer.partial_images")) || 2;
-
     try {
       const request_body = {
         model: get_selected_model(),
@@ -490,7 +514,20 @@ window.addEventListener("DOMContentLoaded", async () => {
         for (let i = 0; i < n_local; i++) {
           const single_request = { ...request_body, n: 1 };
           try {
-            await generate_image_with_streaming(single_request, placeholders[i], prompt_text, embed_options);
+            await consume_image_stream({
+              endpoint_url: "https://api.openai.com/v1/images/generations",
+              fetch_options: {
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${Database_store.get_api_key()}`,
+                },
+                body: JSON.stringify(single_request),
+              },
+              event_prefix: "image_generation",
+              placeholder: placeholders[i],
+              prompt_text,
+              embed_options,
+            });
           } catch (err) {
             // Surface per-image so one failure never wedges the batch or leaves
             // a spinner running. Pass the original object so Error_modal can

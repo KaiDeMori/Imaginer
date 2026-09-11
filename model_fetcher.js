@@ -6,6 +6,8 @@ import { Database_store } from "./storage/database_store.js";
 const CACHE_KEY = "imaginer.available_image_models";
 const SELECTED_KEY = "imaginer.selected_image_model";
 const IMAGE_MODEL_FILTER = "gpt-image-";
+const EXTENDED_QUALITY_MODEL_FILTER = "gpt-image-2.5";
+const EXTENDED_QUALITY_VALUES = new Set(["xhigh", "max"]);
 
 const DEFAULT_MODEL = "gpt-image-2";
 
@@ -110,6 +112,28 @@ export function set_selected_model(model_id) {
   if (model_id) {
     localStorage.setItem(SELECTED_KEY, model_id);
   }
+}
+
+/**
+ * Check whether a model supports the extended quality levels "xhigh" and "max"
+ * @param {string} model_id - The model ID to check
+ * @returns {boolean} True when the model supports extended quality levels
+ */
+export function supports_extended_quality(model_id) {
+  return model_id.startsWith(EXTENDED_QUALITY_MODEL_FILTER);
+}
+
+/**
+ * Clamp a quality value to one a model actually supports
+ * @param {string} quality - The requested quality value
+ * @param {string} model_id - The model ID the request targets
+ * @returns {string} "high" when the quality is an extended level the model does not support, otherwise the quality unchanged
+ */
+export function clamp_quality_for_model(quality, model_id) {
+  if (EXTENDED_QUALITY_VALUES.has(quality) && !supports_extended_quality(model_id)) {
+    return "high";
+  }
+  return quality;
 }
 
 /**
