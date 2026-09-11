@@ -7,7 +7,7 @@
 
 ## Data Storage
 - Images, prompts, masks, creation timestamps, and UUIDs are stored in IndexedDB (`imaginer-db`, `images` object store). Masks save when you close the viewer if you loaded the image from the gallery.
-- Settings (prompt text, orientation/size, advanced size mode and saved custom sizes, quality, background, input fidelity, hidden moderation level, n, maximum parallel jobs, streaming preview count, metadata options, filename prompt length, mask button visibility, and model selection) live in `localStorage`. See `localStorage_keys_explained.md` for the full list.
+- Settings (prompt text, orientation/size, advanced size mode and saved custom sizes, quality, background, input fidelity, hidden moderation level, n, maximum parallel jobs, streaming preview count, metadata options, filename prompt length, mask button visibility, model selection, and visibility of older models) live in `localStorage`. See `localStorage_keys_explained.md` for the full list.
 - The API key is XOR-obfuscated and base64-encoded in `localStorage`. The debug function (`window.tabula_rasa()`) clears all local data.
 - A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
 
@@ -36,7 +36,9 @@
 - Imaginer accepts two API key formats from OpenAI:
    - Legacy keys starting with `sk-` and exactly 51 characters in total.
    - Project keys starting with `sk-proj-` and at least 108 characters (8-character prefix plus 100 or more characters).
-- Default model fallback is `gpt-image-2.5-flare`; the dropdown shows cached or refreshed `gpt-image-*` models, including dated snapshots. Imaginer never hides or removes models on its own and never changes a stored model selection.
+- Default model fallback is `gpt-image-2.5-flare`. The recommended models are `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst` (`RECOMMENDED_MODEL_IDS` in `model_fetcher.js`); every other model ID counts as an older model.
+- The dropdown shows the cached or refreshed `gpt-image-*` models filtered by `filter_models_for_dropdown`: only the recommended models unless `imaginer.show_older_models` is `"true"`, then the full list including dated snapshots.
+- `get_selected_model` replaces a stored selection that the dropdown does not show with the default model and stores it. The rule applies at every read, so it covers startup, model refresh, and disabling **Show older models** in the config dialog.
 - When no input images are dropped, Imaginer sends `/v1/images/generations` requests. When images are dropped and a non-mini model is selected, it sends `/v1/images/edits` with the first image's mask attached if one exists.
 - Generations send `model`, `prompt`, `n`, `size`, and optional `quality`/`background`/`moderation` values.
 - Edits send the dropped images, `prompt`, `n`, `size`, optional `quality`/`background`/`moderation`, the first image's `mask` if present, and `input_fidelity` (the user's Low/High choice) — but only for the `gpt-image-1` and `gpt-image-1.5` models. `gpt-image-2` and the `gpt-image-2.5` models always process image inputs at high fidelity, so the parameter is omitted for them.

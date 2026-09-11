@@ -111,9 +111,14 @@ Cached list of available image generation models.
 **Default:** None (fetched from API)
 
 ### `imaginer.selected_image_model`
-Currently selected image generation model. The app never changes a stored value on its own.  
+Currently selected image generation model. A stored older model is replaced by the default while `imaginer.show_older_models` is not `"true"`.  
 **Range:** Model ID string (e.g., `"gpt-image-2.5-sunburst"`)  
 **Default:** `"gpt-image-2.5-flare"` (fallback; if the cached model list does not contain it, the first cached model ID is used)
+
+### `imaginer.show_older_models`
+List every image model of the account in the model dropdown instead of the two recommended models.  
+**Range:** `"true"`, `"false"`  
+**Default:** `"false"`
 
 ---
 
