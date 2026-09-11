@@ -13,6 +13,8 @@ Working method:
 - Each agent prompt names: the brief `Tasks/Agent_conventions_brief.md`, the sections of this file to read, the files to read, the scope, task-specific implementation notes, and the report format from the brief. The only verification instruction for the agent: re-read the changed files once.
 - After an agent finishes: read its report, correct the reported deviations directly in the files, update this section, then write "ready" in the chat and wait for the user. No LSP runs, no syntax tracing, no summaries in the chat. The user reviews the diff in git and commits.
 - Manual heading for the models section: "Choosing a Model", anchor `choosing-a-model` (used by T10 and T11).
+- Manual heading for the free sizes: "Advanced size setting (free resolutions)", anchor `advanced-size-setting-free-resolutions-` (used by the 1.6 card). Manual anchors derive from the heading text; a heading that a version card links to must not change.
+- Version cards run in two contexts: injected into the app page during an update, and standalone from the About dialog. Links to the manual carry `data-manual_anchor` and a script in the card resolves the path per context.
 
 | Group | Tasks | Status |
 | --- | --- | --- |

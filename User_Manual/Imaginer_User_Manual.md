@@ -400,7 +400,7 @@ Use Menu Bar → **Orientation buttons** to choose the canvas shape for generati
 
 Your selection persists between sessions and applies to the next generation or edit request.
 
-##### Advanced size setting (free resolutions for `gpt-image-2` and the `gpt-image-2.5` models)
+##### Advanced size setting (free resolutions)
 
 `gpt-image-2` and the `gpt-image-2.5` models support any resolution that satisfies the constraints below, not just the three orientation presets. To work with arbitrary sizes:
 

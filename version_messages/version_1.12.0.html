@@ -155,7 +155,7 @@
 
       <div class="switch_hint">
         Your current model selection is unchanged. Pick <strong>gpt-image-2.5-flare</strong> in the model dropdown to use the new default. The ℹ️ button next to the dropdown opens
-        <a href="User_Manual/Imaginer_User_Manual.html#choosing-a-model" target="_blank" rel="noopener noreferrer">Choosing a Model</a> in the manual.
+        <a href="../User_Manual/Imaginer_User_Manual.html#choosing-a-model" data-manual_anchor="choosing-a-model" target="_blank" rel="noopener noreferrer">Choosing a Model</a> in the manual.
       </div>
 
       <ul class="feature_list">
@@ -177,5 +177,16 @@
 
       <div class="subtle_note">Same Imaginer you know. Faster and sharper images. ✨</div>
     </div>
+    <script type="module">
+      (function () {
+        // The card is injected into the app page during an update and opened standalone from the About dialog.
+        // The manual lives one level up from the standalone card and next to the app page.
+        const is_in_modal = !!document.querySelector(".version_message_modal");
+        const manual_path = (is_in_modal ? "" : "../") + "User_Manual/Imaginer_User_Manual.html";
+        for (const link of document.querySelectorAll("a[data-manual_anchor]")) {
+          link.href = `${manual_path}#${link.dataset.manual_anchor}`;
+        }
+      })();
+    </script>
   </body>
 </html>
