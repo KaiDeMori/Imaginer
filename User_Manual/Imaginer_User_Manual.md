@@ -85,6 +85,10 @@ The menu bar spans the top of the screen and contains all your controls and sett
   - Use Config → Account → **Refresh Image Models** to update the list.
   - Hover the dropdown for a short summary of the recommended models.
 
+- **Background dropdown**: Choose whether your images get a transparent or an opaque background.
+  - This is the same setting as Config → Generation → **Background**.
+  - See Generation Settings → **Background** for what each option does.
+
 
 **Right side:**
 - 🗑️ **Delete Mode button**: Toggle deletion mode to remove images from gallery.
@@ -92,7 +96,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
 - 🛈 **About button**: View app information and version.
 - ❔ **Help button**: Open this user manual in a new browser tab.
 
-The menu bar also manages your image orientation selection, which persists between sessions.
+Your menu bar selections persist between sessions.
 
 #### The Gallery (Left)
 
@@ -351,6 +355,12 @@ All images use the same prompt but produce different variations.
 #### Background
 
 **Background** controls whether generated images have transparent or opaque backgrounds.
+
+You can change it in two places:
+- Menu Bar → **Background dropdown**, next to the model dropdown. Your choice applies immediately.
+- Config → Generation → **Background**. Your choice applies when you click **Save**.
+
+Both places change the same setting, so each one always shows your current choice.
 
 **Options**:
 - **Automatic** (default): The model decides based on your prompt.
