@@ -85,7 +85,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
   - Use Config → Account → **Refresh Image Models** to update the list.
   - Hover the dropdown for a short summary of the recommended models.
 
-- **Background dropdown**: Choose whether your images get a transparent or an opaque background.
+- **Background dropdown**: Choose whether to ask for a transparent or an opaque background.
   - This is the same setting as Config → Generation → **Background**.
   - See Generation Settings → **Background** for what each option does.
 
@@ -354,7 +354,7 @@ All images use the same prompt but produce different variations.
 
 #### Background
 
-**Background** controls whether generated images have transparent or opaque backgrounds.
+**Background** lets you ask the model for a transparent or an opaque background.
 
 You can change it in two places:
 - Menu Bar → **Background dropdown**, next to the model dropdown. Your choice applies immediately.
@@ -364,8 +364,8 @@ Both places change the same setting, so each one always shows your current choic
 
 **Options**:
 - **Automatic** (default): The model decides based on your prompt.
-- **Transparent**: Generates images with transparent backgrounds.
-- **Opaque**: Generates images with solid backgrounds.
+- **Transparent**: Asks the model for a transparent background.
+- **Opaque**: Asks the model for a solid background.
 
 Transparency works best for isolated objects like logos and icons. The `gpt-image-2.5` models support transparent backgrounds for generations and for edits. Imaginer always saves PNG files, so the transparency is kept in the downloaded image.
 
