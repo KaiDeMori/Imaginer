@@ -22,7 +22,7 @@ Number of images to generate per request.
 **Default:** `"1"`
 
 ### `imaginer.background`
-Background handling for transparent images.  
+Background handling for transparent images. Written by the menu bar dropdown on every change and by the config dialog on save. Invalid values reset to `"auto"`.  
 **Range:** `"auto"`, `"transparent"`, `"opaque"`  
 **Default:** `"auto"`
 
@@ -172,9 +172,9 @@ Font scale multiplier for intro UI.
 ## Menu Bar Settings
 
 ### `imaginer.menu_settings`
-Persistent state for menu bar (e.g., advanced options visibility).  
+Persistent menu bar state. Holds the selected orientation. A `background` field may be present in stored objects; it is not read.  
 **Range:** JSON object  
-**Default:** Empty object `{}`
+**Default:** `{"orientation": "square"}`
 
 ---
 

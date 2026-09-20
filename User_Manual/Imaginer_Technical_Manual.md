@@ -8,6 +8,7 @@
 ## Data Storage
 - Images, prompts, masks, creation timestamps, and UUIDs are stored in IndexedDB (`imaginer-db`, `images` object store). Masks save when you close the viewer if you loaded the image from the gallery.
 - Settings (prompt text, orientation/size, advanced size mode and saved custom sizes, quality, background, input fidelity, hidden moderation level, n, maximum parallel jobs, streaming preview count, metadata options, filename prompt length, mask button visibility, model selection, and visibility of older models) live in `localStorage`. See `localStorage_keys_explained.md` for the full list.
+- `imaginer.background` is written by two controls. The menu bar dropdown writes on every change; the config dialog writes on **Save**. The menu bar re-reads the key on `imaginer.config_changed`, and `Config_dialog.open` re-reads it on every open, so both controls show the stored value. A stored value outside `auto`, `transparent` and `opaque` is replaced with `auto` by the menu bar.
 - The API key is XOR-obfuscated and base64-encoded in `localStorage`. The debug function (`window.tabula_rasa()`) clears all local data.
 - A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
 
@@ -44,6 +45,7 @@
 - Edits send the dropped images, `prompt`, `n`, `size`, optional `quality`/`background`/`moderation`, the first image's `mask` if present, and `input_fidelity` (the user's Low/High choice) — but only for the `gpt-image-1` and `gpt-image-1.5` models. `gpt-image-2` and the `gpt-image-2.5` models always process image inputs at high fidelity, so the parameter is omitted for them.
 - Streaming previews (`stream: true` with `partial_images`) are requested on both endpoints when the streaming preview is enabled. Generations consume `image_generation.partial_image` and `image_generation.completed` events, edits consume `image_edit.partial_image` and `image_edit.completed` events (`consume_image_stream` in `app.js`). A streamed edit sends one request per requested image with `n` set to 1, so each placeholder receives its own preview sequence.
 - Quality values: all GPT image models accept `low`, `medium`, `high` and `auto`. The `gpt-image-2.5` models additionally accept `xhigh` and `max`. `clamp_quality_for_model` in `model_fetcher.js` replaces `xhigh` and `max` with `high` at request time when the selected model ID does not start with `gpt-image-2.5`. The stored `imaginer.quality` value is not changed.
+- Background values are not clamped per model. `background: transparent` is supported by `gpt-image-1` and by both `gpt-image-2.5` models, and Imaginer never sends `output_format`, so the API default PNG preserves the transparency.
 - Generation results and edit results pass through the same metadata processing (`process_image_metadata`): optional stripping of server-side metadata, then optional prompt embedding as iTXt and/or XMP.
 - Moderation errors (`code: "moderation_blocked"`) may carry a `moderation_details` object with `moderation_stage` (`input`, `output`, `unknown`) and a `categories` list. The moderation dialog shows the stage and the categories when they are present.
 - Selecting a `*-mini` model disables editing: dropped images are ignored and the request falls back to a plain generation.
@@ -64,7 +66,7 @@
 ## Version History
 - Version info is stored in `version.json`.
 - Release notes appear as modals on updates and are shown once per version.
-- Update-time and manual cache refresh use `cache_manifest.json` plus `fetch(..., { cache: "reload" })` for core JS, JSON, HTML, and selected documentation files.
+- Update-time and manual cache refresh use `cache_manifest.json` plus `fetch(..., { cache: "reload" })` for core JS, JSON, HTML, CSS, and selected documentation files.
 
 ## The Intro Sequence
 - First launch shows a cinematic intro after API key entry (requires WebGL).
