@@ -58,6 +58,9 @@ The immediate write matches the orientation buttons and the size dropdown, which
 The value repair matches `get_moderation` in `app.js`.
 Without it, a stored value outside the three options leaves the native `select` at `selectedIndex === -1` and the control renders blank.
 
+`default_config.js` also seeds `imaginer.background` through `ensure_config_defaults`, which runs before the menu bar is constructed.
+The two layers do not overlap: `ensure_config_defaults` fills a missing or empty value, while the repair described here replaces a present but invalid value.
+
 The `imaginer.config_changed` listener covers the config dialog direction.
 The opposite direction needs no work, because `Config_dialog.open` re-reads `localStorage` every time it runs.
 
@@ -119,6 +122,27 @@ This is unlike `size`, which `is_preset_size_only_model` clamps, and unlike `qua
 
 - **Default**: keep three separate rules. Smaller diff, no edits to the two working controls.
 - **Alternative**: introduce one shared class. Tidier, but it requires editing the existing two selects in `menu_bar.html`.
+
+## Accepted risks
+
+Both risks are named here on purpose. This step addresses neither.
+
+### Keyboard focus can leave the open config dialog
+
+`Config_dialog.init` appends the overlay as the last child of `body`, and no dialog in the project sets `inert`, sets `aria-modal`, or traps focus.
+Shift+Tab out of the dialog therefore reaches the menu bar controls behind the overlay, which stays visible because the overlay is semi transparent.
+Arrow keys on a focused `select` fire `change` at once, so a keyboard user can write `imaginer.background` while the dialog is open.
+A following Save then writes back the value the dialog read in `open`, which reverts the change without any message.
+
+`imaginer.background` is the first key that both the menu bar and the config dialog write, so this conflict does not exist for any current control.
+The fix is `inert` on the dialog overlay. That affects every dialog in the project and belongs in its own task.
+
+### The menu bar has no layout reserve
+
+The left group sets no `flex-wrap`, `#menu-bar` has a fixed height and no `overflow-x`, and neither `main.css` nor `menu_bar.css` defines a media query.
+`min-width` stops the selects from shrinking, so a third control makes the row overflow instead of compressing it.
+This raises the window width at which the right hand icon group gets pushed out of view.
+Imaginer targets the desktop, so the change is accepted.
 
 ## Out of scope
 
