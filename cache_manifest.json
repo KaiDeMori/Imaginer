@@ -33,6 +33,7 @@
     "components/image_validation.js",
     "components/jpeg_metadata_reader.js",
     "components/menu_bar/menu_bar.html",
+    "components/menu_bar/menu_bar.css",
     "components/menu_bar/menu_bar.js",
     "components/moderation_error.html",
     "components/performance_limit_warning/performance_limit_warning.html",

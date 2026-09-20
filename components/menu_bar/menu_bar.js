@@ -27,10 +27,11 @@ export class Menu_bar {
 
   async init() {
     // 1. Load CSS (if not already there)
-    if (!document.querySelector('link[href="components/menu_bar/menu_bar.css"]')) {
+    const stylesheet_url = versioned_url("components/menu_bar/menu_bar.css");
+    if (!document.querySelector(`link[href="${stylesheet_url}"]`)) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "components/menu_bar/menu_bar.css";
+      link.href = stylesheet_url;
       document.head.appendChild(link);
     }
 
@@ -187,12 +188,39 @@ export class Menu_bar {
       populate_models();
     });
 
+    // --- Background dropdown ---
+    const BACKGROUND_VALUES = new Set(["auto", "transparent", "opaque"]);
+    const background_select = this.root.querySelector("#background-select");
+
+    if (background_select) {
+      /**
+       * Applies the stored background to the dropdown.
+       * A value outside the supported set is replaced, so the dropdown never shows a state that the generation request does not use.
+       */
+      const sync_background_select = () => {
+        const stored_background = localStorage.getItem("imaginer.background");
+        if (BACKGROUND_VALUES.has(stored_background)) {
+          background_select.value = stored_background;
+          return;
+        }
+        localStorage.setItem("imaginer.background", "auto");
+        background_select.value = "auto";
+      };
+
+      background_select.addEventListener("change", () => {
+        localStorage.setItem("imaginer.background", background_select.value);
+      });
+
+      sync_background_select();
+      // The config dialog writes the same key, so saving there has to reach this dropdown.
+      window.addEventListener("imaginer.config_changed", sync_background_select);
+    }
+
     // --- Settings persistence logic ---
     const SETTINGS_KEY = "imaginer.menu_settings";
     // Default settings
     const default_settings = {
       orientation: "square",
-      background: "auto",
     };
     // Load settings from localStorage or use defaults
     let settings = { ...default_settings, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") };
@@ -405,7 +433,6 @@ export class Menu_bar {
       });
     }
 
-    // Remove background select logic (now in config dialog)
     // Initial save to ensure settings are present
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     // For backward compatibility, mirror orientation -> image_size only in basic mode.
