@@ -1,12 +1,15 @@
-/* Overlay */
+/* Overlay: the dialog is anchored below the top edge instead of centered vertically, so its top edge keeps its position when a taller or shorter tab becomes active. */
 .config_overlay {
+  --config_dialog_overlay_vertical_offset: 8vh;
+
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(4px);
   display: none;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding: var(--config_dialog_overlay_vertical_offset) 0;
   z-index: 1000;
 }
 
@@ -55,7 +58,7 @@
   border-radius: 10px;
   width: 460px;
   max-width: 95vw;
-  max-height: 95vh;
+  max-height: 100%;
   box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
