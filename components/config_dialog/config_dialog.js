@@ -41,13 +41,13 @@ export class Config_dialog {
     temp.innerHTML = html;
 
     // 4. Extract the overlay (root of the dialog)
-    this.overlay = temp.querySelector(".overlay");
+    this.overlay = temp.querySelector(".config_overlay");
     document.body.appendChild(this.overlay);
 
     // 5. Get references to elements
-    this.dialog = this.overlay.querySelector(".dialog");
-    this.tab_buttons = Array.from(this.overlay.querySelectorAll(".tab_button"));
-    this.tab_contents = Array.from(this.overlay.querySelectorAll(".tab_content"));
+    this.dialog = this.overlay.querySelector(".config_dialog");
+    this.tab_buttons = Array.from(this.overlay.querySelectorAll(".config_tab_button"));
+    this.tab_contents = Array.from(this.overlay.querySelectorAll(".config_tab_content"));
 
     this.api_key_form = this.overlay.querySelector("#api_key_form");
     this.input = this.overlay.querySelector("#api_key_input");
@@ -71,13 +71,13 @@ export class Config_dialog {
     this.filename_prompt_chars_input.min = String(MIN_FILENAME_PROMPT_CHARS);
     this.filename_prompt_chars_input.max = String(MAX_FILENAME_PROMPT_CHARS);
 
-    this.button_download_all = this.overlay.querySelector("#download_all_button");
+    this.button_download_all = this.overlay.querySelector("#config_download_all_button");
     this.button_cancel = this.overlay.querySelector("#cancel_button");
     this.button_save = this.overlay.querySelector("#save_button");
     this.refresh_models_button = this.overlay.querySelector("#refresh_models_button");
     this.show_older_models_checkbox = this.overlay.querySelector("#show_older_models_checkbox");
     this.refresh_cache_button = this.overlay.querySelector("#refresh_cache_button");
-    this.clear_gallery_button = this.overlay.querySelector("#clear_gallery_button");
+    this.clear_gallery_button = this.overlay.querySelector("#config_clear_gallery_button");
 
     // 6. Wire events
     this.wire_events();

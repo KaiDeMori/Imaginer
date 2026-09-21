@@ -1,5 +1,5 @@
 /* Overlay */
-.overlay {
+.config_overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
@@ -11,7 +11,7 @@
 }
 
 /* Dialog Box */
-.dialog {
+.config_dialog {
   /* Container */
   --config_dialog_padding_vertical: 16px;
   --config_dialog_padding_horizontal: 24px;
@@ -64,12 +64,12 @@
   padding: var(--config_dialog_padding_vertical) var(--config_dialog_padding_horizontal);
 }
 
-.title {
+.config_title {
   margin: 0 0 var(--config_dialog_title_margin_bottom) 0;
 }
 
 /* Tab Bar */
-.tab_bar {
+.config_tab_bar {
   display: flex;
   flex-wrap: wrap;
   gap: var(--config_dialog_tab_gap);
@@ -77,7 +77,7 @@
   margin-bottom: var(--config_dialog_tab_bar_margin_bottom);
 }
 
-.tab_button {
+.config_tab_button {
   background: none;
   border: none;
   outline: none;
@@ -90,14 +90,14 @@
   transition: border-bottom 0.2s, color 0.2s;
 }
 
-.tab_button.active {
+.config_tab_button.active {
   color: #222;
   border-bottom: 2.5px solid #1976d2;
   background: #f5faff;
 }
 
 /* Tab Content: the single flexible child of the dialog, scrolls vertically when the dialog reaches its maximum height. */
-.tab_content {
+.config_tab_content {
   display: block;
   flex: 0 1 auto;
   min-height: 0;
@@ -107,12 +107,12 @@
 }
 
 /* Settings Groups */
-.settings_group + .settings_group {
+.config_settings_group + .config_settings_group {
   margin-top: var(--config_dialog_settings_group_gap);
 }
 
 /* Field Grid: label track wraps, control track is sized by the widest control. */
-.field_grid {
+.config_field_grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
   column-gap: var(--config_dialog_label_control_gap);
@@ -120,44 +120,44 @@
   align-items: center;
 }
 
-.field_grid .hint_text {
+.config_field_grid .config_hint_text {
   grid-column: 1 / -1;
 }
 
-.field_stacked {
+.config_field_stacked {
   display: block;
 }
 
-.field_stacked .label {
+.config_field_stacked .config_label {
   margin-bottom: var(--config_dialog_stacked_label_gap);
 }
 
-.dependent_setting {
+.config_dependent_setting {
   margin-left: calc(var(--config_dialog_section_indent) * 2);
   margin-top: var(--config_dialog_dependent_setting_gap);
 }
 
 /* Labels */
-.label {
+.config_label {
   font-size: 0.95rem;
   margin: 0;
   display: block;
 }
 
-.prompt_group_label {
+.config_prompt_group_label {
   font-size: 0.95rem;
   font-weight: bold;
   margin-bottom: var(--config_dialog_section_label_margin);
 }
 
-.hint_text {
+.config_hint_text {
   margin: 0;
   font-size: 0.85rem;
   color: #666;
 }
 
 /* Form Controls */
-.form {
+.config_form {
   display: flex;
   align-items: baseline;
   gap: var(--config_dialog_form_element_gap);
@@ -169,7 +169,7 @@
   width: 100%;
 }
 
-.input {
+.config_input {
   font-family: monospace;
   font-size: 1rem;
   border: var(--config_dialog_input_border_width) solid #ccc;
@@ -178,7 +178,7 @@
   padding: var(--config_dialog_input_padding_vertical) var(--config_dialog_input_padding_horizontal);
 }
 
-.input:focus {
+.config_input:focus {
   outline: 2px solid #1976d2;
   border-color: #1976d2;
 }
@@ -189,20 +189,20 @@
 }
 
 /* Controls in the grid sit at the right edge, so their content is right-aligned as well. */
-.field_grid .input {
+.config_field_grid .config_input {
   text-align: right;
 }
 
-.field_grid select.input {
+.config_field_grid select.config_input {
   width: 100%;
   text-align-last: right;
 }
 
-.field_grid select.input option {
+.config_field_grid select.config_input option {
   text-align: right;
 }
 
-.field_grid input[type="number"].input {
+.config_field_grid input[type="number"].config_input {
   width: calc(
     var(--config_dialog_number_input_digits) + 2 * var(--config_dialog_input_padding_horizontal) + 2 * var(--config_dialog_input_border_width) +
       var(--config_dialog_spin_button_allowance)
@@ -211,7 +211,7 @@
 }
 
 /* Buttons */
-.button {
+.config_button {
   font-size: 1rem;
   border: none;
   border-radius: 4px;
@@ -220,20 +220,20 @@
   padding: var(--config_dialog_button_padding_vertical) var(--config_dialog_button_padding_horizontal);
 }
 
-.test_button {
+.config_test_button {
   background: #1976d2;
   color: #fff;
   flex-shrink: 0;
 }
 
-.feedback {
+.config_feedback {
   font-size: 1.3rem;
   min-width: 1.5em;
   display: inline-block;
   vertical-align: middle;
 }
 
-.button_row {
+.config_button_row {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--config_dialog_button_row_margin_top);
@@ -241,56 +241,56 @@
   border-top: 1px solid #e0e0e0;
 }
 
-.button_group {
+.config_button_group {
   display: flex;
   gap: var(--config_dialog_button_group_gap);
 }
 
-.download_button {
+.config_download_button {
   background: #388e3c;
   color: #fff;
   box-shadow: 0 1px 4px rgba(56, 142, 60, 0.08);
 }
 
-.cancel_button {
+.config_cancel_button {
   background: #f5f5f5;
   border: 1px solid #bbb;
 }
 
-.save_button {
+.config_save_button {
   background: #1976d2;
   color: #fff;
   box-shadow: 0 1px 4px rgba(25, 118, 210, 0.08);
 }
 
-.full_width_button {
+.config_full_width_button {
   width: 100%;
 }
 
-.button_delete {
+.config_button_delete {
   background-color: #d32f2f;
   color: white;
 }
 
 /* Checkbox Rows */
-.checkbox_label {
+.config_checkbox_label {
   display: flex;
   align-items: center;
   font-size: 0.97rem;
   cursor: pointer;
 }
 
-.prompt_embed_options {
+.config_prompt_embed_options {
   display: flex;
   flex-direction: column;
 }
 
-.metadata_toggle + .prompt_embed_options {
+.config_metadata_toggle + .config_prompt_embed_options {
   margin-top: var(--config_dialog_section_gap);
 }
 
 /* Files Actions */
-.files_actions {
+.config_files_actions {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -299,11 +299,11 @@
   padding: 10px;
 }
 
-.files_actions > .button:not(.button_delete) {
+.config_files_actions > .config_button:not(.config_button_delete) {
   width: 100%;
 }
 
-.danger_action_row {
+.config_danger_action_row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
   column-gap: var(--config_dialog_label_control_gap);
@@ -311,7 +311,7 @@
   margin-top: var(--config_dialog_section_gap);
 }
 
-.danger_text {
+.config_danger_text {
   color: #6b1b1b;
   font-size: 0.86rem;
   line-height: 1.3;

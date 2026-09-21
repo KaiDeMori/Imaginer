@@ -1,19 +1,19 @@
-<div class="overlay">
-  <div class="dialog">
-    <h2 class="title">Configuration</h2>
+<div class="config_overlay">
+  <div class="config_dialog">
+    <h2 class="config_title">Configuration</h2>
 
-    <div class="tab_bar">
-      <button class="tab_button active" id="account_tab_button">Account</button>
-      <button class="tab_button" id="generation_tab_button">Generation</button>
-      <button class="tab_button" id="files_tab_button">Files</button>
-      <button class="tab_button" id="advanced_tab_button">Advanced</button>
+    <div class="config_tab_bar">
+      <button class="config_tab_button active" id="account_tab_button">Account</button>
+      <button class="config_tab_button" id="generation_tab_button">Generation</button>
+      <button class="config_tab_button" id="files_tab_button">Files</button>
+      <button class="config_tab_button" id="advanced_tab_button">Advanced</button>
     </div>
 
-    <div class="tab_content" id="account_tab_content">
-      <div class="settings_group">
-        <div class="field_stacked">
-          <label class="label" for="api_key_input">OpenAI API Key</label>
-          <form class="form" autocomplete="off" id="api_key_form">
+    <div class="config_tab_content" id="account_tab_content">
+      <div class="config_settings_group">
+        <div class="config_field_stacked">
+          <label class="config_label" for="api_key_input">OpenAI API Key</label>
+          <form class="config_form" autocomplete="off" id="api_key_form">
             <input
               type="text"
               name="username"
@@ -23,36 +23,36 @@
               aria-hidden="true"
               style="position: absolute; opacity: 0; height: 0; width: 0; pointer-events: none"
             />
-            <input type="text" placeholder="sk-..." autocomplete="off" data-lpignore="true" data-form-type="other" class="input" id="api_key_input" />
-            <button type="submit" class="button test_button" id="test_button">Test</button>
-            <span class="feedback" id="test_feedback"></span>
+            <input type="text" placeholder="sk-..." autocomplete="off" data-lpignore="true" data-form-type="other" class="config_input" id="api_key_input" />
+            <button type="submit" class="config_button config_test_button" id="test_button">Test</button>
+            <span class="config_feedback" id="test_feedback"></span>
           </form>
         </div>
       </div>
 
-      <div class="settings_group">
-        <button class="button refresh_models_button full_width_button" id="refresh_models_button">Refresh Image Models</button>
+      <div class="config_settings_group">
+        <button class="config_button config_full_width_button" id="refresh_models_button">Refresh Image Models</button>
       </div>
     </div>
 
-    <div class="tab_content" id="generation_tab_content" style="display: none">
-      <div class="settings_group field_grid">
-        <label class="label" for="max_input">Maximum number of parallel generations</label>
-        <input type="number" min="1" max="10" step="1" class="input" id="max_input" />
+    <div class="config_tab_content" id="generation_tab_content" style="display: none">
+      <div class="config_settings_group config_field_grid">
+        <label class="config_label" for="max_input">Maximum number of parallel generations</label>
+        <input type="number" min="1" max="10" step="1" class="config_input" id="max_input" />
 
-        <label class="label" for="n_input">Number of images to generate (n)</label>
-        <input type="number" min="1" max="10" step="1" class="input" id="n_input" />
+        <label class="config_label" for="n_input">Number of images to generate (n)</label>
+        <input type="number" min="1" max="10" step="1" class="config_input" id="n_input" />
 
-        <label class="label" for="background_select">Background</label>
-        <select class="input" id="background_select">
+        <label class="config_label" for="background_select">Background</label>
+        <select class="config_input" id="background_select">
           <option value="auto">Automatic</option>
           <option value="transparent">Transparent</option>
           <option value="opaque">Opaque</option>
         </select>
-        <p class="hint_text">Background is also available in the menu bar, next to the model dropdown.</p>
+        <p class="config_hint_text">Background is also available in the menu bar, next to the model dropdown.</p>
 
-        <label class="label" for="quality_select">Image quality</label>
-        <select class="input" id="quality_select">
+        <label class="config_label" for="quality_select">Image quality</label>
+        <select class="config_input" id="quality_select">
           <option value="auto">Automatic</option>
           <option value="max">Maximum</option>
           <option value="xhigh">Extra high</option>
@@ -61,79 +61,79 @@
           <option value="low">Low</option>
         </select>
 
-        <label class="label" for="input_fidelity_select">Input fidelity (gpt-image-1 and gpt-image-1.5 only)</label>
-        <select class="input" id="input_fidelity_select">
+        <label class="config_label" for="input_fidelity_select">Input fidelity (gpt-image-1 and gpt-image-1.5 only)</label>
+        <select class="config_input" id="input_fidelity_select">
           <option value="low">Low</option>
           <option value="high">High (default)</option>
         </select>
       </div>
 
-      <div class="settings_group">
-        <label class="checkbox_label">
+      <div class="config_settings_group">
+        <label class="config_checkbox_label">
           <input type="checkbox" id="show_mask_mode_checkbox" />
           <span>Show Mask Mode Button</span>
         </label>
       </div>
     </div>
 
-    <div class="tab_content" id="files_tab_content" style="display: none">
-      <div class="settings_group field_grid">
-        <label class="label" for="filename_prompt_chars_input">Filename prompt characters (max. 230)</label>
-        <input type="number" min="1" max="230" step="1" class="input" id="filename_prompt_chars_input" />
+    <div class="config_tab_content" id="files_tab_content" style="display: none">
+      <div class="config_settings_group config_field_grid">
+        <label class="config_label" for="filename_prompt_chars_input">Filename prompt characters (max. 230)</label>
+        <input type="number" min="1" max="230" step="1" class="config_input" id="filename_prompt_chars_input" />
       </div>
 
-      <div class="files_actions">
-        <button class="button download_button" id="download_all_button">Download All Images</button>
-        <button class="button" id="refresh_cache_button">Refresh Cache</button>
+      <div class="config_files_actions">
+        <button class="config_button config_download_button" id="config_download_all_button">Download All Images</button>
+        <button class="config_button" id="refresh_cache_button">Refresh Cache</button>
 
-        <div class="danger_action_row">
-          <span class="danger_text">Deletes every gallery image. This cannot be undone; download anything you want to keep first.</span>
-          <button class="button button_delete" id="clear_gallery_button">Delete Gallery</button>
+        <div class="config_danger_action_row">
+          <span class="config_danger_text">Deletes every gallery image. This cannot be undone; download anything you want to keep first.</span>
+          <button class="config_button config_button_delete" id="config_clear_gallery_button">Delete Gallery</button>
         </div>
       </div>
     </div>
 
-    <div class="tab_content" id="advanced_tab_content" style="display: none">
-      <div class="settings_group">
-        <label class="checkbox_label">
+    <div class="config_tab_content" id="advanced_tab_content" style="display: none">
+      <div class="config_settings_group">
+        <label class="config_checkbox_label">
           <input type="checkbox" id="show_older_models_checkbox" />
           <span>Show older models</span>
         </label>
       </div>
 
-      <div class="settings_group">
-        <label class="checkbox_label">
+      <div class="config_settings_group">
+        <label class="config_checkbox_label">
           <input type="checkbox" id="advanced_size_mode_checkbox" />
           <span>Advanced size setting (<code>2 & 2.5</code> only)</span>
         </label>
       </div>
 
-      <div class="settings_group">
-        <label class="checkbox_label">
+      <div class="config_settings_group">
+        <label class="config_checkbox_label">
           <input type="checkbox" id="enable_streaming_checkbox" />
           <span>Enable Image Streaming Preview</span>
         </label>
-        <div class="dependent_setting field_grid">
-          <label class="label" for="partial_images_input">Number of partial previews</label>
-          <input type="number" min="1" max="3" step="1" class="input" id="partial_images_input" />
+        <div class="config_dependent_setting config_field_grid">
+          <label class="config_label" for="partial_images_input">Number of partial previews</label>
+          <input type="number" min="1" max="3" step="1" class="config_input" id="partial_images_input" />
         </div>
       </div>
 
-      <div class="settings_group">
-        <div class="metadata_toggle">
-          <label class="checkbox_label">
+      <div class="config_settings_group">
+        <div class="config_metadata_toggle">
+          <label class="config_checkbox_label">
             <input type="checkbox" id="strip_checkbox" />
             <span>Strip Server-Side metadata</span>
           </label>
         </div>
 
-        <div class="prompt_embed_options">
-          <div class="prompt_group_label">Embed prompt:</div>
-          <label class="checkbox_label">
+        <div class="config_prompt_embed_options">
+          <div class="config_prompt_group_label">Embed prompt:</div>
+          <label class="config_checkbox_label">
             <input type="checkbox" id="prompt_checkbox" />
             <span>as <code>iTXt</code> (standard PNG text chunk)</span>
           </label>
-          <label class="checkbox_label">
+          <label class="config_checkbox_label">
             <input type="checkbox" id="prompt_xmp_checkbox" />
             <span>as <code>XMP</code> (for Adobe/metadata-aware tools)</span>
           </label>
@@ -141,10 +141,10 @@
       </div>
     </div>
 
-    <div class="button_row">
-      <div class="button_group">
-        <button class="button cancel_button" id="cancel_button">Cancel</button>
-        <button class="button save_button" id="save_button">Save</button>
+    <div class="config_button_row">
+      <div class="config_button_group">
+        <button class="config_button config_cancel_button" id="cancel_button">Cancel</button>
+        <button class="config_button config_save_button" id="save_button">Save</button>
       </div>
     </div>
   </div>
