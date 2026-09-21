@@ -2,14 +2,14 @@ import { versioned_url } from "../../version_manager.js";
 import { build_image_filename } from "../../filename_helper.js";
 import { extension_for_type } from "../image_validation.js";
 
-export class Performance_limit_warning {
+export class Performance_warning {
   constructor() {
     this.init_promise = this.init();
   }
 
   async init() {
     // 1. Load CSS
-    const css_path = versioned_url("components/performance_limit_warning/performance_limit_warning.css");
+    const css_path = versioned_url("components/performance_warning/performance_warning.css");
     if (!document.querySelector(`link[href="${css_path}"]`)) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
@@ -18,7 +18,7 @@ export class Performance_limit_warning {
     }
 
     // 2. Fetch HTML
-    const response = await fetch(versioned_url("components/performance_limit_warning/performance_limit_warning.html"));
+    const response = await fetch(versioned_url("components/performance_warning/performance_warning.html"));
     const html = await response.text();
 
     // 3. Create container

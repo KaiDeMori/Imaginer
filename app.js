@@ -147,8 +147,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     on_loading_complete: async () => {
       const duration = performance.now() - start_time;
       if (duration > MAX_GALLERY_LOAD_DURATION_MS) {
-        const { Performance_limit_warning } = await import(versioned_url("./components/performance_limit_warning/performance_limit_warning.js"));
-        const warning = new Performance_limit_warning();
+        const { Performance_warning } = await import(versioned_url("./components/performance_warning/performance_warning.js"));
+        const warning = new Performance_warning();
         warning.open();
       }
     },
@@ -679,7 +679,7 @@ window.tabula_rasa = function tabula_rasa() {
 
 // --- Debug function to trigger performance warning ---
 window.debug_trigger_performance_warning = async function () {
-  const { Performance_limit_warning } = await import(versioned_url("./components/performance_limit_warning/performance_limit_warning.js"));
-  const warning = new Performance_limit_warning();
+  const { Performance_warning } = await import(versioned_url("./components/performance_warning/performance_warning.js"));
+  const warning = new Performance_warning();
   warning.open();
 };
