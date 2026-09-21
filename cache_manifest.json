@@ -2,6 +2,7 @@
   "version": 1,
   "files": [
     "index.html",
+    "main.css",
     "app.js",
     "cache_refresh_manager.js",
     "default_config.js",
