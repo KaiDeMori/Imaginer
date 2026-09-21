@@ -1,4 +1,4 @@
-.overlay {
+.performance_warning_overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
@@ -9,7 +9,7 @@
   z-index: 2000; /* Higher than config dialog */
 }
 
-.dialog {
+.performance_warning_dialog {
   background: #fff;
   border-radius: 10px;
   min-width: 340px;
@@ -23,29 +23,30 @@
   border: 1.5px solid #e0e0e0;
 }
 
-.title {
+.performance_warning_title {
   margin: 0 0 16px 0;
   color: #d32f2f; /* Red for warning */
 }
 
-.content {
+.performance_warning_content {
   margin-bottom: 24px;
   font-size: 1rem;
   line-height: 1.5;
   color: #333;
 }
 
-.content p {
+.performance_warning_content p {
   margin: 0 0 12px 0;
 }
 
-.actions {
+.performance_warning_actions {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.button {
+/* Button variants follow the base rule, so their flat specificity is enough to override it. */
+.performance_warning_button {
   padding: 10px 16px;
   font-size: 1rem;
   border: none;
@@ -55,32 +56,32 @@
   transition: background-color 0.2s;
 }
 
-.button.primary {
+.performance_warning_button_primary {
   background-color: #1976d2;
   color: white;
 }
-.button.primary:hover {
+.performance_warning_button_primary:hover {
   background-color: #1565c0;
 }
 
-.button.danger {
+.performance_warning_button_danger {
   background-color: #d32f2f;
   color: white;
 }
-.button.danger:hover {
+.performance_warning_button_danger:hover {
   background-color: #c62828;
 }
 
-.button.secondary {
+.performance_warning_button_secondary {
   background-color: #f5f5f5;
   color: #333;
   border: 1px solid #ddd;
 }
-.button.secondary:hover {
+.performance_warning_button_secondary:hover {
   background-color: #e0e0e0;
 }
 
-.button:disabled {
+.performance_warning_button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

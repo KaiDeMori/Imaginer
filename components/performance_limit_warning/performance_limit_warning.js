@@ -26,13 +26,13 @@ export class Performance_limit_warning {
     temp.innerHTML = html;
 
     // 4. Extract overlay
-    this.overlay = temp.querySelector(".overlay");
+    this.overlay = temp.querySelector(".performance_warning_overlay");
     document.body.appendChild(this.overlay);
 
     // 5. Get references
-    this.button_download_all = this.overlay.querySelector("#download_all_button");
-    this.button_clear_gallery = this.overlay.querySelector("#clear_gallery_button");
-    this.button_close = this.overlay.querySelector("#close_button");
+    this.button_download_all = this.overlay.querySelector("#performance_warning_download_all_button");
+    this.button_clear_gallery = this.overlay.querySelector("#performance_warning_clear_gallery_button");
+    this.button_close = this.overlay.querySelector("#performance_warning_close_button");
 
     // 6. Attach listeners
     this.button_close.addEventListener("click", () => this.close());
