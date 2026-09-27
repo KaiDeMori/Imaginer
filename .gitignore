@@ -50,6 +50,7 @@ png_XMP_via_iTXt/demo-xmp-embedder.html
 png_XMP_via_iTXt/XMP embedded via iTXt.md
 strip_metadata_from_PNG/demo_strip_metadata.html
 intro_trials/
+How_we_work_here.md
 
 # Ignore everything in intro/audio except webm
 !intro/audio/
