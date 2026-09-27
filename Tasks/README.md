@@ -7,7 +7,7 @@ Other file types placed here would be uploaded.
 ## Files
 
 - **`README.md`:** this overview.
-- **`Notes.md`:** shared notes of the current investigation. Working agreement, knowledge register with entry IDs, reference material.
+- **`Notes.md`:** shared notes on Imaginer's addresses, intro and data storage. Working agreement, knowledge register with entry IDs, reference material.
 - **`Tasks cache busting.md`:** earlier task description for the cache refresh on version updates. Implemented in `cache_manifest.json` and `cache_refresh_manager.js`.
 - **`Tasks .md`:** empty template.
 
@@ -24,13 +24,12 @@ Keep this list in sync with the headings of `Notes.md`.
 - **Header:** purpose of the file and the current focus.
 - **1. How we work:** working agreement, and the entry types K, S, U, R, G, D.
 - **2. Terms:** fixed wording for recurring terms, such as apex address, www address and intro flag.
-- **3. Incident:** what happened on 2026-09-27, the user's general rule on data loss, and a timeline.
-- **4. Known:** verified facts, each with its evidence.
-- **5. Suspected:** hypotheses, each with what would confirm or refute it.
-- **6. Unclear:** open questions, including the evidence being gathered.
-- **7. Refuted:** disproved hypotheses, kept for the record.
-- **8. Goals (draft):** desired behavior for data safety, the intro, the address and the storage.
-- **9. Decisions:** candidates, none agreed yet. D1 carries the address questions Q-A, Q-B and Q-C.
-- **10. Reference:** storage keys, deleting code paths, places that touch the intro flag, deployment, Firefox behavior, git anchors.
+- **3. Known:** verified facts, each with its evidence.
+- **4. Suspected:** hypotheses, each with what would confirm or refute it.
+- **5. Unclear:** open questions, including the evidence being gathered.
+- **6. Refuted:** disproved hypotheses, kept for the record.
+- **7. Goals (draft):** desired behavior for data safety, the intro, the address and the storage.
+- **8. Decisions:** candidates, none agreed yet. D1 carries the address questions Q-A, Q-B and Q-C.
+- **9. Reference:** storage keys, deleting code paths, places that touch the intro flag, deployment, Firefox behavior, git anchors.
 - **Appendix A:** console snippet that reports storage state and audio support.
 - **Appendix B:** curl checks for redirects and storage-related headers.

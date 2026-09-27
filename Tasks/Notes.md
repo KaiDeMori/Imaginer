@@ -1,6 +1,6 @@
 # Notes
 
-Shared notes for the investigation of the gallery loss and the topics it raised.
+Shared notes on Imaginer: its addresses, its intro, and how it stores data.
 Nothing in this file is a plan, a task or a commitment.
 Plans and tasks are extracted from here once the picture is clear.
 `README.md` in this folder describes what is where.
@@ -39,51 +39,20 @@ Started 2026-09-27.
 - **Gallery:** IndexedDB database `imaginer-db`, object store `images`.
 - **Intro flag:** `localStorage` key `imaginer.intro.first_start`. States: missing, `"true"` (intro page loaded, intro not finished), `"false"` (intro finished or skipped).
 - **Interrupted-intro dialog:** the `confirm` dialog "The intro sequence was interrupted…" that `app.js` shows when the intro flag is `"true"`.
-- **Interrupted-intro logic:** the mechanism around the intro flag that offers to restart an interrupted intro (Section 10).
-- **This machine:** the development machine on which the loss was noticed and the console log was captured.
+- **Interrupted-intro logic:** the mechanism around the intro flag that offers to restart an interrupted intro (Section 9).
+- **This machine:** the user's development machine.
 - **Second machine:** the user's other machine with Firefox.
 
-## 3. Incident
-
-On 2026-09-27 the user opened Imaginer in Firefox on this machine.
-The intro started, asked for an API key, and ended in the app with an empty gallery.
-The second song of the intro did not play.
-The user downloads the gallery regularly, so the loss itself is limited.
-No user has reported a similar loss.
-The concern was whether an Imaginer update causes data loss. K1 answers it: no.
-
-The user's general rule: nothing may cause the loss of the gallery, not a network problem, not a missing API key, nothing else (G1).
-
-### Timeline
-
-All times are local time (CEST).
-
-- 2026-09-11: Version 1.12 released (`fb69ce8` with follow-ups until `a40867c`).
-- 2026-09-21: Version 1.13 released (`39bdc35`).
-- 2026-09-26 11:29–11:30: the databases `thinking_machines` and `thinking_machines_log` were last written in the apex origin storage on this machine (K5).
-- Unknown: the last time the gallery was intact on this machine (U5).
-- 2026-09-27 04:53: intro run on the apex address with empty storage (K3). Console log saved at 04:58.
-- 2026-09-27, morning: Firefox profile listing on this machine. No storage for the www origin (K8).
-- 2026-09-27, reported afterwards: the www redirect and the interrupted-intro dialog on the www address (K7, K10, U1, U2).
-
-## 4. Known
+## 3. Known
 
 - **K1:** No Imaginer code empties `localStorage` and IndexedDB together, except the console-only `window.tabula_rasa()`. This holds for every commit in the history. The 1.12 and 1.13 updates add no deletion of any kind.
   *Evidence: code search; `git log -S` for `localStorage.clear`, `sessionStorage.clear`, `deleteDatabase`, `deleteObjectStore`, `store.clear()`, `database_store.clear`; `git diff 65f5fd4..HEAD`.*
-- **K2:** The deployed files are identical to the repository.
-  *Evidence: byte comparison of 9 core files served by the apex address: `app.js`, `version.json`, `version_manager.js`, `default_config.js`, `storage/database_store.js`, `components/gallery.js`, `components/menu_bar/menu_bar.js`, `components/config_dialog/config_dialog.js`, `components/performance_warning/performance_warning.js`.*
-- **K3:** At the start of the visit on 2026-09-27, the apex origin held no API key and no images, and the intro flag was missing.
-  The "enter API key" screen was the intro's own screen (`check_for_api_key` and `setup_api_key_interface` in `intro/00/pre_intro_ui.js`), not the config dialog.
-  The API key present in the app at the end of the intro is the key typed into that screen.
-  `eu_seed` was created at 04:53:15, during this visit.
-  The missing intro flag is inferred: the app redirected to the intro without the interrupted-intro dialog, according to the user's account.
-  *Evidence: console log `misc/IMAGINER_console-export-2026-9-27_4-58-21.log`. Local only, `*.log` is gitignored.*
 - **K4:** The server answers `200` on both the apex address and the www address. It does not redirect between them. It sends no `Clear-Site-Data` header.
   On both hosts, `http` redirects to `https` (301), and a missing trailing slash redirects to the address with slash (301).
   Both hosts send `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
   *Evidence: curl (Appendix B).*
 - **K5:** Imaginer shares its origin storage with other apps on `peopleoftheprompt.org`.
-  The apex origin storage on this machine contains the IndexedDB databases `thinking_machines` and `thinking_machines_log`, last written 2026-09-26 11:29–11:30. Firefox encodes database names into file names; these names are decoded from them.
+  The apex origin storage on this machine contains the IndexedDB databases `thinking_machines` and `thinking_machines_log`. Firefox encodes database names into file names; these names are decoded from them.
   The same storage contains Cache API data. Imaginer does not use the Cache API.
   *Evidence: Firefox profile listing on 2026-09-27.*
 - **K6:** Firefox blocked the second song (`Bach_Air.m4a`) with its autoplay policy.
@@ -91,69 +60,51 @@ All times are local time (CEST).
   The file is served correctly (`200`, `audio/mp4`). The first song (Ogg) played.
   *Evidence: console log ("The play method is not allowed by the user agent…"); curl.*
 - **K7:** The www origin holds its own Imaginer state with an interrupted intro: opening the www address shows the interrupted-intro dialog.
-  *Evidence: user observation, reported after K8.*
-- **K8:** At the time of the profile listing, neither Firefox profile on this machine held storage for the www origin.
-  Consequence: no copy of the lost gallery exists under the www origin on this machine.
-  *Evidence: Firefox profile listing on 2026-09-27.*
-- **K9:** Until `3164d96` (2026-04-12), `Viewer.open` offered to "clean up all old/bad images" for a broken image. Confirming emptied the whole gallery. It never touched `localStorage`.
-  Not relevant for the incident (K3 includes `localStorage`). Kept as history.
-  *Evidence: `git show 3164d96`.*
+  *Evidence: user observation.*
 - **K10:** Opening the www address in Firefox on this machine ends on the apex address. Exception: when the interrupted-intro dialog appears, the browser stays on the www address (K7).
   *Evidence: user observation.*
+- **K11:** On the server, only the web root has a `.htaccess` file, and it contains no redirect. The `Imaginer` folder has no `.htaccess` file.
+  Consequence: the `http` to `https` redirect from K4 is configured outside the `.htaccess` files, for example in the hosting configuration.
+  *Evidence: user check of the server files on 2026-09-27, done twice.*
+- **K12:** Firefox's site-level clearing works per base domain, including every subdomain. This covers the identity panel (lock icon) "Clear cookies and site data", Settings › Privacy & Security › Cookies and Site Data › Manage Data, and "Forget About This Site". Clearing per host or per origin is not possible there.
+  The Storage Inspector in the developer tools is the exception: it is organized per origin and deletes per storage type. No single action there clears all storage types at once.
+  This behavior exists since Firefox 89 (2021). No later change was found.
+  Consequence: a subdomain per app does not protect against site-level clearing in Firefox; only a separate registrable domain does (D5).
+  *Evidence: Firefox source docs, Data Sanitization: "Clears all data associated with the base domain of the selected site", "Clearing data on a more granular (host or origin) level is not possible."; Mozilla bug 1712028 (per-subdomain clearing requested, WONTFIX: "We opt for the third option of removing subdomain data as well"); Mozilla Security Blog, Firefox 91 Enhanced Cookie Clearing; Firefox source docs, Storage Inspector. Links in Reference › Firefox.*
 
-## 5. Suspected
+## 4. Suspected
 
-The user considers S1 or S2 the most likely cause of the incident.
-
-- **S1:** The data was deleted while the user tested one of the two new apps on the same origin.
-  *Support: the user tested both apps on this machine and considers an accidental deletion possible; K5.*
-  *Would confirm: a reset in one of those apps that clears `localStorage` and deletes all IndexedDB databases of the origin (U6), with a timing that fits U5.*
-  A reset like that also deletes the `thinking_machines` databases. Their state in K5 then only fits a reset before 2026-09-26 11:29, after which the app recreated them.
-- **S2:** Firefox removed the whole origin storage: eviction under storage pressure, "Delete cookies and site data when Firefox is closed", or clearing history including site data.
-  *Weakened by K5: such a removal takes the whole origin and would have taken the `thinking_machines` databases too, unless it happened before 2026-09-26 11:29.*
-  *Would confirm: U5 before that time, together with one of the following on this machine:*
-  - Settings › Privacy & Security › Cookies and Site Data: "Delete cookies and site data when Firefox is closed" is on.
-  - Settings › Privacy & Security › History: Firefox clears history on close, with site data included.
-  - Low free disk space, or a Firefox warning about it.
-  - A cleanup tool that clears browser data.
 - **S3:** U1 is caused by a permanent redirect that Firefox cached at some earlier point. Firefox keeps permanent redirects indefinitely; curl does not cache.
+  *Support: K11 shows that redirects exist outside the `.htaccess` files. A www redirect in the hosting configuration may have existed earlier and been removed since.*
   *Would confirm: the www address stays on the www address in a private window, which starts with an empty cache.*
 - **S4:** Existing users use the apex address.
   *Support: the user only shares links to the apex address.*
   *Would confirm: U4.*
 
-## 6. Unclear
+## 5. Unclear
 
-- **U1:** Why does Firefox on this machine go from the www address to the apex address (K10), while the server does not redirect (K4)? Candidate: S3.
+- **U1:** Why does Firefox on this machine go from the www address to the apex address (K10), while the server does not redirect (K4)? The `.htaccess` files are ruled out as the source (K11). Candidate: S3.
 - **U2:** What exactly "completely breaks" on the www address when the interrupted-intro dialog appears?
 - **U3:** Why did Firefox block the second song, although the user had clicked Start and pressed keys in the same document?
 - **U4:** Which address do existing users, and the second machine, use?
   Being worked on:
   - Server logs. Every app start fetches `/Imaginer/version.json`; crawlers usually only fetch the page. Requests for it on the www host therefore indicate real use. Check that the log records the host, check the retention period, and exclude the user's own visits.
   - Signal group of key users. Ask them to read the address bar while their gallery is visible, not what they type. The group covers the key users only, not every user.
-- **U5:** When was the gallery last intact on this machine: before or after 2026-09-26 11:29? This separates S1 from S2.
-  Possible evidence: the newest gallery export on this machine. Its file name `Imaginer_Export_<timestamp>.zip` carries the export time in UTC, and every image file name inside ends with the creation time of the image in Unix seconds.
 - **U6:** Which apps share the origin, and which of them can clear origin-wide storage (`localStorage.clear()`, deleting all IndexedDB databases, `Clear-Site-Data`)?
-  Possible evidence: the reset code of both new apps. Claude can read it once the user points to their repositories.
+  Possible evidence: the reset code of the other apps on the domain. Claude can read it once the user points to their repositories.
 - **U7:** Does any app on the origin register a service worker whose scope covers `/Imaginer/`? Such a worker would control Imaginer's pages. Prompted by the Cache API data in K5.
 - **U8:** For G4, what counts as the start of the intro: loading the intro page, or clicking Start? Today the intro page sets the intro flag on load, before the user has seen anything.
-- **U9:** Is the gallery on the second machine intact? If it is lost too, local causes like S1 and S2 become unlikely.
 
-## 7. Refuted
+## 6. Refuted
 
-- **R1:** The 1.12 or 1.13 update deletes data. *Refuted by K1.*
-- **R2:** The deployed code differs from the repository. *Refuted by K2.*
-- **R3:** The server wipes browser storage with `Clear-Site-Data`. *Refuted by K4.*
 - **R4:** The second song fails because Firefox cannot decode AAC. *Claude's first guess. Refuted by K6.*
-- **R5:** The API key in the app at the end of the intro contradicts empty storage. *Refuted by K3: the key was typed into the intro's own key screen.*
-- **R6:** The lost gallery still exists under the www origin on this machine. *Refuted by K8.*
 
-## 8. Goals (draft)
+## 7. Goals (draft)
 
 ### Data safety
 
 - **G1:** No automatic flow deletes or overwrites the gallery, the API key or the settings: not the intro, not a version update, not a missing key, not a network error. Only explicit, confirmed user actions delete data.
-  *Source: the user's general rule (Section 3). Current state: met (K1).*
+  *Source: the user's general rule: nothing may cause the loss of the gallery, not a network problem, not a missing API key, nothing else. Current state: met (K1).*
 - **G2:** Imaginer deletes only its own data (its `localStorage` keys and `imaginer-db`), never origin-wide storage.
   *Current state: violated by `tabula_rasa()`, which deletes every IndexedDB database of the origin, including those of other apps.*
 
@@ -169,12 +120,12 @@ The user considers S1 or S2 the most likely cause of the incident.
 - **G7:** Firefox never evicts the gallery on its own. Optional.
 - **G8:** Other apps cannot delete Imaginer's data, and Imaginer cannot delete theirs. Optional.
 
-## 9. Decisions
+## 8. Decisions
 
 All entries are candidates. Nothing is agreed yet.
 
 - **D1:** One canonical address. *Serves G6.*
-  - **Q-A, which address?** Decisive: U4. Lean: the apex address, because it is shorter, it fits S4, and this machine already holds its current data there. A server-level www redirect would affect all apps on the domain, not only Imaginer.
+  - **Q-A, which address?** Decisive: U4. Lean: the apex address, because it is shorter, it fits S4, and this machine holds its data there. A server-level www redirect would affect all apps on the domain, not only Imaginer.
   - **Q-B, how does existing data move?** A plain server redirect strands every gallery stored under the old origin: the data stays in the browser, but no page can reach it anymore. Options:
     1. Manual: ZIP export on the old address, drop the images into the new one. Works today. Loses the API key, the settings and the masks; creation dates become the import date. Prompts survive only where they are embedded in the image metadata, which is on by default.
     2. Automatic transfer: the new address loads a transfer page from the old address in a hidden frame. That page reads the old storage and passes it over with `postMessage`. Assumption to test: both hosts count as the same site, so the frame sees its normal, unpartitioned storage. Large galleries need a chunked transfer.
@@ -186,14 +137,18 @@ All entries are candidates. Nothing is agreed yet.
 - **D2:** Replace the interrupted-intro logic with a "Rewatch intro" button. *Serves G3, G4, G5.*
   Rationale (user): the interrupted-intro logic produces odd edge cases (U2). With the button, a disrupted intro always leads straight to the app, and the intro stays reachable.
   Open: location of the button, About dialog or config dialog.
-  The intro flag is coupled to several places (Section 10). After D2, the intro's own key screen remains the onboarding path on the first visit; the app's missing-key dialog covers every other case.
+  The intro flag is coupled to several places (Section 9). After D2, the intro's own key screen remains the onboarding path on the first visit; the app's missing-key dialog covers every other case.
 - **D3:** Limit `tabula_rasa()` to Imaginer's own `localStorage` keys and `imaginer-db`. *Serves G2.*
 - **D4:** Request persistent storage with `navigator.storage.persist()`. *Serves G7.*
-  Firefox asks the user once. Protects against eviction only, not against user-initiated clearing and not against other apps (S1).
-- **D5:** Give each app its own origin, for example a subdomain. *Serves G8.* Same migration problem as D1 (Q-B, Q-C).
+  Firefox asks the user once. Protects against eviction only, not against user-initiated clearing and not against code in other apps.
+- **D5:** Give each app its own origin. *Serves G8.* Same migration problem as D1 (Q-B, Q-C). Two variants, compared by K12:
+  - Subdomain per app (for example `imaginer.peopleoftheprompt.org`). Protects against code in other apps, because `localStorage` and IndexedDB are per origin, and against deletions in the Storage Inspector. Does not protect against Firefox's site-level clearing, which covers every subdomain.
+  - Separate registrable domain for Imaginer. Protects against code in other apps and against site-level clearing of the other apps' domain. Costs a domain of its own.
+
+  Neither variant protects against clearing all sites at once (Clear Recent History with site data).
 - **D6:** Make the intro music robust: handle a rejected `play()`, and start playback in a way that does not depend on the autoplay policy. *Depends on U3.*
 
-## 10. Reference
+## 9. Reference
 
 ### Storage used by Imaginer
 
@@ -236,20 +191,26 @@ Relevant for D2.
 - Deployed by SFTP from the working tree (VS Code SFTP extension).
 - The upload excludes `*.md`, `misc` and a few other folders. Notes in `Tasks/*.md` therefore never go live; other file types in `Tasks/` would.
 - Live under the apex address and the www address (K4).
+- Server configuration: only the web root has a `.htaccess` file, without redirects. `Imaginer` has none. The `http` to `https` redirect comes from outside the `.htaccess` files (K11).
 - `.gitignore` excludes every file in `intro/audio/` except `*.webm`, but the intro loads `Also_sprach_Zarathustra.ogg`, `Bach_Air.m4a` and `blip.wav`. The upload from the working tree includes them; a deployment from a fresh clone would lack the intro audio.
 
 ### Firefox
 
 - Firefox keeps permanent redirects (301) in its cache indefinitely. A private window starts with an empty cache (S3).
 - Firefox clears the developer console on every navigation unless "Persist Logs" is on (Appendix A).
-- Unverified: Settings › Privacy & Security › Cookies and Site Data › Manage Data may group entries by domain. Removing such an entry would remove the storage of both addresses and of all apps on the domain. Check what an entry covers before removing it.
+- Site-level clearing covers the base domain with every subdomain (K12). Removing the entry `peopleoftheprompt.org` in Manage Data, or using "Clear cookies and site data" in the identity panel on any page of the domain, removes the storage of both addresses and of all apps on the domain.
+- Sources for K12:
+  - [Firefox source docs: Data Sanitization](https://firefox-source-docs.mozilla.org/toolkit/components/antitracking/anti-tracking/data-sanitization/)
+  - [Mozilla bug 1712028: delete per subdomain, WONTFIX](https://bugzilla.mozilla.org/show_bug.cgi?id=1712028)
+  - [Mozilla Security Blog: Firefox 91 introduces Enhanced Cookie Clearing](https://blog.mozilla.org/security/2021/08/10/firefox-91-introduces-enhanced-cookie-clearing/)
+  - [Firefox source docs: Storage Inspector](https://firefox-source-docs.mozilla.org/devtools-user/storage_inspector/index.html)
 
 ### Git anchors
 
 - 1.11: `65f5fd4`. 1.12: `fb69ce8`, follow-ups until `a40867c`. 1.13: `39bdc35`.
 - Interrupted-intro logic: `30bac03`, `ab2942a`, `0d814f1` (2025-11).
 - Hard reset added in `d18bf87` (2025-06-14). The name `tabula_rasa` first appears in `09d1658` (2025-11-24).
-- Gallery-wide cleanup removed from `Viewer.open`: `3164d96` (K9).
+- Gallery-wide cleanup removed from `Viewer.open`: `3164d96`.
 
 ## Appendix A: console diagnostic snippet
 
