@@ -4,11 +4,11 @@
 
 ## Where we are right now
 
-- _(Starting point. Always reflects the present moment, not a history.)_
+- A collection of drafts is present.
 
 ## Next step
 
-- _(The single next step from here.)_
+- Special feature request. The user will know more.
 
 ## Open threads (not blocking)
 
