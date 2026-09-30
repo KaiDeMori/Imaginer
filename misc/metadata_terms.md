@@ -1,7 +1,6 @@
 # Metadata terms
 
-Work in progress for [Rock-solid metadata](../Tasks/Rock_solid_metadata.md).
-Once stable, this file is the reference for metadata in Imaginer.
+The reference for metadata in Imaginer, written for [Rock-solid metadata](../Tasks/Rock_solid_metadata.md).
 
 ## Terms
 
@@ -96,5 +95,5 @@ Applies to Download and ZIP export.
 
 ## Open points
 
-- **UI wording**: the ZIP export's UI label is "Download All Images". The strip checkbox's UI label "Strip Server-Side metadata" matches its rule; whether "Server-Side" is clear enough is open.
 - **Color spaces**: out of scope for now.
+- **UI labels**: the labels "Strip Server-Side metadata" and "Download All Images" stay; the manual explains what they do. Decided, not open.

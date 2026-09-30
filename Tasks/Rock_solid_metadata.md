@@ -325,6 +325,27 @@ Plan: [Tasks/plans/Edit_request.plan.md](plans/Edit_request.plan.md).
 - A gallery JPEG whose PNG exceeds the limit: Generate shows the dialog with its label and the converted size, the placeholders turn red, and Generate is enabled again.
 - Replace a record's `mask_blob` through `window.database_store.update` with a smaller PNG, then drag that image into the input area: the message names the image as the tooltip does, and the image is added without the mask.
 
-### 8. Cleanup (waiting)
+### 8. Cleanup (built)
 
 The unused files `components/image_converter.js` and `components/generation_panel.options.js`, the UI wording of the strip checkbox and of the ZIP export, and the intro image. Gap 7 and the open point "UI wording" in the terms.
+
+#### Decisions
+
+- The two unused files are removed with their manifest lines; nothing imported them.
+- The labels "Strip Server-Side metadata" and "Download All Images" stay. The manual explains what each does, the label appears in the terms, the hints and the dialogs, and a rename would buy little for its churn.
+- The intro image stays outside intake: it exists for the session only, has no record, and Export and the edit request apply their rules to it like to any image.
+- The terms file is no longer work in progress: it is the reference for metadata in Imaginer.
+- Done by hand, without a workflow.
+
+#### Facts
+
+- No module imports `components/image_converter.js` or `components/generation_panel.options.js`; the check's module graph confirms it, because the manifest check passes without their lines.
+
+#### Open items
+
+- None.
+
+#### Out of scope
+
+- The release, done with the user: `version.json` and `version_messages/`.
+- The type noise `tsc` reports: a task of its own.

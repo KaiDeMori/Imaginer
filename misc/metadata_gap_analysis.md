@@ -35,8 +35,7 @@ Prompt details: `read_PNG_prompt` in `PNG_chunks.js` inflates a compressed iTXt 
 
 ### Also found
 
-- `convert_image_to_png` in `components/image_converter.js` is unused and draws on a canvas. In current Firefox, its PNG would carry the `deBG` chunk (see [metadata_research.md](metadata_research.md)).
-- The intro image: `expose_internals_for_intro().add_image` in `app.js` adds a thumbnail without a gallery record. It has ⬇️ and can be dragged onto the input area, so it skips intake.
+- The intro image: `expose_internals_for_intro().add_image` in `app.js` adds a thumbnail without a gallery record, for the session only. It has ⬇️ and can be dragged onto the input area; both apply the Export and edit request rules to it, so it skips intake without harm. Decided in step 8: it stays outside intake.
 
 ## Input area door
 
@@ -118,7 +117,7 @@ Gallery files stored before intake existed are converted once, on the user's con
 4. Intake errors reach the user: the `save` failure at Import to Gallery, and the strip and embedding failures at model output. Built in step 5.
 5. Prompt reading: the compressed iTXt and the XML entities. Built in step 2.
 6. One intake function for both doors, instead of the four copies in `app.js`, the drop listener in `components/gallery.js`, and the drop listener of the input area. Built in step 5.
-7. Open: the intro image. Ignore it (session only), or route it through intake.
+7. The intro image stays outside intake: session only, and Export and the edit request apply their rules to it. Decided in step 8.
 8. Input area door: apply the same intake in memory. Built in step 5.
 9. One Export function for Download and ZIP export instead of three places. Built in step 3.
 10. Export: strip per the strip checkbox for every gallery file; fresh Imaginer metadata without duplicates or leftovers; none without a prompt; the XMP form XML-escaped; the filename with the ID. Built in steps 1 to 3 for PNG gallery files; JPEG and WebP gallery files are converted by step 6 or leave only with every option off.

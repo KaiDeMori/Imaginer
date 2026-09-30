@@ -4,7 +4,7 @@
 
 ## Where we are right now
 
-- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Its planning file has eight steps in dependency order. Steps 1, 2, 3, 5, 6 and 7 are built; their manual tests are in the planning file and wait for the user. Step 4's round 2 page waits for the user's runs.
+- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Its planning file has eight steps in dependency order. Every code step is built (1, 2, 3, 5, 6, 7 and 8); their manual tests are in the planning file and wait for the user. Step 4's round 2 page waits for the user's runs.
 - On 2026-09-30, three decisions were written into the terms, the gap analysis, and the planning file: every gallery file is a PNG and only JPEG and WebP are converted; imports always get strip; the chunk module and Export come before the browser tests, with the unique filename first.
 - Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md). The wording may still change.
 - Web research: [misc/metadata_research.md](misc/metadata_research.md).
@@ -15,11 +15,10 @@
 
 ## Next step
 
-- Step 8, Cleanup, by hand: remove the unused files `components/image_converter.js` and `components/generation_panel.options.js`, decide the UI wording of the strip checkbox and the ZIP export, and decide the intro image. The user runs the round 2 test page (step 4, section Manual test) and pastes the results into `tools/browser_tests/results/`; the results gate the intake's conversion before a release.
+- The user's turn: run the manual tests of steps 1 to 8 in the planning file, run the round 2 test page (step 4, section Manual test) in Firefox and Chromium and paste the results into `tools/browser_tests/results/`, then the main model writes the round 2 summary into `misc/metadata_research.md`. After that, the release, done together: `version.json` and a version message that names the one-time conversion. The user runs the round 2 test page (step 4, section Manual test) and pastes the results into `tools/browser_tests/results/`; the results gate the intake's conversion before a release.
 
 ## Open threads (not blocking)
 
 - Gallery import button (📂, tooltip "Import", after 🗑️): parked on the user's list, probably its own session.
 - With a mini model selected, images in the input area are ignored without a word.
-- `components/image_converter.js` and `components/generation_panel.options.js` are unreachable; step 8 removes them.
 - `tsc` reports about 180 type errors in the app code, all noise. The check ignores them; cleaning them up would be a task of its own.
