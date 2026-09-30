@@ -80,11 +80,12 @@ Applies to Download and ZIP export.
 
 - Images and mask are sent pixels only, unconditionally.
 - Neutral filenames such as `image_1.png` and `mask.png`.
+- A gallery file that is still a JPEG or WebP is converted in memory for the request; the gallery stays untouched. A converted image above the request's limit is refused with its size named, as at the input area door.
 
 ### Consequences
 
-- Every image that passed intake is a PNG, so Export and edit request only remove or add PNG chunks: lossless, no decoding.
-- The conversion runs once per image, at intake. It can be verified there, and an error reaches the user immediately.
+- Every image that passed intake is a PNG, so Export and edit request only remove or add PNG chunks: lossless, no decoding. A gallery file the migration has not converted is decoded for the edit request only.
+- The conversion runs once per image, at intake, and for a gallery file the migration has not converted at every edit request. It can be verified at intake, and an error reaches the user immediately.
 - Conversion passes the browser's decoder. Opaque and fully transparent pixels come out exact; semi-transparent pixels of a WebP may shift in color. A PNG never passes a decoder, so its transparency stays exact.
 - An import carries no external metadata into Imaginer, whatever the config says.
 - Gallery files carry no Imaginer metadata, so an Export cannot produce leftovers or duplicates.

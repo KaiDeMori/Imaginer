@@ -283,7 +283,7 @@ Plan: [Tasks/plans/Existing_gallery_files.plan.md](plans/Existing_gallery_files.
 - During the conversion: a click on Generate does nothing.
 - Before converting, with an imported JPEG in the gallery and strip on: ⬇️ on it shows the error dialog with the hint; with strip and both prompt options off it downloads as stored.
 
-### 7. Edit request (in discussion)
+### 7. Edit request (planned)
 
 Pixels only for images and mask, neutral filenames, and no more `blob.name` on the gallery's own `Blob`. Needs steps 5 and 6. Gap 12.
 
@@ -291,20 +291,22 @@ Plan: [Tasks/plans/Edit_request.plan.md](plans/Edit_request.plan.md).
 
 #### Decisions
 
-- Every image and the mask are reduced to pixels only at the moment the request is built: a PNG keeps its pixel chunks, anything else is converted in memory with the intake's converter, so a gallery file that is still a JPEG can be edited without touching the gallery. The function is `pixels_only_PNG` in `image_conversion.js`.
+- Every image and the mask are reduced to pixels only at the moment the request is built: a PNG keeps its pixel chunks, anything else is converted in memory with the intake's converter, so a gallery file that is still a JPEG can be edited without touching the gallery. The function is `pixels_only_PNG` in `image_conversion.js`. This supersedes the gap analysis's Order bullet that wanted such a file refused.
 - The parts are named `image_1.png`, `image_2.png`, and so on, in the order of the input area, and `mask.png`. The browser sets the content type from the blob.
 - The mask is stored as the canvas produced it and cleaned at the edit request only, because a mask never leaves the app any other way; the open point "Masks" closes.
-- The input area keeps a label per entry for its tooltip, so no name is bolted onto the gallery's own `Blob` any more; the mask validation names the image by that label.
+- The input area keeps a label per entry for its tooltip, so no name is bolted onto the gallery's own `Blob` any more; every validation message names the image by that label.
+- The panel exposes its entries, image, mask and label, as one snapshot, and the request reads the mask from that snapshot at the click. Today's code reads the mask from a second instance of the drop area module, because the panel loads the module through `versioned_url` and `app.js` imports it statically, so the mask never reached OpenAI; the snapshot ends that.
+- A gallery file converted for the request meets the same size limit as the input area door, with the same message.
 - A failure while reducing an image reaches the user through the edit request's existing error path, and the placeholders and the generation counter are restored.
-- The plan is written by the main model, reviewed by independent reviewers, and built by implementers. `pixels_only_PNG` is specified in `tools/check/image_intake_check.mjs`; the entry label in `tools/check/drop_area_manager_check.mjs`, wired into the check at Verification.
+- The plan was written by the main model and reviewed by two independent reviewers; their confirmed findings are in the plan. Implementers build it. `pixels_only_PNG` is specified in `tools/check/image_intake_check.mjs`; the entry label and the named messages in `tools/check/drop_area_manager_check.mjs`, wired into the check at Verification.
 
 #### Facts
 
-- The edit request branch in `app.js` appends every input area image with `form_data.append("image[]", file, file.name)` and the mask with its own name, and builds the form data before its `try`, so an error there would leave the placeholders spinning and the counter raised.
+- The edit request branch in `app.js` appends every input area image with `form_data.append("image[]", file, file.name)` and the mask with its own name, and builds the form data before its `try`, so an error there would leave the placeholders spinning and the counter raised. The mask comes from `drop_area_manager.get_active_mask()` on the statically imported module, while the panel fills the instance it loaded through `versioned_url`; ES modules are keyed by their full URL, so these are two instances.
 - The internal gallery branch of the input area's drop listener in `components/generation_panel.js` sets `blob.name` on the gallery's `Blob` for the thumbnail's tooltip; `_update_input_image_thumbnails` reads `entry.image.name`.
-- `validate_mask_file` in `components/image_validation.js` names the image with `image_file.name` in its three messages.
+- `validate_image_file`, `validate_file_readable` and `validate_mask_file` in `components/image_validation.js` name the file with `file.name` or `image_file.name` in every message: two, four and four messages.
 - `drop_area_manager.try_add_images` validates the entries and adds them atomically; entries carry `image`, `mask` and `uuid`.
-- `intake_import` gives an external import a `File` named after the original with the extension `.png`.
+- The input area's drop listener wraps the blob `intake_import` returns in a `File` named after the original with the extension `.png`.
 
 #### Open items
 
