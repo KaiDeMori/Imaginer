@@ -29,15 +29,37 @@ Open points are decided when a step needs them.
 
 ## Steps
 
-Each step is an H3 that names its state: waiting, in discussion, planned, or built. A step in discussion or later has four H4 sections: Decisions, Facts, Open items, Out of scope. Once its plan exists, the step links its plan file. Gap numbers refer to the list "Gaps" in [misc/metadata_gap_analysis.md](../misc/metadata_gap_analysis.md).
+Each step is an H3 that names its state: waiting, in discussion, planned, or built. A step in discussion or later has four H4 sections: Decisions, Facts, Open items, Out of scope. Once its plan exists, the step links its plan file. A built step adds the H4 section Manual test. Gap numbers refer to the list "Gaps" in [misc/metadata_gap_analysis.md](../misc/metadata_gap_analysis.md).
 
 The order follows the dependencies. Steps 1 to 3 need no browser test; only step 5 needs the results of step 4.
 
-### 1. Unique export filenames (waiting)
+### 1. Unique export filenames (built)
 
-Every Export gives the same image the same, unique filename, `<prompt>_<created>_<id>.png`, so the ZIP export never drops an image. The filename part of gap 10. It comes first because the ZIP export is the users' backup.
+Every Export gives the same image the same, unique filename, `<prompt>_<created>_<id>.<ext>`, so the ZIP export never drops an image. The filename part of gap 10. It came first because the ZIP export is the users' backup.
 
-Open items: the extension for a gallery file that is not a PNG yet, until step 6 converts it.
+#### Decisions
+
+- `build_image_filename` takes the record's `id` and appends it after the timestamp. Without an `id` the filename has no ID part; only the intro image and the dummy images have no record.
+- The extension stays type-derived through `extension_for_type` until step 6 converts the existing gallery files. From then on every gallery file is a PNG and the rule's `.png` holds.
+- Done by hand, without a workflow.
+
+#### Facts
+
+- The ID is the IndexedDB key `id` of the object store `images` (`storage/database_store.js`, `keyPath: "id"`, `autoIncrement: true`), so it is unique per record.
+- The three callers are the ⬇️ handler in `Gallery._build_thumbnail_content`, the ZIP loop in `Config_dialog.wire_events`, and `Performance_warning.download_all`.
+
+#### Open items
+
+- None.
+
+#### Out of scope
+
+- Strip and Imaginer metadata at Export: step 3.
+
+#### Manual test
+
+- Config → Advanced: streaming preview off. Config → Generation: number of images 2. Generate, then Config → Files → Download All Images. The ZIP holds both images, named `<prompt>_<created>_<id>.png` with two different IDs.
+- ⬇️ on a thumbnail downloads `<prompt>_<created>_<id>.png`. A second ⬇️ on the same thumbnail gives the same name.
 
 ### 2. One PNG chunk module (waiting)
 

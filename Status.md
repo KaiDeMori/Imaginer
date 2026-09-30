@@ -4,7 +4,7 @@
 
 ## Where we are right now
 
-- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Its planning file has eight steps in dependency order; step 1, Unique export filenames, is the first open step.
+- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Its planning file has eight steps in dependency order. Step 1, Unique export filenames, is built; its manual test is in the planning file and waits for the user.
 - On 2026-09-30, three decisions were written into the terms, the gap analysis, and the planning file: every gallery file is a PNG and only JPEG and WebP are converted; imports always get strip; the chunk module and Export come before the browser tests, with the unique filename first.
 - Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md). The wording may still change.
 - Web research: [misc/metadata_research.md](misc/metadata_research.md).
@@ -15,7 +15,7 @@
 
 ## Next step
 
-- Discussion of step 1, Unique export filenames. Its one open item: the extension for a gallery file that is not a PNG yet.
+- Step 2, One PNG chunk module: the main model writes its Decisions into the planning file, then a plan-and-review workflow runs, then an implementation workflow.
 
 ## Open threads (not blocking)
 
