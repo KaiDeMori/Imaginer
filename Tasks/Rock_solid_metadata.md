@@ -106,7 +106,7 @@ Plan: [Tasks/plans/One_PNG_chunk_module.plan.md](plans/One_PNG_chunk_module.plan
 - Config → Advanced: strip off, both prompt options off. ⬇️ a generated image, then drop the downloaded file into the gallery: the thumbnail has no 💬.
 - Drop a JPEG or WebP whose XMP description contains `&amp;` into the gallery: 💬 shows `&`.
 
-### 3. One Export function (planned)
+### 3. One Export function (built)
 
 One Export function for Download and ZIP export: strip per the strip checkbox, fresh Imaginer metadata, and the filename from step 1. Needs steps 1 and 2 and comes before step 5. Gaps 9, 10 and 11.
 
@@ -120,7 +120,7 @@ Plan: [Tasks/plans/One_Export_function.plan.md](plans/One_Export_function.plan.m
 - Download All Images inside the config dialog follows the saved settings; a changed checkbox counts after OK.
 - The module's pure part is specified by the Node check `tools/check/image_export_check.mjs`, written by the main model before the plan review and extended after it. The ZIP assembly and the download are browser-only and stay thin; their dependencies are loaded with dynamic imports so that Node can load the module. Every processed PNG is held in memory until the archive is built; that is the cost of processing at Export.
 - The progress dialog's error area keeps line breaks and scrolls, so a long list of left-out files stays readable.
-- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Implementers build it.
+- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Two implementers built it; the main model wired the Node check into the check.
 
 #### Facts
 
@@ -139,6 +139,14 @@ Plan: [Tasks/plans/One_Export_function.plan.md](plans/One_Export_function.plan.m
 - Converting the existing gallery files: step 6.
 - Pixels only at the edit request: step 7.
 - The UI wording of the ZIP export: step 8.
+
+#### Manual test
+
+- Config → Advanced: strip on, both prompt options on, OK. ⬇️ on a generated image, then drop the file into the gallery: 💬 shows the prompt, and the file is named `<prompt>_<created>_<id>.png`.
+- ⬇️ on an imported JPEG: the file is named `<prompt>_<created>_<id>.jpg` and has the same size as the original.
+- Config → Files → Download All Images with a gallery of several images: the ZIP holds every image, each named `<prompt>_<created>_<id>.<ext>`, and the dialog closes after the download.
+- Import a file named `.png` that is a renamed JPEG, then ⬇️ on it: an error dialog names the file, the reason, and the way out; nothing downloads. Download All Images: the ZIP holds every other image, and the dialog lists the file with the reason and the hint, then closes on Close.
+- Config → Advanced: strip off, both prompt options off, OK. ⬇️ on the renamed JPEG: it downloads as stored.
 
 ### 4. Browser tests for the conversion (in discussion)
 

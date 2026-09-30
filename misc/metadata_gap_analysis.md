@@ -59,29 +59,29 @@ For comparison, Gallery → input area (in-app, no intake), the internal branch 
 
 ### Download
 
-The ⬇️ handler in `Gallery._build_thumbnail_content`.
+The ⬇️ handler in `Gallery._build_thumbnail_content` calls `export_image` in `image_export.js`.
 
 | Rule | Today | Gap |
 |---|---|---|
-| **External metadata:** strip checkbox on → removed, off → kept | PNG: `process_image_metadata` strips per the current strip checkbox with the chunk whitelist. JPEG and WebP: the bytes leave unchanged, GPS included, whatever the strip checkbox says. | ✗ |
-| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | PNG: the forms are replaced per the prompt checkboxes; both off → none ✓. JPEG and WebP: never any. | ✗ |
+| **External metadata:** strip checkbox on → removed, off → kept | PNG: `export_image` strips per the strip checkbox with the chunk whitelist ✓. JPEG and WebP: leave as stored, GPS included, until step 6 converts them. | ~ |
+| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | PNG: the forms are replaced per the prompt checkboxes; both off → none ✓. JPEG and WebP: never any, until step 6 converts them. | ~ |
 | **No prompt → none** | An empty prompt writes no form. | ✓ |
-| **Filename:** `<prompt>_<created>_<id>.png` | `build_image_filename` gives `<prompt>_<created>.<ext>`, without the ID. | ✗ |
+| **Filename:** `<prompt>_<created>_<id>.png` | `export_filename` gives `<prompt>_<created>_<id>.<ext>`; the extension is `png` for every gallery file once step 6 has converted the rest. | ✓ |
 
 ### ZIP export
 
-The same loop twice: in `Config_dialog` ("Download All Images") and in `Performance_warning.download_all`.
+`Config_dialog` ("Download All Images") and `Performance_warning.download_all` both call `export_gallery_as_ZIP` in `image_export.js`, which applies `export_image` to every gallery file.
 
 | Rule | Today | Gap |
 |---|---|---|
-| **External metadata:** strip checkbox on → removed, off → kept | The gallery files leave byte for byte. The strip checkbox is ignored. | ✗ |
-| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | None is written. Model output carries the forms baked in at the Generate click; imports carry whatever they brought. | ✗ |
-| **Filename:** unique | No ID. Equal names occur for several images of one non-streaming generation (one `created` for all), for imports without a prompt in the same second (all `image_<created>`), and for the same prompt in the same second. JSZip 3.10.1 then keeps only the last entry, so images are missing from the ZIP without a message (tested with the vendored copy). | ✗ |
+| **External metadata:** strip checkbox on → removed, off → kept | Every PNG per the strip checkbox ✓. JPEG and WebP as stored until step 6. | ~ |
+| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | Per the prompt checkboxes, from the gallery record ✓. With strip off and both prompt checkboxes off a file leaves as stored, so model output stored before step 5 keeps its baked-in forms. | ~ |
+| **Filename:** unique | Unique through the record ID. | ✓ |
 
 ### Writers of Imaginer metadata
 
 - `write_PNG_prompt` in `PNG_chunks.js` replaces existing forms, inserts before the first `IDAT`, and XML-escapes the XMP packet. A foreign XMP chunk stays unless the XMP form replaces it.
-- Failures are only logged (`console.warn` in `process_image_metadata`); the Download continues with the stripped bytes, without Imaginer metadata and without a message. The rules do not say yet whether an error at Export reaches the user.
+- At Export, a file to which the rules cannot be applied does not leave: Download shows the reason, ZIP export leaves the file out and lists it (the Export rule "Errors"). At intake, `process_image_metadata` still only logs failures (gap 4).
 
 ## Edit request
 
@@ -123,8 +123,8 @@ Every gallery file stored so far was created under the old behaviour: model outp
 6. One intake function for both doors, instead of the four copies in `app.js`, the drop listener in `components/gallery.js`, and the drop listener of the input area.
 7. Open: the intro image. Ignore it (session only), or route it through intake.
 8. Input area door: apply the same intake in memory.
-9. One Export function for Download and ZIP export instead of three places.
-10. Export: strip per the strip checkbox for every gallery file; fresh Imaginer metadata without duplicates or leftovers; none without a prompt; the XMP form XML-escaped; the filename with the ID. The filename is built in step 1 and the writing in step 2; the rest is step 3.
-11. Open: whether an error at Export reaches the user.
+9. One Export function for Download and ZIP export instead of three places. Built in step 3.
+10. Export: strip per the strip checkbox for every gallery file; fresh Imaginer metadata without duplicates or leftovers; none without a prompt; the XMP form XML-escaped; the filename with the ID. Built in steps 1 to 3 for PNG gallery files; JPEG and WebP gallery files wait for step 6.
+11. An error at Export reaches the user, and the file does not leave. Built in step 3.
 12. Edit request: pixels only for images and mask, neutral filenames `image_1.png` and `mask.png`, and no more `blob.name` on the gallery's own `Blob`.
 13. Open: existing gallery files.
