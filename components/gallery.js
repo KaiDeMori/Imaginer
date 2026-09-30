@@ -2,11 +2,10 @@
 import { is_PNG, read_PNG_prompt } from "../PNG_chunks.js";
 import { read_jpeg_metadata } from "./jpeg_metadata_reader.js";
 import { read_webp_metadata } from "./webp_metadata_reader.js";
-import { process_image_metadata } from "../process_image_metadata.js";
-import { build_image_filename } from "../filename_helper.js";
+import { EXPORT_AS_STORED_HINT, export_filename, export_image, trigger_download } from "../image_export.js";
 import { Error_modal } from "./error_modal.js";
 import { Delete_confirm_modal } from "./delete_confirm_modal.js";
-import { extension_for_type, validate_file_readable, validate_image_count, validate_image_file, with_batch_hint } from "./image_validation.js";
+import { validate_file_readable, validate_image_count, validate_image_file, with_batch_hint } from "./image_validation.js";
 
 /**
  * @param {File|Blob} file
@@ -325,16 +324,13 @@ export class Gallery {
 
     button_download.addEventListener("click", async (e) => {
       e.stopPropagation();
-      const filename = build_image_filename(prompt_text, created, record_id, extension_for_type(blob.type));
-      // Metadata embedding writes PNG chunks (iTXt/XMP); imported non-PNG images keep their original bytes.
-      const processed_blob = blob.type === "image/png" ? await process_image_metadata(blob, prompt_text || "", {}) : blob;
-      const download_url = URL.createObjectURL(processed_blob);
-      const a = document.createElement("a");
-      a.href = download_url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => { a.remove(); URL.revokeObjectURL(download_url); }, 100);
+      const record = { id: record_id, image_blob: blob, prompt_text, created };
+      try {
+        const entry = await export_image(record);
+        trigger_download(entry.blob, entry.filename);
+      } catch (error) {
+        Error_modal.show({ message: `${export_filename(record)}: ${error.message || String(error)}`, hint: EXPORT_AS_STORED_HINT });
+      }
     });
 
     const button_prompt = prompt_text ? this._build_prompt_button(prompt_text) : null;

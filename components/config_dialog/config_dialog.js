@@ -9,11 +9,10 @@ import {
   FILENAME_PROMPT_CHARS_KEY,
   MAX_FILENAME_PROMPT_CHARS,
   MIN_FILENAME_PROMPT_CHARS,
-  build_image_filename,
   clamp_filename_prompt_chars,
   get_filename_prompt_chars,
 } from "../../filename_helper.js";
-import { extension_for_type } from "../image_validation.js";
+import { describe_export_failures, export_gallery_as_ZIP } from "../../image_export.js";
 import { get_selected_model, get_show_older_models, set_show_older_models } from "../../model_fetcher.js";
 
 export class Config_dialog {
@@ -201,47 +200,20 @@ export class Config_dialog {
         progress.show();
         progress.set_status("Preparing download...");
 
-        const { get_jszip } = await import(versioned_url("../../static_imports/jszip_loader.js"));
-        const JSZip = await get_jszip();
         const { Database_store } = await import(versioned_url("../../storage/database_store.js"));
 
         const store = new Database_store();
         const records = await store.get_all({ reverse: false });
 
-        if (!records.length) throw new Error("No images to download.");
-
-        const zip = new JSZip();
-        progress.set_status("Processing images...");
-
-        for (let i = 0; i < records.length; i++) {
-          const rec = records[i];
-          if (rec.image_blob instanceof Blob) {
-            const filename = build_image_filename(rec.prompt_text, rec.created, rec.id, extension_for_type(rec.image_blob.type));
-
-            zip.file(filename, rec.image_blob);
-            progress.update_progress(i + 1, records.length);
-          }
+        const { failures } = await export_gallery_as_ZIP(records, {
+          on_progress: (done, total) => progress.update_progress(done, total),
+          on_status: (status) => progress.set_status(status),
+        });
+        if (failures.length === 0) {
+          progress.close();
+        } else {
+          progress.show_error(describe_export_failures(failures));
         }
-
-        progress.set_status("Saving to disk...");
-        const blob = await zip.generateAsync({ type: "blob" });
-
-        const url = URL.createObjectURL(blob);
-        const export_ts = new Date()
-          .toISOString()
-          .replace(/[-:T.]/g, "")
-          .slice(0, 14);
-        const zip_name = `Imaginer_Export_${export_ts}.zip`;
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = zip_name;
-        document.body.appendChild(a);
-        a.click();
-
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        progress.close();
       } catch (err) {
         progress.show_error(err.message || String(err));
       }

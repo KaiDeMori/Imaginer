@@ -118,7 +118,10 @@
   font-size: 1rem;
   color: #c62828;
   margin-bottom: 16px;
-  text-align: center;
+  text-align: left;
+  white-space: pre-wrap;
+  max-height: 40vh;
+  overflow: auto;
   padding: 12px;
   background: #ffebee;
   border-radius: 4px;

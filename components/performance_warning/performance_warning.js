@@ -1,6 +1,5 @@
 import { versioned_url } from "../../version_manager.js";
-import { build_image_filename } from "../../filename_helper.js";
-import { extension_for_type } from "../image_validation.js";
+import { describe_export_failures, export_gallery_as_ZIP } from "../../image_export.js";
 
 export class Performance_warning {
   constructor() {
@@ -55,45 +54,15 @@ export class Performance_warning {
     this.button_download_all.disabled = true;
     this.button_download_all.textContent = "Preparing...";
     try {
-      // Dynamically import JSZip
-      const { get_jszip } = await import(versioned_url("../../static_imports/jszip_loader.js"));
-      const JSZip = await get_jszip();
-
       // Get all images from database store
       const { Database_store } = await import(versioned_url("../../storage/database_store.js"));
       const store = new Database_store();
       const records = await store.get_all({ reverse: false });
 
-      if (!records.length) throw new Error("No images to download.");
-
-      const zip = new JSZip();
-      for (const rec of records) {
-        if (rec.image_blob instanceof Blob) {
-          const filename = build_image_filename(rec.prompt_text, rec.created, rec.id, extension_for_type(rec.image_blob.type));
-          zip.file(filename, rec.image_blob);
-        }
+      const { failures } = await export_gallery_as_ZIP(records, {});
+      if (failures.length > 0) {
+        alert(describe_export_failures(failures));
       }
-
-      const blob = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(blob);
-
-      // Use export name: Imaginer_Export_<timestamp>.zip
-      const export_ts = new Date()
-        .toISOString()
-        .replace(/[-:T.]/g, "")
-        .slice(0, 14);
-      const zip_name = `Imaginer_Export_${export_ts}.zip`;
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = zip_name;
-      document.body.appendChild(a);
-      a.click();
-
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 1000);
     } catch (err) {
       alert("Download failed: " + (err && err.message ? err.message : err));
     } finally {
