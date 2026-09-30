@@ -60,7 +60,7 @@
   <body>
     <h1>Imaginer conversion tests</h1>
     <p>
-      This page measures whether a conversion without canvas, <code>ImageDecoder</code> plus an own PNG encoder, turns JPEG, WebP, and PNG files into upright RGBA PNGs with exactly the decoded pixels, and whether PNGs made by a canvas carry extra chunks. Serve the repository the same way as the app (<code>README.md</code>, Getting Started) and open <code>/tools/browser_tests/conversion_tests.html</code> on that server. The tests start on their own.
+      This page measures the candidate conversion of Imaginer's intake for JPEG and WebP: <code>createImageBitmap</code>, then <code>VideoFrame.copyTo</code> as RGBA, then an own PNG encoder, with no canvas on the way. It checks that the candidate shows what <code>&lt;img&gt;</code> shows, that two decodes are identical, that the own PNG round trip is exact, how the EXIF orientation comes out, how long a 12 MP photo takes, and whether PNGs made by a canvas carry extra chunks. Serve the repository the same way as the app (<code>README.md</code>, Getting Started) and open <code>/tools/browser_tests/conversion_tests.html</code> on that server. The tests start on their own.
     </p>
     <div class="controls">
       <label>

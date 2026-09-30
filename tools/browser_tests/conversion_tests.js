@@ -1,20 +1,14 @@
-// Runs the conversion measurements in the current browser and shows one row per claim. The results decide the conversion pipeline of Imaginer's intake.
+// Runs the conversion measurements in the current browser and shows one row per claim. The results decide the conversion pipeline of Imaginer's intake for JPEG and WebP.
 
 import {
    apply_exif_orientation,
-   build_png_chunk,
    compare_alpha,
    compare_pixels,
    create_alpha_pattern,
    create_gradient_pattern,
    create_quadrant_pattern,
-   encode_apng,
    encode_png,
-   invert_colors,
    jpeg_with_orientation,
-   png_with_orientation,
-   quadrant_index_pattern,
-   quadrant_palette,
    read_png_chunks,
    webp_with_orientation,
    zlib_compress,
@@ -22,7 +16,6 @@ import {
 
 const ORIENTATION_WIDTH = 64;
 const ORIENTATION_HEIGHT = 32;
-const PALETTE_ALPHA = [255, 255, 128, 0];
 const LOSSY_QUALITY = 0.95;
 
 const results_body = document.querySelector("#results tbody");
@@ -36,6 +29,7 @@ function update_summary() {
    const lines = [
       `Browser: ${navigator.userAgent}`,
       `Window mode: ${window_mode_select.value || "not chosen"}`,
+      "Candidate pipeline: createImageBitmap, VideoFrame.copyTo as RGBA, own PNG encoder",
       "",
       "| Group | Test | Result | Verdict |",
       "|---|---|---|---|",
@@ -109,33 +103,38 @@ function read_canvas_pixels(canvas, context) {
    return { width: canvas.width, height: canvas.height, rgba: new Uint8Array(image_data.data.buffer) };
 }
 
+function bitmap_of(bytes, type) {
+   return createImageBitmap(new Blob([bytes], { type }), { premultiplyAlpha: "none", colorSpaceConversion: "none" });
+}
+
 /**
- * Decodes the first frame with WebCodecs. Premultiplication and color conversion are switched off, so the pixels arrive as stored.
+ * Reads the pixels of a bitmap through a VideoFrame, so no canvas is involved. This is the candidate pipeline's decode step.
  */
-async function decode_with_image_decoder(bytes, type) {
-   const decoder = new ImageDecoder({ data: bytes, type, premultiplyAlpha: "none", colorSpaceConversion: "none" });
+async function pixels_of_bitmap(bitmap) {
+   const frame = new VideoFrame(bitmap, { timestamp: 0, alpha: "keep" });
    try {
-      await decoder.completed;
-      const frame_count = decoder.tracks.selectedTrack ? decoder.tracks.selectedTrack.frameCount : 0;
-      const { image } = await decoder.decode({ frameIndex: 0 });
-      try {
-         const width = image.visibleRect.width;
-         const height = image.visibleRect.height;
-         const buffer = new Uint8Array(image.allocationSize({ format: "RGBA" }));
-         const layouts = await image.copyTo(buffer, { format: "RGBA" });
-         const { offset, stride } = layouts[0];
-         const rgba = new Uint8Array(width * height * 4);
-         for (let row = 0; row < height; row += 1) {
-            rgba.set(buffer.subarray(offset + row * stride, offset + row * stride + width * 4), row * width * 4);
-         }
-         const optional_details = [image.rotation !== undefined ? `rotation ${image.rotation}` : "", image.flip !== undefined ? `flip ${image.flip}` : ""].filter(Boolean);
-         const details = [`frame format ${image.format}`, `coded ${image.codedWidth}×${image.codedHeight}`, `display ${image.displayWidth}×${image.displayHeight}`, ...optional_details].join(", ");
-         return { width, height, rgba, frame_count, details };
-      } finally {
-         image.close();
+      const width = frame.visibleRect ? frame.visibleRect.width : bitmap.width;
+      const height = frame.visibleRect ? frame.visibleRect.height : bitmap.height;
+      const buffer = new Uint8Array(frame.allocationSize({ format: "RGBA" }));
+      const layouts = await frame.copyTo(buffer, { format: "RGBA" });
+      const { offset, stride } = layouts[0];
+      const rgba = new Uint8Array(width * height * 4);
+      for (let row = 0; row < height; row += 1) {
+         rgba.set(buffer.subarray(offset + row * stride, offset + row * stride + width * 4), row * width * 4);
       }
+      const details = `frame format ${frame.format}, coded ${frame.codedWidth}×${frame.codedHeight}, display ${frame.displayWidth}×${frame.displayHeight}`;
+      return { width, height, rgba, details };
    } finally {
-      decoder.close();
+      frame.close();
+   }
+}
+
+async function decode_with_candidate(bytes, type) {
+   const bitmap = await bitmap_of(bytes, type);
+   try {
+      return await pixels_of_bitmap(bitmap);
+   } finally {
+      bitmap.close();
    }
 }
 
@@ -156,8 +155,8 @@ async function decode_with_image_element(bytes, type) {
    }
 }
 
-async function decode_with_image_bitmap(bytes, type) {
-   const bitmap = await createImageBitmap(new Blob([bytes], { type }));
+async function decode_with_bitmap_through_canvas(bytes, type) {
+   const bitmap = await bitmap_of(bytes, type);
    const canvas = document.createElement("canvas");
    canvas.width = bitmap.width;
    canvas.height = bitmap.height;
@@ -167,29 +166,44 @@ async function decode_with_image_bitmap(bytes, type) {
    return read_canvas_pixels(canvas, context);
 }
 
+function pixels_identical(first, second) {
+   return first.width === second.width && first.height === second.height && first.rgba.length === second.rgba.length && first.rgba.every((value, index) => value === second.rgba[index]);
+}
+
 async function run_support_tests() {
-   await run_step("Support", "ImageDecoder exists", async () => {
-      const exists = typeof ImageDecoder === "function";
+   await run_step("Support", "createImageBitmap exists", async () => {
+      const exists = typeof createImageBitmap === "function";
       return { result: exists ? "yes" : "no", verdict: exists ? "✓" : "✗" };
    });
-   for (const type of ["image/jpeg", "image/png", "image/webp"]) {
-      await run_step("Support", `ImageDecoder supports ${type}`, async () => {
-         const supported = await ImageDecoder.isTypeSupported(type);
-         return { result: supported ? "yes" : "no", verdict: supported ? "✓" : "✗" };
-      });
-   }
+   await run_step("Support", "VideoFrame exists", async () => {
+      const exists = typeof VideoFrame === "function";
+      return { result: exists ? "yes" : "no", verdict: exists ? "✓" : "✗" };
+   });
+   await run_step("Support", "VideoFrame from an ImageBitmap, copyTo as RGBA", async () => {
+      const pattern = create_quadrant_pattern(8, 4);
+      const bitmap = await createImageBitmap(new ImageData(new Uint8ClampedArray(pattern.rgba), 8, 4), { premultiplyAlpha: "none" });
+      try {
+         const decoded = await pixels_of_bitmap(bitmap);
+         const comparison = compare_pixels(decoded, pattern);
+         return { result: `${decoded.details}; against the pattern: ${format_comparison(comparison)}`, verdict: comparison.max_difference === 0 ? "✓" : "✗" };
+      } finally {
+         bitmap.close();
+      }
+   });
    await run_step("Support", "CompressionStream(\"deflate\") produces ZLIB", async () => {
       const compressed = await zlib_compress(new Uint8Array([1, 2, 3]));
       return { result: `first byte 0x${compressed[0].toString(16)}`, verdict: compressed[0] === 0x78 ? "✓" : "✗" };
    });
 }
 
+/**
+ * Runs the candidate pipeline on one source. With an expected image the decode must be exact; without one it is compared with <img>, which is what the browser displays.
+ */
 async function run_pipeline_case(name, bytes, type, expected) {
    let decoded = null;
-   const decode_claim = expected ? "decodes exactly" : "decodes like <img>";
-   await run_step("Pipeline", `${name}: ImageDecoder ${decode_claim}`, async () => {
-      decoded = await decode_with_image_decoder(bytes, type);
-      const summary = `${decoded.width}×${decoded.height}, ${decoded.frame_count} frame(s), ${decoded.details}`;
+   await run_step("Pipeline", `${name}: candidate decode ${expected ? "is exact" : "matches <img>"}`, async () => {
+      decoded = await decode_with_candidate(bytes, type);
+      const summary = `${decoded.width}×${decoded.height}, ${decoded.details}`;
       if (expected) {
          const comparison = compare_pixels(decoded, expected);
          return { result: `${summary}; ${format_comparison(comparison)}`, verdict: comparison.max_difference === 0 ? "✓" : "✗" };
@@ -201,50 +215,27 @@ async function run_pipeline_case(name, bytes, type, expected) {
    if (!decoded) {
       return;
    }
+   await run_step("Pipeline", `${name}: two candidate decodes are identical`, async () => {
+      const again = await decode_with_candidate(bytes, type);
+      const identical = pixels_identical(decoded, again);
+      return { result: identical ? "yes" : `no: ${format_comparison(compare_pixels(decoded, again))}`, verdict: identical ? "✓" : "✗" };
+   });
+   await run_step("Pipeline", `${name}: candidate decode against the bitmap drawn on a canvas`, async () => {
+      const through_canvas = await decode_with_bitmap_through_canvas(bytes, type);
+      const comparison = compare_pixels(decoded, through_canvas);
+      return { result: `${format_comparison(comparison)}, mean ${comparison.mean_difference.toFixed(4)}`, verdict: "info" };
+   });
    await run_step("Pipeline", `${name}: own PNG round trip is exact and has only IHDR, IDAT, IEND`, async () => {
       const png = await encode_png({ width: decoded.width, height: decoded.height, samples: decoded.rgba });
       const chunk_types = read_png_chunks(png).map((chunk) => chunk.type).join(" ");
-      const round_trip = await decode_with_image_decoder(png, "image/png");
+      const round_trip = await decode_with_candidate(png, "image/png");
       const comparison = compare_pixels(round_trip, decoded);
       const passed = chunk_types === "IHDR IDAT IEND" && comparison.max_difference === 0;
       return { result: `chunks ${chunk_types}; ${format_comparison(comparison)}; ${(png.length / 1024).toFixed(1)} KiB`, verdict: passed ? "✓" : "✗" };
    });
 }
 
-/**
- * Every 16-bit sample is the 8-bit value times 257, so a decoder that rounds and one that takes the high byte both lead back to the 8-bit value.
- */
-function sixteen_bit_samples(pixels) {
-   const samples = new Uint8Array(pixels.rgba.length * 2);
-   pixels.rgba.forEach((value, index) => samples.set([value, value], index * 2));
-   return samples;
-}
-
 async function run_pipeline_tests() {
-   const alpha_pattern = create_alpha_pattern(16, 4);
-   await run_pipeline_case("PNG RGBA with alpha 0, 1, 128, 254", await encode_png({ width: 16, height: 4, samples: alpha_pattern.rgba }), "image/png", alpha_pattern);
-
-   const indices = quadrant_index_pattern(16, 8);
-   const palette = quadrant_palette();
-   const palette_expected = { width: 16, height: 8, rgba: new Uint8Array(16 * 8 * 4) };
-   indices.forEach((palette_index, pixel_index) => {
-      palette_expected.rgba.set([...palette.subarray(palette_index * 3, palette_index * 3 + 3), PALETTE_ALPHA[palette_index]], pixel_index * 4);
-   });
-   const palette_png = await encode_png({
-      width: 16,
-      height: 8,
-      samples: indices,
-      color_type: 3,
-      ancillary_chunks: [build_png_chunk("PLTE", palette), build_png_chunk("tRNS", new Uint8Array(PALETTE_ALPHA))],
-   });
-   await run_pipeline_case("PNG palette with tRNS", palette_png, "image/png", palette_expected);
-
-   const quadrant = create_quadrant_pattern(16, 8);
-   await run_pipeline_case("PNG with 16 bits per sample", await encode_png({ width: 16, height: 8, samples: sixteen_bit_samples(quadrant), bit_depth: 16 }), "image/png", quadrant);
-
-   const animated_png = await encode_apng({ width: 16, height: 8, frames: [quadrant.rgba, invert_colors(quadrant).rgba] });
-   await run_pipeline_case("animated PNG, 2 frames (first frame)", animated_png, "image/png", quadrant);
-
    const photo_like = create_quadrant_pattern(ORIENTATION_WIDTH, ORIENTATION_HEIGHT);
    try {
       await run_pipeline_case("JPEG", await canvas_encoded_bytes(photo_like, "image/jpeg", LOSSY_QUALITY), "image/jpeg", null);
@@ -256,6 +247,13 @@ async function run_pipeline_tests() {
    } catch (error) {
       record("Pipeline", "WebP", `error: ${error.message}`, "✗");
    }
+   const alpha_pattern = create_alpha_pattern(16, 4);
+   try {
+      await run_pipeline_case("WebP with alpha", await canvas_encoded_bytes(alpha_pattern, "image/webp", LOSSY_QUALITY), "image/webp", null);
+   } catch (error) {
+      record("Pipeline", "WebP with alpha", `error: ${error.message}`, "✗");
+   }
+   await run_pipeline_case("PNG RGBA with alpha 0, 1, 128, 254 (not converted by Imaginer; measures the verification path)", await encode_png({ width: 16, height: 4, samples: alpha_pattern.rgba }), "image/png", alpha_pattern);
 }
 
 /**
@@ -282,11 +280,14 @@ async function detect_orientations(decode, variants) {
    return detections;
 }
 
+/**
+ * The candidate output counts as upright when it shows what <img> shows, which is how the terms define upright.
+ */
 async function run_orientation_case(format_name, type, variants) {
    const methods = [
-      ["ImageDecoder", (bytes) => decode_with_image_decoder(bytes, type)],
+      ["candidate", (bytes) => decode_with_candidate(bytes, type)],
       ["<img>", (bytes) => decode_with_image_element(bytes, type)],
-      ["createImageBitmap", (bytes) => decode_with_image_bitmap(bytes, type)],
+      ["bitmap on canvas", (bytes) => decode_with_bitmap_through_canvas(bytes, type)],
    ];
    const detections = new Map();
    for (const [method_name, decode] of methods) {
@@ -296,23 +297,28 @@ async function run_orientation_case(format_name, type, variants) {
          detections.set(method_name, error instanceof Error ? error : new Error(String(error)));
       }
    }
+   const shown = (method_name, orientation) => {
+      const detection = detections.get(method_name);
+      if (detection instanceof Error) {
+         return null;
+      }
+      const best = detection.get(orientation);
+      return best ? best.orientation : null;
+   };
    const describe = (method_name, orientation) => {
       const detection = detections.get(method_name);
       if (detection instanceof Error) {
          return `${method_name}: error ${detection.message}`;
       }
-      const best = detection.get(orientation);
-      return best ? `${method_name} shows ${best.orientation}` : `${method_name}: no match`;
+      const value = shown(method_name, orientation);
+      return value === null ? `${method_name}: no match` : `${method_name} shows ${value}`;
    };
    for (const orientation of variants.keys()) {
-      await run_step("Orientation", `${format_name}, EXIF orientation ${orientation}: ImageDecoder output is upright`, async () => {
-         const image_decoder_detection = detections.get("ImageDecoder");
-         if (image_decoder_detection instanceof Error) {
-            throw image_decoder_detection;
-         }
-         const best = image_decoder_detection.get(orientation);
+      await run_step("Orientation", `${format_name}, EXIF orientation ${orientation}: candidate output shows what <img> shows`, async () => {
          const result = methods.map(([method_name]) => describe(method_name, orientation)).join(", ");
-         return { result, verdict: best && best.orientation === orientation ? "✓" : "✗" };
+         const candidate_shows = shown("candidate", orientation);
+         const image_shows = shown("<img>", orientation);
+         return { result, verdict: candidate_shows !== null && candidate_shows === image_shows ? "✓" : "✗" };
       });
    }
 }
@@ -333,13 +339,6 @@ async function run_orientation_tests() {
    } catch (error) {
       record("Orientation", "WebP", `error: ${error.message}`, "✗");
    }
-   try {
-      const png = await encode_png({ width: ORIENTATION_WIDTH, height: ORIENTATION_HEIGHT, samples: pattern.rgba });
-      const variants = new Map([1, 6].map((orientation) => [orientation, png_with_orientation(png, orientation)]));
-      await run_orientation_case("PNG (eXIf)", "image/png", variants);
-   } catch (error) {
-      record("Orientation", "PNG (eXIf)", `error: ${error.message}`, "✗");
-   }
 }
 
 async function run_canvas_tests() {
@@ -356,7 +355,7 @@ async function run_canvas_tests() {
       return { result: `${chunk_types.join(" ")}${chunk_types.includes("deBG") ? " (contains deBG)" : ""}`, verdict: "info" };
    });
    await run_step("Canvas", "toBlob PNG pixels are exact", async () => {
-      const comparison = compare_pixels(await decode_with_image_decoder(first_png, "image/png"), pattern);
+      const comparison = compare_pixels(await decode_with_candidate(first_png, "image/png"), pattern);
       return { result: format_comparison(comparison), verdict: comparison.max_difference === 0 ? "✓" : "✗" };
    });
    await run_step("Canvas", "two toBlob PNGs of the same canvas are byte-identical", async () => {
@@ -372,7 +371,7 @@ async function run_canvas_tests() {
          }
       }
       const mask_png = await blob_bytes(await canvas_to_blob(canvas_with_pixels(mask).canvas, "image/png"));
-      const decoded_mask = await decode_with_image_decoder(mask_png, "image/png");
+      const decoded_mask = await decode_with_candidate(mask_png, "image/png");
       const alpha_comparison = compare_alpha(decoded_mask, mask);
       const comparison = compare_pixels(decoded_mask, mask);
       const chunk_types = read_png_chunks(mask_png).map((chunk) => chunk.type).join(" ");
@@ -383,14 +382,14 @@ async function run_canvas_tests() {
 
 async function run_timing_test(width, height) {
    const megapixels = Math.round((width * height) / 1e6);
-   await run_step("Timing", `${megapixels} MP JPEG: decode, own PNG encode, verify`, async () => {
+   await run_step("Timing", `${megapixels} MP JPEG: candidate decode, own PNG encode, verify`, async () => {
       const jpeg = await canvas_encoded_bytes(create_gradient_pattern(width, height), "image/jpeg", 0.9);
       const started_at = performance.now();
-      const decoded = await decode_with_image_decoder(jpeg, "image/jpeg");
+      const decoded = await decode_with_candidate(jpeg, "image/jpeg");
       const decoded_at = performance.now();
       const png = await encode_png({ width: decoded.width, height: decoded.height, samples: decoded.rgba });
       const encoded_at = performance.now();
-      const verified = await decode_with_image_decoder(png, "image/png");
+      const verified = await decode_with_candidate(png, "image/png");
       const verified_at = performance.now();
       const comparison = compare_pixels(verified, decoded);
       const milliseconds = (from, to) => `${Math.round(to - from)} ms`;
