@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Imaginer conversion tests</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 24px;
+        color: #222;
+        background: #fafafa;
+      }
+      p {
+        max-width: 60rem;
+      }
+      .controls {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 16px 0;
+      }
+      #status {
+        font-style: italic;
+        color: #555;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        background: white;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+        font-size: 0.9rem;
+      }
+      th {
+        background: #eee;
+      }
+      tr[data-verdict="✓"] td:last-child {
+        background: #e3f6e5;
+      }
+      tr[data-verdict="✗"] td:last-child {
+        background: #fde2e1;
+      }
+      tr[data-verdict="info"] td:last-child {
+        background: #eef2fb;
+      }
+      textarea {
+        width: 100%;
+        font-family: ui-monospace, monospace;
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Imaginer conversion tests</h1>
+    <p>
+      This page measures whether a conversion without canvas, <code>ImageDecoder</code> plus an own PNG encoder, turns JPEG, WebP, and PNG files into upright RGBA PNGs with exactly the decoded pixels, and whether PNGs made by a canvas carry extra chunks. Serve the repository the same way as the app (<code>README.md</code>, Getting Started) and open <code>/tools/browser_tests/conversion_tests.html</code> on that server. The tests start on their own.
+    </p>
+    <div class="controls">
+      <label>
+        Window mode
+        <select id="window-mode">
+          <option value="normal window">normal window</option>
+          <option value="private window">private window</option>
+          <option value="Strict tracking protection">Strict tracking protection</option>
+        </select>
+      </label>
+      <button id="run-heavy-test" type="button">Run the 48 MP timing test (needs a lot of memory)</button>
+      <button id="copy-results" type="button">Copy results</button>
+      <span id="status">Starting…</span>
+    </div>
+    <table id="results">
+      <thead>
+        <tr>
+          <th>Group</th>
+          <th>Test</th>
+          <th>Result</th>
+          <th>Verdict</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h2>Results to paste back</h2>
+    <textarea id="summary" rows="16" readonly></textarea>
+    <script type="module" src="./conversion_tests.js"></script>
+  </body>
+</html>

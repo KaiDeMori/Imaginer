@@ -30,25 +30,28 @@ Open points are decided when a step needs them.
 
 Each step is an H3 that names its state: waiting, in discussion, planned, or built. A step in discussion or later has four H4 sections: Decisions, Facts, Open items, Out of scope. Once its plan exists, the step links its plan file. Gap numbers refer to the list "Gaps" in [misc/metadata_gap_analysis.md](../misc/metadata_gap_analysis.md).
 
-### 1. Browser tests for the conversion (in discussion)
+### 1. Browser tests for the conversion (planned)
 
 Local browser tests decide the conversion pipeline: decoding, orientation, encoding, and the `deBG` chunk. Gap 3.
 
 #### Decisions
 
-None yet.
+- The step runs by hand. The main model writes one test page, and the user runs it in Firefox and Chrome. The step skips the workflow: the page is a measuring instrument, not app code.
+- The test page is `tools/browser_tests/conversion_tests.html`, with `conversion_tests.js` and `png_test_tools.js`.
+- It tests: support of `ImageDecoder` and `CompressionStream`; exact decoding of PNG sources (RGBA with alpha, palette with `tRNS`, 16 bits per sample, animated) and JPEG and WebP against `<img>`; the round trip through the own PNG encoder, byte-exact and with only `IHDR`, `IDAT` and `IEND`; EXIF orientation for JPEG (1 to 8) and for WebP and PNG (1 and 6), against `<img>` and `createImageBitmap`; canvas PNG chunks, pixel exactness, and a mask; the timing at 12 MP, and at 48 MP on demand.
+- Not tested: fingerprinting overrides in `about:config`, `resistFingerprinting`, Safari, Brave.
+- The results go into [misc/metadata_research.md](../misc/metadata_research.md).
 
 #### Facts
 
 - The candidate pipeline and the list of local browser tests are in [misc/metadata_research.md](../misc/metadata_research.md), sections "Canvas-free conversion" and "Local browser tests".
 - Agents cannot use a browser: the workflow forbids them to start a server or a browser.
 - Imaginer is developed and tested with Firefox (`README.md`, section Requirements).
+- The pure helpers in `png_test_tools.js` passed 55 checks in Node 22: PNG structure and CRCs, the decompressed rows, APNG sequence numbers, the EXIF bytes, the embedding into JPEG, WebP and PNG, and the eight orientation transforms as a group.
 
 #### Open items
 
-- How the step runs, and who runs the tests in which browsers.
-- Which tests from the research list.
-- Where the test pages live.
+None.
 
 #### Out of scope
 

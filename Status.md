@@ -13,7 +13,7 @@
 
 ## Next step
 
-- The Discussion, together with the user: cut the steps from the gap analysis, then close the decisions of the first step.
+- Step 1: the user runs `tools/browser_tests/conversion_tests.html` in Firefox and Chrome and pastes the results; they go into `misc/metadata_research.md`.
 
 ## Open threads (not blocking)
 
