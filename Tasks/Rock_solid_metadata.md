@@ -106,11 +106,37 @@ Plan: [Tasks/plans/One_PNG_chunk_module.plan.md](plans/One_PNG_chunk_module.plan
 - Config → Advanced: strip off, both prompt options off. ⬇️ a generated image, then drop the downloaded file into the gallery: the thumbnail has no 💬.
 - Drop a JPEG or WebP whose XMP description contains `&amp;` into the gallery: 💬 shows `&`.
 
-### 3. One Export function (waiting)
+### 3. One Export function (in discussion)
 
 One Export function for Download and ZIP export: strip per the strip checkbox, fresh Imaginer metadata, and the filename from step 1. Needs steps 1 and 2 and comes before step 5. Gaps 9, 10 and 11.
 
-Open items: whether an error at Export reaches the user (gap 11).
+Plan: [Tasks/plans/One_Export_function.plan.md](plans/One_Export_function.plan.md).
+
+#### Decisions
+
+- The module is `image_export.js` in the repository root. `export_image(record)` gives the file and the filename for one gallery record; `collect_ZIP_entries(records, on_progress)` gives the entries and the failures for the ZIP export; `export_gallery_as_ZIP(records, callbacks)` builds and downloads the archive; `trigger_download(blob, filename)` is the one place that hands a file to the browser.
+- A gallery file that is not a PNG leaves as stored, with its own extension, until step 6 converts the existing gallery files. Strip cannot apply to it without the conversion.
+- An error at Export reaches the user. Download: an error dialog and no file. ZIP export: the backup must not stop for one file, so a record that cannot be processed goes into the archive as stored, and after the download one message lists every such file with the reason.
+- The module's pure part is specified by the Node check `tools/check/image_export_check.mjs`, written by the main model before the plan review. The ZIP assembly and the download are browser-only and stay thin; their dependencies are loaded with dynamic imports so that Node can load the module.
+- The plan is written by the main model, reviewed by independent reviewers, and built by implementers.
+
+#### Facts
+
+- The ⬇️ handler in `Gallery._build_thumbnail_content` processes only PNG blobs with `process_image_metadata` and builds its own anchor download; the two ZIP loops in `Config_dialog.wire_events` and `Performance_warning.download_all` write the gallery files byte for byte, apply no strip and no prompt form, and build the same archive name.
+- `version_manager.js` imports `components/version_message_modal.js` at its top level, so a module that Node must load cannot import it statically.
+- `filename_helper.js` and `components/image_validation.js` have no browser global at their top level; `filename_helper.js` reads `localStorage` only when a filename is built.
+- `Download_progress_dialog` offers `show`, `set_status`, `update_progress`, `show_error` and `close`; `show_error` ends the dialog with a close button.
+
+#### Open items
+
+- None.
+
+#### Out of scope
+
+- Model output at intake: step 5.
+- Converting the existing gallery files: step 6.
+- Pixels only at the edit request: step 7.
+- The UI wording of the ZIP export: step 8.
 
 ### 4. Browser tests for the conversion (in discussion)
 
