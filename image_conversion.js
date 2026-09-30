@@ -1,6 +1,6 @@
 // Conversion: a JPEG or WebP becomes a PNG with the pixels the browser displays, read through a VideoFrame so that no canvas, and no canvas noise, is on the way.
 
-import { encode_PNG_RGBA } from "./PNG_chunks.js";
+import { encode_PNG_RGBA, is_PNG, strip_PNG } from "./PNG_chunks.js";
 
 export const CONVERSION_UNSUPPORTED_MESSAGE = "This browser cannot convert JPEG and WebP images. Imaginer needs a current Firefox or Chrome, served over https or from localhost.";
 
@@ -52,4 +52,17 @@ export async function convert_to_PNG(blob) {
     const reason = error instanceof Error ? error.message : String(error);
     throw new Error("The image could not be converted: " + reason);
   }
+}
+
+// Pixels only: a PNG keeps its pixel chunks and nothing else; anything else is converted, which yields a clean PNG by construction.
+export async function pixels_only_PNG(blob, convert = convert_to_PNG) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  if (is_PNG(bytes)) {
+    try {
+      return new Blob([strip_PNG(bytes)], { type: "image/png" });
+    } catch {
+      return await convert(blob);
+    }
+  }
+  return await convert(blob);
 }

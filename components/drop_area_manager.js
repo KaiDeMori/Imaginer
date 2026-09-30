@@ -11,8 +11,8 @@ import { validate_file_readable, validate_image_count, validate_image_file, vali
 class drop_area_manager {
   constructor() {
     /**
-     * @type {Array<{ image: File, mask: File|null, uuid?: string }>}
-     * Each entry: { image: File, mask: File|null, uuid?: string }
+     * @type {Array<{ image: Blob, mask: File|null, uuid?: string|null, label: string }>}
+     * Each entry: { image: Blob, mask: File|null, uuid?: string|null, label: string }; label is the name the input area shows for the image, because a gallery image is a Blob without a name.
      */
     this.dropped_images = [];
   }
@@ -20,7 +20,7 @@ class drop_area_manager {
   /**
    * Validates and adds a batch of images atomically: either every entry is added, or none are.
    * A failing mask does not fail the batch — it is dropped, and its image is added without it.
-   * @param {Array<{ image: File, mask: File|null, uuid?: string|null }>} entries
+   * @param {Array<{ image: Blob, mask: File|null, uuid?: string|null, label: string }>} entries
    * @returns {Promise<{ ok: true, mask_discard_reasons: string[] } | { ok: false, error: string }>}
    */
   async try_add_images(entries) {
@@ -30,14 +30,14 @@ class drop_area_manager {
     }
 
     for (const entry of entries) {
-      const file_check = validate_image_file(entry.image);
+      const file_check = validate_image_file(entry.image, entry.label);
       if (!file_check.valid) {
         return { ok: false, error: file_check.error };
       }
     }
 
     for (const entry of entries) {
-      const readable_check = await validate_file_readable(entry.image);
+      const readable_check = await validate_file_readable(entry.image, entry.label);
       if (!readable_check.valid) {
         return { ok: false, error: readable_check.error };
       }
@@ -46,7 +46,7 @@ class drop_area_manager {
     const mask_discard_reasons = [];
     for (const entry of entries) {
       if (entry.mask) {
-        const mask_check = await validate_mask_file(entry.mask, entry.image);
+        const mask_check = await validate_mask_file(entry.mask, entry.image, entry.label);
         if (!mask_check.valid) {
           entry.mask = null;
           mask_discard_reasons.push(mask_check.error);
@@ -55,7 +55,7 @@ class drop_area_manager {
     }
 
     for (const entry of entries) {
-      this.add_image(entry.image, entry.mask, entry.uuid);
+      this.add_image(entry.image, entry.mask, entry.uuid, entry.label);
     }
 
     return { ok: true, mask_discard_reasons };
@@ -63,15 +63,16 @@ class drop_area_manager {
 
   /**
    * Add a new image (and optional mask) to the drop area, with optional uuid.
-   * @param {File} image_file - The image file to add.
+   * @param {Blob} image_file - The image to add.
    * @param {File|null} mask_file - The mask file to associate, or null.
    * @param {string|null} uuid - The uuid to associate, or null.
+   * @param {string} label - The name the input area shows for the image.
    */
-  add_image(image_file, mask_file = null, uuid = null) {
+  add_image(image_file, mask_file = null, uuid = null, label = "") {
     if (uuid) {
       image_file.imaginer_uuid = uuid;
     }
-    this.dropped_images.push({ image: image_file, mask: mask_file, uuid: uuid || image_file.imaginer_uuid });
+    this.dropped_images.push({ image: image_file, mask: mask_file, uuid: uuid || image_file.imaginer_uuid, label });
   }
 
   /**
@@ -119,7 +120,7 @@ class drop_area_manager {
 
   /**
    * Get the list of dropped images (with masks and uuids).
-   * @returns {Array<{ image: File, mask: File|null, uuid?: string }>}
+   * @returns {Array<{ image: Blob, mask: File|null, uuid?: string|null, label: string }>}
    */
   get_images() {
     return this.dropped_images;

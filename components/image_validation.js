@@ -21,20 +21,20 @@ export function extension_for_type(type) {
   return EXTENSION_BY_TYPE[type] || "png";
 }
 
-export function validate_image_file(file) {
+export function validate_image_file(file, name = file.name) {
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { valid: false, error: `"${file.name}" is not a supported format — use PNG, WEBP, or JPEG.` };
+    return { valid: false, error: `"${name}" is not a supported format — use PNG, WEBP, or JPEG.` };
   }
   if (file.size > MAX_IMAGE_BYTES) {
     return {
       valid: false,
-      error: `"${file.name}" is ${format_megabytes(file.size)}MB, which exceeds the ${format_megabytes(MAX_IMAGE_BYTES)}MB limit.`,
+      error: `"${name}" is ${format_megabytes(file.size)}MB, which exceeds the ${format_megabytes(MAX_IMAGE_BYTES)}MB limit.`,
     };
   }
   return { valid: true };
 }
 
-export async function validate_file_readable(file) {
+export async function validate_file_readable(file, name = file.name) {
   let bitmap = null;
   try {
     bitmap = await createImageBitmap(file);
@@ -43,22 +43,22 @@ export async function validate_file_readable(file) {
     if (err?.name === "NotFoundError") {
       return {
         valid: false,
-        error: `"${file.name}" could not be read by the browser — this is a known drag-and-drop issue on some Linux systems. Try Firefox instead.`,
+        error: `"${name}" could not be read by the browser — this is a known drag-and-drop issue on some Linux systems. Try Firefox instead.`,
       };
     }
     if (err?.name === "NotReadableError") {
       return {
         valid: false,
-        error: `"${file.name}" could not be read — it may be locked by another program or you don't have permission to access it.`,
+        error: `"${name}" could not be read — it may be locked by another program or you don't have permission to access it.`,
       };
     }
     if (err?.name === "EncodingError") {
       return {
         valid: false,
-        error: `"${file.name}" doesn't look like a valid image — it may be corrupted or mislabeled.`,
+        error: `"${name}" doesn't look like a valid image — it may be corrupted or mislabeled.`,
       };
     }
-    return { valid: false, error: `"${file.name}" could not be imported.` };
+    return { valid: false, error: `"${name}" could not be imported.` };
   } finally {
     bitmap?.close?.();
   }
@@ -75,14 +75,14 @@ export function validate_image_count(current_count, incoming_count) {
   return { valid: true };
 }
 
-export async function validate_mask_file(mask_file, image_file) {
+export async function validate_mask_file(mask_file, image_file, image_name = image_file.name) {
   if (mask_file.type !== "image/png") {
-    return { valid: false, error: `The mask for "${image_file.name}" is not a PNG and has been discarded.` };
+    return { valid: false, error: `The mask for "${image_name}" is not a PNG and has been discarded.` };
   }
   if (mask_file.size > MAX_MASK_BYTES) {
     return {
       valid: false,
-      error: `The mask for "${image_file.name}" exceeds ${format_megabytes(MAX_MASK_BYTES)}MB and has been discarded.`,
+      error: `The mask for "${image_name}" exceeds ${format_megabytes(MAX_MASK_BYTES)}MB and has been discarded.`,
     };
   }
 
@@ -91,10 +91,10 @@ export async function validate_mask_file(mask_file, image_file) {
   try {
     [mask_bitmap, image_bitmap] = await Promise.all([createImageBitmap(mask_file), createImageBitmap(image_file)]);
     if (mask_bitmap.width !== image_bitmap.width || mask_bitmap.height !== image_bitmap.height) {
-      return { valid: false, error: `The mask for "${image_file.name}" does not match the image dimensions and has been discarded.` };
+      return { valid: false, error: `The mask for "${image_name}" does not match the image dimensions and has been discarded.` };
     }
   } catch (err) {
-    return { valid: false, error: `The mask for "${image_file.name}" could not be read and has been discarded.` };
+    return { valid: false, error: `The mask for "${image_name}" could not be read and has been discarded.` };
   } finally {
     mask_bitmap?.close?.();
     image_bitmap?.close?.();

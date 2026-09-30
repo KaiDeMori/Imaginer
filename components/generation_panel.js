@@ -25,7 +25,7 @@ export class Generation_panel {
           const img = document.createElement("img");
           img.src = url;
           img.className = "input-image-thumb";
-          img.title = entry.image.name + "\nClick to remove";
+          img.title = entry.label + "\nClick to remove";
           img.style.height = "40px";
           img.style.width = "40px";
           img.style.objectFit = "cover";
@@ -50,6 +50,7 @@ export class Generation_panel {
           img.addEventListener("click", () => {
             drop_area_manager.remove_image(idx);
             this.dropped_images = drop_area_manager.get_images().map((e) => e.image);
+            this.dropped_entries = drop_area_manager.get_images().slice();
             this._update_input_image_thumbnails();
           });
           drop_area.appendChild(img);
@@ -63,6 +64,7 @@ export class Generation_panel {
     this.root = root;
     this.onGenerate = onGenerate; // callback when generate is clicked
     this.dropped_images = [];
+    this.dropped_entries = [];
     this.importing_count = 0;
     this.render();
     this.attach_events();
@@ -200,24 +202,21 @@ export class Generation_panel {
         const { blob, promptText, mask_blob, uuid } = window.imaginer_gallery_drag_store[drag_id];
         delete window.imaginer_gallery_drag_store[drag_id];
         if (blob) {
-          Promise.all([import(versioned_url("./drop_area_manager.js")), import(versioned_url("./error_modal.js")), import(versioned_url("./image_validation.js"))]).then(
-            ([{ default: drop_area_manager }, { Error_modal }, { extension_for_type }]) => {
-              // Give the blob a name for thumbnail UI (only if it's not a File, which has a read-only name)
-              if (!(blob instanceof File)) {
-                blob.name = `${sanitize_prompt_for_filename(promptText, "gallery_image")}.${extension_for_type(blob.type)}`;
-              }
+          Promise.all([import(versioned_url("./drop_area_manager.js")), import(versioned_url("./error_modal.js"))]).then(
+            ([{ default: drop_area_manager }, { Error_modal }]) => {
               // Convert mask_blob (Blob) to File if present
               let mask_file = null;
               if (mask_blob instanceof Blob) {
                 mask_file = new File([mask_blob], "mask.png", { type: "image/png" });
               }
-              drop_area_manager.try_add_images([{ image: blob, mask: mask_file, uuid }]).then((result) => {
+              drop_area_manager.try_add_images([{ image: blob, mask: mask_file, uuid, label: `${sanitize_prompt_for_filename(promptText, "gallery_image")}.png` }]).then((result) => {
                 if (!result.ok) {
                   Error_modal.show(result.error);
                   return;
                 }
                 result.mask_discard_reasons.forEach((reason) => Error_modal.show(reason));
                 this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
+                this.dropped_entries = drop_area_manager.get_images().slice();
                 this._update_input_image_thumbnails();
               });
             },
@@ -245,13 +244,14 @@ export class Generation_panel {
               for (const file of files) {
                 try {
                   const { image_blob } = await intake_import(file);
+                  const label = png_name(file.name);
                   if (image_blob.size > MAX_IMAGE_BYTES) {
                     failures.push({
                       name: file.name,
                       message: `"${file.name}" is ${(image_blob.size / 1048576).toFixed(1)}MB as a PNG, which exceeds the ${MAX_IMAGE_BYTES / 1048576}MB limit for editing.`,
                     });
                   } else {
-                    entries.push({ image: new File([image_blob], png_name(file.name), { type: "image/png" }), mask: null, uuid: null });
+                    entries.push({ image: new File([image_blob], label, { type: "image/png" }), mask: null, uuid: null, label });
                   }
                 } catch (error) {
                   failures.push({ name: file.name, message: error.message || String(error) });
@@ -263,6 +263,7 @@ export class Generation_panel {
                   failures.push({ name: "", message: result.error });
                 } else {
                   this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
+                  this.dropped_entries = drop_area_manager.get_images().slice();
                 }
               }
               if (failures.length > 0) Error_modal.show(describe_import_failures(failures));

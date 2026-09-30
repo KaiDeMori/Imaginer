@@ -4,7 +4,6 @@ import { Menu_bar } from "./components/menu_bar/menu_bar.js";
 import { Resizable_divider } from "./components/resizable_divider.js";
 import { Gallery } from "./components/gallery.js";
 import { Generation_panel } from "./components/generation_panel.js";
-import drop_area_manager from "./components/drop_area_manager.js";
 import { Viewer } from "./components/viewer/viewer.js";
 import { Database_store } from "./storage/database_store.js";
 import { Error_modal } from "./components/error_modal.js";
@@ -13,7 +12,8 @@ import { check_and_show_update_message, versioned_url } from "./version_manager.
 import { ensure_config_defaults } from "./default_config.js";
 import { get_selected_model, clamp_quality_for_model } from "./model_fetcher.js";
 import { describe_migration_failures, find_records_to_migrate, mark_migration_done, migrate_gallery, migration_is_done, strip_option_is_on } from "./gallery_migration.js";
-import { can_convert_images } from "./image_conversion.js";
+import { can_convert_images, pixels_only_PNG } from "./image_conversion.js";
+import { MAX_IMAGE_BYTES } from "./components/image_validation.js";
 
 // Content-moderation level for GPT image models (hidden config, no UI): "auto"
 // (default) or "low" (less restrictive). Any other/invalid value is silently
@@ -411,7 +411,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     const partial_images = parseInt(localStorage.getItem("imaginer.partial_images")) || 2;
 
     // --- Attach dropped images from generation_panel to API request (if any) ---
-    const dropped_images = generation_panel.dropped_images || [];
+    const dropped_entries = generation_panel.dropped_entries || [];
+    const dropped_images = dropped_entries.map((entry) => entry.image);
+    const active_mask = dropped_entries.length > 0 ? dropped_entries[0].mask : null;
     const selected_model = get_selected_model();
     const stored_quality = quality;
     quality = clamp_quality_for_model(quality, selected_model);
@@ -423,48 +425,52 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     if (use_image_edit) {
       // --- Use /v1/images/edits endpoint with multipart/form-data ---
-      const form_data = new FormData();
-      form_data.append("model", get_selected_model());
-      for (const file of dropped_images) {
-        form_data.append("image[]", file, file.name);
-      }
-      form_data.append("prompt", prompt_text);
-      form_data.append("n", enable_streaming ? 1 : n_local);
-      form_data.append("size", size);
-      if (quality !== null && quality !== "auto") form_data.append("quality", quality);
-      if (background !== "auto") form_data.append("background", background);
-      if (moderation !== "auto") form_data.append("moderation", moderation);
-      if (enable_streaming) {
-        form_data.append("stream", "true");
-        form_data.append("partial_images", partial_images);
-      }
-
-      const selected_model = get_selected_model();
-      if (selected_model === "gpt-image-1" || selected_model === "gpt-image-1.5") {
-        const input_fidelity = localStorage.getItem("imaginer.input_fidelity");
-        if (input_fidelity) form_data.append("input_fidelity", input_fidelity);
-      }
-
-      function debug_mask(mask) {
-        // DEBUG: Open mask in new tab for inspection
-        const mask_url = URL.createObjectURL(mask);
-        const debug_tab = window.open(mask_url, "_blank");
-        console.debug("[Imaginer] Mask opened in new tab for inspection:", mask_url);
-        // Clean up URL after a delay to prevent memory leaks
-        setTimeout(() => URL.revokeObjectURL(mask_url), 10000);
-      }
-
-      // --- Attach mask from drop_area_manager if present, and log debug info ---
-      const active_mask = drop_area_manager.get_active_mask();
-      if (active_mask) {
-        form_data.append("mask", active_mask, active_mask.name || "mask.png");
-        console.debug("[Imaginer] Sending image edit request WITH mask:", active_mask);
-        //debug_mask(active_mask);
-      } else {
-        console.debug("[Imaginer] Sending image edit request WITHOUT mask.");
-      }
-
       try {
+        const form_data = new FormData();
+        form_data.append("model", get_selected_model());
+        // Images and mask reach OpenAI as pixels only, under neutral names, whatever they are in the gallery.
+        for (const [index, entry] of dropped_entries.entries()) {
+          const pixels = await pixels_only_PNG(entry.image);
+          if (pixels.size > MAX_IMAGE_BYTES) {
+            throw new Error(`"${entry.label}" is ${(pixels.size / 1048576).toFixed(1)}MB as a PNG, which exceeds the ${MAX_IMAGE_BYTES / 1048576}MB limit for editing.`);
+          }
+          form_data.append("image[]", pixels, `image_${index + 1}.png`);
+        }
+        form_data.append("prompt", prompt_text);
+        form_data.append("n", enable_streaming ? 1 : n_local);
+        form_data.append("size", size);
+        if (quality !== null && quality !== "auto") form_data.append("quality", quality);
+        if (background !== "auto") form_data.append("background", background);
+        if (moderation !== "auto") form_data.append("moderation", moderation);
+        if (enable_streaming) {
+          form_data.append("stream", "true");
+          form_data.append("partial_images", partial_images);
+        }
+
+        const selected_model = get_selected_model();
+        if (selected_model === "gpt-image-1" || selected_model === "gpt-image-1.5") {
+          const input_fidelity = localStorage.getItem("imaginer.input_fidelity");
+          if (input_fidelity) form_data.append("input_fidelity", input_fidelity);
+        }
+
+        function debug_mask(mask) {
+          // DEBUG: Open mask in new tab for inspection
+          const mask_url = URL.createObjectURL(mask);
+          const debug_tab = window.open(mask_url, "_blank");
+          console.debug("[Imaginer] Mask opened in new tab for inspection:", mask_url);
+          // Clean up URL after a delay to prevent memory leaks
+          setTimeout(() => URL.revokeObjectURL(mask_url), 10000);
+        }
+
+        // --- Attach mask from drop_area_manager if present, and log debug info ---
+        if (active_mask) {
+          form_data.append("mask", await pixels_only_PNG(active_mask), "mask.png");
+          console.debug("[Imaginer] Sending image edit request WITH mask:", active_mask);
+          //debug_mask(active_mask);
+        } else {
+          console.debug("[Imaginer] Sending image edit request WITHOUT mask.");
+        }
+
         if (enable_streaming) {
           for (let i = 0; i < n_local; i++) {
             try {
