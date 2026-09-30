@@ -237,9 +237,40 @@ Plan: [Tasks/plans/Intake.plan.md](plans/Intake.plan.md).
 - Drop a JPEG of 40 megapixels into the input area: a dialog names the file, its size as a PNG and the limit for editing, no thumbnail; the same file drops into the gallery.
 - Generate with streaming on, with streaming off and one image, with several images, and through an edit request, with strip on: every stored image, downloaded with strip off and both prompt options off, holds only the pixel chunks.
 
-### 6. Existing gallery files (waiting)
+### 6. Existing gallery files (in discussion)
 
-Brings the existing gallery files in line with the rules, as its Discussion decides. Existing model output needs only its chunks cleaned; existing imports need conversion or strip. Needs step 5. Gap 13.
+Brings the existing gallery files in line with the rules: a one-time migration, offered with a warning beforehand. Existing model output needs only its chunks cleaned; existing imports need conversion or strip. Needs step 5. Gap 13.
+
+Plan: [Tasks/plans/Existing_gallery_files.plan.md](plans/Existing_gallery_files.plan.md).
+
+#### Decisions
+
+- The user decided: a one-time migration, with a warning to the user beforehand. The warning is a dialog at start, once the thumbnails are on screen, that names how many images are still in their original form, says that the conversion cannot be undone and that the prompts stay, and points to the backup. Later postpones it to the next start; Convert now runs it with a progress dialog.
+- Every stored file is brought to what intake produces for an import: a PNG stripped to its pixel chunks, a JPEG or WebP converted. Every metadata goes, because a stored file's origin cannot be told any more, and an import is always cleaned; the prompt lives in the record.
+- One record at a time: the new PNG is verified in memory before one atomic write replaces the old file; a record that fails stays as it is and is listed afterwards with the way out. The page reloads after the run, because the thumbnails and the download handlers hold the old blobs.
+- A flag in `localStorage`, `imaginer.gallery_files_migrated`, marks a gallery whose files were all checked or converted, so the scan does not run at every start. A gallery that needs nothing sets the flag without a dialog.
+- The migration lives in `gallery_migration.js`; the warning is `components/migration_confirm_modal.js`, built like the delete confirmation; the progress dialog is the existing download progress dialog with a title of its own.
+- When the performance warning opens at start, the migration is not offered in that start.
+- The `export_image` case for a JPEG or WebP gallery file stays as the safety net for a file the migration could not convert.
+- The plan is written by the main model, reviewed by independent reviewers, and built by implementers. The migration module's pure part is specified by `tools/check/gallery_migration_check.mjs`, wired into the check at Verification.
+
+#### Facts
+
+- `Database_store.update(id, updates)` reads the record, assigns the fields and writes it back with one `put` in one transaction (`storage/database_store.js`).
+- The gallery's `on_loading_complete` callback in `app.js` runs after the thumbnails are built; it opens the performance warning when loading took longer than the limit.
+- `Delete_confirm_modal.show(count)` in `components/delete_confirm_modal.js` builds its overlay and buttons in code and resolves an action; Escape and a click outside count as cancel.
+- `Download_progress_dialog` has a fixed title in its HTML and offers `show`, `set_status`, `update_progress`, `show_error` and `close`; `show_error` keeps the dialog open with a close button.
+- `Gallery.loadImages` reads every record and stores the blob's object URL in the thumbnail; the ⬇️ handler closes over the blob, so a replaced blob is not seen until the page reloads.
+
+#### Open items
+
+- None.
+
+#### Out of scope
+
+- The intro image: step 8.
+- The edit request: step 7.
+- A release note about the conversion: the release.
 
 ### 7. Edit request (waiting)
 
