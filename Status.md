@@ -4,12 +4,17 @@
 
 ## Where we are right now
 
-- A collection of drafts is present.
+- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Goal and Plan are written; the Steps come from the gap analysis.
+- Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md). Fresh; the wording may still change.
+- A collection of drafts is present in `Tasks/Draft_Collection.md`.
 
 ## Next step
 
-- Special feature request. The user will know more.
+- Gap analysis, together with the user: compare the Gallery door with today's code. Then the next path.
 
 ## Open threads (not blocking)
 
-- _(none yet)_
+- Gallery import button (📂, tooltip "Import", after 🗑️): parked on the user's list, probably its own session.
+- The web research on canvas noise and on how OpenAI handles input files exists only in the chat so far.
+- ZIP export may lose images whose filenames collide (same prompt, same second). Not yet tested.
+- With a mini model selected, images in the input area are ignored without a word.
