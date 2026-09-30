@@ -50,7 +50,7 @@
 - Moderation errors (`code: "moderation_blocked"`) may carry a `moderation_details` object with `moderation_stage` (`input`, `output`, `unknown`) and a `categories` list. The moderation dialog shows the stage and the categories when they are present.
 - Selecting a `*-mini` model disables editing: dropped images are ignored and the request falls back to a plain generation.
 - Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`. The API key test succeeds when at least one returned model ID starts with `gpt-image-`.
-- Downloaded PNG filenames are built locally from a sanitized prompt prefix plus the image creation timestamp. The prefix length comes from `imaginer.filename_prompt_chars`, defaults to 110, and is clamped to 1-230.
+- Download and ZIP export filenames are built locally as `<prompt>_<created>_<id>.<ext>`: a sanitized prompt prefix, the image creation timestamp, and the record's IndexedDB ID, which keeps every name unique within a ZIP. The prefix length comes from `imaginer.filename_prompt_chars`, defaults to 110, and is clamped to 1-230.
 
 
 # Appendices

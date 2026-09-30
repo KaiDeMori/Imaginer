@@ -447,10 +447,10 @@ Config → Files → **Filename prompt characters (max. 230)** controls how many
 Downloaded PNGs use this pattern:
 
 ```text
-<sanitized_prompt>_<unix_seconds>.png
+<sanitized_prompt>_<unix_seconds>_<id>.png
 ```
 
-Whitespace becomes underscores, unsupported filename characters are removed, and empty prompts fall back to `image`.
+Whitespace becomes underscores, unsupported filename characters are removed, and empty prompts fall back to `image`. The number at the end is the image's ID in your gallery. It makes every filename unique, so no two images ever share a name.
 
 #### Refresh Cache
 
@@ -460,7 +460,7 @@ The app refreshes its saved app files and reloads the page. Your images, setting
 
 #### Download All Images
 
-Config → Files → **Download All Images** bundles every stored image (generated and imported) into a ZIP. PNG filenames use the configured filename prompt character limit plus the image timestamp; the ZIP is named `Imaginer_Export_<timestamp>.zip`. A progress dialog shows status. If no images are present, you see an error instead of a download.
+Config → Files → **Download All Images** bundles every stored image (generated and imported) into a ZIP. The files inside follow the download filename pattern (prompt, timestamp, and the image's ID), so every image keeps its own name; the ZIP is named `Imaginer_Export_<timestamp>.zip`. A progress dialog shows status. If no images are present, you see an error instead of a download.
 
 #### Delete Gallery
 
