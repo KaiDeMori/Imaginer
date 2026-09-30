@@ -30,8 +30,8 @@
   - Maximum file size: 4 MB.
   - Dimensions: must match its image's pixel dimensions exactly.
   - A mask failing any of these is discarded and an error is shown; the image itself is still added. This can only happen from a corrupted `mask_blob` record — masks are always generated at exactly their source image's dimensions (see `components/viewer/viewer.js` `close()`).
-- Embedded prompts are read from PNG (iTXt/XMP), JPEG (XMP/EXIF), and WebP (XMP/EXIF) on import.
-- Optional prompt embedding on generation and download writes iTXt (`prompt_text`) and/or an XMP block into the PNG; if the strip option is on, server-side metadata is removed first. Mask PNGs store editable areas with transparent alpha.
+- Embedded prompts are read from PNG (iTXt/XMP), JPEG (XMP/EXIF), and WebP (XMP/EXIF) on import. A compressed iTXt `prompt_text` chunk is inflated, and XML entities in an XMP description are decoded. A damaged file imports with an empty prompt instead of failing.
+- Optional prompt embedding on generation and download writes the prompt as an iTXt chunk (`prompt_text`) and/or an XMP packet (`dc:description`) into the PNG, replacing any earlier copy of either form, so a file never carries the prompt twice; the XMP packet is XML-escaped, and an empty prompt writes nothing. If the strip option is on, every chunk except `IHDR`, `PLTE`, `tRNS`, `IDAT` and `IEND` is removed first, so palette PNGs keep their palette and transparency. Both are chunk operations in `PNG_chunks.js` that never decode the pixels. Mask PNGs store editable areas with transparent alpha.
 
 ## OpenAI Integration
 - Imaginer accepts two API key formats from OpenAI:
@@ -46,7 +46,7 @@
 - Streaming previews (`stream: true` with `partial_images`) are requested on both endpoints when the streaming preview is enabled. Generations consume `image_generation.partial_image` and `image_generation.completed` events, edits consume `image_edit.partial_image` and `image_edit.completed` events (`consume_image_stream` in `app.js`). A streamed edit sends one request per requested image with `n` set to 1, so each placeholder receives its own preview sequence.
 - Quality values: all GPT image models accept `low`, `medium`, `high` and `auto`. The `gpt-image-2.5` models additionally accept `xhigh` and `max`. `clamp_quality_for_model` in `model_fetcher.js` replaces `xhigh` and `max` with `high` at request time when the selected model ID does not start with `gpt-image-2.5`. The stored `imaginer.quality` value is not changed.
 - Background values are not clamped per model. `background: transparent` is supported by `gpt-image-1` and by both `gpt-image-2.5` models, and Imaginer never sends `output_format`, so the API default PNG preserves the transparency.
-- Generation results and edit results pass through the same metadata processing (`process_image_metadata`): optional stripping of server-side metadata, then optional prompt embedding as iTXt and/or XMP.
+- Generation results and edit results pass through the same metadata processing (`process_image_metadata`, built on `PNG_chunks.js`): optional stripping of server-side metadata, then optional prompt embedding as iTXt and/or XMP.
 - Moderation errors (`code: "moderation_blocked"`) may carry a `moderation_details` object with `moderation_stage` (`input`, `output`, `unknown`) and a `categories` list. The moderation dialog shows the stage and the categories when they are present.
 - Selecting a `*-mini` model disables editing: dropped images are ignored and the request falls back to a plain generation.
 - Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`. The API key test succeeds when at least one returned model ID starts with `gpt-image-`.

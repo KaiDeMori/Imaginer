@@ -94,7 +94,7 @@ Every setting is documented in the User Manual section **Configuration & Setting
 - `index.html`, `app.js`, `main.css`: application entry point and generation logic.
 - `components/`: UI components such as the gallery, viewer, menu bar, configuration dialog, and drop areas.
 - `storage/`: IndexedDB access.
-- `png_iTXt/`, `png_XMP_via_iTXt/`, `strip_metadata_from_PNG/`: PNG metadata reading, writing, and stripping.
+- `PNG_chunks.js`, `XML_entities.js`: PNG chunk operations (strip, the prompt forms, prompt reading) and XML text escaping.
 - `static_imports/`: vendored third-party libraries (JSZip, marked).
 - `intro/`: the first-launch intro sequence.
 - `User_Manual/`: documentation sources and the in-app help pages.
