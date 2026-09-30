@@ -81,7 +81,7 @@ Every setting is documented in the User Manual section **Configuration & Setting
 - Settings are stored in `localStorage`.
 - The API key is obfuscated and stored in `localStorage`. Anyone with access to the browser profile can recover it.
 - Clearing the browser data deletes all images, settings, and the API key.
-- Requests go to `api.openai.com` only.
+- Requests go to `api.openai.com` only. Images and masks are sent as bare pixels, without metadata or file names.
 
 ## Documentation
 

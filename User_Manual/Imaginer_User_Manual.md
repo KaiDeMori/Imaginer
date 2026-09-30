@@ -215,7 +215,7 @@ Imaginer keeps every image as a clean PNG. If your gallery still holds images in
 
 Choose **Later** to be asked again at the next start. For an exact copy of the originals first, turn off **Strip Server-Side metadata** and both **Embed prompt** options in Config → Advanced, then use Config → Files → **Download All Images**, and only then convert.
 
-**Convert now** shows a progress dialog and reloads the page when it is done. Each image is checked before it replaces the old file. An image that could not be converted stays as it is and is listed with the reason; it is offered again at the next start, and it can be downloaded as stored with the three options off.
+**Convert now** shows a progress dialog and reloads the page when it is done. Each image is checked before it replaces the old file. An image that could not be converted stays as it is and is listed with the reason; it is offered again at the next start, it can be downloaded as stored with the three options off, and it can still be edited, because the edit request converts it for itself.
 
 
 ### The Viewer
@@ -239,7 +239,7 @@ Flipping is disabled while **Mask Mode** is active (the arrow buttons hide), so 
 
 #### Mask Mode
 
-Mask Mode lets you paint on images to control which areas get regenerated during editing.
+Mask Mode lets you paint on images to control which areas get regenerated during editing. The mask is stored with the image and sent to OpenAI as bare pixels together with it.
 
 **Enable the button** first in Config → Generation → **Show Mask Mode Button** (off by default).
 
@@ -258,7 +258,7 @@ Masks save automatically when you close the Viewer. Gallery thumbnails with mask
 
 ### Image Editing
 
-**Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery.
+**Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery. Only the picture itself reaches OpenAI: every image and the mask are sent as bare pixels under neutral names, whatever the file in your gallery carries. A gallery image that is still a JPEG or WebP is converted for the request without changing the gallery; if its PNG would exceed the size limit for editing, the request is refused with the size named.
 
 The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be a common image format, under a certain size and count (see the Technical Manual for exact figures). They are converted to PNG like gallery imports; the drop area shows **Converting…** meanwhile, and **Generate** waits until it is done. Too many files at once are refused before anything happens; every other problem concerns only its file, and one dialog lists the files that were not added, with the reason. A photo so large that its PNG exceeds the size limit for editing is refused here with its size named; it can still be imported into the gallery.
 
@@ -490,7 +490,7 @@ When enabled, the dropdown lists every image model of your OpenAI account, inclu
 
 #### PNG Metadata Options
 
-- **Strip Server-Side metadata** (default: on): Removes OpenAI's metadata from generated images before they are saved, and every metadata from PNGs you download or export, keeping files lean. Imported images are always cleaned, whatever this option says. The one-time conversion of older galleries (see The Gallery → **Converting Older Galleries**) follows this option too.
+- **Strip Server-Side metadata** (default: on): Removes OpenAI's metadata from generated images before they are saved, and every metadata from PNGs you download or export, keeping files lean. Imported images are always cleaned, whatever this option says, and the edit request sends bare pixels whatever this option says. The one-time conversion of older galleries (see The Gallery → **Converting Older Galleries**) follows this option.
 - **Embed prompt as iTXt** (default: on): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata. The prompt is written when you download or export a PNG; the images in your gallery carry no prompt themselves, it lives in the gallery record.
 - **Embed prompt as XMP** (default: on): Writes the prompt in an XMP block for metadata-aware apps. If both options are on, the prompt is written to iTXt first, then XMP. With both options off, a downloaded or exported PNG carries no prompt.
 
