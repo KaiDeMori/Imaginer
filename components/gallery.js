@@ -1,26 +1,9 @@
 // gallery.js – Thumbnail grid with placeholder support
-import { is_PNG, read_PNG_prompt } from "../PNG_chunks.js";
-import { read_jpeg_metadata } from "./jpeg_metadata_reader.js";
-import { read_webp_metadata } from "./webp_metadata_reader.js";
 import { EXPORT_AS_STORED_HINT, export_filename, export_image, trigger_download } from "../image_export.js";
 import { Error_modal } from "./error_modal.js";
 import { Delete_confirm_modal } from "./delete_confirm_modal.js";
-import { validate_file_readable, validate_image_count, validate_image_file, with_batch_hint } from "./image_validation.js";
-
-/**
- * @param {File|Blob} file
- * @returns {Promise<string>}
- */
-async function read_image_prompt(file) {
-  const type = file.type;
-  if (type === "image/png")  return read_PNG_prompt(new Uint8Array(await file.arrayBuffer()));
-  if (type === "image/jpeg") return read_jpeg_metadata(file);
-  if (type === "image/webp") return read_webp_metadata(file);
-  // Signature-based fallback for unknown/empty MIME types
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  if (is_PNG(bytes)) return read_PNG_prompt(bytes);
-  return (await read_jpeg_metadata(file)) || (await read_webp_metadata(file));
-}
+import { validate_image_count, with_batch_hint } from "./image_validation.js";
+import { describe_import_failures, intake_import } from "../image_intake.js";
 
 export class Gallery {
   constructor(root, viewer, options = {}) {
@@ -194,44 +177,27 @@ export class Gallery {
         Error_modal.show(with_batch_hint(count_check.error, is_batch));
         return;
       }
+      const failures = [];
+      // Each file stands on its own: one that cannot be imported is reported after the batch, and the others still land in the gallery.
       for (const file of files) {
-        const file_check = validate_image_file(file);
-        if (!file_check.valid) {
-          Error_modal.show(with_batch_hint(file_check.error, is_batch));
-          return;
+        try {
+          const { image_blob, prompt_text } = await intake_import(file);
+          const created = Math.floor(Date.now() / 1000);
+          const record = { created, image_blob, prompt_imgs: [] };
+          if (prompt_text) record.prompt_text = prompt_text;
+
+          let id = null;
+          if (window.database_store) {
+            id = await window.database_store.save(record);
+            this.records_by_id[id] = { id, ...record };
+          }
+
+          this.create_or_update_thumbnail(null, image_blob, prompt_text, created, id);
+        } catch (error) {
+          failures.push({ name: file.name, message: error.message || String(error) });
         }
       }
-
-      for (const file of files) {
-        const readable_check = await validate_file_readable(file);
-        if (!readable_check.valid) {
-          Error_modal.show(with_batch_hint(readable_check.error, is_batch));
-          return;
-        }
-      }
-
-      for (const file of files) {
-        const prompt = await read_image_prompt(file);
-        const created = Math.floor(Date.now() / 1000);
-
-        let id = null;
-        // Save to DB
-        if (window.database_store) {
-          const record = {
-            created,
-            image_blob: file,
-            prompt_imgs: [],
-          };
-          if (prompt) record.prompt_text = prompt;
-
-          id = await window.database_store.save(record);
-
-          this.records_by_id[id] = { id, ...record };
-        }
-
-        // Update UI
-        this.create_or_update_thumbnail(null, file, prompt, created, id);
-      }
+      if (failures.length > 0) Error_modal.show(describe_import_failures(failures));
     });
   }
 

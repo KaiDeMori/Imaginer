@@ -252,3 +252,98 @@ export function write_PNG_prompt(bytes, prompt_text, forms) {
   }
   return write_PNG_chunks(kept);
 }
+
+const BYTES_PER_PIXEL = 4;
+const FILTER_TYPE_COUNT = 5;
+
+async function deflate_bytes(bytes) {
+  const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+function paeth_predictor(left, above, upper_left) {
+  const estimate = left + above - upper_left;
+  const distance_left = Math.abs(estimate - left);
+  const distance_above = Math.abs(estimate - above);
+  const distance_upper_left = Math.abs(estimate - upper_left);
+  if (distance_left <= distance_above && distance_left <= distance_upper_left) return left;
+  return distance_above <= distance_upper_left ? above : upper_left;
+}
+
+/**
+ * Writes the row filtered with the given filter type into `target` and returns the sum of the absolute values of the filtered bytes read as signed bytes.
+ * @param {number} filter_type
+ * @param {Uint8Array} row
+ * @param {Uint8Array} previous_row
+ * @param {Uint8Array} target
+ * @returns {number}
+ */
+function filter_row(filter_type, row, previous_row, target) {
+  let sum = 0;
+  for (let index = 0; index < row.length; index++) {
+    const left = index >= BYTES_PER_PIXEL ? row[index - BYTES_PER_PIXEL] : 0;
+    const above = previous_row[index];
+    const upper_left = index >= BYTES_PER_PIXEL ? previous_row[index - BYTES_PER_PIXEL] : 0;
+    let predictor;
+    if (filter_type === 0) predictor = 0;
+    else if (filter_type === 1) predictor = left;
+    else if (filter_type === 2) predictor = above;
+    else if (filter_type === 3) predictor = (left + above) >> 1;
+    else predictor = paeth_predictor(left, above, upper_left);
+    const filtered = (row[index] - predictor) & 0xff;
+    target[index] = filtered;
+    sum += Math.abs((filtered << 24) >> 24);
+  }
+  return sum;
+}
+
+/**
+ * Filters every row with the filter type whose bytes have the smallest signed sum; the lowest filter type wins a tie.
+ * @param {Uint8Array} rgba
+ * @param {number} width
+ * @param {number} height
+ * @returns {Uint8Array}
+ */
+function filter_image_data(rgba, width, height) {
+  const row_length = width * BYTES_PER_PIXEL;
+  const image_data = new Uint8Array(height * (row_length + 1));
+  const candidate = new Uint8Array(row_length);
+  const zero_row = new Uint8Array(row_length);
+  for (let row_index = 0; row_index < height; row_index++) {
+    const row = rgba.subarray(row_index * row_length, (row_index + 1) * row_length);
+    const previous_row = row_index > 0 ? rgba.subarray((row_index - 1) * row_length, row_index * row_length) : zero_row;
+    const target_offset = row_index * (row_length + 1);
+    let best_type = 0;
+    let best_sum = Infinity;
+    for (let filter_type = 0; filter_type < FILTER_TYPE_COUNT; filter_type++) {
+      const sum = filter_row(filter_type, row, previous_row, candidate);
+      if (sum < best_sum) {
+        best_sum = sum;
+        best_type = filter_type;
+        image_data.set(candidate, target_offset + 1);
+      }
+    }
+    image_data[target_offset] = best_type;
+  }
+  return image_data;
+}
+
+/**
+ * @param {{ width: number, height: number, rgba: Uint8Array }} image
+ * @returns {Promise<Uint8Array>}
+ */
+export async function encode_PNG_RGBA({ width, height, rgba }) {
+  if (rgba.length !== width * height * BYTES_PER_PIXEL) throw new Error("Wrong RGBA length.");
+  const header = new Uint8Array(13);
+  const header_view = new DataView(header.buffer);
+  header_view.setUint32(0, width);
+  header_view.setUint32(4, height);
+  header[8] = 8;
+  header[9] = 6;
+  const compressed = await deflate_bytes(filter_image_data(rgba, width, height));
+  return write_PNG_chunks([
+    { type: "IHDR", data: header },
+    { type: "IDAT", data: compressed },
+    { type: "IEND", data: new Uint8Array(0) },
+  ]);
+}

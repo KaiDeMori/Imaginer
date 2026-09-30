@@ -1,6 +1,12 @@
 // generation_panel.js - Prompt panel component (updated with generate button logic)
 import { versioned_url } from "../version_manager.js";
 import { sanitize_prompt_for_filename } from "../filename_helper.js";
+import { describe_import_failures, intake_import } from "../image_intake.js";
+import { MAX_IMAGE_BYTES } from "./image_validation.js";
+
+function png_name(name) {
+  return name.replace(/\.[^.]*$/, "") + ".png";
+}
 
 export class Generation_panel {
   _update_input_image_thumbnails() {
@@ -57,6 +63,7 @@ export class Generation_panel {
     this.root = root;
     this.onGenerate = onGenerate; // callback when generate is clicked
     this.dropped_images = [];
+    this.importing_count = 0;
     this.render();
     this.attach_events();
   }
@@ -161,13 +168,10 @@ export class Generation_panel {
     });
 
     generate_btn.addEventListener("click", () => {
+      if (this.importing_count > 0) return;
       const prompt_text = prompt_input.value.trim();
       if (prompt_text && this.onGenerate) {
-        // Use config values from localStorage
-        this.onGenerate(prompt_text, {
-          embed_itxt: localStorage.getItem("imaginer.add_prompt_to_image") === "true",
-          embed_xmp: localStorage.getItem("imaginer.add_prompt_to_image_xmp") === "true",
-        });
+        this.onGenerate(prompt_text);
       }
     });
 
@@ -225,19 +229,50 @@ export class Generation_panel {
       // --- Fallback: external file drop ---
       const files = Array.from(event.dataTransfer.files);
       if (files.length > 0) {
-        Promise.all([import(versioned_url("./drop_area_manager.js")), import(versioned_url("./error_modal.js"))]).then(([{ default: drop_area_manager }, { Error_modal }]) => {
-          import(versioned_url("./image_validation.js")).then(({ with_batch_hint }) => {
-            const entries = files.map((file) => ({ image: file, mask: null, uuid: null }));
-            drop_area_manager.try_add_images(entries).then((result) => {
-              if (!result.ok) {
-                Error_modal.show(with_batch_hint(result.error, files.length > 1));
-                return;
+        Promise.all([import(versioned_url("./drop_area_manager.js")), import(versioned_url("./error_modal.js")), import(versioned_url("./image_validation.js"))]).then(
+          async ([{ default: drop_area_manager }, { Error_modal }, { validate_image_count, with_batch_hint }]) => {
+            const count_check = validate_image_count(drop_area_manager.get_images().length, files.length);
+            if (!count_check.valid) {
+              Error_modal.show(with_batch_hint(count_check.error, files.length > 1));
+              return;
+            }
+            const placeholder = this.root.querySelector("#input-image-drop-placeholder");
+            this.importing_count += 1;
+            if (placeholder) placeholder.textContent = "Converting…";
+            try {
+              const failures = [];
+              const entries = [];
+              for (const file of files) {
+                try {
+                  const { image_blob } = await intake_import(file);
+                  if (image_blob.size > MAX_IMAGE_BYTES) {
+                    failures.push({
+                      name: file.name,
+                      message: `"${file.name}" is ${(image_blob.size / 1048576).toFixed(1)}MB as a PNG, which exceeds the ${MAX_IMAGE_BYTES / 1048576}MB limit for editing.`,
+                    });
+                  } else {
+                    entries.push({ image: new File([image_blob], png_name(file.name), { type: "image/png" }), mask: null, uuid: null });
+                  }
+                } catch (error) {
+                  failures.push({ name: file.name, message: error.message || String(error) });
+                }
               }
-              this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
+              if (entries.length > 0) {
+                const result = await drop_area_manager.try_add_images(entries);
+                if (!result.ok) {
+                  failures.push({ name: "", message: result.error });
+                } else {
+                  this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
+                }
+              }
+              if (failures.length > 0) Error_modal.show(describe_import_failures(failures));
+            } finally {
+              this.importing_count -= 1;
+              if (placeholder) placeholder.textContent = "Drop image(s) for editing";
               this._update_input_image_thumbnails();
-            });
-          });
-        });
+            }
+          },
+        );
       }
     });
   }

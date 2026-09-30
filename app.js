@@ -8,7 +8,7 @@ import drop_area_manager from "./components/drop_area_manager.js";
 import { Viewer } from "./components/viewer/viewer.js";
 import { Database_store } from "./storage/database_store.js";
 import { Error_modal } from "./components/error_modal.js";
-import { process_image_metadata } from "./process_image_metadata.js";
+import { accept_model_output } from "./image_intake.js";
 import { check_and_show_update_message, versioned_url } from "./version_manager.js";
 import { ensure_config_defaults } from "./default_config.js";
 import { get_selected_model, clamp_quality_for_model } from "./model_fetcher.js";
@@ -213,9 +213,32 @@ window.addEventListener("DOMContentLoaded", async () => {
     alert("History feature coming soon!");
   });
 
-  window.process_image_metadata = process_image_metadata;
+  // The four places that receive model output share this path, so the intake rules and the record shape live once.
+  async function save_model_output(blob, prompt_text, created) {
+    const { image_blob, failure } = await accept_model_output(blob);
+    if (failure !== null) {
+      Error_modal.show({
+        message: "The image was saved as OpenAI returned it, because its metadata could not be removed. It may still carry OpenAI's metadata.",
+        hint: failure,
+      });
+    }
+    const record_id = await database_store.save({
+      created,
+      image_blob,
+      prompt_text,
+      prompt_imgs: [],
+    });
+    gallery.records_by_id[record_id] = {
+      id: record_id,
+      created,
+      image_blob,
+      prompt_text,
+      prompt_imgs: [],
+    };
+    return { record_id, image_blob };
+  }
 
-  async function consume_image_stream({ endpoint_url, fetch_options, event_prefix, placeholder, prompt_text, embed_options }) {
+  async function consume_image_stream({ endpoint_url, fetch_options, event_prefix, placeholder, prompt_text }) {
     const response = await fetch(endpoint_url, { method: "POST", ...fetch_options });
 
     if (!response.ok) {
@@ -260,25 +283,11 @@ window.addEventListener("DOMContentLoaded", async () => {
           const blob = await fetch(`data:image/png;base64,${event.b64_json}`).then((res) => res.blob());
           gallery.update_placeholder_with_partial_image(placeholder, blob, event.partial_image_index);
         } else if (event.type === `${event_prefix}.completed`) {
-          let blob = await fetch(`data:image/png;base64,${event.b64_json}`).then((res) => res.blob());
-
-          blob = await process_image_metadata(blob, prompt_text, embed_options);
+          const blob = await fetch(`data:image/png;base64,${event.b64_json}`).then((res) => res.blob());
 
           const created = Math.floor(Date.now() / 1000);
-          const record_id = await database_store.save({
-            created,
-            image_blob: blob,
-            prompt_text,
-            prompt_imgs: [],
-          });
-          gallery.records_by_id[record_id] = {
-            id: record_id,
-            created,
-            image_blob: blob,
-            prompt_text,
-            prompt_imgs: [],
-          };
-          gallery.update_placeholder(placeholder, blob, false, prompt_text, created, record_id);
+          const { record_id, image_blob } = await save_model_output(blob, prompt_text, created);
+          gallery.update_placeholder(placeholder, image_blob, false, prompt_text, created, record_id);
           completed = true;
           return;
         } else if (event.type === "error") {
@@ -299,7 +308,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const generation_panel = new Generation_panel(generation_panel_root, async (prompt_text, embed_options = {}) => {
+  const generation_panel = new Generation_panel(generation_panel_root, async (prompt_text) => {
     const max = get_maximum_parallel_generations();
     if (activeGenerations >= max || generate_cooldown) {
       generation_panel.set_generate_button_enabled(false);
@@ -403,7 +412,6 @@ window.addEventListener("DOMContentLoaded", async () => {
                 event_prefix: "image_edit",
                 placeholder: placeholders[i],
                 prompt_text,
-                embed_options,
               });
             } catch (err) {
               console.error(`[Imaginer] Streaming edit failed for image ${i + 1} of ${n_local}:`, err);
@@ -453,27 +461,13 @@ window.addEventListener("DOMContentLoaded", async () => {
         const created = Math.floor(Date.now() / 1000);
         for (let i = 0; i < data.data.length; i++) {
           let base64Data = data.data[i].b64_json;
-          let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
+          const blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
 
-          blob = await process_image_metadata(blob, prompt_text, embed_options);
-
-          const record_id = await database_store.save({
-            created,
-            image_blob: blob,
-            prompt_text,
-            prompt_imgs: [],
-          });
-          gallery.records_by_id[record_id] = {
-            id: record_id,
-            created,
-            image_blob: blob,
-            prompt_text,
-            prompt_imgs: [],
-          };
+          const { record_id, image_blob } = await save_model_output(blob, prompt_text, created);
           if (placeholders[i]) {
-            gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created, record_id);
+            gallery.update_placeholder(placeholders[i], image_blob, false, prompt_text, created, record_id);
           } else {
-            gallery.create_or_update_thumbnail(null, blob, prompt_text, created, record_id);
+            gallery.create_or_update_thumbnail(null, image_blob, prompt_text, created, record_id);
           }
         }
         // Remove any extra placeholders if fewer images returned than requested
@@ -524,7 +518,6 @@ window.addEventListener("DOMContentLoaded", async () => {
               event_prefix: "image_generation",
               placeholder: placeholders[i],
               prompt_text,
-              embed_options,
             });
           } catch (err) {
             // Surface per-image so one failure never wedges the batch or leaves
@@ -574,55 +567,26 @@ window.addEventListener("DOMContentLoaded", async () => {
         const created = Math.floor(Date.now() / 1000);
         if (data.data.length === 1) {
           let base64Data = data.data[0].b64_json;
-          let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
+          const blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
 
-          blob = await process_image_metadata(blob, prompt_text, embed_options);
-
-          const record_id = await database_store.save({
-            created,
-            image_blob: blob,
-            prompt_text: prompt_text,
-            prompt_imgs: [],
-          });
-          gallery.records_by_id[record_id] = {
-            id: record_id,
-            created,
-            image_blob: blob,
-            prompt_text: prompt_text,
-            prompt_imgs: [],
-          };
+          const { record_id, image_blob } = await save_model_output(blob, prompt_text, created);
           // Update the first placeholder, remove any extras
-          gallery.update_placeholder(placeholders[0], blob, false, prompt_text, created, record_id);
+          gallery.update_placeholder(placeholders[0], image_blob, false, prompt_text, created, record_id);
           for (let i = 1; i < placeholders.length; i++) {
             if (placeholders[i] && placeholders[i].parentNode) placeholders[i].parentNode.removeChild(placeholders[i]);
           }
         } else {
           for (let i = 0; i < data.data.length; i++) {
             let base64Data = data.data[i].b64_json;
-            let blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
+            const blob = await fetch(`data:image/png;base64,${base64Data}`).then((res) => res.blob());
 
-            blob = await process_image_metadata(blob, prompt_text, embed_options);
-
-            const record_id = await database_store.save({
-              created,
-              image_blob: blob,
-              prompt_text: prompt_text,
-              prompt_imgs: [],
-            });
+            const { record_id, image_blob } = await save_model_output(blob, prompt_text, created);
             console.debug("[App] Saved with ID =", record_id, "created =", created);
 
-            gallery.records_by_id[record_id] = {
-              id: record_id,
-              created,
-              image_blob: blob,
-              prompt_text: prompt_text,
-              prompt_imgs: [],
-            };
-
             if (placeholders[i]) {
-              gallery.update_placeholder(placeholders[i], blob, false, prompt_text, created, record_id);
+              gallery.update_placeholder(placeholders[i], image_blob, false, prompt_text, created, record_id);
             } else {
-              gallery.create_or_update_thumbnail(null, blob, prompt_text, created, record_id);
+              gallery.create_or_update_thumbnail(null, image_blob, prompt_text, created, record_id);
             }
           }
           for (let i = data.data.length; i < placeholders.length; i++) {
