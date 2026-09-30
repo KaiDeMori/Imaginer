@@ -14,10 +14,7 @@
       "components/**/*.js",
       "storage/**/*.js",
       "misc/**/*.js",
-      "png_XMP_via_iTXt/**/*.js",
       "png_exif/**/*.js",
-      "png_iTXt/**/*.js",
-      "strip_metadata_from_PNG/**/*.js",
       "api_trials/**/*.js"
    ],
    "exclude": [

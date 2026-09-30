@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gate for workflow steps: fails when the module graph, a name, or the cache manifest is broken, and ignores type noise.
+# Gate for every code step: fails when the module graph, a name, the cache manifest, or one of the Node specifications in this folder is broken, and ignores type noise.
 # Gated codes: 1xxx syntax, 2300 duplicate identifier, 2304 and 2552 cannot find name, 2305, 2614 and 2724 missing export, 2307 cannot find module, 2451 redeclared variable, 5xxx, 6xxx and 18003 unusable configuration.
 
 set -u
@@ -36,6 +36,14 @@ fi
 if ! node "$script_folder/check_manifest.mjs"; then
    check_failed=1
 fi
+
+for node_check in PNG_chunks_check.mjs process_image_metadata_check.mjs metadata_readers_check.mjs; do
+   if ! node_check_output="$(node "$script_folder/$node_check" 2>&1)"; then
+      printf '%s
+' "$node_check_output"
+      check_failed=1
+   fi
+done
 
 if [ "$check_failed" -ne 0 ]; then
    exit 1

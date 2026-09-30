@@ -1,5 +1,5 @@
 // gallery.js – Thumbnail grid with placeholder support
-import { read_png_metadata } from "./png_metadata_reader.js";
+import { is_PNG, read_PNG_prompt } from "../PNG_chunks.js";
 import { read_jpeg_metadata } from "./jpeg_metadata_reader.js";
 import { read_webp_metadata } from "./webp_metadata_reader.js";
 import { process_image_metadata } from "../process_image_metadata.js";
@@ -14,13 +14,13 @@ import { extension_for_type, validate_file_readable, validate_image_count, valid
  */
 async function read_image_prompt(file) {
   const type = file.type;
-  if (type === "image/png")  return read_png_metadata(file);
+  if (type === "image/png")  return read_PNG_prompt(new Uint8Array(await file.arrayBuffer()));
   if (type === "image/jpeg") return read_jpeg_metadata(file);
   if (type === "image/webp") return read_webp_metadata(file);
   // Signature-based fallback for unknown/empty MIME types
-  return (await read_png_metadata(file))
-      || (await read_jpeg_metadata(file))
-      || (await read_webp_metadata(file));
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (is_PNG(bytes)) return read_PNG_prompt(bytes);
+  return (await read_jpeg_metadata(file)) || (await read_webp_metadata(file));
 }
 
 export class Gallery {

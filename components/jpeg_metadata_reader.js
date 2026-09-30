@@ -1,3 +1,5 @@
+import { decode_XML_entities } from "../XML_entities.js";
+
 /**
  * Scans a JPEG Blob for prompt text in XMP or EXIF metadata.
  * Priority: XMP dc:description, then EXIF UserComment.
@@ -72,7 +74,7 @@ function try_xmp_from_APP1(uint8, start, end) {
   const xmp_text = new TextDecoder().decode(uint8.subarray(xmp_start, end));
 
   const match = xmp_text.match(/<dc:description>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>[\s\S]*?<\/dc:description>/);
-  return (match && match[1]) ? match[1] : "";
+  return (match && match[1]) ? decode_XML_entities(match[1]) : "";
 }
 
 const EXIF_HEADER = "Exif\0\0";

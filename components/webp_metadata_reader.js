@@ -1,3 +1,5 @@
+import { decode_XML_entities } from "../XML_entities.js";
+
 /**
  * Scans a WebP Blob for prompt text in XMP or EXIF metadata.
  * Priority: XMP dc:description, then EXIF UserComment.
@@ -30,7 +32,7 @@ export async function read_webp_metadata(blob) {
     if (chunk_id === "XMP " && !xmp_result) {
       const xmp_text = new TextDecoder().decode(uint8.subarray(chunk_data_start, chunk_data_end));
       const match = xmp_text.match(/<dc:description>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>[\s\S]*?<\/dc:description>/);
-      if (match && match[1]) xmp_result = match[1];
+      if (match && match[1]) xmp_result = decode_XML_entities(match[1]);
     }
 
     if (chunk_id === "EXIF" && !exif_result) {
