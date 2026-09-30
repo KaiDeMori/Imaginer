@@ -148,7 +148,7 @@ Plan: [Tasks/plans/One_Export_function.plan.md](plans/One_Export_function.plan.m
 - Import a file named `.png` that is a renamed JPEG, then ⬇️ on it: an error dialog names the file, the reason, and the way out; nothing downloads. Download All Images: the ZIP holds every other image, and the dialog lists the file with the reason and the hint, then closes on Close.
 - Config → Advanced: strip off, both prompt options off, OK. ⬇️ on the renamed JPEG: it downloads as stored.
 
-### 4. Browser tests for the conversion (in discussion)
+### 4. Browser tests for the conversion (planned)
 
 Local browser tests settle the conversion of JPEG and WebP: decoding, orientation, encoding, and the timing. Gap 3. Only step 5 needs the results; the tests can run at any time.
 
@@ -158,7 +158,9 @@ Local browser tests settle the conversion of JPEG and WebP: decoding, orientatio
 - The test page is `tools/browser_tests/conversion_tests.html`, with `conversion_tests.js` and `png_test_tools.js`.
 - Round 1 tested: support of `ImageDecoder` and `CompressionStream`; exact decoding of PNG sources (RGBA with alpha, palette with `tRNS`, 16 bits per sample, animated) and JPEG and WebP against `<img>`; the round trip through the own PNG encoder, byte-exact and with only `IHDR`, `IDAT` and `IEND`; EXIF orientation for JPEG (1 to 8) and for WebP and PNG (1 and 6), against `<img>` and `createImageBitmap`; canvas PNG chunks, pixel exactness, and a mask; the timing at 12 MP, and at 48 MP on demand. The results are in [misc/metadata_research.md](../misc/metadata_research.md), section "Local browser test results".
 - Round 2 tests the path for JPEG and WebP only: `createImageBitmap`, then `VideoFrame.copyTo` as RGBA, then the own PNG encoder. Against `<img>` in Firefox and Chromium, in a normal window and with Strict tracking protection; the EXIF orientations; a WebP with alpha; the timing at 12 MP.
-- PNG sources are not decoded. The own PNG decoder in `png_test_tools.js` is removed in round 2.
+- PNG sources are not decoded. The own PNG decoder in `png_test_tools.js` is removed in round 2, with the helpers only the PNG source cases used. One PNG case stays: the alpha pattern through `createImageBitmap` with `premultiplyAlpha: "none"`, because it measures whether the verification of a written PNG can be exact for semi-transparent pixels.
+- Round 2 also measures whether `VideoFrame.copyTo` is free of canvas noise: the candidate decode against the same bitmap drawn on a canvas, and two candidate decodes against each other.
+- The page for round 2 is written by the main model. The user runs it in Firefox (normal window and Strict tracking protection) and in Chromium, and pastes each result into `tools/browser_tests/results/<browser>_<mode>_round_2.md`, as in round 1. The main model then writes the summary into [misc/metadata_research.md](../misc/metadata_research.md).
 - Not tested: fingerprinting overrides in `about:config`, `resistFingerprinting`, Safari, Brave.
 - The results go into [misc/metadata_research.md](../misc/metadata_research.md).
 
@@ -171,12 +173,18 @@ Local browser tests settle the conversion of JPEG and WebP: decoding, orientatio
 
 #### Open items
 
-- None.
+- The results of round 2. Step 5 is designed for the candidate; its conversion function is the one part that changes if round 2 fails.
 
 #### Out of scope
 
 - Tests against OpenAI.
 - Color spaces.
+
+#### Manual test
+
+- Serve the repository as the README describes, open `/tools/browser_tests/conversion_tests.html` in Firefox in a normal window, wait for "Done", choose the window mode, click Copy results, and paste the text into `tools/browser_tests/results/firefox_<version>_normal_window_round_2.md` under a heading line as in round 1.
+- Repeat with Strict tracking protection in Firefox, and in a normal window in Chromium.
+- Expected: every Support row ✓; every "own PNG round trip" row ✓; every "two candidate decodes are identical" row ✓; every Orientation row ✓; the Timing row ✓ with a total near the round 1 total. The "against <img>" rows are information; in Strict they may show small differences from the canvas readback of `<img>`.
 
 ### 5. Intake (waiting)
 
