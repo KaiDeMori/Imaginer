@@ -104,7 +104,7 @@ function read_canvas_pixels(canvas, context) {
 }
 
 function bitmap_of(bytes, type) {
-   return createImageBitmap(new Blob([bytes], { type }), { premultiplyAlpha: "none", colorSpaceConversion: "none" });
+   return createImageBitmap(new Blob([bytes], { type }), { imageOrientation: "from-image", premultiplyAlpha: "none" });
 }
 
 /**
@@ -181,7 +181,7 @@ async function run_support_tests() {
    });
    await run_step("Support", "VideoFrame from an ImageBitmap, copyTo as RGBA", async () => {
       const pattern = create_quadrant_pattern(8, 4);
-      const bitmap = await createImageBitmap(new ImageData(new Uint8ClampedArray(pattern.rgba), 8, 4), { premultiplyAlpha: "none" });
+      const bitmap = await createImageBitmap(new ImageData(new Uint8ClampedArray(pattern.rgba), 8, 4), { imageOrientation: "from-image", premultiplyAlpha: "none" });
       try {
          const decoded = await pixels_of_bitmap(bitmap);
          const comparison = compare_pixels(decoded, pattern);
