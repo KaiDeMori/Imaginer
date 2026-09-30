@@ -52,7 +52,7 @@ The external-file branch of the drop listener in `Generation_panel.attach_events
 
 For comparison, Gallery → input area (in-app, no intake), the internal branch of the same drop listener:
 
-- The image is the gallery file itself. The listener sets `blob.name` on the gallery's own `Blob`, a filename built from the prompt; a gallery file stored before intake existed may still be a `File` with its original name.
+- The image is the gallery file itself. The listener sets `blob.name` on the gallery's own `Blob`, a filename built from the prompt; a gallery file the one-time migration has not converted yet may still be a `File` with its original name.
 - The mask becomes `new File([mask_blob], "mask.png", { type: "image/png" })`. `validate_mask_file` checks it, and a failing mask is dropped with a message.
 
 ## Export
@@ -63,10 +63,10 @@ The ⬇️ handler in `Gallery._build_thumbnail_content` calls `export_image` in
 
 | Rule | Today | Gap |
 |---|---|---|
-| **External metadata:** strip checkbox on → removed, off → kept | PNG: `export_image` strips per the strip checkbox with the chunk whitelist ✓. JPEG and WebP: leave as stored, GPS included, until step 6 converts them. | ~ |
-| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | PNG: the forms are replaced per the prompt checkboxes; both off → none ✓. JPEG and WebP: never any, until step 6 converts them. | ~ |
+| **External metadata:** strip checkbox on → removed, off → kept | PNG: `export_image` strips per the strip checkbox with the chunk whitelist. JPEG and WebP, only until the migration converts them: leave only with every option off, as stored. | ✓ |
+| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | PNG: the forms are replaced per the prompt checkboxes; both off → none. JPEG and WebP leave only with every option off, so never any. | ✓ |
 | **No prompt → none** | An empty prompt writes no form. | ✓ |
-| **Filename:** `<prompt>_<created>_<id>.png` | `export_filename` gives `<prompt>_<created>_<id>.<ext>`; the extension is `png` for every gallery file once step 6 has converted the rest. | ✓ |
+| **Filename:** `<prompt>_<created>_<id>.png` | `export_filename` gives `<prompt>_<created>_<id>.<ext>`; the extension is `png` for every gallery file the migration has converted. | ✓ |
 
 ### ZIP export
 
@@ -74,8 +74,8 @@ The ⬇️ handler in `Gallery._build_thumbnail_content` calls `export_image` in
 
 | Rule | Today | Gap |
 |---|---|---|
-| **External metadata:** strip checkbox on → removed, off → kept | Every PNG per the strip checkbox ✓. JPEG and WebP as stored until step 6. | ~ |
-| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | Per the prompt checkboxes, from the gallery record ✓. With strip off and both prompt checkboxes off a file leaves as stored, so model output stored before step 5 keeps its baked-in forms. | ~ |
+| **External metadata:** strip checkbox on → removed, off → kept | Every PNG per the strip checkbox; JPEG and WebP only with every option off, as stored. | ✓ |
+| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | Per the prompt checkboxes, from the gallery record ✓. With strip off and both prompt checkboxes off a file leaves as stored; the migration removes the baked-in forms of older model output. | ✓ |
 | **Filename:** unique | Unique through the record ID. | ✓ |
 
 ### Writers of Imaginer metadata
@@ -89,12 +89,12 @@ The edit request branch of the `Generation_panel` callback in `app.js`.
 
 | Rule | Today | Gap |
 |---|---|---|
-| **Images: pixels only** | `form_data.append("image[]", file, file.name)` sends the input area's images byte for byte. New imports are clean PNGs from intake; gallery files stored before intake existed may still carry metadata, and model output stored with strip off carries OpenAI's. | ~ |
+| **Images: pixels only** | `form_data.append("image[]", file, file.name)` sends the input area's images byte for byte. New imports are clean PNGs from intake; gallery files the migration has not converted may still carry metadata, and model output stored with strip off carries OpenAI's. | ~ |
 | **Mask: pixels only** | The mask is the canvas PNG from `Viewer.close`, sent as stored. In current Firefox it probably carries the `deBG` chunk (untested). | ~ |
 | **Neutral filenames** | New imports go out as the original name with the extension `png`, gallery images with a filename built from the prompt. The mask is named `mask.png`. | ✗ |
 | **Content type** | Set by the browser for every `File` and `Blob` (`image/png`, `image/jpeg`, `image/webp`). | ✓ |
 
-Consequences the conversion at intake removed for new imports; gallery files from before step 5 wait for step 6:
+Consequences the conversion at intake removed; gallery files the migration has not converted keep them:
 
 - A JPEG or WebP image goes out next to a PNG mask, although the image generation guide asks for the same format.
 - A photo with an EXIF orientation goes out unrotated, while its mask was painted on the upright view. Whether OpenAI applies the EXIF orientation is unknown.
@@ -105,13 +105,13 @@ Also found: with a mini model selected, the input area is ignored without a mess
 
 ### Existing gallery files
 
-Every gallery file stored so far was created under the old behaviour: model output is a PNG with Imaginer metadata baked in, and imports are the original JPEG, WebP or PNG files with their external metadata. The rules assume that every gallery file is a PNG without Imaginer metadata. Until that holds, Export and the edit request would have to convert and clean up on their own, which is exactly what the rules move to intake. Open for the Discussion: convert the existing gallery files once, or handle them at Export and at the edit request.
+Gallery files stored before intake existed are converted once, on the user's confirmation, by the migration in `gallery_migration.js`: a file that is not a PNG is converted, a PNG loses the Imaginer forms, and with the strip checkbox on every other chunk. A postponed or failed conversion leaves a file as it is; such a file leaves the app only with every option off. Built in step 6.
 
 ### Order
 
 - The conversion needs the local browser tests first.
 - Export must write Imaginer metadata before intake stops writing it; otherwise ZIP exports lose their prompts.
-- The edit request needs every image it sends to be a PNG before it can reduce it to pixels without loss. That needs the conversion at intake and a decision about existing gallery files.
+- The edit request needs every image it sends to be a PNG before it can reduce it to pixels without loss. That needs the conversion at intake and the migration of the existing gallery files; a file the migration has not converted must be refused by the edit request.
 
 ### Gaps
 
@@ -124,7 +124,7 @@ Every gallery file stored so far was created under the old behaviour: model outp
 7. Open: the intro image. Ignore it (session only), or route it through intake.
 8. Input area door: apply the same intake in memory. Built in step 5.
 9. One Export function for Download and ZIP export instead of three places. Built in step 3.
-10. Export: strip per the strip checkbox for every gallery file; fresh Imaginer metadata without duplicates or leftovers; none without a prompt; the XMP form XML-escaped; the filename with the ID. Built in steps 1 to 3 for PNG gallery files; JPEG and WebP gallery files wait for step 6.
+10. Export: strip per the strip checkbox for every gallery file; fresh Imaginer metadata without duplicates or leftovers; none without a prompt; the XMP form XML-escaped; the filename with the ID. Built in steps 1 to 3 for PNG gallery files; JPEG and WebP gallery files are converted by step 6 or leave only with every option off.
 11. An error at Export reaches the user, and the file does not leave. Built in step 3.
 12. Edit request: pixels only for images and mask, neutral filenames `image_1.png` and `mask.png`, and no more `blob.name` on the gallery's own `Blob`.
-13. Open: existing gallery files.
+13. Existing gallery files: a one-time migration with a warning beforehand. Built in step 6.

@@ -40,7 +40,7 @@ Every Export gives the same image the same, unique filename, `<prompt>_<created>
 #### Decisions
 
 - `build_image_filename` takes the record's `id` and appends it after the timestamp. Without an `id` the filename has no ID part; only the intro image and the dummy images have no record.
-- The extension stays type-derived through `extension_for_type` until step 6 converts the existing gallery files. From then on every gallery file is a PNG and the rule's `.png` holds.
+- The extension stays type-derived through `extension_for_type` until the migration of step 6 converts the existing gallery files; a file it has not converted keeps its own extension.
 - Done by hand, without a workflow.
 
 #### Facts
@@ -115,7 +115,7 @@ Plan: [Tasks/plans/One_Export_function.plan.md](plans/One_Export_function.plan.m
 #### Decisions
 
 - The module is `image_export.js` in the repository root. `export_image(record)` gives the file and the filename for one gallery record; `collect_ZIP_entries(records, on_progress)` gives the entries and the failures for the ZIP export; `export_gallery_as_ZIP(records, callbacks)` builds and downloads the archive; `trigger_download(blob, filename)` is the one place that hands a file to the browser, with the longest revoke delay the callers used.
-- A gallery file that is not a PNG leaves as stored, with its own extension, until step 6 converts the existing gallery files. Strip cannot apply to it without the conversion.
+- A gallery file that is not a PNG leaves as stored, with its own extension, only with every option off; since step 6, any option on refuses it, because strip cannot apply without the conversion.
 - An error at Export reaches the user, and a file to which the rules cannot be applied does not leave, because it would carry what the config promised to remove. Download: an error dialog with the filename, the reason and the way out. ZIP export: the backup must not stop for one file, so the file is left out, and after the download one message lists every such file with the reason and the way out. The way out: with the strip checkbox off and both prompt checkboxes off, Export changes nothing and the file leaves as stored, unparsed.
 - Download All Images inside the config dialog follows the saved settings; a changed checkbox counts after OK.
 - The module's pure part is specified by the Node check `tools/check/image_export_check.mjs`, written by the main model before the plan review and extended after it. The ZIP assembly and the download are browser-only and stay thin; their dependencies are loaded with dynamic imports so that Node can load the module. Every processed PNG is held in memory until the archive is built; that is the cost of processing at Export.
@@ -237,7 +237,7 @@ Plan: [Tasks/plans/Intake.plan.md](plans/Intake.plan.md).
 - Drop a JPEG of 40 megapixels into the input area: a dialog names the file, its size as a PNG and the limit for editing, no thumbnail; the same file drops into the gallery.
 - Generate with streaming on, with streaming off and one image, with several images, and through an edit request, with strip on: every stored image, downloaded with strip off and both prompt options off, holds only the pixel chunks.
 
-### 6. Existing gallery files (planned)
+### 6. Existing gallery files (built)
 
 Brings the existing gallery files in line with the rules: a one-time migration, offered with a warning beforehand. Existing model output needs only its chunks cleaned; existing imports need conversion or strip. Needs step 5. Gap 13.
 
@@ -254,7 +254,7 @@ Plan: [Tasks/plans/Existing_gallery_files.plan.md](plans/Existing_gallery_files.
 - A gallery file that is still a JPEG or WebP, after Later or after a failed conversion, leaves the app only with the strip checkbox and both prompt checkboxes off, as the Export rule "Errors" demands; with any of them on, Download shows the error dialog with the export hint and the ZIP export lists the file. The interim rule at Export ends.
 - No stop button: closing the page is safe, because every record is written alone, and the next start offers the rest.
 - The migration lives in `gallery_migration.js`; the warning is `components/migration_confirm_modal.js`, built like the delete confirmation; the progress dialog is the existing download progress dialog with a title and a status of its own.
-- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Implementers build it. The migration module's pure part is specified by `tools/check/gallery_migration_check.mjs`, wired into the check at Verification; the changed Export case by `tools/check/image_export_check.mjs`.
+- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Two implementers built it; the main model wired the check. The migration module's pure part is specified by `tools/check/gallery_migration_check.mjs`, wired into the check at Verification; the changed Export case by `tools/check/image_export_check.mjs`.
 
 #### Facts
 
@@ -274,6 +274,14 @@ Plan: [Tasks/plans/Existing_gallery_files.plan.md](plans/Existing_gallery_files.
 - The intro image: step 8.
 - The edit request: step 7, which must treat a gallery file that is not a PNG explicitly, because Later and a failed conversion leave such files.
 - A release note about the conversion: the release.
+
+#### Manual test
+
+- With a gallery that holds images imported before this version: start Imaginer. After the thumbnails, the dialog names the count and, with strip on, the removed metadata. Later closes it; the next start asks again. Convert now shows `Converting the gallery` with `Converting images...` and a counter, then the page reloads; every image has the same pixel size as before; ⬇️ on a former JPEG downloads a `.png`.
+- With a gallery of clean PNGs: no dialog at start, and `imaginer.gallery_files_migrated` is `1` in `localStorage`.
+- With a gallery so large that the performance warning opens: the migration dialog appears after Close.
+- During the conversion: a click on Generate does nothing.
+- Before converting, with an imported JPEG in the gallery and strip on: ⬇️ on it shows the error dialog with the hint; with strip and both prompt options off it downloads as stored.
 
 ### 7. Edit request (waiting)
 
