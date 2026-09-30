@@ -7,13 +7,13 @@
 - Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. It is a planning file per [Workflows_and_reviews.md](Workflows_and_reviews.md); no step is written yet.
 - Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md). Fresh; the wording may still change.
 - Web research: [misc/metadata_research.md](misc/metadata_research.md).
-- Gap analysis: [misc/metadata_gap_analysis.md](misc/metadata_gap_analysis.md). The Gallery door is compared.
+- Gap analysis: [misc/metadata_gap_analysis.md](misc/metadata_gap_analysis.md). All four paths are compared.
 - The check `bash tools/check/check.sh` passes on today's code. It is the gate for workflow steps.
 - A collection of drafts is present in `Tasks/Draft_Collection.md`.
 
 ## Next step
 
-- Gap analysis, together with the user: compare Export with today's code, then the remaining paths. The Discussion that cuts the steps follows.
+- The Discussion, together with the user: cut the steps from the gap analysis, then close the decisions of the first step.
 
 ## Open threads (not blocking)
 
