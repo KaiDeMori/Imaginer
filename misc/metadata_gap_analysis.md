@@ -52,7 +52,7 @@ The external-file branch of the drop listener in `Generation_panel.attach_events
 
 For comparison, Gallery → input area (in-app, no intake), the internal branch of the same drop listener:
 
-- The image is the gallery file itself. The listener sets `blob.name` on the gallery's own `Blob`, a filename built from the prompt; a gallery file the one-time migration has not converted yet may still be a `File` with its original name.
+- The image is the gallery file itself, with a label built from the prompt for the input area; nothing is set on the gallery's own `Blob`.
 - The mask becomes `new File([mask_blob], "mask.png", { type: "image/png" })`. `validate_mask_file` checks it, and a failing mask is dropped with a message.
 
 ## Export
@@ -89,15 +89,12 @@ The edit request branch of the `Generation_panel` callback in `app.js`.
 
 | Rule | Today | Gap |
 |---|---|---|
-| **Images: pixels only** | `form_data.append("image[]", file, file.name)` sends the input area's images byte for byte. New imports are clean PNGs from intake; gallery files the migration has not converted may still carry metadata, and model output stored with strip off carries OpenAI's. | ~ |
-| **Mask: pixels only** | The mask is the canvas PNG from `Viewer.close`, sent as stored. In current Firefox it probably carries the `deBG` chunk (untested). | ~ |
-| **Neutral filenames** | New imports go out as the original name with the extension `png`, gallery images with a filename built from the prompt. The mask is named `mask.png`. | ✗ |
+| **Images: pixels only** | Every image is reduced to pixels only when the request is built (`pixels_only_PNG` in `image_conversion.js`): a PNG keeps its pixel chunks, anything else is converted in memory. | ✓ |
+| **Mask: pixels only** | The mask is the canvas PNG from `Viewer.close`, taken from the panel's snapshot and reduced to its pixel chunks when the request is built. | ✓ |
+| **Neutral filenames** | `image_1.png`, `image_2.png` and so on, in the order of the input area, and `mask.png`. | ✓ |
 | **Content type** | Set by the browser for every `File` and `Blob` (`image/png`, `image/jpeg`, `image/webp`). | ✓ |
 
-Consequences the conversion at intake removed; gallery files the migration has not converted keep them:
-
-- A JPEG or WebP image goes out next to a PNG mask, although the image generation guide asks for the same format.
-- A photo with an EXIF orientation goes out unrotated, while its mask was painted on the upright view. Whether OpenAI applies the EXIF orientation is unknown.
+Consequences: every image goes out as a PNG next to the PNG mask, upright, as the browser displays it, so the format matches the mask and no EXIF orientation is left for OpenAI to interpret.
 
 Also found: with a mini model selected, the input area is ignored without a message and a generation request goes out instead (not a metadata topic; an open thread in `Status.md`).
 
@@ -111,7 +108,7 @@ Gallery files stored before intake existed are converted once, on the user's con
 
 - The conversion needs the local browser tests first.
 - Export must write Imaginer metadata before intake stops writing it; otherwise ZIP exports lose their prompts.
-- The edit request needs every image it sends to be a PNG before it can reduce it to pixels without loss. That needs the conversion at intake and the migration of the existing gallery files; a file the migration has not converted must be refused by the edit request.
+- The edit request needs every image it sends to be a PNG before it can reduce it to pixels without loss. That needs the conversion at intake and the migration of the existing gallery files; a file the migration has not converted is converted in memory for the request.
 
 ### Gaps
 
@@ -126,5 +123,5 @@ Gallery files stored before intake existed are converted once, on the user's con
 9. One Export function for Download and ZIP export instead of three places. Built in step 3.
 10. Export: strip per the strip checkbox for every gallery file; fresh Imaginer metadata without duplicates or leftovers; none without a prompt; the XMP form XML-escaped; the filename with the ID. Built in steps 1 to 3 for PNG gallery files; JPEG and WebP gallery files are converted by step 6 or leave only with every option off.
 11. An error at Export reaches the user, and the file does not leave. Built in step 3.
-12. Edit request: pixels only for images and mask, neutral filenames `image_1.png` and `mask.png`, and no more `blob.name` on the gallery's own `Blob`.
+12. Edit request: pixels only for images and mask, neutral filenames `image_1.png` and `mask.png`, and no more `blob.name` on the gallery's own `Blob`. Built in step 7, which also made the mask reach the request at all.
 13. Existing gallery files: a one-time migration with a warning beforehand. Built in step 6.

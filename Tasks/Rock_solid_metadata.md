@@ -283,7 +283,7 @@ Plan: [Tasks/plans/Existing_gallery_files.plan.md](plans/Existing_gallery_files.
 - During the conversion: a click on Generate does nothing.
 - Before converting, with an imported JPEG in the gallery and strip on: ⬇️ on it shows the error dialog with the hint; with strip and both prompt options off it downloads as stored.
 
-### 7. Edit request (planned)
+### 7. Edit request (built)
 
 Pixels only for images and mask, neutral filenames, and no more `blob.name` on the gallery's own `Blob`. Needs steps 5 and 6. Gap 12.
 
@@ -298,7 +298,7 @@ Plan: [Tasks/plans/Edit_request.plan.md](plans/Edit_request.plan.md).
 - The panel exposes its entries, image, mask and label, as one snapshot, and the request reads the mask from that snapshot at the click. Today's code reads the mask from a second instance of the drop area module, because the panel loads the module through `versioned_url` and `app.js` imports it statically, so the mask never reached OpenAI; the snapshot ends that.
 - A gallery file converted for the request meets the same size limit as the input area door, with the same message.
 - A failure while reducing an image reaches the user through the edit request's existing error path, and the placeholders and the generation counter are restored.
-- The plan was written by the main model and reviewed by two independent reviewers; their confirmed findings are in the plan. Implementers build it. `pixels_only_PNG` is specified in `tools/check/image_intake_check.mjs`; the entry label and the named messages in `tools/check/drop_area_manager_check.mjs`, wired into the check at Verification.
+- The plan was written by the main model and reviewed by two independent reviewers; their confirmed findings are in the plan. Two implementers built it; the main model wired the check. `pixels_only_PNG` is specified in `tools/check/image_intake_check.mjs`; the entry label and the named messages in `tools/check/drop_area_manager_check.mjs`, wired into the check at Verification.
 
 #### Facts
 
@@ -315,6 +315,15 @@ Plan: [Tasks/plans/Edit_request.plan.md](plans/Edit_request.plan.md).
 #### Out of scope
 
 - The intro image and the unused files: step 8.
+
+#### Manual test
+
+- Config → Advanced: strip off, both prompt options off, OK. Drop a gallery PNG that still carries a `tEXt` chunk into the input area, Generate, and save the request body from the browser's network tools: the part `image_1.png` holds only pixel chunks. The same with strip on gives the same part.
+- Two images and a mask on the first: the parts are `image_1.png`, `image_2.png` and `mask.png` in the input area's order, the mask part holds only pixel chunks, and the console logs `Sending image edit request WITH mask`.
+- The tooltips show the file's name ending in `.png` for an import and the prompt-based name for a gallery image; in the console, the gallery `Blob` has no `name`.
+- With an older gallery and Later at the conversion dialog: drag a gallery JPEG into the input area and Generate: the edit succeeds and the gallery file stays a JPEG.
+- A gallery JPEG whose PNG exceeds the limit: Generate shows the dialog with its label and the converted size, the placeholders turn red, and Generate is enabled again.
+- Replace a record's `mask_blob` through `window.database_store.update` with a smaller PNG, then drag that image into the input area: the message names the image as the tooltip does, and the image is added without the mask.
 
 ### 8. Cleanup (waiting)
 

@@ -91,10 +91,10 @@ Applies to Download and ZIP export.
 - Gallery files carry no Imaginer metadata, so an Export cannot produce leftovers or duplicates.
 - The strip whitelist carries the pixels of every PNG layout. With strip on, an animated PNG becomes its default image, and a PNG whose orientation comes from an `eXIf` chunk loses it.
 - With the strip checkbox off, model output keeps OpenAI's provenance data (C2PA). An Export that writes a prompt form changes the file and probably invalidates it. Not verified; the user is responsible for their config.
+- A mask is stored as the canvas produced it, a chunk such as Firefox's `deBG` included, and reduced to its pixel chunks at the edit request; it never leaves the app any other way.
 - Gallery files stored before intake existed are brought to what intake produces once, by a migration the user confirms: a file that is not a PNG is converted; a PNG loses the Imaginer forms, and every other chunk when the strip checkbox is on at that time.
 
 ## Open points
 
-- **Masks**: created in-app on a canvas. The browser may add a chunk (Firefox 151+: `deBG`, per its source code; Firefox 144 adds none, measured). Open: clean the mask when it is saved, or only at the edit request.
 - **UI wording**: the ZIP export's UI label is "Download All Images". The strip checkbox's UI label "Strip Server-Side metadata" matches its rule; whether "Server-Side" is clear enough is open.
 - **Color spaces**: out of scope for now.

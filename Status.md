@@ -4,18 +4,18 @@
 
 ## Where we are right now
 
-- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Its planning file has eight steps in dependency order. Steps 1, 2, 3, 5 and 6 are built; their manual tests are in the planning file and wait for the user. Step 4's round 2 page waits for the user's runs.
+- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Its planning file has eight steps in dependency order. Steps 1, 2, 3, 5, 6 and 7 are built; their manual tests are in the planning file and wait for the user. Step 4's round 2 page waits for the user's runs.
 - On 2026-09-30, three decisions were written into the terms, the gap analysis, and the planning file: every gallery file is a PNG and only JPEG and WebP are converted; imports always get strip; the chunk module and Export come before the browser tests, with the unique filename first.
 - Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md). The wording may still change.
 - Web research: [misc/metadata_research.md](misc/metadata_research.md).
 - Gap analysis: [misc/metadata_gap_analysis.md](misc/metadata_gap_analysis.md). All four paths are compared; its rule column follows today's terms.
 - Browser tests (step 4), round 1 is done: the test page `tools/browser_tests/conversion_tests.html` ran in Firefox 144 (normal window and Strict) and Chromium 148. Raw results are in `tools/browser_tests/results/`, the summary is in `misc/metadata_research.md`, section "Local browser test results". The round 2 page is written for the JPEG and WebP path (`createImageBitmap`, `VideoFrame.copyTo`, own encoder) and waits for the user's runs; only step 5 needs its results.
-- The check `bash tools/check/check.sh` passes on today's code. It is the gate for every code step, and it runs the Node specifications in `tools/check/` (`PNG_chunks_check.mjs`, `PNG_encoder_check.mjs`, `metadata_readers_check.mjs`, `image_export_check.mjs`, `image_intake_check.mjs`, `gallery_migration_check.mjs`).
+- The check `bash tools/check/check.sh` passes on today's code. It is the gate for every code step, and it runs the Node specifications in `tools/check/` (`PNG_chunks_check.mjs`, `PNG_encoder_check.mjs`, `metadata_readers_check.mjs`, `image_export_check.mjs`, `image_intake_check.mjs`, `gallery_migration_check.mjs`, `drop_area_manager_check.mjs`).
 - A collection of drafts is present in `Tasks/Draft_Collection.md`.
 
 ## Next step
 
-- Step 7, Edit request: the main model writes its Decisions and the plan (pixels only for images and mask, neutral filenames, no `blob.name`, and a gallery file that is not a PNG refused with a message), then a review workflow, then an implementation workflow. The user runs the round 2 test page (step 4, section Manual test) and pastes the results into `tools/browser_tests/results/`; the results gate the intake's conversion before a release.
+- Step 8, Cleanup, by hand: remove the unused files `components/image_converter.js` and `components/generation_panel.options.js`, decide the UI wording of the strip checkbox and the ZIP export, and decide the intro image. The user runs the round 2 test page (step 4, section Manual test) and pastes the results into `tools/browser_tests/results/`; the results gate the intake's conversion before a release.
 
 ## Open threads (not blocking)
 
