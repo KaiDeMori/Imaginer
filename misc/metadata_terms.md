@@ -21,7 +21,9 @@ Once stable, this file is the reference for metadata in Imaginer.
 
 ### Ways in and out
 
-- **Intake**: the step every image passes when it enters Imaginer: Import to Gallery, model output, Import to input area.
+- **Intake**: the step every image passes when it enters Imaginer. It has two doors:
+  - **Gallery door**: Import to Gallery, model output. The image becomes a gallery file.
+  - **Input area door**: Import to input area. The image stays in memory only.
 - **Import to Gallery**: an external file is added to the gallery.
 - **Import to input area**: an external file is added to the input area.
 - **Gallery → input area**: a gallery file is dragged onto the input area. In-app; no intake.
@@ -58,7 +60,7 @@ Once stable, this file is the reference for metadata in Imaginer.
 - **Imaginer metadata**: the gallery file carries none.
 - **Prompt**: goes into the gallery record. Model output: from the prompt panel. Import to Gallery: from the file's metadata, if present.
 - **Pixels**: always upright (orientation applied to the pixels). Always an RGBA PNG.
-- **Import to input area**: the same intake, in memory only. The file never becomes a gallery file; it can only be removed from the input area.
+- **Input area door**: the same rules, in memory only. The image never becomes a gallery file; it can only be removed from the input area.
 - What strip removes at intake is gone. That is privacy.
 
 ### Export
