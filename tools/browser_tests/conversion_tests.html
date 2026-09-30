@@ -66,13 +66,14 @@
       <label>
         Window mode
         <select id="window-mode">
+          <option value="" selected>choose the window mode</option>
           <option value="normal window">normal window</option>
           <option value="private window">private window</option>
           <option value="Strict tracking protection">Strict tracking protection</option>
         </select>
       </label>
       <button id="run-heavy-test" type="button">Run the 48 MP timing test (needs a lot of memory)</button>
-      <button id="copy-results" type="button">Copy results</button>
+      <button id="copy-results" type="button" disabled>Copy results</button>
       <span id="status">Starting…</span>
     </div>
     <table id="results">

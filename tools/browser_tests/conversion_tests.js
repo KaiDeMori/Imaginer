@@ -3,6 +3,7 @@
 import {
    apply_exif_orientation,
    build_png_chunk,
+   compare_alpha,
    compare_pixels,
    create_alpha_pattern,
    create_gradient_pattern,
@@ -28,12 +29,13 @@ const results_body = document.querySelector("#results tbody");
 const summary_area = document.querySelector("#summary");
 const window_mode_select = document.querySelector("#window-mode");
 const status_line = document.querySelector("#status");
+const copy_button = document.querySelector("#copy-results");
 const results = [];
 
 function update_summary() {
    const lines = [
       `Browser: ${navigator.userAgent}`,
-      `Window mode: ${window_mode_select.value}`,
+      `Window mode: ${window_mode_select.value || "not chosen"}`,
       "",
       "| Group | Test | Result | Verdict |",
       "|---|---|---|---|",
@@ -194,7 +196,7 @@ async function run_pipeline_case(name, bytes, type, expected) {
       }
       const reference = await decode_with_image_element(bytes, type);
       const comparison = compare_pixels(decoded, reference);
-      return { result: `${summary}; against <img>: ${format_comparison(comparison)}, mean ${comparison.mean_difference.toFixed(4)}`, verdict: "info" };
+      return { result: `${summary}; against <img>, read back through the canvas: ${format_comparison(comparison)}, mean ${comparison.mean_difference.toFixed(4)}`, verdict: "info" };
    });
    if (!decoded) {
       return;
@@ -370,9 +372,12 @@ async function run_canvas_tests() {
          }
       }
       const mask_png = await blob_bytes(await canvas_to_blob(canvas_with_pixels(mask).canvas, "image/png"));
-      const comparison = compare_pixels(await decode_with_image_decoder(mask_png, "image/png"), mask);
+      const decoded_mask = await decode_with_image_decoder(mask_png, "image/png");
+      const alpha_comparison = compare_alpha(decoded_mask, mask);
+      const comparison = compare_pixels(decoded_mask, mask);
       const chunk_types = read_png_chunks(mask_png).map((chunk) => chunk.type).join(" ");
-      return { result: `chunks ${chunk_types}; ${format_comparison(comparison)}`, verdict: comparison.max_difference === 0 ? "✓" : "✗" };
+      const result = `chunks ${chunk_types}; alpha: max difference ${alpha_comparison.max_difference}, differing values ${alpha_comparison.differing_values}; all channels: ${format_comparison(comparison)}`;
+      return { result, verdict: alpha_comparison.differing_values === 0 ? "✓" : "✗" };
    });
 }
 
@@ -400,12 +405,17 @@ async function run_all_tests() {
    await run_orientation_tests();
    await run_canvas_tests();
    await run_timing_test(4000, 3000);
-   status_line.textContent = "Done. Pick the window mode, then copy the results.";
+   copy_button.disabled = false;
+   status_line.textContent = "Done. Choose the window mode, then copy the results.";
 }
 
 window_mode_select.addEventListener("change", update_summary);
 
-document.querySelector("#copy-results").addEventListener("click", async () => {
+copy_button.addEventListener("click", async () => {
+   if (!window_mode_select.value) {
+      status_line.textContent = "Choose the window mode first.";
+      return;
+   }
    try {
       await navigator.clipboard.writeText(summary_area.value);
       status_line.textContent = "Results copied.";

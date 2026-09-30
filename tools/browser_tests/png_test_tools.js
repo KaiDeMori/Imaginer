@@ -293,6 +293,19 @@ export function compare_pixels(first, second) {
    return { same_size: true, max_difference, mean_difference: difference_sum / first.rgba.length, differing_values };
 }
 
+export function compare_alpha(first, second) {
+   let max_difference = 0;
+   let differing_values = 0;
+   for (let index = 3; index < first.rgba.length; index += 4) {
+      const difference = Math.abs(first.rgba[index] - second.rgba[index]);
+      if (difference > 0) {
+         differing_values += 1;
+         max_difference = Math.max(max_difference, difference);
+      }
+   }
+   return { max_difference, differing_values };
+}
+
 /**
  * Four colored quadrants on a non-square image. All eight EXIF orientations of it look different, so an orientation can be recognized from the pixels.
  */
