@@ -16,7 +16,7 @@ The same code exists four times in `app.js`: in `consume_image_stream`, in the e
 | **External metadata:** strip checkbox on → removed, off → kept | `process_image_metadata` strips with `strip_metadata_from_PNG`, which keeps only `IHDR`, `IDAT` and `IEND`. The strip checkbox is read when the image arrives. | ✓ |
 | **Imaginer metadata:** the gallery file carries none | `process_image_metadata` writes the iTXt form and the XMP form into the gallery file, following the prompt checkboxes as they were at the Generate click. | ✗ |
 | **Prompt:** from the prompt panel | `prompt_input.value.trim()` at the Generate click (`Generation_panel.attach_events`) becomes `prompt_text` in the gallery record. | ✓ |
-| **Pixels:** upright RGBA PNG | The PNG as OpenAI returns it. Upright by nature. RGBA is neither guaranteed nor verified. | ~ |
+| **Pixels:** a PNG, upright as the browser displays it | The PNG as OpenAI returns it, stored unchanged. | ✓ |
 | **Errors reach the user** | Failures of strip and embedding are only logged (`console.warn` in `process_image_metadata`); the image is stored anyway. | ✗ |
 
 ### Import to Gallery
@@ -25,10 +25,10 @@ The drop listener in `Gallery.enable_drag_and_drop`.
 
 | Rule | Today | Gap |
 |---|---|---|
-| **External metadata:** strip checkbox on → removed, off → kept | The dropped file is stored byte for byte (`image_blob: file`). The strip checkbox is ignored. | ✗ |
+| **External metadata:** removed | The dropped file is stored byte for byte (`image_blob: file`). | ✗ |
 | **Imaginer metadata:** the gallery file carries none | Kept, if the file carries any, for example a re-imported Download. | ✗ |
 | **Prompt:** from the file's metadata, if present | `read_image_prompt`: PNG: iTXt `prompt_text`, otherwise XMP `dc:description`. JPEG and WebP: XMP `dc:description`, otherwise EXIF `UserComment`. See the prompt details below and the open point "Prompt source" in the terms. | ~ |
-| **Pixels:** upright RGBA PNG | Stored as dropped: JPEG and WebP stay JPEG and WebP, the orientation is not applied to the pixels, and palette, 16-bit and animated PNGs stay as they are. The stored `File` keeps its original filename (per the platform's structured clone; not tested). | ✗ |
+| **Pixels:** a PNG, upright as the browser displays it | Stored as dropped: JPEG and WebP stay JPEG and WebP, and the orientation is not applied to their pixels. The stored `File` keeps its original filename (per the platform's structured clone; not tested). | ✗ |
 | **Errors reach the user** | Validation errors reach the user (`Error_modal`). A failing `database_store.save` is not caught, so the rest of the batch is dropped without a message (read from the code; not observed). | ✗ |
 
 Prompt details, in `read_png_metadata` (`components/png_metadata_reader.js`):
@@ -47,9 +47,9 @@ The external-file branch of the drop listener in `Generation_panel.attach_events
 
 | Rule | Today | Gap |
 |---|---|---|
-| **External metadata:** strip checkbox on → removed, off → kept | The dropped `File` is kept in memory byte for byte. The strip checkbox is ignored. | ✗ |
+| **External metadata:** removed | The dropped `File` is kept in memory byte for byte. | ✗ |
 | **Imaginer metadata:** none | Kept, if the file carries any. | ✗ |
-| **Pixels:** upright RGBA PNG | Kept as dropped: JPEG and WebP stay JPEG and WebP, and the orientation is not applied to the pixels. | ✗ |
+| **Pixels:** a PNG, upright as the browser displays it | Kept as dropped: JPEG and WebP stay JPEG and WebP, and the orientation is not applied to their pixels. | ✗ |
 | **In memory only; can only be removed** | Only `drop_area_manager` holds the image. A click on its thumbnail removes it; no path leads into the gallery. | ✓ |
 | **Errors reach the user** | Count, type, size and readability are checked for the whole batch; a failure reaches the user through `Error_modal`. | ✓ |
 
@@ -109,7 +109,7 @@ Also found: with a mini model selected, the input area is ignored without a mess
 
 ### Existing gallery files
 
-Every gallery file stored so far was created under the old behaviour: model output is a PNG with Imaginer metadata baked in, and imports are the original JPEG, WebP or PNG files with their external metadata. The rules assume that every gallery file is an upright RGBA PNG without Imaginer metadata. Until that holds, Export and the edit request would have to convert and clean up on their own, which is exactly what the rules move to intake. Open for the Discussion: convert the existing gallery files once, or handle them at Export and at the edit request.
+Every gallery file stored so far was created under the old behaviour: model output is a PNG with Imaginer metadata baked in, and imports are the original JPEG, WebP or PNG files with their external metadata. The rules assume that every gallery file is a PNG without Imaginer metadata. Until that holds, Export and the edit request would have to convert and clean up on their own, which is exactly what the rules move to intake. Open for the Discussion: convert the existing gallery files once, or handle them at Export and at the edit request.
 
 ### Order
 
