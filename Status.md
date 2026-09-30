@@ -5,8 +5,7 @@
 ## Where we are right now
 
 - Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Its planning file has eight steps in dependency order. Every code step is built (1, 2, 3, 5, 6, 7 and 8); their manual tests are in the planning file and wait for the user. Step 4's round 2 page waits for the user's runs.
-- On 2026-09-30, three decisions were written into the terms, the gap analysis, and the planning file: every gallery file is a PNG and only JPEG and WebP are converted; imports always get strip; the chunk module and Export come before the browser tests, with the unique filename first.
-- Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md). The wording may still change.
+- Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md), the reference for metadata in Imaginer; every decision of the task is in the planning file's steps.
 - Web research: [misc/metadata_research.md](misc/metadata_research.md).
 - Gap analysis: [misc/metadata_gap_analysis.md](misc/metadata_gap_analysis.md). All four paths are compared; its rule column follows today's terms.
 - Browser tests (step 4), round 1 is done: the test page `tools/browser_tests/conversion_tests.html` ran in Firefox 144 (normal window and Strict) and Chromium 148. Raw results are in `tools/browser_tests/results/`, the summary is in `misc/metadata_research.md`, section "Local browser test results". The round 2 page is written for the JPEG and WebP path (`createImageBitmap`, `VideoFrame.copyTo`, own encoder) and waits for the user's runs; only step 5 needs its results.
@@ -15,7 +14,7 @@
 
 ## Next step
 
-- The user's turn: run the manual tests of steps 1 to 8 in the planning file, run the round 2 test page (step 4, section Manual test) in Firefox and Chromium and paste the results into `tools/browser_tests/results/`, then the main model writes the round 2 summary into `misc/metadata_research.md`. After that, the release, done together: `version.json` and a version message that names the one-time conversion. The user runs the round 2 test page (step 4, section Manual test) and pastes the results into `tools/browser_tests/results/`; the results gate the intake's conversion before a release.
+- The user's turn: run the manual tests of steps 1 to 8 in the planning file, run the round 2 test page (step 4, section Manual test) in Firefox and Chromium and paste the results into `tools/browser_tests/results/`, then the main model writes the round 2 summary into `misc/metadata_research.md`. After that, the release, done together: `version.json` and a version message that names the one-time conversion.
 
 ## Open threads (not blocking)
 
