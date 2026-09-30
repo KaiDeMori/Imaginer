@@ -57,17 +57,17 @@ Saved custom image sizes for advanced size mode.
 **Default:** `"[]"`
 
 ### `imaginer.strip_metadata`
-Remove metadata from downloaded images.  
+Remove metadata from OpenAI responses before saving, and from every PNG at download and ZIP export.  
 **Range:** `"true"`, `"false"`  
 **Default:** `"true"`
 
 ### `imaginer.add_prompt_to_image`
-Embed prompt as iTXt metadata in PNG.  
+Embed the prompt as iTXt metadata in generated PNGs and in every PNG at download and ZIP export.  
 **Range:** `"true"`, `"false"`  
 **Default:** `"true"`
 
 ### `imaginer.add_prompt_to_image_xmp`
-Embed prompt as XMP metadata in PNG.  
+Embed the prompt as XMP metadata in generated PNGs and in every PNG at download and ZIP export.  
 **Range:** `"true"`, `"false"`  
 **Default:** `"true"`
 

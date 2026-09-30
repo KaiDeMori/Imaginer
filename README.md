@@ -20,8 +20,8 @@ The only network traffic goes to the OpenAI API.
 - **Gallery**: thumbnails are stored in IndexedDB and persist between sessions.
 - **Viewer**: full-screen view with zoom, pan, and keyboard navigation between images.
 - **Import**: drop PNG, JPEG, or WebP files into the gallery; embedded prompts are read from the file metadata.
-- **Export**: download single images or the whole gallery as a ZIP file.
-- **Prompt embedding**: generated PNG files carry the prompt as iTXt and XMP metadata.
+- **Export**: download single images or the whole gallery as a ZIP file. Both apply the PNG metadata options and give every file a unique name.
+- **Prompt embedding**: PNG files you download or export carry the prompt as iTXt and XMP metadata, as configured.
 - **Free resolutions**: an advanced size setting allows custom sizes up to 4K on supported models.
 - **Model selection**: the dropdown lists the recommended models; older models and dated snapshots can be enabled in the config.
 
@@ -95,6 +95,7 @@ Every setting is documented in the User Manual section **Configuration & Setting
 - `components/`: UI components such as the gallery, viewer, menu bar, configuration dialog, and drop areas.
 - `storage/`: IndexedDB access.
 - `PNG_chunks.js`, `XML_entities.js`: PNG chunk operations (strip, the prompt forms, prompt reading) and XML text escaping.
+- `image_export.js`: the shared path of Download and ZIP export.
 - `static_imports/`: vendored third-party libraries (JSZip, marked).
 - `intro/`: the first-launch intro sequence.
 - `User_Manual/`: documentation sources and the in-app help pages.

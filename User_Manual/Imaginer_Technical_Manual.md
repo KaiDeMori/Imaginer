@@ -31,7 +31,7 @@
   - Dimensions: must match its image's pixel dimensions exactly.
   - A mask failing any of these is discarded and an error is shown; the image itself is still added. This can only happen from a corrupted `mask_blob` record — masks are always generated at exactly their source image's dimensions (see `components/viewer/viewer.js` `close()`).
 - Embedded prompts are read from PNG (iTXt/XMP), JPEG (XMP/EXIF), and WebP (XMP/EXIF) on import. A compressed iTXt `prompt_text` chunk is inflated, and XML entities in an XMP description are decoded. A damaged file imports with an empty prompt instead of failing.
-- Optional prompt embedding on generation and download writes the prompt as an iTXt chunk (`prompt_text`) and/or an XMP packet (`dc:description`) into the PNG, replacing any earlier copy of either form, so a file never carries the prompt twice; the XMP packet is XML-escaped, and an empty prompt writes nothing. If the strip option is on, every chunk except `IHDR`, `PLTE`, `tRNS`, `IDAT` and `IEND` is removed first, so palette PNGs keep their palette and transparency. Both are chunk operations in `PNG_chunks.js` that never decode the pixels. Mask PNGs store editable areas with transparent alpha.
+- Optional prompt embedding on generation, download and ZIP export writes the prompt as an iTXt chunk (`prompt_text`) and/or an XMP packet (`dc:description`) into the PNG, replacing any earlier copy of either form, so a file never carries the prompt twice; the XMP packet is XML-escaped, and an empty prompt writes nothing. If the strip option is on, every chunk except `IHDR`, `PLTE`, `tRNS`, `IDAT` and `IEND` is removed first, so palette PNGs keep their palette and transparency. Both are chunk operations in `PNG_chunks.js` that never decode the pixels. Mask PNGs store editable areas with transparent alpha.
 
 ## OpenAI Integration
 - Imaginer accepts two API key formats from OpenAI:
@@ -51,6 +51,7 @@
 - Selecting a `*-mini` model disables editing: dropped images are ignored and the request falls back to a plain generation.
 - Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`. The API key test succeeds when at least one returned model ID starts with `gpt-image-`.
 - Download and ZIP export filenames are built locally as `<prompt>_<created>_<id>.<ext>`: a sanitized prompt prefix, the image creation timestamp, and the record's IndexedDB ID, which keeps every name unique within a ZIP. The prefix length comes from `imaginer.filename_prompt_chars`, defaults to 110, and is clamped to 1-230.
+- Download and ZIP export share one Export path (`export_image` in `image_export.js`): strip per the strip option, the prompt forms per the prompt options, both from the saved settings and the gallery record. A PNG that cannot be processed does not leave: ⬇️ shows an error dialog, and the ZIP export leaves the file out and lists it after the download. With the strip option off and both prompt options off, a file leaves as stored and unparsed. Imported JPEG and WebP files always leave as stored.
 
 
 # Appendices

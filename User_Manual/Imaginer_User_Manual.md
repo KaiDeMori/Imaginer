@@ -194,7 +194,7 @@ Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata, s
 
 **Hover over any thumbnail** to reveal action buttons:
 
-- ⬇️ **Download** (top-left): Save the image to your computer.
+- ⬇️ **Download** (top-left): Save the image to your computer. A PNG leaves with the PNG metadata options applied (see Configuration & Settings → **PNG Metadata Options**). If the file cannot be processed, an error dialog tells you why and how to export it as stored.
 - 💬 **Use Prompt** (top-right): Load the image's prompt into the text area.
 
 #### Using Images for Editing
@@ -462,6 +462,8 @@ The app refreshes its saved app files and reloads the page. Your images, setting
 
 Config → Files → **Download All Images** bundles every stored image (generated and imported) into a ZIP. The files inside follow the download filename pattern (prompt, timestamp, and the image's ID), so every image keeps its own name; the ZIP is named `Imaginer_Export_<timestamp>.zip`. A progress dialog shows status. If no images are present, you see an error instead of a download.
 
+Each file leaves exactly as a single ⬇️ download would: the PNG metadata options apply to every PNG, with the settings you last saved with **OK**. Imported JPEG and WebP files leave as they were imported. A file that cannot be processed is left out and stays in your gallery; after the download, the dialog lists it with the reason and how to export it as stored.
+
 #### Delete Gallery
 
 Config → Files → **Delete Gallery** wipes all stored images. The first click highlights **Download All Images** as a warning. The second click asks you to type `YES`. Confirming clears the gallery database and reloads the app. This cannot be undone — export first if needed.
@@ -478,9 +480,9 @@ When enabled, the dropdown lists every image model of your OpenAI account, inclu
 
 #### PNG Metadata Options
 
-- **Strip Server-Side metadata** (default: on): Removes metadata from OpenAI responses before saving, keeping files lean. Prompt embedding still runs after stripping.
-- **Embed prompt as iTXt** (default: on): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata.
-- **Embed prompt as XMP** (default: on): Writes the prompt in an XMP block for metadata-aware apps. If both options are on, the prompt is written to iTXt first, then XMP.
+- **Strip Server-Side metadata** (default: on): Removes metadata from OpenAI responses before saving, and from every PNG you download or export, keeping files lean. Prompt embedding still runs after stripping. Imported JPEG and WebP files are not stripped.
+- **Embed prompt as iTXt** (default: on): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata. Applies to generated images and to every PNG you download or export.
+- **Embed prompt as XMP** (default: on): Writes the prompt in an XMP block for metadata-aware apps. If both options are on, the prompt is written to iTXt first, then XMP. With both options off, a downloaded or exported PNG carries no prompt.
 
 #### Advanced size setting
 
