@@ -106,7 +106,7 @@ Plan: [Tasks/plans/One_PNG_chunk_module.plan.md](plans/One_PNG_chunk_module.plan
 - Config → Advanced: strip off, both prompt options off. ⬇️ a generated image, then drop the downloaded file into the gallery: the thumbnail has no 💬.
 - Drop a JPEG or WebP whose XMP description contains `&amp;` into the gallery: 💬 shows `&`.
 
-### 3. One Export function (in discussion)
+### 3. One Export function (planned)
 
 One Export function for Download and ZIP export: strip per the strip checkbox, fresh Imaginer metadata, and the filename from step 1. Needs steps 1 and 2 and comes before step 5. Gaps 9, 10 and 11.
 
@@ -114,11 +114,13 @@ Plan: [Tasks/plans/One_Export_function.plan.md](plans/One_Export_function.plan.m
 
 #### Decisions
 
-- The module is `image_export.js` in the repository root. `export_image(record)` gives the file and the filename for one gallery record; `collect_ZIP_entries(records, on_progress)` gives the entries and the failures for the ZIP export; `export_gallery_as_ZIP(records, callbacks)` builds and downloads the archive; `trigger_download(blob, filename)` is the one place that hands a file to the browser.
+- The module is `image_export.js` in the repository root. `export_image(record)` gives the file and the filename for one gallery record; `collect_ZIP_entries(records, on_progress)` gives the entries and the failures for the ZIP export; `export_gallery_as_ZIP(records, callbacks)` builds and downloads the archive; `trigger_download(blob, filename)` is the one place that hands a file to the browser, with the longest revoke delay the callers used.
 - A gallery file that is not a PNG leaves as stored, with its own extension, until step 6 converts the existing gallery files. Strip cannot apply to it without the conversion.
-- An error at Export reaches the user. Download: an error dialog and no file. ZIP export: the backup must not stop for one file, so a record that cannot be processed goes into the archive as stored, and after the download one message lists every such file with the reason.
-- The module's pure part is specified by the Node check `tools/check/image_export_check.mjs`, written by the main model before the plan review. The ZIP assembly and the download are browser-only and stay thin; their dependencies are loaded with dynamic imports so that Node can load the module.
-- The plan is written by the main model, reviewed by independent reviewers, and built by implementers.
+- An error at Export reaches the user, and a file to which the rules cannot be applied does not leave, because it would carry what the config promised to remove. Download: an error dialog with the filename, the reason and the way out. ZIP export: the backup must not stop for one file, so the file is left out, and after the download one message lists every such file with the reason and the way out. The way out: with the strip checkbox off and both prompt checkboxes off, Export changes nothing and the file leaves as stored, unparsed.
+- Download All Images inside the config dialog follows the saved settings; a changed checkbox counts after OK.
+- The module's pure part is specified by the Node check `tools/check/image_export_check.mjs`, written by the main model before the plan review and extended after it. The ZIP assembly and the download are browser-only and stay thin; their dependencies are loaded with dynamic imports so that Node can load the module. Every processed PNG is held in memory until the archive is built; that is the cost of processing at Export.
+- The progress dialog's error area keeps line breaks and scrolls, so a long list of left-out files stays readable.
+- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Implementers build it.
 
 #### Facts
 
