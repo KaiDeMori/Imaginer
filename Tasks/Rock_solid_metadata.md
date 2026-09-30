@@ -202,7 +202,7 @@ Plan: [Tasks/plans/Intake.plan.md](plans/Intake.plan.md).
 - The four places in `app.js` that receive model output share one function, `save_model_output`, which applies intake, saves the record and registers it with the gallery. `process_image_metadata.js` and its Node check go.
 - A browser without `VideoFrame` cannot import JPEG and WebP; the message says so. No canvas fallback.
 - Step 5 is designed for the candidate pipeline before the round 2 results are in. If round 2 fails, `convert_to_PNG` is the one function that changes.
-- The plan is written by the main model, reviewed by independent reviewers, and built by implementers. The intake module is specified by `tools/check/image_intake_check.mjs`, the encoder by `tools/check/PNG_chunks_check.mjs`.
+- The plan is written by the main model, reviewed by independent reviewers, and built by implementers. The intake module is specified by `tools/check/image_intake_check.mjs`, the encoder by `tools/check/PNG_encoder_check.mjs`; both are wired into the check at Verification, so the gate stays green until the code exists.
 
 #### Facts
 

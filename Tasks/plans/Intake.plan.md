@@ -1,6 +1,6 @@
 # Intake
 
-The specification of this step is the step "5. Intake" in `Tasks/Rock_solid_metadata.md`, together with the terms and rules in `misc/metadata_terms.md`. This plan turns it into code changes. Two Node checks are the executable specification: `tools/check/PNG_chunks_check.mjs` for the PNG encoder and `tools/check/image_intake_check.mjs` for the intake module.
+The specification of this step is the step "5. Intake" in `Tasks/Rock_solid_metadata.md`, together with the terms and rules in `misc/metadata_terms.md`. This plan turns it into code changes. Two Node checks are the executable specification: `tools/check/PNG_encoder_check.mjs` for the PNG encoder and `tools/check/image_intake_check.mjs` for the intake module.
 
 ## Design
 
@@ -96,13 +96,13 @@ The module receives one file comment at the top, verbatim: `// Intake: every ima
 - The intro image (`expose_internals_for_intro().add_image`): step 8.
 - The existing gallery files: step 6.
 - The edit request's filenames and pixels only: step 7.
-- `tools/check/`: the main model removes `process_image_metadata_check.mjs` and wires `image_intake_check.mjs` into `check.sh`.
+- `tools/check/`: the main model removes `process_image_metadata_check.mjs` and wires `PNG_encoder_check.mjs` and `image_intake_check.mjs` into `check.sh`.
 - `README.md`, `User_Manual/` and `misc/`: the main model writes the documentation after Verification.
 
 ## Implementation steps
 
-1. **The modules.** Add `encode_PNG_RGBA` to `PNG_chunks.js`, create `image_conversion.js` and `image_intake.js` as Design specifies, and add their lines to `cache_manifest.json`. Gate: `bash tools/check/check.sh` prints `check passed`, `node tools/check/PNG_chunks_check.mjs` prints `PNG_chunks check passed`, and `node tools/check/image_intake_check.mjs` prints `image_intake check passed`. The check passes because the new modules import only existing files and the manifest lists them.
-2. **The doors.** Change `components/gallery.js`, `components/generation_panel.js` and `app.js` as Design specifies, delete `process_image_metadata.js`, and remove its line from `cache_manifest.json`. Gate: `bash tools/check/check.sh` prints `check passed`, `node tools/check/PNG_chunks_check.mjs` prints `PNG_chunks check passed`, and `node tools/check/image_intake_check.mjs` prints `image_intake check passed`. The check passes because no module imports the deleted file any more and the manifest lists no missing file.
+1. **The modules.** Add `encode_PNG_RGBA` to `PNG_chunks.js`, create `image_conversion.js` and `image_intake.js` as Design specifies, and add their lines to `cache_manifest.json`. Gate: `bash tools/check/check.sh` prints `check passed`, `node tools/check/PNG_encoder_check.mjs` prints `PNG_encoder check passed`, and `node tools/check/image_intake_check.mjs` prints `image_intake check passed`. The check passes because the new modules import only existing files and the manifest lists them.
+2. **The doors.** Change `components/gallery.js`, `components/generation_panel.js` and `app.js` as Design specifies, delete `process_image_metadata.js`, and remove its line from `cache_manifest.json`. Gate: `bash tools/check/check.sh` prints `check passed`, `node tools/check/PNG_encoder_check.mjs` prints `PNG_encoder check passed`, and `node tools/check/image_intake_check.mjs` prints `image_intake check passed`. The check passes because no module imports the deleted file any more and the manifest lists no missing file.
 
 ## Documentation
 
@@ -128,7 +128,7 @@ Definitions: "forms" are the iTXt form and the XMP form as the terms define them
 
 ### `PNG_chunks.js`
 
-Every item in `tools/check/PNG_chunks_check.mjs` passes. Among them: `encode_PNG_RGBA` of a 3 by 2 pattern gives the chunks `IHDR`, `IDAT`, `IEND`, an `IHDR` with width 3, height 2, bit depth 8, color type 6 and zeros, and an `IDAT` that inflates to two rows, each a filter byte 0 followed by the row's twelve samples; a wrong length throws `Wrong RGBA length.`.
+Every item in `tools/check/PNG_encoder_check.mjs` passes. Among them: `encode_PNG_RGBA` of a 3 by 2 pattern gives the chunks `IHDR`, `IDAT`, `IEND`, an `IHDR` with width 3, height 2, bit depth 8, color type 6 and zeros, and an `IDAT` that inflates to two rows, each a filter byte 0 followed by the row's twelve samples; a wrong length throws `Wrong RGBA length.`.
 
 ### `image_intake.js`
 
