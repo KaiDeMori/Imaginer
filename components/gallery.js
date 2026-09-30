@@ -325,7 +325,7 @@ export class Gallery {
 
     button_download.addEventListener("click", async (e) => {
       e.stopPropagation();
-      const filename = build_image_filename(prompt_text, created, extension_for_type(blob.type));
+      const filename = build_image_filename(prompt_text, created, record_id, extension_for_type(blob.type));
       // Metadata embedding writes PNG chunks (iTXt/XMP); imported non-PNG images keep their original bytes.
       const processed_blob = blob.type === "image/png" ? await process_image_metadata(blob, prompt_text || "", {}) : blob;
       const download_url = URL.createObjectURL(processed_blob);

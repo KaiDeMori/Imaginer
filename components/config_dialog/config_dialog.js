@@ -216,7 +216,7 @@ export class Config_dialog {
         for (let i = 0; i < records.length; i++) {
           const rec = records[i];
           if (rec.image_blob instanceof Blob) {
-            const filename = build_image_filename(rec.prompt_text, rec.created, extension_for_type(rec.image_blob.type));
+            const filename = build_image_filename(rec.prompt_text, rec.created, rec.id, extension_for_type(rec.image_blob.type));
 
             zip.file(filename, rec.image_blob);
             progress.update_progress(i + 1, records.length);

@@ -22,10 +22,14 @@ function sanitize_prompt_for_filename(prompt_text, fallback_text = "image") {
   return base;
 }
 
-function build_image_filename(prompt_text, created, extension) {
+/**
+ * The record ID keeps the filename unique: images of one generation share their timestamp, and a ZIP archive keeps only one entry per name.
+ */
+function build_image_filename(prompt_text, created, id, extension) {
   const base = sanitize_prompt_for_filename(prompt_text);
   const ts = created ? String(created) : String(Math.floor(Date.now() / 1000));
-  return `${base}_${ts}.${extension}`;
+  const id_part = id == null ? "" : `_${id}`;
+  return `${base}_${ts}${id_part}.${extension}`;
 }
 
 export {

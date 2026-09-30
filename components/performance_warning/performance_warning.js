@@ -69,7 +69,7 @@ export class Performance_warning {
       const zip = new JSZip();
       for (const rec of records) {
         if (rec.image_blob instanceof Blob) {
-          const filename = build_image_filename(rec.prompt_text, rec.created, extension_for_type(rec.image_blob.type));
+          const filename = build_image_filename(rec.prompt_text, rec.created, rec.id, extension_for_type(rec.image_blob.type));
           zip.file(filename, rec.image_blob);
         }
       }
