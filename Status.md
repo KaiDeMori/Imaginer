@@ -15,6 +15,5 @@
 ## Open threads (not blocking)
 
 - Gallery import button (📂, tooltip "Import", after 🗑️): parked on the user's list, probably its own session.
-- The web research on canvas noise and on how OpenAI handles input files exists only in the chat so far.
 - ZIP export may lose images whose filenames collide (same prompt, same second). Not yet tested.
 - With a mini model selected, images in the input area are ignored without a word.
