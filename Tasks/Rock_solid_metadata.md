@@ -61,7 +61,7 @@ Every Export gives the same image the same, unique filename, `<prompt>_<created>
 - Config → Advanced: streaming preview off. Config → Generation: number of images 2. Generate, then Config → Files → Download All Images. The ZIP holds both images, named `<prompt>_<created>_<id>.png` with two different IDs.
 - ⬇️ on a thumbnail downloads `<prompt>_<created>_<id>.png`. A second ⬇️ on the same thumbnail gives the same name.
 
-### 2. One PNG chunk module (planned)
+### 2. One PNG chunk module (built)
 
 One module for the chunk operations every path needs: strip with the chunk whitelist, pixels only, writing the iTXt form and the XMP form (XML-escaped, replacing existing forms), and reading the prompt. It replaces `png_iTXt/`, `png_XMP_via_iTXt/`, `strip_metadata_from_PNG/`, and `components/png_metadata_reader.js`. Gap 5 and the writing part of gap 10.
 
@@ -78,7 +78,7 @@ Plan: [Tasks/plans/One_PNG_chunk_module.plan.md](plans/One_PNG_chunk_module.plan
 - The JPEG and WebP readers decode XML entities in the description, so gap 5 closes for all three formats. Their fields stay as the Intake rule "Prompt" in the terms states them.
 - The untracked demo pages and the note in the three folders were moved to `archive/png_demos/` by the main model before the implementation, and their `.gitignore` lines removed; the folders then hold only tracked files and are deleted.
 - The module, the adapter and the readers are specified by Node checks in `tools/check/`: `PNG_chunks_check.mjs`, `process_image_metadata_check.mjs` and `metadata_readers_check.mjs`, written by the main model before the plan review. The implementers run them as part of their gate; the main model wires them into the check at Verification.
-- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Implementers build it.
+- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Two implementers built it; the main model deleted the old modules, removed their config patterns, and wired the Node checks into the check.
 
 #### Facts
 
@@ -98,6 +98,13 @@ Plan: [Tasks/plans/One_PNG_chunk_module.plan.md](plans/One_PNG_chunk_module.plan
 - One Export function and errors at Export: step 3.
 - Intake, the conversion, and moving the prompt reading for JPEG and WebP into intake: step 5.
 - Pixels only at the edit request: step 7.
+
+#### Manual test
+
+- Config → Advanced: strip on, both prompt options on. Generate an image whose prompt contains `&` and `<`. ⬇️ it, then drop the downloaded file into the gallery: 💬 shows the same prompt.
+- Drop a palette PNG with transparency (an indexed-colour PNG) into the gallery, then ⬇️ it with strip on: the downloaded file shows the same image, transparency included.
+- Config → Advanced: strip off, both prompt options off. ⬇️ a generated image, then drop the downloaded file into the gallery: the thumbnail has no 💬.
+- Drop a JPEG or WebP whose XMP description contains `&amp;` into the gallery: 💬 shows `&`.
 
 ### 3. One Export function (waiting)
 

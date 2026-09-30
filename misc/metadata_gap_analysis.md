@@ -13,7 +13,7 @@ The same code exists four times in `app.js`: in `consume_image_stream`, in the e
 
 | Rule | Today | Gap |
 |---|---|---|
-| **External metadata:** strip checkbox on → removed, off → kept | `process_image_metadata` strips with `strip_metadata_from_PNG`, which keeps only `IHDR`, `IDAT` and `IEND`. The strip checkbox is read when the image arrives. | ✓ |
+| **External metadata:** strip checkbox on → removed, off → kept | `process_image_metadata` strips with `strip_PNG`, which keeps `IHDR`, `PLTE`, `tRNS`, `IDAT` and `IEND`. The strip checkbox is read when the image arrives. | ✓ |
 | **Imaginer metadata:** the gallery file carries none | `process_image_metadata` writes the iTXt form and the XMP form into the gallery file, following the prompt checkboxes as they were at the Generate click. | ✗ |
 | **Prompt:** from the prompt panel | `prompt_input.value.trim()` at the Generate click (`Generation_panel.attach_events`) becomes `prompt_text` in the gallery record. | ✓ |
 | **Pixels:** a PNG, upright as the browser displays it | The PNG as OpenAI returns it, stored unchanged. | ✓ |
@@ -27,14 +27,11 @@ The drop listener in `Gallery.enable_drag_and_drop`.
 |---|---|---|
 | **External metadata:** removed | The dropped file is stored byte for byte (`image_blob: file`). | ✗ |
 | **Imaginer metadata:** the gallery file carries none | Kept, if the file carries any, for example a re-imported Download. | ✗ |
-| **Prompt:** from the file's metadata, if present | `read_image_prompt`: PNG: iTXt `prompt_text`, otherwise XMP `dc:description`. JPEG and WebP: XMP `dc:description`, otherwise EXIF `UserComment`. See the prompt details below and the open point "Prompt source" in the terms. | ~ |
+| **Prompt:** from the file's metadata, if present | `read_image_prompt`: PNG: iTXt `prompt_text`, otherwise XMP `dc:description`. JPEG and WebP: XMP `dc:description`, otherwise EXIF `UserComment`. As the Intake rule "Prompt" in the terms states. | ✓ |
 | **Pixels:** a PNG, upright as the browser displays it | Stored as dropped: JPEG and WebP stay JPEG and WebP, and the orientation is not applied to their pixels. The stored `File` keeps its original filename (per the platform's structured clone; not tested). | ✗ |
 | **Errors reach the user** | Validation errors reach the user (`Error_modal`). A failing `database_store.save` is not caught, so the rest of the batch is dropped without a message (read from the code; not observed). | ✗ |
 
-Prompt details, in `read_png_metadata` (`components/png_metadata_reader.js`):
-
-- A compressed iTXt `prompt_text` is read as garbage, because the compression flag is skipped.
-- XML entities in XMP are not decoded: `&amp;` stays `&amp;`. The JPEG and WebP readers use the same regular expression.
+Prompt details: `read_PNG_prompt` in `PNG_chunks.js` inflates a compressed iTXt `prompt_text` chunk, and all three readers decode XML entities in the XMP description. Gap 5 is built in step 2.
 
 ### Also found
 
@@ -66,9 +63,9 @@ The ⬇️ handler in `Gallery._build_thumbnail_content`.
 
 | Rule | Today | Gap |
 |---|---|---|
-| **External metadata:** strip checkbox on → removed, off → kept | PNG: `process_image_metadata` strips per the current strip checkbox, but `strip_metadata_from_PNG` also removes `PLTE` and `tRNS`, which breaks palette PNGs and loses transparency. JPEG and WebP: the bytes leave unchanged, GPS included, whatever the strip checkbox says. | ✗ |
-| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | PNG with strip on: the old forms are removed and fresh ones written ✓. PNG with strip off: the fresh forms are added next to the old ones, so the file carries them twice. Both prompt checkboxes off with strip off: the old forms leave anyway. JPEG and WebP: never any. | ✗ |
-| **No prompt → none** | `prompt_text \|\| ""` writes empty forms. | ✗ |
+| **External metadata:** strip checkbox on → removed, off → kept | PNG: `process_image_metadata` strips per the current strip checkbox with the chunk whitelist. JPEG and WebP: the bytes leave unchanged, GPS included, whatever the strip checkbox says. | ✗ |
+| **Imaginer metadata:** exactly the forms whose prompt checkbox is on | PNG: the forms are replaced per the prompt checkboxes; both off → none ✓. JPEG and WebP: never any. | ✗ |
+| **No prompt → none** | An empty prompt writes no form. | ✓ |
 | **Filename:** `<prompt>_<created>_<id>.png` | `build_image_filename` gives `<prompt>_<created>.<ext>`, without the ID. | ✗ |
 
 ### ZIP export
@@ -83,9 +80,8 @@ The same loop twice: in `Config_dialog` ("Download All Images") and in `Performa
 
 ### Writers of Imaginer metadata
 
-- `add_iTXt_chunk_to_png` inserts before the first `IDAT`, and `embed_XMP_description` after `IHDR`. Neither looks for an existing form.
-- `create_XMP_packet` inserts the prompt without XML escaping. A prompt with `&` or `<` produces an invalid XMP packet.
-- Failures are only logged (`console.warn` in `process_image_metadata`); the Download continues without Imaginer metadata and without a message. The rules do not say yet whether an error at Export reaches the user.
+- `write_PNG_prompt` in `PNG_chunks.js` replaces existing forms, inserts before the first `IDAT`, and XML-escapes the XMP packet. A foreign XMP chunk stays unless the XMP form replaces it.
+- Failures are only logged (`console.warn` in `process_image_metadata`); the Download continues with the stripped bytes, without Imaginer metadata and without a message. The rules do not say yet whether an error at Export reaches the user.
 
 ## Edit request
 
@@ -123,12 +119,12 @@ Every gallery file stored so far was created under the old behaviour: model outp
 2. Model output: stop writing Imaginer metadata at intake, after Export writes it.
 3. Conversion: needs the local browser tests first.
 4. Intake errors reach the user: the `save` failure at Import to Gallery, and the strip and embedding failures at model output.
-5. Prompt reading: the compressed iTXt and the XML entities.
+5. Prompt reading: the compressed iTXt and the XML entities. Built in step 2.
 6. One intake function for both doors, instead of the four copies in `app.js`, the drop listener in `components/gallery.js`, and the drop listener of the input area.
 7. Open: the intro image. Ignore it (session only), or route it through intake.
 8. Input area door: apply the same intake in memory.
 9. One Export function for Download and ZIP export instead of three places.
-10. Export: strip per the strip checkbox for every gallery file; fresh Imaginer metadata without duplicates or leftovers; none without a prompt; the XMP form XML-escaped; the filename with the ID.
+10. Export: strip per the strip checkbox for every gallery file; fresh Imaginer metadata without duplicates or leftovers; none without a prompt; the XMP form XML-escaped; the filename with the ID. The filename is built in step 1 and the writing in step 2; the rest is step 3.
 11. Open: whether an error at Export reaches the user.
 12. Edit request: pixels only for images and mask, neutral filenames `image_1.png` and `mask.png`, and no more `blob.name` on the gallery's own `Blob`.
 13. Open: existing gallery files.
