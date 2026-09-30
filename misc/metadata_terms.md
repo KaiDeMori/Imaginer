@@ -9,7 +9,7 @@ Once stable, this file is the reference for metadata in Imaginer.
 
 - **Imaginer metadata**: all data that Imaginer writes into an exported file. Its content is the prompt from the gallery record, in two forms:
   - **iTXt form**: an iTXt chunk with the keyword `prompt_text`.
-  - **XMP form**: an XMP packet with `dc:description`, in an iTXt chunk with the keyword `XML:com.adobe.xmp`.
+  - **XMP form**: an XMP packet with `dc:description`, in an iTXt chunk with the keyword `XML:com.adobe.xmp`. Imaginer writes the packet in one fixed shape; a chunk with that keyword whose packet has another shape is external metadata.
 - **External metadata**: all other metadata in a file. Examples: camera EXIF (GPS, device, time), data from other tools, OpenAI's data in model output (C2PA).
 
 ### Images
@@ -59,7 +59,7 @@ Once stable, this file is the reference for metadata in Imaginer.
 
 - **External metadata**: Import to Gallery and Import to input area: removed. Model output: strip checkbox on → removed, off → kept.
 - **Imaginer metadata**: the gallery file carries none.
-- **Prompt**: goes into the gallery record. Model output: from the prompt panel. Import to Gallery: from the file's metadata, if present.
+- **Prompt**: goes into the gallery record. Model output: from the prompt panel. Import to Gallery: from the file's metadata, if present. PNG: the iTXt form, otherwise the XMP form. JPEG and WebP: XMP `dc:description`, otherwise EXIF `UserComment`, because other image tools write their prompts there; in photos, `dc:description` is usually a caption, which then serves as the prompt.
 - **Pixels**: always a PNG, upright as the browser displays it. JPEG and WebP get conversion; a PNG keeps its pixels.
 - **Input area door**: the same rules, in memory only. The image never becomes a gallery file; it can only be removed from the input area.
 - What strip removes at intake is gone. That is privacy.
@@ -71,6 +71,7 @@ Applies to Download and ZIP export.
 - **External metadata**: strip checkbox on → removed. Off → kept, as far as the gallery file still carries it.
 - **Imaginer metadata**: exactly the forms whose prompt checkbox is on, written from the prompt in the gallery record. Both off → none. No prompt → none.
 - **Filename**: `<prompt>_<created>_<id>.png`, from the gallery record: the prompt (sanitized and shortened), the timestamp, and the ID. The same image gets the same, unique filename in every Export.
+- **XMP chunks**: a PNG carries one XMP packet, so writing the XMP form replaces every XMP chunk. When the XMP form is not written and strip is off, an external XMP chunk stays.
 
 ### Edit request
 
@@ -89,7 +90,6 @@ Applies to Download and ZIP export.
 
 ## Open points
 
-- **Prompt source**: at Import to Gallery, the prompt is read from the file's metadata. For JPEG and WebP, the readers take XMP `dc:description`, then EXIF `UserComment` ([jpeg_metadata_reader.js](../components/jpeg_metadata_reader.js), [webp_metadata_reader.js](../components/webp_metadata_reader.js)). These are external metadata; in photos, `dc:description` is usually a caption. That text survives as the prompt and, with a prompt checkbox on, leaves at Export as Imaginer metadata. To decide: which fields may be read as the prompt.
 - **Masks**: created in-app on a canvas. The browser may add a chunk (Firefox 151+: `deBG`, per its source code; Firefox 144 adds none, measured). Open: clean the mask when it is saved, or only at the edit request.
 - **UI wording**: the ZIP export's UI label is "Download All Images". The strip checkbox's UI label "Strip Server-Side metadata" matches its rule; whether "Server-Side" is clear enough is open.
 - **Color spaces**: out of scope for now.

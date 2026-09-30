@@ -61,11 +61,43 @@ Every Export gives the same image the same, unique filename, `<prompt>_<created>
 - Config → Advanced: streaming preview off. Config → Generation: number of images 2. Generate, then Config → Files → Download All Images. The ZIP holds both images, named `<prompt>_<created>_<id>.png` with two different IDs.
 - ⬇️ on a thumbnail downloads `<prompt>_<created>_<id>.png`. A second ⬇️ on the same thumbnail gives the same name.
 
-### 2. One PNG chunk module (waiting)
+### 2. One PNG chunk module (planned)
 
-One module for the chunk operations every path needs: strip with the chunk whitelist, pixels only, writing the iTXt form and the XMP form (XML-escaped, replacing existing forms), and reading the prompt. It replaces `process_image_metadata`, `png_iTXt/`, `png_XMP_via_iTXt/`, and `strip_metadata_from_PNG/`. Gap 5 and the writing part of gap 10.
+One module for the chunk operations every path needs: strip with the chunk whitelist, pixels only, writing the iTXt form and the XMP form (XML-escaped, replacing existing forms), and reading the prompt. It replaces `png_iTXt/`, `png_XMP_via_iTXt/`, `strip_metadata_from_PNG/`, and `components/png_metadata_reader.js`. Gap 5 and the writing part of gap 10.
 
-Open items: the open point "Prompt source" in the terms.
+Plan: [Tasks/plans/One_PNG_chunk_module.plan.md](plans/One_PNG_chunk_module.plan.md).
+
+#### Decisions
+
+- The module is `PNG_chunks.js` in the repository root, next to the other root modules. Its functions work on `Uint8Array` and are free of browser globals, so Node can run them. XML escaping and entity decoding live in `XML_entities.js`, used by the chunk module and by the JPEG and WebP readers.
+- Strip and pixels only are the same chunk whitelist: `IHDR`, `PLTE`, `tRNS`, `IDAT`, `IEND`, in their original order.
+- Writing the prompt: existing iTXt chunks with the keyword `prompt_text` are always removed. A PNG carries one XMP packet, so writing the XMP form removes every iTXt chunk with the keyword `XML:com.adobe.xmp`; when the XMP form is not written, only such chunks whose packet has Imaginer's shape are removed, and a foreign XMP chunk stays, because it is external metadata. The requested forms are inserted before the first `IDAT`, the iTXt form first, then the XMP form. An empty prompt writes no form. The XMP packet escapes the prompt as XML text.
+- Reading the prompt never fails on file content: bytes that are not a PNG, a truncated file, a malformed or corrupt chunk yield what was readable, or the empty string. The first iTXt chunk with the keyword `prompt_text` and a non-empty text wins, compressed or not; otherwise the `dc:description` of an iTXt chunk with the keyword `XML:com.adobe.xmp`, bounded by that element and with XML entities decoded; otherwise the empty string. Nothing is trimmed.
+- Entity decoding is one pass and never throws; an invalid numeric entity stays as it is.
+- `process_image_metadata.js` stays as a thin adapter over the module with its signature and call sites unchanged, so that every call site keeps working until step 3 and step 5 take them over. Its behaviour changes only where the rules demand it: the whitelist, replaced forms, escaping, and no forms without a prompt. Its failure semantics stay as today: a failed strip returns the original blob, a failed write returns the stripped bytes, both logged.
+- The JPEG and WebP readers decode XML entities in the description, so gap 5 closes for all three formats. Their fields stay as the Intake rule "Prompt" in the terms states them.
+- The untracked demo pages and the note in the three folders were moved to `archive/png_demos/` by the main model before the implementation, and their `.gitignore` lines removed; the folders then hold only tracked files and are deleted.
+- The module, the adapter and the readers are specified by Node checks in `tools/check/`: `PNG_chunks_check.mjs`, `process_image_metadata_check.mjs` and `metadata_readers_check.mjs`, written by the main model before the plan review. The implementers run them as part of their gate; the main model wires them into the check at Verification.
+- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Implementers build it.
+
+#### Facts
+
+- `process_image_metadata` is called in `app.js` in `consume_image_stream`, in the edit request branch, and twice in the generation request branch, and in the ⬇️ handler in `components/gallery.js`. `window.process_image_metadata` is set in `app.js` and used nowhere else.
+- `read_png_metadata` is imported only by `components/gallery.js`, in `read_image_prompt`, which also serves as the signature-based fallback for files without a MIME type. The gallery's drop listener calls `read_image_prompt` without a guard, and `read_png_metadata` never throws.
+- `strip_metadata_from_PNG` keeps only `IHDR`, `IDAT` and `IEND`; `add_iTXt_chunk_to_png` inserts before the first `IDAT`; `embed_XMP_description` inserts after `IHDR` and does not escape the prompt; none of them removes an existing form. `process_image_metadata` today returns the stripped blob when only the embedding fails.
+- `read_png_metadata` skips the iTXt compression flag and method without honouring them, and its XMP regular expression does not decode entities; the JPEG and WebP readers use the same expression.
+- `tools/check/check_config.json` and `jsconfig.json` list the three folders that disappear; the main model removes those patterns at Verification.
+- Node 22.16.0 is installed. Its ESM syntax detection loads the root `.js` modules from `.mjs` checks, which needs Node 22.7 or newer; no `package.json` is added. Node provides `Blob`, `CompressionStream`, `DecompressionStream`, `Response`, `TextEncoder` and `TextDecoder` as globals.
+
+#### Open items
+
+- None.
+
+#### Out of scope
+
+- One Export function and errors at Export: step 3.
+- Intake, the conversion, and moving the prompt reading for JPEG and WebP into intake: step 5.
+- Pixels only at the edit request: step 7.
 
 ### 3. One Export function (waiting)
 
