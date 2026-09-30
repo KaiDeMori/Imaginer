@@ -61,7 +61,8 @@ Once stable, this file is the reference for metadata in Imaginer.
 - **Imaginer metadata**: the gallery file carries none.
 - **Prompt**: goes into the gallery record. Model output: from the prompt panel. Import to Gallery: from the file's metadata, if present. PNG: the iTXt form, otherwise the XMP form. JPEG and WebP: XMP `dc:description`, otherwise EXIF `UserComment`, because other image tools write their prompts there; in photos, `dc:description` is usually a caption, which then serves as the prompt.
 - **Pixels**: always a PNG, upright as the browser displays it. JPEG and WebP get conversion; a PNG keeps its pixels.
-- **Input area door**: the same rules, in memory only. The image never becomes a gallery file; it can only be removed from the input area.
+- **Input area door**: the same rules, in memory only. The image never becomes a gallery file; it can only be removed from the input area. A converted image larger than the edit request's limit is refused at this door, with the size named.
+- **Errors**: a file to which the rules cannot be applied is not imported, and the user is told why; too many files at once are refused before any work, every other failure concerns only its file. Model output is the exception: a paid generation is never thrown away, so when strip fails the image is stored as OpenAI returned it and the user is told that it may carry OpenAI's metadata. Export then treats it like any file to which the rules cannot be applied.
 - What strip removes at intake is gone. That is privacy.
 
 ### Export
