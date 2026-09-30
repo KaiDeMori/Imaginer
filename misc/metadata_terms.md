@@ -30,6 +30,7 @@ Once stable, this file is the reference for metadata in Imaginer.
 - **Export**: images leave Imaginer as files for the user: Download, ZIP export.
 - **Download**: one image via ⬇️ on a thumbnail.
 - **ZIP export**: the whole gallery as one ZIP file.
+- **Generation request**: the text-to-image call `/v1/images/generations`. It sends the prompt from the prompt panel to OpenAI.
 - **Edit request**: the `/v1/images/edits` call that sends the input area's images, the optional mask and the prompt from the prompt panel to OpenAI.
 
 ### Actions
