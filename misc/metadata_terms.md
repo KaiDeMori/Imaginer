@@ -7,30 +7,30 @@ Once stable, this file is the reference for metadata in Imaginer.
 
 ### Metadata
 
-- **Imaginer metadata**: all data that Imaginer writes into an exported file. Its content is the prompt, in two forms:
+- **Imaginer metadata**: all data that Imaginer writes into an exported file. Its content is the prompt from the gallery record, in two forms:
   - **iTXt form**: an iTXt chunk with the keyword `prompt_text`.
   - **XMP form**: an XMP packet with `dc:description`, in an iTXt chunk with the keyword `XML:com.adobe.xmp`.
 - **External metadata**: all other metadata in a file. Examples: camera EXIF (GPS, device, time), data from other tools, OpenAI's data in model output (C2PA).
 
 ### Images
 
-- **Model output**: an image returned by generation or edit.
+- **Model output**: an image returned by OpenAI, for a generation or an edit request.
 - **Gallery file**: the image itself, as the gallery keeps it.
-- **Gallery record**: the gallery file plus prompt, mask, timestamp and ID.
+- **Gallery record**: the gallery file plus prompt, mask, timestamp, ID and UUID.
 - **Input area**: the drop area at the bottom of the prompt panel. DOM reference: `input-image-drop-area`.
 
 ### Ways in and out
 
-- **Intake**: the step every image passes when it enters Imaginer. It has two doors:
+- **Intake**: the step every image passes when it enters Imaginer. It has two one-way doors:
   - **Gallery door**: Import to Gallery, model output. The image becomes a gallery file.
   - **Input area door**: Import to input area. The image stays in memory only.
-- **Import to Gallery**: an external file is added to the gallery.
-- **Import to input area**: an external file is added to the input area.
+- **Import to Gallery**: a local file is added to the gallery.
+- **Import to input area**: a local file is added to the input area.
 - **Gallery → input area**: a gallery file is dragged onto the input area. In-app; no intake.
 - **Export**: images leave Imaginer as files for the user: Download, ZIP export.
 - **Download**: one image via ⬇️ on a thumbnail.
 - **ZIP export**: the whole gallery as one ZIP file.
-- **Edit request**: the `/v1/images/edits` call that sends the input area's images, the optional mask and the prompt to OpenAI.
+- **Edit request**: the `/v1/images/edits` call that sends the input area's images, the optional mask and the prompt from the prompt panel to OpenAI.
 
 ### Actions
 
@@ -49,7 +49,7 @@ Once stable, this file is the reference for metadata in Imaginer.
 ### Axioms
 
 - Rock-solid first.
-- The config at intake decides what is stored.
+- The config at intake decides what the gallery file carries.
 - The config at Export decides what the exported file carries.
 - Images and masks reach OpenAI as pixels only.
 - The user is responsible for their config.
