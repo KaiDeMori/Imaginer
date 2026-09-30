@@ -136,12 +136,13 @@ The raw results of every run are in `tools/browser_tests/results/`.
 - **Inference**: a PNG with transparency must not pass through the browser's decoder. Model output with a transparent background is such a PNG. Two ways avoid the decoder: keep an 8-bit RGBA PNG as it is and change only its chunks, or decode PNGs with an own decoder (`DecompressionStream` and unfiltering), which is exact by construction.
 - **Inference**: "upright" is best defined as "as the browser displays it". With that definition, the output of `ImageDecoder` is upright for all three formats.
 
-### Firefox 144, private window or Strict mode (2026-09-30, window mode to be confirmed)
+### Firefox 144, Strict tracking protection (2026-09-30)
 
-- **Measured**: the canvas read back noisy pixels: `getImageData` and the `toBlob` PNG differ by up to 2 in 183 of 16,384 values. The noise is deterministic: the same canvas encodes to identical bytes twice.
-- **Measured**: `ImageDecoder` and the own encoder stay exact; every round trip is byte-exact. The differences against `<img>` (up to 2) come from reading `<img>` back through the canvas.
-- **Measured**: the mask PNG differs in 11 values by up to 2. This run does not separate alpha from RGB.
-- **Inference**: in such a window, a conversion through the canvas would store noisy pixels for good. The canvas-free pipeline does not.
+- **Measured**: the canvas reads back noisy pixels: `getImageData` and the `toBlob` PNG differ by up to 2 in 234 of 16,384 values. The noise is deterministic: the same canvas encodes to identical bytes twice.
+- **Measured**: `ImageDecoder` and the own encoder stay exact; every round trip is byte-exact. The differences against `<img>` (up to 3) come from reading `<img>` back through the canvas.
+- **Measured**: the mask PNG differs in 40 values by up to 2, all of them RGB; its alpha stays exact. A mask therefore survives Strict tracking protection, because OpenAI reads only its alpha.
+- **Measured**: 12 MP JPEG: total 1.1 s, as in the normal window.
+- **Inference**: with Strict tracking protection, a conversion through the canvas would store noisy pixels for good. The canvas-free pipeline does not.
 
 ## Later: tests against OpenAI
 

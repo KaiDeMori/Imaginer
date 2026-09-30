@@ -1,7 +1,6 @@
-# Firefox 144, second run
+# Firefox 144, Strict tracking protection
 
-Run on 2026-09-30 by the user; pasted verbatim from the test page.
-The page said "normal window", but the canvas noise points to a private window or Strict mode; the window mode is to be confirmed. The timing row is missing because the results were copied before the run had finished.
+Run on 2026-09-30 by the user with Strict tracking protection on; pasted verbatim from the test page. The page header says "normal window" because the wrong entry was chosen in the window mode list; Strict was on for this run.
 
 Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0
 Window mode: normal window
@@ -21,9 +20,9 @@ Window mode: normal window
 | Pipeline | PNG with 16 bits per sample: own PNG round trip is exact and has only IHDR, IDAT, IEND | chunks IHDR IDAT IEND; max difference 0, differing values 0; 0.1 KiB | ✓ |
 | Pipeline | animated PNG, 2 frames (first frame): ImageDecoder decodes exactly | 16×8, 2 frame(s), frame format BGRA, coded 16×8, display 16×8; max difference 0, differing values 0 | ✓ |
 | Pipeline | animated PNG, 2 frames (first frame): own PNG round trip is exact and has only IHDR, IDAT, IEND | chunks IHDR IDAT IEND; max difference 0, differing values 0; 0.1 KiB | ✓ |
-| Pipeline | JPEG: ImageDecoder decodes like <img> | 64×32, 1 frame(s), frame format BGRX, coded 64×32, display 64×32; against <img>: max difference 2, differing values 85, mean 0.0153 | info |
-| Pipeline | JPEG: own PNG round trip is exact and has only IHDR, IDAT, IEND | chunks IHDR IDAT IEND; max difference 0, differing values 0; 0.2 KiB | ✓ |
-| Pipeline | WebP: ImageDecoder decodes like <img> | 64×32, 1 frame(s), frame format BGRX, coded 64×32, display 64×32; against <img>: max difference 2, differing values 187, mean 0.0337 | info |
+| Pipeline | JPEG: ImageDecoder decodes like <img> | 64×32, 1 frame(s), frame format BGRX, coded 64×32, display 64×32; against <img>, read back through the canvas: max difference 3, differing values 176, mean 0.0339 | info |
+| Pipeline | JPEG: own PNG round trip is exact and has only IHDR, IDAT, IEND | chunks IHDR IDAT IEND; max difference 0, differing values 0; 0.1 KiB | ✓ |
+| Pipeline | WebP: ImageDecoder decodes like <img> | 64×32, 1 frame(s), frame format BGRX, coded 64×32, display 64×32; against <img>, read back through the canvas: max difference 3, differing values 246, mean 0.0454 | info |
 | Pipeline | WebP: own PNG round trip is exact and has only IHDR, IDAT, IEND | chunks IHDR IDAT IEND; max difference 0, differing values 0; 0.2 KiB | ✓ |
 | Orientation | JPEG, EXIF orientation 1: ImageDecoder output is upright | ImageDecoder shows 1, <img> shows 1, createImageBitmap shows 1 | ✓ |
 | Orientation | JPEG, EXIF orientation 2: ImageDecoder output is upright | ImageDecoder shows 2, <img> shows 2, createImageBitmap shows 2 | ✓ |
@@ -37,8 +36,9 @@ Window mode: normal window
 | Orientation | WebP, EXIF orientation 6: ImageDecoder output is upright | ImageDecoder shows 1, <img> shows 1, createImageBitmap shows 1 | ✗ |
 | Orientation | PNG (eXIf), EXIF orientation 1: ImageDecoder output is upright | ImageDecoder shows 1, <img> shows 1, createImageBitmap shows 1 | ✓ |
 | Orientation | PNG (eXIf), EXIF orientation 6: ImageDecoder output is upright | ImageDecoder shows 6, <img> shows 6, createImageBitmap shows 6 | ✓ |
-| Canvas | getImageData returns the drawn pixels exactly | max difference 2, differing values 183 | ✗ |
+| Canvas | getImageData returns the drawn pixels exactly | max difference 2, differing values 234 | ✗ |
 | Canvas | toBlob PNG chunks | IHDR IDAT IEND | info |
-| Canvas | toBlob PNG pixels are exact | max difference 2, differing values 183 | ✗ |
+| Canvas | toBlob PNG pixels are exact | max difference 2, differing values 234 | ✗ |
 | Canvas | two toBlob PNGs of the same canvas are byte-identical | yes | info |
-| Canvas | mask PNG keeps its alpha exactly | chunks IHDR IDAT IEND; max difference 2, differing values 11 | ✗ |
+| Canvas | mask PNG keeps its alpha exactly | chunks IHDR IDAT IEND; alpha: max difference 0, differing values 0; all channels: max difference 2, differing values 40 | ✓ |
+| Timing | 12 MP JPEG: decode, own PNG encode, verify | decode 209 ms, encode 659 ms, verify 200 ms, total 1068 ms; PNG 1.8 MiB; max difference 0, differing values 0 | ✓ |
