@@ -1,0 +1,29 @@
+{
+   "compilerOptions": {
+      "target": "ES2022",
+      "module": "ES2022",
+      "moduleResolution": "bundler",
+      "lib": ["ES2022", "DOM", "DOM.Iterable"],
+      "checkJs": true,
+      "strict": false,
+      "noEmit": true,
+      "allowJs": true
+   },
+   "include": [
+      "*.js",
+      "components/**/*.js",
+      "storage/**/*.js",
+      "misc/**/*.js",
+      "png_XMP_via_iTXt/**/*.js",
+      "png_exif/**/*.js",
+      "png_iTXt/**/*.js",
+      "strip_metadata_from_PNG/**/*.js",
+      "api_trials/**/*.js"
+   ],
+   "exclude": [
+      "archive",
+      "assets",
+      "static_imports",
+      "node_modules"
+   ]
+}
