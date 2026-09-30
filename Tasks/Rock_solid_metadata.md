@@ -283,11 +283,36 @@ Plan: [Tasks/plans/Existing_gallery_files.plan.md](plans/Existing_gallery_files.
 - During the conversion: a click on Generate does nothing.
 - Before converting, with an imported JPEG in the gallery and strip on: ⬇️ on it shows the error dialog with the hint; with strip and both prompt options off it downloads as stored.
 
-### 7. Edit request (waiting)
+### 7. Edit request (in discussion)
 
 Pixels only for images and mask, neutral filenames, and no more `blob.name` on the gallery's own `Blob`. Needs steps 5 and 6. Gap 12.
 
-Open items: the open point "Masks" in the terms.
+Plan: [Tasks/plans/Edit_request.plan.md](plans/Edit_request.plan.md).
+
+#### Decisions
+
+- Every image and the mask are reduced to pixels only at the moment the request is built: a PNG keeps its pixel chunks, anything else is converted in memory with the intake's converter, so a gallery file that is still a JPEG can be edited without touching the gallery. The function is `pixels_only_PNG` in `image_conversion.js`.
+- The parts are named `image_1.png`, `image_2.png`, and so on, in the order of the input area, and `mask.png`. The browser sets the content type from the blob.
+- The mask is stored as the canvas produced it and cleaned at the edit request only, because a mask never leaves the app any other way; the open point "Masks" closes.
+- The input area keeps a label per entry for its tooltip, so no name is bolted onto the gallery's own `Blob` any more; the mask validation names the image by that label.
+- A failure while reducing an image reaches the user through the edit request's existing error path, and the placeholders and the generation counter are restored.
+- The plan is written by the main model, reviewed by independent reviewers, and built by implementers. `pixels_only_PNG` is specified in `tools/check/image_intake_check.mjs`; the entry label in `tools/check/drop_area_manager_check.mjs`, wired into the check at Verification.
+
+#### Facts
+
+- The edit request branch in `app.js` appends every input area image with `form_data.append("image[]", file, file.name)` and the mask with its own name, and builds the form data before its `try`, so an error there would leave the placeholders spinning and the counter raised.
+- The internal gallery branch of the input area's drop listener in `components/generation_panel.js` sets `blob.name` on the gallery's `Blob` for the thumbnail's tooltip; `_update_input_image_thumbnails` reads `entry.image.name`.
+- `validate_mask_file` in `components/image_validation.js` names the image with `image_file.name` in its three messages.
+- `drop_area_manager.try_add_images` validates the entries and adds them atomically; entries carry `image`, `mask` and `uuid`.
+- `intake_import` gives an external import a `File` named after the original with the extension `.png`.
+
+#### Open items
+
+- None.
+
+#### Out of scope
+
+- The intro image and the unused files: step 8.
 
 ### 8. Cleanup (waiting)
 

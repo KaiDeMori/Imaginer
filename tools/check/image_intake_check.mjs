@@ -8,7 +8,7 @@ globalThis.localStorage = {
 // The readability check decodes with createImageBitmap, which Node does not have; the stub accepts every file, so the checks below stay about intake, not about decoding.
 globalThis.createImageBitmap = async () => ({ close() {} });
 
-const { CONVERSION_UNSUPPORTED_MESSAGE, can_convert_images, convert_to_PNG } = await import("../../image_conversion.js");
+const { CONVERSION_UNSUPPORTED_MESSAGE, can_convert_images, convert_to_PNG, pixels_only_PNG } = await import("../../image_conversion.js");
 const { accept_model_output, describe_import_failures, intake_import, intake_model_output, read_import_prompt } = await import("../../image_intake.js");
 const { PROMPT_KEYWORD, XMP_KEYWORD, build_XMP_packet, read_PNG_chunks, read_PNG_prompt, write_PNG_chunks } = await import("../../PNG_chunks.js");
 
@@ -177,6 +177,18 @@ const converter_stub = async (file) => {
   const model_output = new Blob([write_PNG_chunks([IHDR, tEXt, PLTE, tRNS, IDAT, IEND])], { type: "image/png" });
   const accepted = await accept_model_output(model_output);
   check(accepted.failure === null && (await chunk_types(accepted.image_blob)).join() === "IHDR,PLTE,tRNS,IDAT,IEND", "accept_model_output returns the stripped PNG and no failure");
+}
+
+{
+  conversions.length = 0;
+  const dirty = new Blob([write_PNG_chunks([IHDR, tEXt, PLTE, tRNS, stored_prompt, stored_xmp, IDAT, IEND])], { type: "image/png" });
+  const cleaned = await pixels_only_PNG(dirty, converter_stub);
+  check((await chunk_types(cleaned)).join() === "IHDR,PLTE,tRNS,IDAT,IEND" && conversions.length === 0, "pixels_only_PNG reduces a PNG to its pixel chunks without calling the converter");
+  const whole = write_PNG_chunks([IHDR, PLTE, tRNS, IDAT, IEND]);
+  const truncated = new Blob([whole.subarray(0, whole.length - 12)], { type: "image/png" });
+  check((await pixels_only_PNG(truncated, converter_stub)) === converted_png && conversions.length === 1, "pixels_only_PNG converts a truncated PNG");
+  const jpeg = new Blob([jpeg_bytes_with_xmp(packet)], { type: "image/jpeg" });
+  check((await pixels_only_PNG(jpeg, converter_stub)) === converted_png && conversions.length === 2, "pixels_only_PNG converts a JPEG");
 }
 
 {
