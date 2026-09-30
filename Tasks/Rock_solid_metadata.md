@@ -237,7 +237,7 @@ Plan: [Tasks/plans/Intake.plan.md](plans/Intake.plan.md).
 - Drop a JPEG of 40 megapixels into the input area: a dialog names the file, its size as a PNG and the limit for editing, no thumbnail; the same file drops into the gallery.
 - Generate with streaming on, with streaming off and one image, with several images, and through an edit request, with strip on: every stored image, downloaded with strip off and both prompt options off, holds only the pixel chunks.
 
-### 6. Existing gallery files (in discussion)
+### 6. Existing gallery files (planned)
 
 Brings the existing gallery files in line with the rules: a one-time migration, offered with a warning beforehand. Existing model output needs only its chunks cleaned; existing imports need conversion or strip. Needs step 5. Gap 13.
 
@@ -245,22 +245,25 @@ Plan: [Tasks/plans/Existing_gallery_files.plan.md](plans/Existing_gallery_files.
 
 #### Decisions
 
-- The user decided: a one-time migration, with a warning to the user beforehand. The warning is a dialog at start, once the thumbnails are on screen, that names how many images are still in their original form, says that the conversion cannot be undone and that the prompts stay, and points to the backup. Later postpones it to the next start; Convert now runs it with a progress dialog.
-- Every stored file is brought to what intake produces for an import: a PNG stripped to its pixel chunks, a JPEG or WebP converted. Every metadata goes, because a stored file's origin cannot be told any more, and an import is always cleaned; the prompt lives in the record.
-- One record at a time: the new PNG is verified in memory before one atomic write replaces the old file; a record that fails stays as it is and is listed afterwards with the way out. The page reloads after the run, because the thumbnails and the download handlers hold the old blobs.
-- A flag in `localStorage`, `imaginer.gallery_files_migrated`, marks a gallery whose files were all checked or converted, so the scan does not run at every start. A gallery that needs nothing sets the flag without a dialog.
-- The migration lives in `gallery_migration.js`; the warning is `components/migration_confirm_modal.js`, built like the delete confirmation; the progress dialog is the existing download progress dialog with a title of its own.
-- When the performance warning opens at start, the migration is not offered in that start.
-- The `export_image` case for a JPEG or WebP gallery file stays as the safety net for a file the migration could not convert.
-- The plan is written by the main model, reviewed by independent reviewers, and built by implementers. The migration module's pure part is specified by `tools/check/gallery_migration_check.mjs`, wired into the check at Verification.
+- The user decided: a one-time migration, with a warning to the user beforehand. The warning is a dialog at start, once the thumbnails are on screen, that names how many images are still in their original form, what is removed, that the conversion cannot be undone, that the prompts stay, that JPEG and WebP images take more storage as PNG, and how to keep an exact copy of the originals first: with the strip checkbox and both prompt checkboxes off, Download All Images leaves every file as stored. Later postpones it to the next start; Convert now runs it with a progress dialog.
+- The migration applies the intake rules with the strip checkbox read at migration time, as intake reads it for model output. A file that is not a PNG is converted, which cleans it, because it can only be an import. A PNG loses the prompt forms Imaginer wrote, because a gallery file carries no Imaginer metadata; with the strip checkbox on it loses every other chunk as well, with it off the other chunks stay. So a strip-off user keeps OpenAI's provenance data, and the axiom that the config decides holds.
+- One record at a time: the new PNG is checked for its structure and decoded by the browser, and its decoded size must match its header, before one write replaces the old file. `Database_store.update` resolves only when the transaction has committed and rejects when it aborts, so a quota failure is a failure and not a silent success. A record that fails stays as it is and is listed afterwards by its download filename with the reason and the export hint. The page reloads after the run, because the thumbnails and the download handlers hold the old blobs.
+- The flag `imaginer.gallery_files_migrated` is set only when every candidate was converted or when nothing needed conversion; with failures it stays unset, so the next start offers the remaining files again. A browser that cannot convert is not offered a migration that needs conversion, and the flag stays unset there.
+- An unreadable gallery file is left out of the scan and logged; it neither stops the scan nor the others.
+- Generate is blocked while the migration runs, and the migration is not offered while a generation runs, so the reload at the end meets no request in flight. When the performance warning opens at start, the offer follows its Close.
+- A gallery file that is still a JPEG or WebP, after Later or after a failed conversion, leaves the app only with the strip checkbox and both prompt checkboxes off, as the Export rule "Errors" demands; with any of them on, Download shows the error dialog with the export hint and the ZIP export lists the file. The interim rule at Export ends.
+- No stop button: closing the page is safe, because every record is written alone, and the next start offers the rest.
+- The migration lives in `gallery_migration.js`; the warning is `components/migration_confirm_modal.js`, built like the delete confirmation; the progress dialog is the existing download progress dialog with a title and a status of its own.
+- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Implementers build it. The migration module's pure part is specified by `tools/check/gallery_migration_check.mjs`, wired into the check at Verification; the changed Export case by `tools/check/image_export_check.mjs`.
 
 #### Facts
 
-- `Database_store.update(id, updates)` reads the record, assigns the fields and writes it back with one `put` in one transaction (`storage/database_store.js`).
-- The gallery's `on_loading_complete` callback in `app.js` runs after the thumbnails are built; it opens the performance warning when loading took longer than the limit.
-- `Delete_confirm_modal.show(count)` in `components/delete_confirm_modal.js` builds its overlay and buttons in code and resolves an action; Escape and a click outside count as cancel.
-- `Download_progress_dialog` has a fixed title in its HTML and offers `show`, `set_status`, `update_progress`, `show_error` and `close`; `show_error` keeps the dialog open with a close button.
-- `Gallery.loadImages` reads every record and stores the blob's object URL in the thumbnail; the ⬇️ handler closes over the blob, so a replaced blob is not seen until the page reloads.
+- `Database_store.update(id, updates)` reads the record, assigns the fields and writes it back with one `put` in one transaction; its promise resolves in the request's `onsuccess`, before the transaction commits, and nothing handles an abort (`storage/database_store.js`).
+- The gallery's `on_loading_complete` callback in `app.js` runs after the thumbnails are built, through a `setTimeout` without a catch; it opens the performance warning when loading took longer than the limit, and `gallery.records_by_id` already holds every record with its blob.
+- `Delete_confirm_modal.show(count)` in `components/delete_confirm_modal.js` builds its overlay and buttons in code, focuses the overlay and resolves an action; Escape and a click outside count as cancel.
+- `Download_progress_dialog` has a fixed title in its HTML, sets `Preparing download...` in `show` and `Processing images...` in `update_progress`, and offers `show_error` with a close button and `close`.
+- `export_image` in `image_export.js` returns a JPEG or WebP gallery file as stored before it reads any option.
+- `Gallery.loadImages` stores the blob's object URL in the thumbnail; the ⬇️ handler closes over the blob, so a replaced blob is not seen until the page reloads.
 
 #### Open items
 
@@ -269,7 +272,7 @@ Plan: [Tasks/plans/Existing_gallery_files.plan.md](plans/Existing_gallery_files.
 #### Out of scope
 
 - The intro image: step 8.
-- The edit request: step 7.
+- The edit request: step 7, which must treat a gallery file that is not a PNG explicitly, because Later and a failed conversion leave such files.
 - A release note about the conversion: the release.
 
 ### 7. Edit request (waiting)

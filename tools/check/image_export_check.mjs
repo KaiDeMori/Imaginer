@@ -141,11 +141,17 @@ const record = (id, prompt_text, image_blob) => ({ id, created: 1700000000, prom
 }
 
 {
-  configure({ strip: true, iTXt: true, XMP: true });
+  configure({ strip: false, iTXt: false, XMP: false });
   const jpeg_entry = await export_image(record(14, "photo", jpeg_blob));
-  check(jpeg_entry.blob === jpeg_blob && jpeg_entry.filename === "photo_1700000000_14.jpg", "a JPEG record exports as the stored blob itself, named with the extension jpg");
+  check(jpeg_entry.blob === jpeg_blob && jpeg_entry.filename === "photo_1700000000_14.jpg", "with every option off a JPEG record exports as the stored blob itself, named with the extension jpg");
   const webp_entry = await export_image(record(15, "photo", webp_blob));
-  check(webp_entry.blob === webp_blob && webp_entry.filename === "photo_1700000000_15.webp", "a WebP record exports as the stored blob itself, named with the extension webp");
+  check(webp_entry.blob === webp_blob && webp_entry.filename === "photo_1700000000_15.webp", "with every option off a WebP record exports as the stored blob itself, named with the extension webp");
+  configure({ strip: true, iTXt: false, XMP: false });
+  const with_strip = await rejection_of(() => export_image(record(14, "photo", jpeg_blob)));
+  check(with_strip instanceof Error && with_strip.message === "The file is not a PNG and cannot be processed.", "with the strip option on a JPEG record cannot leave");
+  configure({ strip: false, iTXt: true, XMP: false });
+  const with_form = await rejection_of(() => export_image(record(15, "photo", webp_blob)));
+  check(with_form instanceof Error && with_form.message === "The file is not a PNG and cannot be processed.", "with a prompt option on a WebP record cannot leave");
 }
 
 {
@@ -174,11 +180,11 @@ const record = (id, prompt_text, image_blob) => ({ id, created: 1700000000, prom
     { id: 4, created: 1700000000, prompt_text: "no blob" },
   ];
   const result = await collect_ZIP_entries(records, (done, total) => progress.push(`${done}/${total}`));
-  check(result.entries.map((entry) => entry.filename).join() === "good_1700000000_1.png,photo_1700000000_3.jpg", "collect_ZIP_entries returns the entries of the records that could be exported, in order");
-  check(result.failures.length === 1 && result.failures[0].filename === "broken_1700000000_2.png" && result.failures[0].message === "Not a PNG file.", "the failure names the filename and the message");
+  check(result.entries.map((entry) => entry.filename).join() === "good_1700000000_1.png", "collect_ZIP_entries returns the entries of the records that could be exported, in order");
+  check(result.failures.map((failure) => `${failure.filename}: ${failure.message}`).join("|") === "broken_1700000000_2.png: Not a PNG file.|photo_1700000000_3.jpg: The file is not a PNG and cannot be processed.", "the failures name the filename and the message, the JPEG among them while the strip option is on");
   check(progress.join() === "1/3,2/3,3/3", "progress is reported after every record with a blob");
   const without_progress = await collect_ZIP_entries(records);
-  check(without_progress.entries.length === 2, "collect_ZIP_entries works without a progress callback");
+  check(without_progress.entries.length === 1, "collect_ZIP_entries works without a progress callback");
 }
 
 {

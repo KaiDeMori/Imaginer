@@ -74,7 +74,7 @@ Applies to Download and ZIP export.
 - **Filename**: `<prompt>_<created>_<id>.png`, from the gallery record: the prompt (sanitized and shortened), the timestamp, and the ID. The same image gets the same, unique filename in every Export.
 - **XMP chunks**: a PNG carries one XMP packet, so writing the XMP form replaces every XMP chunk. When the XMP form is not written and strip is off, an external XMP chunk stays.
 - **Errors**: a gallery file to which the rules cannot be applied does not leave. Download shows the reason; ZIP export leaves the file out and lists it with the reason after the download. With the strip checkbox off and both prompt checkboxes off, Export changes nothing, so a PNG leaves as stored, unparsed.
-- **Interim**: until every gallery file is a PNG, a JPEG or WebP gallery file leaves as stored, with its own extension; strip does not apply to it.
+- **Gallery files that are not a PNG**: a gallery file that is still a JPEG or WebP, because the one-time migration was postponed or failed for it, leaves only with the strip checkbox and both prompt checkboxes off, as stored and with its own extension; with any of them on, it does not leave, per the rule "Errors".
 
 ### Edit request
 
@@ -90,6 +90,7 @@ Applies to Download and ZIP export.
 - Gallery files carry no Imaginer metadata, so an Export cannot produce leftovers or duplicates.
 - The strip whitelist carries the pixels of every PNG layout. With strip on, an animated PNG becomes its default image, and a PNG whose orientation comes from an `eXIf` chunk loses it.
 - With the strip checkbox off, model output keeps OpenAI's provenance data (C2PA). An Export that writes a prompt form changes the file and probably invalidates it. Not verified; the user is responsible for their config.
+- Gallery files stored before intake existed are brought to what intake produces once, by a migration the user confirms: a file that is not a PNG is converted; a PNG loses the Imaginer forms, and every other chunk when the strip checkbox is on at that time.
 
 ## Open points
 
