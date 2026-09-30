@@ -30,7 +30,7 @@ Open points are decided when a step needs them.
 
 Each step is an H3 that names its state: waiting, in discussion, planned, or built. A step in discussion or later has four H4 sections: Decisions, Facts, Open items, Out of scope. Once its plan exists, the step links its plan file. Gap numbers refer to the list "Gaps" in [misc/metadata_gap_analysis.md](../misc/metadata_gap_analysis.md).
 
-### 1. Browser tests for the conversion (planned)
+### 1. Browser tests for the conversion (in discussion)
 
 Local browser tests decide the conversion pipeline: decoding, orientation, encoding, and the `deBG` chunk. Gap 3.
 
@@ -51,7 +51,7 @@ Local browser tests decide the conversion pipeline: decoding, orientation, encod
 
 #### Open items
 
-None.
+- Round 2: which candidates to test, after the results of round 1 in [misc/metadata_research.md](../misc/metadata_research.md), section "Local browser test results".
 
 #### Out of scope
 

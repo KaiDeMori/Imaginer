@@ -144,6 +144,16 @@ The raw results of every run are in `tools/browser_tests/results/`.
 - **Measured**: 12 MP JPEG: total 1.1 s, as in the normal window.
 - **Inference**: with Strict tracking protection, a conversion through the canvas would store noisy pixels for good. The canvas-free pipeline does not.
 
+### Chromium 148, normal window (2026-09-30)
+
+- **Measured**: semi-transparent pixels are not preserved by `ImageDecoder` either: alpha 0 loses its color (up to 240 off), low alpha is rounded. Unlike Firefox, a second decode returns the same values, so the round trip is stable.
+- **Measured**: for JPEG, `ImageDecoder` returns I420 frames. Converted to RGBA by `copyTo`, they differ from `<img>` by up to 107 (mean 2.2): the chroma is reconstructed differently at color edges. WebP matches `<img>` exactly.
+- **Measured**: `ImageDecoder` applies no orientation to the pixels: JPEG with orientations 2 to 8 and PNG with `eXIf` orientation 6 come out unrotated, while `<img>` and `createImageBitmap` apply them. WebP's EXIF orientation is ignored by all three, as in Firefox.
+- **Measured**: the canvas reads back exact pixels; its PNG has two `IDAT` chunks and no `deBG`; a mask keeps its alpha.
+- **Measured**: 12 MP JPEG: total 0.83 s.
+- **Inference**: `ImageDecoder` alone is no cross-browser pipeline: orientation and the JPEG color reconstruction differ between Firefox and Chromium. What agrees in both browsers is what `<img>` and `createImageBitmap` show.
+- **Inference**: candidates for the next round: `createImageBitmap` → `VideoFrame` → `copyTo`, which shows what the display shows without reading back through a canvas; and an own PNG decoder, which keeps semi-transparent pixels exact.
+
 ## Later: tests against OpenAI
 
 Deferred: no calls to OpenAI for now.

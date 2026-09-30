@@ -70,6 +70,11 @@ export async function zlib_compress(bytes) {
    return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
+export async function zlib_decompress(bytes) {
+   const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+   return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
 export function build_png_chunk(type, data) {
    const type_and_data = concat_bytes([ascii_bytes(type), data]);
    return concat_bytes([uint32_big_endian(data.length), type_and_data, uint32_big_endian(crc32(type_and_data))]);
@@ -157,6 +162,221 @@ export async function encode_apng({ width, height, frames }) {
    }
    parts.push(build_png_chunk("IEND", new Uint8Array(0)));
    return concat_bytes(parts);
+}
+
+const ALLOWED_BIT_DEPTHS = { 0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16] };
+const ADAM7_PASSES = [
+   { x: 0, y: 0, step_x: 8, step_y: 8 },
+   { x: 4, y: 0, step_x: 8, step_y: 8 },
+   { x: 0, y: 4, step_x: 4, step_y: 8 },
+   { x: 2, y: 0, step_x: 4, step_y: 4 },
+   { x: 0, y: 2, step_x: 2, step_y: 4 },
+   { x: 1, y: 0, step_x: 2, step_y: 2 },
+   { x: 0, y: 1, step_x: 1, step_y: 2 },
+];
+const WHOLE_IMAGE_PASS = [{ x: 0, y: 0, step_x: 1, step_y: 1 }];
+
+function paeth_predictor(left, above, upper_left) {
+   const estimate = left + above - upper_left;
+   const distance_left = Math.abs(estimate - left);
+   const distance_above = Math.abs(estimate - above);
+   const distance_upper_left = Math.abs(estimate - upper_left);
+   if (distance_left <= distance_above && distance_left <= distance_upper_left) {
+      return left;
+   }
+   return distance_above <= distance_upper_left ? above : upper_left;
+}
+
+function unfilter_rows(data, offset, row_length, row_count, bytes_per_pixel) {
+   if (offset + row_count * (row_length + 1) > data.length) {
+      throw new Error("PNG image data is truncated");
+   }
+   const rows = new Uint8Array(row_length * row_count);
+   for (let row = 0; row < row_count; row += 1) {
+      const filter_type = data[offset];
+      offset += 1;
+      const row_start = row * row_length;
+      for (let index = 0; index < row_length; index += 1) {
+         const left = index >= bytes_per_pixel ? rows[row_start + index - bytes_per_pixel] : 0;
+         const above = row > 0 ? rows[row_start - row_length + index] : 0;
+         const upper_left = row > 0 && index >= bytes_per_pixel ? rows[row_start - row_length + index - bytes_per_pixel] : 0;
+         let predictor;
+         switch (filter_type) {
+            case 0: predictor = 0; break;
+            case 1: predictor = left; break;
+            case 2: predictor = above; break;
+            case 3: predictor = (left + above) >> 1; break;
+            case 4: predictor = paeth_predictor(left, above, upper_left); break;
+            default: throw new Error(`unknown PNG filter type ${filter_type}`);
+         }
+         rows[row_start + index] = (data[offset + index] + predictor) & 0xff;
+      }
+      offset += row_length;
+   }
+   return { rows, offset };
+}
+
+function read_sample(row, sample_index, bit_depth) {
+   if (bit_depth === 8) {
+      return row[sample_index];
+   }
+   if (bit_depth === 16) {
+      return (row[sample_index * 2] << 8) | row[sample_index * 2 + 1];
+   }
+   const bit_offset = sample_index * bit_depth;
+   return (row[bit_offset >> 3] >> (8 - bit_depth - (bit_offset & 7))) & ((1 << bit_depth) - 1);
+}
+
+/**
+ * Samples below 8 bits scale exactly, because 255 is divisible by 1, 3, and 15. Samples of 16 bits round to the nearest 8-bit value.
+ */
+function scale_to_8_bits(sample, bit_depth) {
+   if (bit_depth === 8) {
+      return sample;
+   }
+   if (bit_depth === 16) {
+      return Math.round((sample * 255) / 65535);
+   }
+   return (sample * 255) / ((1 << bit_depth) - 1);
+}
+
+function write_rgba_pixel(rgba, target, row, x, image) {
+   const { color_type, bit_depth, palette, transparency } = image;
+   let red;
+   let green;
+   let blue;
+   let alpha = 255;
+   switch (color_type) {
+      case 0: {
+         const gray = read_sample(row, x, bit_depth);
+         red = green = blue = scale_to_8_bits(gray, bit_depth);
+         if (transparency && gray === ((transparency[0] << 8) | transparency[1])) {
+            alpha = 0;
+         }
+         break;
+      }
+      case 2: {
+         const red_sample = read_sample(row, x * 3, bit_depth);
+         const green_sample = read_sample(row, x * 3 + 1, bit_depth);
+         const blue_sample = read_sample(row, x * 3 + 2, bit_depth);
+         red = scale_to_8_bits(red_sample, bit_depth);
+         green = scale_to_8_bits(green_sample, bit_depth);
+         blue = scale_to_8_bits(blue_sample, bit_depth);
+         if (transparency && red_sample === ((transparency[0] << 8) | transparency[1]) && green_sample === ((transparency[2] << 8) | transparency[3]) && blue_sample === ((transparency[4] << 8) | transparency[5])) {
+            alpha = 0;
+         }
+         break;
+      }
+      case 3: {
+         const index = read_sample(row, x, bit_depth);
+         if (!palette || index * 3 + 2 >= palette.length) {
+            throw new Error(`palette index ${index} is out of range`);
+         }
+         red = palette[index * 3];
+         green = palette[index * 3 + 1];
+         blue = palette[index * 3 + 2];
+         alpha = transparency && index < transparency.length ? transparency[index] : 255;
+         break;
+      }
+      case 4:
+         red = green = blue = scale_to_8_bits(read_sample(row, x * 2, bit_depth), bit_depth);
+         alpha = scale_to_8_bits(read_sample(row, x * 2 + 1, bit_depth), bit_depth);
+         break;
+      case 6:
+         red = scale_to_8_bits(read_sample(row, x * 4, bit_depth), bit_depth);
+         green = scale_to_8_bits(read_sample(row, x * 4 + 1, bit_depth), bit_depth);
+         blue = scale_to_8_bits(read_sample(row, x * 4 + 2, bit_depth), bit_depth);
+         alpha = scale_to_8_bits(read_sample(row, x * 4 + 3, bit_depth), bit_depth);
+         break;
+      default:
+         throw new Error(`unknown color type ${color_type}`);
+   }
+   rgba[target] = red;
+   rgba[target + 1] = green;
+   rgba[target + 2] = blue;
+   rgba[target + 3] = alpha;
+}
+
+/**
+ * Decodes a PNG into 8-bit RGBA without the browser's decoder, so semi-transparent pixels keep their exact values. It supports every color type and bit depth, the tRNS chunk, and Adam7 interlacing; an animated PNG yields its default image.
+ */
+export async function decode_png(png_bytes) {
+   const chunks = read_png_chunks(png_bytes);
+   if (chunks.length === 0 || chunks[0].type !== "IHDR") {
+      throw new Error("PNG without IHDR");
+   }
+   const broken_chunk = chunks.find((chunk) => !chunk.crc_valid);
+   if (broken_chunk) {
+      throw new Error(`the checksum of the ${broken_chunk.type} chunk is wrong`);
+   }
+   const header = chunks[0].data;
+   const header_view = new DataView(header.buffer, header.byteOffset, header.byteLength);
+   const image = {
+      width: header_view.getUint32(0),
+      height: header_view.getUint32(4),
+      bit_depth: header[8],
+      color_type: header[9],
+      palette: chunks.find((chunk) => chunk.type === "PLTE")?.data ?? null,
+      transparency: chunks.find((chunk) => chunk.type === "tRNS")?.data ?? null,
+   };
+   if (!(ALLOWED_BIT_DEPTHS[image.color_type] ?? []).includes(image.bit_depth)) {
+      throw new Error(`color type ${image.color_type} with bit depth ${image.bit_depth} is not a valid PNG`);
+   }
+   const data = await zlib_decompress(concat_bytes(chunks.filter((chunk) => chunk.type === "IDAT").map((chunk) => chunk.data)));
+   const bits_per_pixel = CHANNELS_PER_COLOR_TYPE[image.color_type] * image.bit_depth;
+   const bytes_per_pixel = Math.max(1, bits_per_pixel >> 3);
+   const rgba = new Uint8Array(image.width * image.height * 4);
+   let offset = 0;
+   for (const pass of header[12] === 1 ? ADAM7_PASSES : WHOLE_IMAGE_PASS) {
+      const pass_width = image.width > pass.x ? Math.ceil((image.width - pass.x) / pass.step_x) : 0;
+      const pass_height = image.height > pass.y ? Math.ceil((image.height - pass.y) / pass.step_y) : 0;
+      if (pass_width === 0 || pass_height === 0) {
+         continue;
+      }
+      const row_length = Math.ceil((pass_width * bits_per_pixel) / 8);
+      const unfiltered = unfilter_rows(data, offset, row_length, pass_height, bytes_per_pixel);
+      offset = unfiltered.offset;
+      for (let y = 0; y < pass_height; y += 1) {
+         const row = unfiltered.rows.subarray(y * row_length, (y + 1) * row_length);
+         const target_row_start = (pass.y + y * pass.step_y) * image.width;
+         for (let x = 0; x < pass_width; x += 1) {
+            write_rgba_pixel(rgba, (target_row_start + pass.x + x * pass.step_x) * 4, row, x, image);
+         }
+      }
+   }
+   return { width: image.width, height: image.height, rgba };
+}
+
+/**
+ * Reads the EXIF orientation from a TIFF structure in either byte order; 1 when it carries none.
+ */
+export function read_tiff_orientation(tiff) {
+   const little_endian = tiff[0] === 0x49 && tiff[1] === 0x49;
+   if (tiff.length < 8 || (!little_endian && !(tiff[0] === 0x4d && tiff[1] === 0x4d))) {
+      return 1;
+   }
+   const view = new DataView(tiff.buffer, tiff.byteOffset, tiff.byteLength);
+   const directory_offset = view.getUint32(4, little_endian);
+   if (directory_offset + 2 > tiff.length) {
+      return 1;
+   }
+   const entry_count = view.getUint16(directory_offset, little_endian);
+   for (let index = 0; index < entry_count; index += 1) {
+      const entry = directory_offset + 2 + index * 12;
+      if (entry + 12 > tiff.length) {
+         break;
+      }
+      if (view.getUint16(entry, little_endian) === EXIF_ORIENTATION_TAG) {
+         const orientation = view.getUint16(entry + 8, little_endian);
+         return orientation >= 1 && orientation <= 8 ? orientation : 1;
+      }
+   }
+   return 1;
+}
+
+export function read_png_exif_orientation(png_bytes) {
+   const exif_chunk = read_png_chunks(png_bytes).find((chunk) => chunk.type === "eXIf");
+   return exif_chunk ? read_tiff_orientation(exif_chunk.data) : 1;
 }
 
 /**
