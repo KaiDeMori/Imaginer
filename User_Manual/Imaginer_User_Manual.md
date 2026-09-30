@@ -177,9 +177,11 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Importing Images
 
-**Drag and drop image files** from your computer into the gallery area to import them. Only common image formats are accepted, up to a certain size and count per drop (see the Technical Manual for exact figures). If you drop several files at once and any one of them doesn't qualify, none of the files are imported; an error explains why — drop files individually if you need to import a mix.
+**Drag and drop image files** from your computer into the gallery area to import them. Only common image formats are accepted, up to a certain size and count per drop (see the Technical Manual for exact figures). Too many files at once are refused before anything happens. Every other problem concerns only its file: the others are still imported, and one dialog afterwards lists the files that were not, with the reason.
 
-Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata, so an imported image keeps its 💬 prompt.
+Every imported image is stored as a PNG without metadata: a JPEG or WebP is converted to the picture your browser shows, a PNG keeps its pixels, and camera data such as the location is removed. An animated PNG keeps only its first image, and a PNG whose orientation is stored as metadata loses that orientation.
+
+Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata before the conversion, so an imported image keeps its 💬 prompt.
 
 #### Deleting Images
 
@@ -250,7 +252,7 @@ Masks save automatically when you close the Viewer. Gallery thumbnails with mask
 
 **Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery.
 
-The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be a common image format, under a certain size and count (see the Technical Manual for exact figures). If you drop several files at once and any one of them doesn't qualify, none of the files are added; an error explains why — drop files individually if you need to import a mix.
+The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be a common image format, under a certain size and count (see the Technical Manual for exact figures). They are converted to PNG like gallery imports; the drop area shows **Converting…** meanwhile, and **Generate** waits until it is done. Too many files at once are refused before anything happens; every other problem concerns only its file, and one dialog lists the files that were not added, with the reason. A photo so large that its PNG exceeds the size limit for editing is refused here with its size named; it can still be imported into the gallery.
 
 **For precise edits**, create a mask in the Viewer (see **The Viewer → Mask Mode**), then drag that masked image to the drop area. Only masked areas will be modified.
 
@@ -462,7 +464,7 @@ The app refreshes its saved app files and reloads the page. Your images, setting
 
 Config → Files → **Download All Images** bundles every stored image (generated and imported) into a ZIP. The files inside follow the download filename pattern (prompt, timestamp, and the image's ID), so every image keeps its own name; the ZIP is named `Imaginer_Export_<timestamp>.zip`. A progress dialog shows status. If no images are present, you see an error instead of a download.
 
-Each file leaves exactly as a single ⬇️ download would: the PNG metadata options apply to every PNG, with the settings you last saved with **OK**. Imported JPEG and WebP files leave as they were imported. A file that cannot be processed is left out and stays in your gallery; after the download, the dialog lists it with the reason and how to export it as stored.
+Each file leaves exactly as a single ⬇️ download would: the PNG metadata options apply to every PNG, with the settings you last saved with **OK**. Gallery files that are still JPEG or WebP, imported before Imaginer converted imports, leave as they were imported. A file that cannot be processed is left out and stays in your gallery; after the download, the dialog lists it with the reason and how to export it as stored.
 
 #### Delete Gallery
 
@@ -480,8 +482,8 @@ When enabled, the dropdown lists every image model of your OpenAI account, inclu
 
 #### PNG Metadata Options
 
-- **Strip Server-Side metadata** (default: on): Removes metadata from OpenAI responses before saving, and from every PNG you download or export, keeping files lean. Prompt embedding still runs after stripping. Imported JPEG and WebP files are not stripped.
-- **Embed prompt as iTXt** (default: on): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata. Applies to generated images and to every PNG you download or export.
+- **Strip Server-Side metadata** (default: on): Removes OpenAI's metadata from generated images before they are saved, and every metadata from PNGs you download or export, keeping files lean. Imported images are always cleaned, whatever this option says. Gallery files that are still JPEG or WebP, imported before Imaginer converted imports, are not stripped.
+- **Embed prompt as iTXt** (default: on): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata. The prompt is written when you download or export a PNG; the images in your gallery carry no prompt themselves, it lives in the gallery record.
 - **Embed prompt as XMP** (default: on): Writes the prompt in an XMP block for metadata-aware apps. If both options are on, the prompt is written to iTXt first, then XMP. With both options off, a downloaded or exported PNG carries no prompt.
 
 #### Advanced size setting

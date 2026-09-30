@@ -15,7 +15,7 @@
 
 ### Browser Issues
 - Imaginer is web-only. Clearing browser data deletes images, masks, prompts, and your API key.
-- The gallery and the edit drop area both accept common image formats, up to a certain size and count per drop (see the Technical Manual for exact figures). If a dropped batch has one invalid file, or exceeds the count limit, none of the files are imported.
+- The gallery and the edit drop area both accept common image formats, up to a certain size and count per drop (see the Technical Manual for exact figures). Too many files at once are refused; any other invalid file is listed afterwards, and the rest are imported.
 - WebGL is required for the intro and viewer.
 
 ## Frequently Asked Questions

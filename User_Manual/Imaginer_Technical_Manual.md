@@ -13,14 +13,15 @@
 - A performance warning appears if gallery loading takes more than about 15 seconds and offers quick download or clear options.
 
 ## Image Formats
-- AI-generated images are always PNG.
-- Imported images (gallery drop, or the Prompt Panel's edit drop area) keep their native format — no conversion.
+- Every gallery file is a PNG. AI-generated images arrive as PNG; imported JPEG and WebP files are converted at import.
+- Imports pass one intake (`image_intake.js`) at both drop targets: the prompt is read from the file's metadata first, then a PNG is stripped to its pixel chunks (`IHDR`, `PLTE`, `tRNS`, `IDAT`, `IEND`), and any other image is converted (`image_conversion.js`): `createImageBitmap` with the EXIF orientation applied, the pixels read through `VideoFrame.copyTo` as RGBA without a canvas, and encoded with the own PNG encoder (`encode_PNG_RGBA` in `PNG_chunks.js`, one filter per row). The format is decided by the bytes, so a renamed file is treated as what it is. A browser without `VideoFrame` cannot import JPEG and WebP; the message says so.
+- Model output is stripped to its pixel chunks when the strip option is on, and stored as returned when it is off; no prompt form is written into gallery files. When stripping fails, the image is stored as returned and the user is told.
 - Both drop targets share the same import limits, enforced by `components/image_validation.js`:
   - Accepted formats: PNG, WEBP, JPEG.
   - Maximum file size: 50 MB.
   - Maximum count: 16 files per drop.
-  - A dropped batch containing one unsupported format, one oversized file, or exceeding the count of 16 is rejected in full — nothing from that batch is imported.
-- Both drop targets also verify the file is actually readable before adding it, via `validate_file_readable()` (`components/image_validation.js`), which decodes the file with `createImageBitmap()`. This catches files whose type and size pass validation but whose content the browser cannot read — most notably a known Linux/Chromium drag-and-drop bug where a dropped file's bytes become inaccessible after the drop. The failure message depends on the DOM exception name:
+  - A batch that exceeds the count of 16 is rejected in full, before any work. Every other failure concerns only its file: the others are imported, and one dialog lists the failures afterwards. In the edit drop area, a converted PNG above 50 MB is refused as well, because the edit request has that limit.
+- The intake verifies the file is actually readable before converting it, via `validate_file_readable()` (`components/image_validation.js`), which decodes the file with `createImageBitmap()`. This catches files whose type and size pass validation but whose content the browser cannot read — most notably a known Linux/Chromium drag-and-drop bug where a dropped file's bytes become inaccessible after the drop. The failure message depends on the DOM exception name:
   - `NotFoundError`: the file's bytes are gone (the Linux/Chromium drag-and-drop bug) — the message suggests trying Firefox.
   - `NotReadableError`: the file is locked by another program, or unreadable due to permissions.
   - `EncodingError`: the bytes were read, but the content is not a valid image (corrupt or mislabeled file).
@@ -31,7 +32,7 @@
   - Dimensions: must match its image's pixel dimensions exactly.
   - A mask failing any of these is discarded and an error is shown; the image itself is still added. This can only happen from a corrupted `mask_blob` record — masks are always generated at exactly their source image's dimensions (see `components/viewer/viewer.js` `close()`).
 - Embedded prompts are read from PNG (iTXt/XMP), JPEG (XMP/EXIF), and WebP (XMP/EXIF) on import. A compressed iTXt `prompt_text` chunk is inflated, and XML entities in an XMP description are decoded. A damaged file imports with an empty prompt instead of failing.
-- Optional prompt embedding on generation, download and ZIP export writes the prompt as an iTXt chunk (`prompt_text`) and/or an XMP packet (`dc:description`) into the PNG, replacing any earlier copy of either form, so a file never carries the prompt twice; the XMP packet is XML-escaped, and an empty prompt writes nothing. If the strip option is on, every chunk except `IHDR`, `PLTE`, `tRNS`, `IDAT` and `IEND` is removed first, so palette PNGs keep their palette and transparency. Both are chunk operations in `PNG_chunks.js` that never decode the pixels. Mask PNGs store editable areas with transparent alpha.
+- Optional prompt embedding on download and ZIP export writes the prompt as an iTXt chunk (`prompt_text`) and/or an XMP packet (`dc:description`) into the PNG, replacing any earlier copy of either form, so a file never carries the prompt twice; the XMP packet is XML-escaped, and an empty prompt writes nothing. If the strip option is on, every chunk except `IHDR`, `PLTE`, `tRNS`, `IDAT` and `IEND` is removed first, so palette PNGs keep their palette and transparency. Both are chunk operations in `PNG_chunks.js` that never decode the pixels. Mask PNGs store editable areas with transparent alpha.
 
 ## OpenAI Integration
 - Imaginer accepts two API key formats from OpenAI:
@@ -46,12 +47,12 @@
 - Streaming previews (`stream: true` with `partial_images`) are requested on both endpoints when the streaming preview is enabled. Generations consume `image_generation.partial_image` and `image_generation.completed` events, edits consume `image_edit.partial_image` and `image_edit.completed` events (`consume_image_stream` in `app.js`). A streamed edit sends one request per requested image with `n` set to 1, so each placeholder receives its own preview sequence.
 - Quality values: all GPT image models accept `low`, `medium`, `high` and `auto`. The `gpt-image-2.5` models additionally accept `xhigh` and `max`. `clamp_quality_for_model` in `model_fetcher.js` replaces `xhigh` and `max` with `high` at request time when the selected model ID does not start with `gpt-image-2.5`. The stored `imaginer.quality` value is not changed.
 - Background values are not clamped per model. `background: transparent` is supported by `gpt-image-1` and by both `gpt-image-2.5` models, and Imaginer never sends `output_format`, so the API default PNG preserves the transparency.
-- Generation results and edit results pass through the same metadata processing (`process_image_metadata`, built on `PNG_chunks.js`): optional stripping of server-side metadata, then optional prompt embedding as iTXt and/or XMP.
+- Generation results and edit results pass through the same intake (`accept_model_output` in `image_intake.js`): the strip option removes OpenAI's metadata; no prompt is embedded at this point.
 - Moderation errors (`code: "moderation_blocked"`) may carry a `moderation_details` object with `moderation_stage` (`input`, `output`, `unknown`) and a `categories` list. The moderation dialog shows the stage and the categories when they are present.
 - Selecting a `*-mini` model disables editing: dropped images are ignored and the request falls back to a plain generation.
 - Model refresh and API key tests both call `/v1/models` and cache image model IDs in `localStorage`. The API key test succeeds when at least one returned model ID starts with `gpt-image-`.
 - Download and ZIP export filenames are built locally as `<prompt>_<created>_<id>.<ext>`: a sanitized prompt prefix, the image creation timestamp, and the record's IndexedDB ID, which keeps every name unique within a ZIP. The prefix length comes from `imaginer.filename_prompt_chars`, defaults to 110, and is clamped to 1-230.
-- Download and ZIP export share one Export path (`export_image` in `image_export.js`): strip per the strip option, the prompt forms per the prompt options, both from the saved settings and the gallery record. A PNG that cannot be processed does not leave: ⬇️ shows an error dialog, and the ZIP export leaves the file out and lists it after the download. With the strip option off and both prompt options off, a file leaves as stored and unparsed. Imported JPEG and WebP files always leave as stored.
+- Download and ZIP export share one Export path (`export_image` in `image_export.js`): strip per the strip option, the prompt forms per the prompt options, both from the saved settings and the gallery record. A PNG that cannot be processed does not leave: ⬇️ shows an error dialog, and the ZIP export leaves the file out and lists it after the download. With the strip option off and both prompt options off, a file leaves as stored and unparsed. Gallery files that are still JPEG or WebP, imported before the conversion existed, leave as stored.
 
 
 # Appendices
