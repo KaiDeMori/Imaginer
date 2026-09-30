@@ -1,6 +1,6 @@
 # Rock-solid metadata
 
-The planning file of this task, as [Workflows_and_reviews.md](../Workflows_and_reviews.md) defines it.
+The planning file of this task.
 
 ## Goal
 

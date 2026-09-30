@@ -11,7 +11,3 @@ If `How_we_work_here.md` exists in the workspace root, read it next.
 
 Long-running, multi-session project. At session start, read **`Status.md`** for the current
 state and next step; the mechanism is in **`HandOver_Protocol.md`** (HOP).
-
-## Workflows
-
-Before you run a workflow or spawn agents, read [Workflows_and_reviews.md](Workflows_and_reviews.md).

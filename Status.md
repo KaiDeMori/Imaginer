@@ -4,7 +4,7 @@
 
 ## Where we are right now
 
-- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. It is a planning file per [Workflows_and_reviews.md](Workflows_and_reviews.md) with seven steps; step 1 is in discussion.
+- Active task: [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘. Its planning file has seven steps; step 1 is in discussion.
 - Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md). Fresh; the wording may still change.
 - Web research: [misc/metadata_research.md](misc/metadata_research.md).
 - Gap analysis: [misc/metadata_gap_analysis.md](misc/metadata_gap_analysis.md). All four paths are compared.
