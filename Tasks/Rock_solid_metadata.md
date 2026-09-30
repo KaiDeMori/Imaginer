@@ -186,7 +186,7 @@ Local browser tests settle the conversion of JPEG and WebP: decoding, orientatio
 - Repeat with Strict tracking protection in Firefox, and in a normal window in Chromium.
 - Expected: every Support row ✓; every "own PNG round trip" row ✓; every "two candidate decodes are identical" row ✓; every Orientation row ✓; the Timing row ✓ with a total near the round 1 total. The "against <img>" rows are information; in Strict they may show small differences from the canvas readback of `<img>`.
 
-### 5. Intake (planned)
+### 5. Intake (built)
 
 The conversion of JPEG and WebP, strip for every import, and one intake function for both doors; model output stops writing Imaginer metadata. Needs steps 2 to 4. Gaps 1, 2, 3, 4, 6 and 8.
 
@@ -205,7 +205,7 @@ Plan: [Tasks/plans/Intake.plan.md](plans/Intake.plan.md).
 - The four places in `app.js` that receive model output share one function, `save_model_output`, which applies intake, saves the record and registers it with the gallery. `process_image_metadata.js` and its Node check go.
 - A browser without `VideoFrame` cannot import JPEG and WebP; the message says so. No canvas fallback.
 - Step 5 is designed for the candidate pipeline before the round 2 results are in. If round 2 fails, `convert_to_PNG` is the one function that changes.
-- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Implementers build it. The intake and conversion modules are specified by `tools/check/image_intake_check.mjs`, the encoder by `tools/check/PNG_encoder_check.mjs`; both are wired into the check at Verification, so the gate stays green until the code exists. The adapter's check leaves the gate before the implementation starts.
+- The plan was written by the main model and reviewed by three independent reviewers; their confirmed findings are in the plan. Two implementers built it; the main model wired the checks. The intake and conversion modules are specified by `tools/check/image_intake_check.mjs`, the encoder by `tools/check/PNG_encoder_check.mjs`; both are wired into the check at Verification, so the gate stays green until the code exists. The adapter's check leaves the gate before the implementation starts.
 
 #### Facts
 
@@ -225,6 +225,17 @@ Plan: [Tasks/plans/Intake.plan.md](plans/Intake.plan.md).
 - The intro image: step 8.
 - The existing gallery files: step 6.
 - Pixels only and neutral filenames at the edit request: step 7.
+
+#### Manual test
+
+- Drop a JPEG into the gallery: a thumbnail appears; ⬇️ on it downloads `<prompt>_<created>_<id>.png`, upright and with the colours of the original.
+- Drop a JPEG with an EXIF orientation of 6 into the gallery: it shows upright, as Firefox shows the original.
+- Drop a PNG that carries a prompt into the gallery: 💬 shows it. Config → Advanced: strip off, both prompt options off, OK. ⬇️ on it: the file holds only the pixel chunks.
+- Drop three files of which one is not an image: two thumbnails and one dialog naming the third file with the reason.
+- Drop seventeen files into the gallery, then into the input area: one dialog about the count, no thumbnail.
+- Drop a JPEG into the input area: the drop area shows `Converting…` until the thumbnail appears; a click on Generate during that time does nothing; the tooltip ends in `.png`; an edit request with it succeeds.
+- Drop a JPEG of 40 megapixels into the input area: a dialog names the file, its size as a PNG and the limit for editing, no thumbnail; the same file drops into the gallery.
+- Generate with streaming on, with streaming off and one image, with several images, and through an edit request, with strip on: every stored image, downloaded with strip off and both prompt options off, holds only the pixel chunks.
 
 ### 6. Existing gallery files (waiting)
 
