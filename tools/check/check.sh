@@ -37,7 +37,7 @@ if ! node "$script_folder/check_manifest.mjs"; then
    check_failed=1
 fi
 
-for node_check in PNG_chunks_check.mjs PNG_encoder_check.mjs metadata_readers_check.mjs image_export_check.mjs image_intake_check.mjs; do
+for node_check in PNG_chunks_check.mjs PNG_encoder_check.mjs metadata_readers_check.mjs image_export_check.mjs image_intake_check.mjs gallery_migration_check.mjs; do
    if ! node_check_output="$(node "$script_folder/$node_check" 2>&1)"; then
       printf '%s
 ' "$node_check_output"

@@ -20,11 +20,6 @@ export function export_filename(record) {
  */
 export async function export_image(record) {
   const filename = export_filename(record);
-  const type = record.image_blob.type;
-  if (type === "image/jpeg" || type === "image/webp") {
-    return { blob: record.image_blob, filename };
-  }
-
   const strip = localStorage.getItem("imaginer.strip_metadata") === "true";
   const iTXt_form = localStorage.getItem("imaginer.add_prompt_to_image") === "true";
   const XMP_form = localStorage.getItem("imaginer.add_prompt_to_image_xmp") === "true";
@@ -32,6 +27,12 @@ export async function export_image(record) {
   // Without strip and without a prompt form, Export changes nothing, so the file leaves as stored and is not even parsed.
   if (!strip && !iTXt_form && !XMP_form) {
     return { blob: record.image_blob, filename };
+  }
+
+  // A gallery file that is still a JPEG or WebP can only leave as stored, which the all-off case above allows; with any option on, the config could not be applied.
+  const type = record.image_blob.type;
+  if (type === "image/jpeg" || type === "image/webp") {
+    throw new Error("The file is not a PNG and cannot be processed.");
   }
 
   let bytes = new Uint8Array(await record.image_blob.arrayBuffer());

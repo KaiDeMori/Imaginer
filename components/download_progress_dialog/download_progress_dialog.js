@@ -2,6 +2,7 @@ import { versioned_url } from "../../version_manager.js";
 
 export class Download_progress_dialog {
   constructor() {
+    this.on_close = null;
     this.init_promise = this.init();
   }
 
@@ -22,7 +23,9 @@ export class Download_progress_dialog {
     this.overlay = temp.querySelector(".download_progress_overlay");
     document.body.appendChild(this.overlay);
 
+    this.overlay.tabIndex = -1;
     this.dialog = this.overlay.querySelector(".download_progress_dialog");
+    this.title = this.overlay.querySelector(".download_progress_title");
     this.status_text = this.overlay.querySelector("#status_text");
     this.progress_counter = this.overlay.querySelector("#progress_counter");
     this.progress_container = this.overlay.querySelector("#progress_container");
@@ -35,11 +38,12 @@ export class Download_progress_dialog {
     this.beforeunload_handler = null;
   }
 
-  show() {
+  show(title = "Downloading Gallery", status = "Preparing download...") {
     this.overlay.style.display = "flex";
 
+    this.title.textContent = title;
     this.status_text.style.display = "block";
-    this.status_text.textContent = "Preparing download...";
+    this.status_text.textContent = status;
     this.progress_counter.style.display = "none";
     this.progress_container.style.display = "none";
     this.waiting_image.style.display = "none";
@@ -51,6 +55,7 @@ export class Download_progress_dialog {
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", this.beforeunload_handler);
+    this.overlay.focus();
   }
 
   set_status(message) {
@@ -63,8 +68,8 @@ export class Download_progress_dialog {
     }
   }
 
-  update_progress(current, total) {
-    this.status_text.textContent = "Processing images...";
+  update_progress(current, total, status = "Processing images...") {
+    this.status_text.textContent = status;
     this.progress_counter.textContent = `${current} / ${total}`;
     this.progress_counter.style.display = "block";
     this.progress_container.style.display = "block";
@@ -99,5 +104,6 @@ export class Download_progress_dialog {
     }
 
     this.overlay.remove();
+    if (typeof this.on_close === "function") this.on_close();
   }
 }

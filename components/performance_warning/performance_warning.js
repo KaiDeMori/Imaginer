@@ -3,6 +3,7 @@ import { describe_export_failures, export_gallery_as_ZIP } from "../../image_exp
 
 export class Performance_warning {
   constructor() {
+    this.on_close = null;
     this.init_promise = this.init();
   }
 
@@ -48,6 +49,7 @@ export class Performance_warning {
     if (this.overlay) {
       this.overlay.style.display = "none";
     }
+    if (typeof this.on_close === "function") this.on_close();
   }
 
   async download_all() {

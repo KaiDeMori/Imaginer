@@ -12,6 +12,8 @@ import { accept_model_output } from "./image_intake.js";
 import { check_and_show_update_message, versioned_url } from "./version_manager.js";
 import { ensure_config_defaults } from "./default_config.js";
 import { get_selected_model, clamp_quality_for_model } from "./model_fetcher.js";
+import { describe_migration_failures, find_records_to_migrate, mark_migration_done, migrate_gallery, migration_is_done, strip_option_is_on } from "./gallery_migration.js";
+import { can_convert_images } from "./image_conversion.js";
 
 // Content-moderation level for GPT image models (hidden config, no UI): "auto"
 // (default) or "low" (less restrictive). Any other/invalid value is silently
@@ -149,7 +151,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (duration > MAX_GALLERY_LOAD_DURATION_MS) {
         const { Performance_warning } = await import(versioned_url("./components/performance_warning/performance_warning.js"));
         const warning = new Performance_warning();
+        warning.on_close = () => offer_gallery_migration();
         warning.open();
+      } else {
+        await offer_gallery_migration();
       }
     },
   });
@@ -166,6 +171,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   let activeGenerations = 0;
+  let migration_running = false;
 
   // Warn user if they try to reload while images are pending
   window.addEventListener("beforeunload", (e) => {
@@ -236,6 +242,63 @@ window.addEventListener("DOMContentLoaded", async () => {
       prompt_imgs: [],
     };
     return { record_id, image_blob };
+  }
+
+  // The page reloads after the migration, because the thumbnails and the download handlers still hold the old blobs.
+  async function offer_gallery_migration() {
+    let progress = null;
+    try {
+      if (migration_is_done() || activeGenerations > 0) return;
+
+      const strip = strip_option_is_on();
+      const records = Object.values(gallery.records_by_id);
+      const candidates = await find_records_to_migrate(records, strip);
+      if (candidates.length === 0) {
+        mark_migration_done();
+        return;
+      }
+      if (candidates.some((record) => record.image_blob.type !== "image/png") && !can_convert_images()) return;
+
+      const { Migration_confirm_modal } = await import(versioned_url("./components/migration_confirm_modal.js"));
+      const action = await Migration_confirm_modal.show(candidates.length, records.length, strip);
+      if (action === "later") return;
+
+      migration_running = true;
+      generation_panel.set_generate_button_enabled(false);
+      const { Download_progress_dialog } = await import(versioned_url("./components/download_progress_dialog/download_progress_dialog.js"));
+      progress = new Download_progress_dialog();
+      await progress.init_promise;
+      progress.show("Converting the gallery", "Converting images...");
+      progress.update_progress(0, candidates.length, "Converting images...");
+
+      const verify = async (blob) => {
+        const bitmap = await createImageBitmap(blob);
+        try {
+          return { width: bitmap.width, height: bitmap.height };
+        } finally {
+          bitmap.close();
+        }
+      };
+      const { failures } = await migrate_gallery(candidates, database_store, {
+        strip,
+        verify,
+        on_progress: (done, total) => progress.update_progress(done, total, "Converting images..."),
+      });
+      if (failures.length === 0) {
+        mark_migration_done();
+        progress.close();
+        location.reload();
+      } else {
+        progress.on_close = () => location.reload();
+        progress.show_error(describe_migration_failures(failures));
+      }
+    } catch (error) {
+      if (progress === null) {
+        Error_modal.show(error);
+      } else {
+        progress.show_error(error.message || String(error));
+      }
+    }
   }
 
   async function consume_image_stream({ endpoint_url, fetch_options, event_prefix, placeholder, prompt_text }) {
@@ -309,6 +372,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   const generation_panel = new Generation_panel(generation_panel_root, async (prompt_text) => {
+    if (migration_running) {
+      generation_panel.set_generate_button_enabled(false);
+      return;
+    }
     const max = get_maximum_parallel_generations();
     if (activeGenerations >= max || generate_cooldown) {
       generation_panel.set_generate_button_enabled(false);

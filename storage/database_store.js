@@ -158,10 +158,12 @@ export class Database_store {
         }
         Object.assign(record, updates);
         const put_req = store.put(record);
-        put_req.onsuccess = () => resolve();
         put_req.onerror = () => reject(put_req.error);
       };
       get_req.onerror = () => reject(get_req.error);
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error);
+      tx.onerror = () => reject(tx.error);
     });
   }
 
