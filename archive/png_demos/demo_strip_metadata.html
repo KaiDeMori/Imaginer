@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PNG Metadata Stripper Demo</title>
+</head>
+<body>
+    <h2>PNG Metadata Stripper Demo</h2>
+    <button onclick="stripAndDownload()">Strip Metadata and Download</button>
+    <br><br>
+    <a id="downloadLink" style="display:none;">Download Stripped PNG</a>
+
+    <script type="module">
+        import { strip_metadata_from_PNG } from './strip_metadata_from_PNG.js';
+
+        async function stripAndDownload() {
+            const response = await fetch('../assets/dummy_pictures/01.png');
+            const arrayBuffer = await response.arrayBuffer();
+            const input_data = new Uint8Array(arrayBuffer);
+
+            const strippedBlob = strip_metadata_from_PNG(input_data);
+            const downloadUrl = URL.createObjectURL(strippedBlob);
+
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = downloadUrl;
+            downloadLink.download = '_stripped_test.png';
+            downloadLink.style.display = 'inline';
+            downloadLink.textContent = 'Click here to download the stripped PNG';
+        }
+
+        window.stripAndDownload = stripAndDownload;
+    </script>
+</body>
+</html>

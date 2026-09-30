@@ -45,10 +45,6 @@ png metadata.md
 assets/conversion_stuff
 api_trials/
 png_exif/
-png_itxt/test_png_itxt.html
-png_XMP_via_iTXt/demo-xmp-embedder.html
-png_XMP_via_iTXt/XMP embedded via iTXt.md
-strip_metadata_from_PNG/demo_strip_metadata.html
 intro_trials/
 How_we_work_here.md
 

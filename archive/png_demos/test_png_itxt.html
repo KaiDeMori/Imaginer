@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PNG iTXt Injection Test</title>
+</head>
+<body>
+  <h1>PNG iTXt Injection Test</h1>
+  <p>
+    <button id="inject-btn">Inject iTXt and Save</button>
+  </p>
+  <img id="preview" src="../assets/dummy_pictures/01.png" alt="Original PNG" style="max-width:300px;display:block;">
+  <script type="module">
+    import { add_itxt_chunk_to_png } from './png_itxt.js';
+
+    document.getElementById('inject-btn').onclick = async () => {
+      // 1. Load dummy01.png as data URL
+      const imgUrl = '../assets/dummy_pictures/01.png';
+      const resp = await fetch(imgUrl);
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onload = async function() {
+        const dataUrl = reader.result;
+        // 2. Inject iTXt
+        const promptText = "This is an example description with smileys 😊😄 " + new Date().toISOString();
+        const outBlob = await add_itxt_chunk_to_png(dataUrl, promptText, "Description");
+        // 3. Save as _test_output.png
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(outBlob);
+        a.download = "_iTxt_test_output.png";
+        a.textContent = "Download file";
+        document.body.appendChild(a);
+        // Optionally, show the new image
+        const img = document.createElement('img');
+        img.src = a.href;
+        img.style.maxWidth = "300px";
+        document.body.appendChild(img);
+      };
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PNG XMP Metadata Embedder Demo</title>
+  <script type="module">
+    import { embed_XMP_description } from './png-xmp-embedder.js';
+
+    async function loadImageAsDataURL(url) {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    async function embedDescription() {
+      const originalImageUrl = '../assets/dummy_pictures/01.png';
+      const description = 'This is an example description with smileys 😊😄';
+
+      const base64DataUrl = await loadImageAsDataURL(originalImageUrl);
+      const modifiedBlob = await embed_XMP_description(base64DataUrl, description);
+
+      const downloadLink = document.getElementById('download-link');
+      downloadLink.href = URL.createObjectURL(modifiedBlob);
+      downloadLink.download = '_XMP_Trials.png';
+      downloadLink.style.display = 'inline-block';
+
+      const previewImage = document.getElementById('preview-image');
+      previewImage.src = URL.createObjectURL(modifiedBlob);
+      previewImage.style.display = 'block';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('embed-btn').addEventListener('click', embedDescription);
+    });
+  </script>
+</head>
+<body>
+  <h1>PNG XMP Metadata Embedder Demo</h1>
+  <button id="embed-btn">Embed Description and Generate PNG</button>
+  <br><br>
+  <a id="download-link" style="display:none;">Download Modified PNG</a>
+  <br><br>
+  <img id="preview-image" style="display:none; max-width: 400px; border: 1px solid #ccc;" alt="Modified PNG Preview">
+</body>
+</html>
