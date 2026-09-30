@@ -209,6 +209,14 @@ Images are stored in your browser and persist between sessions. Each browser has
 
 **⚠️ Warning**: Clearing browser data deletes all gallery images permanently.
 
+#### Converting Older Galleries
+
+Imaginer keeps every image as a clean PNG. If your gallery still holds images in their original form, from before Imaginer converted imports, a dialog offers to convert them once the thumbnails are on screen. It names how many images are affected and what the conversion removes: the prompt copies Imaginer once wrote into the files and, with **Strip Server-Side metadata** on, all other metadata such as a camera's location or OpenAI's provenance data. The prompts stay in the gallery. An animated PNG keeps only its first image, orientation stored as metadata is dropped, and JPEG and WebP images take more storage as PNG. The conversion cannot be undone.
+
+Choose **Later** to be asked again at the next start. For an exact copy of the originals first, turn off **Strip Server-Side metadata** and both **Embed prompt** options in Config → Advanced, then use Config → Files → **Download All Images**, and only then convert.
+
+**Convert now** shows a progress dialog and reloads the page when it is done. Each image is checked before it replaces the old file. An image that could not be converted stays as it is and is listed with the reason; it is offered again at the next start, and it can be downloaded as stored with the three options off.
+
 
 ### The Viewer
 
@@ -464,7 +472,7 @@ The app refreshes its saved app files and reloads the page. Your images, setting
 
 Config → Files → **Download All Images** bundles every stored image (generated and imported) into a ZIP. The files inside follow the download filename pattern (prompt, timestamp, and the image's ID), so every image keeps its own name; the ZIP is named `Imaginer_Export_<timestamp>.zip`. A progress dialog shows status. If no images are present, you see an error instead of a download.
 
-Each file leaves exactly as a single ⬇️ download would: the PNG metadata options apply to every PNG, with the settings you last saved with **OK**. Gallery files that are still JPEG or WebP, imported before Imaginer converted imports, leave as they were imported. A file that cannot be processed is left out and stays in your gallery; after the download, the dialog lists it with the reason and how to export it as stored.
+Each file leaves exactly as a single ⬇️ download would: the PNG metadata options apply to every PNG, with the settings you last saved with **OK**. A gallery file that is still a JPEG or WebP, because the conversion of older galleries was postponed or failed for it, is left out and listed like any file that cannot be processed, unless the three options are off; then it leaves as stored. A file that cannot be processed is left out and stays in your gallery; after the download, the dialog lists it with the reason and how to export it as stored.
 
 #### Delete Gallery
 
@@ -482,7 +490,7 @@ When enabled, the dropdown lists every image model of your OpenAI account, inclu
 
 #### PNG Metadata Options
 
-- **Strip Server-Side metadata** (default: on): Removes OpenAI's metadata from generated images before they are saved, and every metadata from PNGs you download or export, keeping files lean. Imported images are always cleaned, whatever this option says. Gallery files that are still JPEG or WebP, imported before Imaginer converted imports, are not stripped.
+- **Strip Server-Side metadata** (default: on): Removes OpenAI's metadata from generated images before they are saved, and every metadata from PNGs you download or export, keeping files lean. Imported images are always cleaned, whatever this option says. The one-time conversion of older galleries (see The Gallery → **Converting Older Galleries**) follows this option too.
 - **Embed prompt as iTXt** (default: on): Stores your prompt in a standard PNG text chunk for tools that read PNG metadata. The prompt is written when you download or export a PNG; the images in your gallery carry no prompt themselves, it lives in the gallery record.
 - **Embed prompt as XMP** (default: on): Writes the prompt in an XMP block for metadata-aware apps. If both options are on, the prompt is written to iTXt first, then XMP. With both options off, a downloaded or exported PNG carries no prompt.
 

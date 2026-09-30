@@ -30,7 +30,8 @@
 - **How can I import an external image?** Drag a supported image file into the gallery — the app tells you if the format, size, or count doesn't qualify.
 - **Why won't Chrome on Linux import my images?** This is a known Linux/Chromium drag-and-drop bug — the browser reports the file as valid but can't actually read its bytes. Try Firefox instead.
 - **How can I save an image?** Hover a thumbnail and click ⬇️, or use Config → Files → **Download All Images**.
-- **How can I backup my images?** Use Config → Files → **Download All Images** for a ZIP file.
+- **How can I backup my images?** Use Config → Files → **Download All Images** for a ZIP file. The ZIP applies your PNG metadata options; for an exact copy of the stored files, turn off **Strip Server-Side metadata** and both **Embed prompt** options first.
+- **Why does Imaginer ask to convert my images?** Your gallery still holds images in their original form. Imaginer keeps every image as a clean PNG; the dialog names what the conversion removes, and **Later** postpones it. See the User Manual, The Gallery → **Converting Older Galleries**.
 - **How can I delete images?** Use 🗑️ Delete Mode for single images, or Config → Files → **Delete Gallery** to clear everything.
 - **Where are my images stored?** In your browser's storage. Each browser/device keeps its own copy.
 - **Can I use Imaginer offline?** No. An internet connection and OpenAI API key are required.

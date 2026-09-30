@@ -57,7 +57,7 @@ Saved custom image sizes for advanced size mode.
 **Default:** `"[]"`
 
 ### `imaginer.strip_metadata`
-Remove OpenAI's metadata from generated images before saving, and every metadata from PNGs at download and ZIP export. Imports are always cleaned.  
+Remove OpenAI's metadata from generated images before saving, and every metadata from PNGs at download and ZIP export. Imports are always cleaned, and the one-time conversion of older galleries follows this option.  
 **Range:** `"true"`, `"false"`  
 **Default:** `"true"`
 
@@ -144,6 +144,13 @@ Last known app version for update detection.
 **Default:** None (set on first run)
 
 ---
+
+## Gallery Conversion State
+
+### `imaginer.gallery_files_migrated`
+Set when every gallery file has been checked or converted by the one-time conversion of older galleries.  
+**Range:** `"1"` or absent  
+**Default:** absent
 
 ## Intro Sequence State
 
