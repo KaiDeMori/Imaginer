@@ -186,11 +186,42 @@ Local browser tests settle the conversion of JPEG and WebP: decoding, orientatio
 - Repeat with Strict tracking protection in Firefox, and in a normal window in Chromium.
 - Expected: every Support row ✓; every "own PNG round trip" row ✓; every "two candidate decodes are identical" row ✓; every Orientation row ✓; the Timing row ✓ with a total near the round 1 total. The "against <img>" rows are information; in Strict they may show small differences from the canvas readback of `<img>`.
 
-### 5. Intake (waiting)
+### 5. Intake (in discussion)
 
 The conversion of JPEG and WebP, strip for every import, and one intake function for both doors; model output stops writing Imaginer metadata. Needs steps 2 to 4. Gaps 1, 2, 3, 4, 6 and 8.
 
-Open items: none.
+Plan: [Tasks/plans/Intake.plan.md](plans/Intake.plan.md).
+
+#### Decisions
+
+- Intake lives in `image_intake.js`: `intake_import(file)` for both import doors, `intake_model_output(blob)` for model output. The conversion lives in `image_conversion.js`: `convert_to_PNG(blob)` on the candidate pipeline `createImageBitmap`, `VideoFrame.copyTo` as RGBA, `encode_PNG_RGBA`. The encoder joins `PNG_chunks.js`; it writes unfiltered rows, because exactness matters and file size does not.
+- The format of an import is decided by its bytes, not by its declared type: a PNG is stripped to its pixel chunks, everything else is converted. A renamed file is treated as what it is.
+- The prompt of an import is read before the conversion, because the conversion drops every metadata; the fields follow the Intake rule "Prompt" in the terms.
+- Every intake error reaches the user. An import batch is no longer all or nothing: each file stands on its own, and one dialog after the batch lists the files that could not be imported, with the reason. A failing `save` is such a failure.
+- Model output: with the strip checkbox on, the PNG is stripped to its pixel chunks; off, it is stored as OpenAI returned it. No prompt form is written at intake any more; Export writes them. When strip fails on model output, the image is stored as returned and the user is told, because a paid generation is never thrown away.
+- The four places in `app.js` that receive model output share one function, `save_model_output`, which applies intake, saves the record and registers it with the gallery. `process_image_metadata.js` and its Node check go.
+- A browser without `VideoFrame` cannot import JPEG and WebP; the message says so. No canvas fallback.
+- Step 5 is designed for the candidate pipeline before the round 2 results are in. If round 2 fails, `convert_to_PNG` is the one function that changes.
+- The plan is written by the main model, reviewed by independent reviewers, and built by implementers. The intake module is specified by `tools/check/image_intake_check.mjs`, the encoder by `tools/check/PNG_chunks_check.mjs`.
+
+#### Facts
+
+- Model output is handled four times in `app.js`: in `consume_image_stream`, in the edit request branch, and twice in the generation request branch (one image, several images); each calls `process_image_metadata`, saves the record and sets `gallery.records_by_id`.
+- The gallery's drop listener validates count, type and readability for the whole batch, then imports file by file without a `try`; `read_image_prompt` in `components/gallery.js` reads the prompt by type with a signature fallback.
+- The input area's external file branch in `Generation_panel.attach_events` hands the dropped files to `drop_area_manager.try_add_images`, which validates count, type, readability and masks and adds the entries atomically; the thumbnails show `entry.image.name`.
+- `Generation_panel` passes `embed_options` to its `onGenerate` callback; `app.js` passes them to `process_image_metadata`.
+- `validate_file_readable` decodes with `createImageBitmap`, which sniffs the content, so it accepts a renamed JPEG.
+- `Error_modal.show` renders an object with `message` and `hint` fields as a table with those two rows, and keeps line breaks in the values.
+
+#### Open items
+
+- None.
+
+#### Out of scope
+
+- The intro image: step 8.
+- The existing gallery files: step 6.
+- Pixels only and neutral filenames at the edit request: step 7.
 
 ### 6. Existing gallery files (waiting)
 

@@ -8,6 +8,7 @@ import {
   XMP_KEYWORD,
   build_XMP_packet,
   crc32,
+  encode_PNG_RGBA,
   is_PNG,
   is_XMP_form,
   read_PNG_chunks,
@@ -252,6 +253,20 @@ check(decode_XML_entities(escape_XML("round & trip <ok>")) === "round & trip <ok
   const with_prompt = write_PNG_chunks([IHDR, prompt_chunk(encoder.encode("before the cut")), IDAT, IEND]);
   check((await read_PNG_prompt(with_prompt.subarray(0, with_prompt.length - 6))) === "before the cut", "read_PNG_prompt returns the prompt found before a truncation");
   check((await read_PNG_prompt(palette_png.subarray(0, palette_png.length - 14))) === "", "read_PNG_prompt returns the empty string for a truncated PNG without a prompt");
+}
+
+{
+  const rgba = Uint8Array.from({ length: 3 * 2 * 4 }, (_, index) => (index * 37) & 0xff);
+  const png = await encode_PNG_RGBA({ width: 3, height: 2, rgba });
+  const chunks = read_PNG_chunks(png);
+  check(chunks.map((chunk) => chunk.type).join() === "IHDR,IDAT,IEND", "encode_PNG_RGBA writes IHDR, one IDAT and IEND");
+  check(bytes_equal(chunks[0].data, Uint8Array.of(0, 0, 0, 3, 0, 0, 0, 2, 8, 6, 0, 0, 0)), "encode_PNG_RGBA writes the header for 8-bit RGBA without interlacing");
+  const inflated = new Uint8Array(await new Response(new Blob([chunks[1].data]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer());
+  const expected_rows = concat_bytes([Uint8Array.of(0), rgba.subarray(0, 12), Uint8Array.of(0), rgba.subarray(12, 24)]);
+  check(bytes_equal(inflated, expected_rows), "the image data is every row with filter type 0 in front");
+  check(bytes_equal(strip_PNG(png), png), "an encoded PNG passes strip_PNG unchanged");
+  const wrong_length = await thrown_by(() => encode_PNG_RGBA({ width: 3, height: 2, rgba: new Uint8Array(5) }));
+  check(wrong_length instanceof Error && wrong_length.message === "Wrong RGBA length.", "encode_PNG_RGBA throws on a wrong RGBA length");
 }
 
 if (failures.length > 0) {
