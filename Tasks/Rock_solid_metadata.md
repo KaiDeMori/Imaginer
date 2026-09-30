@@ -24,6 +24,7 @@ Open points are decided when a step needs them.
 
 - The gallery import button: a task of its own.
 - Color spaces.
+- Masks: they are not exported.
 
 ## Steps
 

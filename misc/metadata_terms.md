@@ -70,6 +70,7 @@ Applies to Download and ZIP export.
 
 - **External metadata**: strip checkbox on → removed. Off → kept, as far as the gallery file still carries it.
 - **Imaginer metadata**: exactly the forms whose prompt checkbox is on, written from the prompt in the gallery record. Both off → none. No prompt → none.
+- **Filename**: `<prompt>_<created>_<id>.png`, from the gallery record: the prompt (sanitized and shortened), the timestamp, and the ID. The same image gets the same, unique filename in every Export.
 
 ### Edit request
 
