@@ -1,0 +1,11 @@
+{
+   "extends": "../../jsconfig.json",
+   "include": [
+      "../../*.js",
+      "../../components/**/*.js",
+      "../../storage/**/*.js",
+      "../../png_iTXt/**/*.js",
+      "../../png_XMP_via_iTXt/**/*.js",
+      "../../strip_metadata_from_PNG/**/*.js"
+   ]
+}
