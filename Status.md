@@ -22,6 +22,4 @@
 - Before the release of 1.14: `version.json` and the 1.14 version message, written together. The message covers everything new since 1.12: the note on the one-time conversion that step 6 calls for, and that Mask Mode now sends its mask (the released 1.12 never sends it). The About dialog lists every history entry; decide whether the history keeps 1.13.
 - A repeatable test for the app's import path is still to be found; a photo dropped by hand is a check, not a test. One gap it should close: the app with step 9 is unmeasured in Firefox. Firefox's pixels are already upright; if Firefox ever reported a `rotation` other than 0, the transform would turn the image a second time.
 - The User Manual's Mask Mode section says "Only masked areas will be modified." A note on the models' unreliable mask adherence waits for more data.
-- Leftovers of unknown purpose in `assets/`: `assets/old/` and the gitignored `assets/conversion_stuff/`.
-- With a mini model selected, images in the input area are ignored without a word.
 - `tsc` reports about 180 type errors in the app code, all noise. The check ignores them; cleaning them up would be a task of its own.
