@@ -324,6 +324,7 @@ Plan: [Tasks/plans/Edit_request.plan.md](plans/Edit_request.plan.md).
 - With an older gallery and Later at the conversion dialog: drag a gallery JPEG into the input area and Generate: the edit succeeds and the gallery file stays a JPEG.
 - A gallery JPEG whose PNG exceeds the limit: Generate shows the dialog with its label and the converted size, the placeholders turn red, and Generate is enabled again.
 - Replace a record's `mask_blob` through `window.database_store.update` with a smaller PNG, then drag that image into the input area: the message names the image as the tooltip does, and the image is added without the mask.
+- Result: the mask reaches OpenAI intact, with the image's size and the editable area where it was painted, checked in the browser console. The models follow it unreliably: the change often lands outside the painted area.
 
 ### 8. Cleanup (built)
 
