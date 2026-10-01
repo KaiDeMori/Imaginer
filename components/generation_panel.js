@@ -257,16 +257,22 @@ export class Generation_panel {
                   failures.push({ name: file.name, message: error.message || String(error) });
                 }
               }
+              let batch_refusal = null;
               if (entries.length > 0) {
                 const result = await drop_area_manager.try_add_images(entries);
                 if (!result.ok) {
-                  failures.push({ name: "", message: result.error });
+                  batch_refusal = with_batch_hint(result.error, entries.length > 1);
                 } else {
                   this.dropped_images = drop_area_manager.get_images().map((entry) => entry.image);
                   this.dropped_entries = drop_area_manager.get_images().slice();
                 }
               }
-              if (failures.length > 0) Error_modal.show(describe_import_failures(failures));
+              // A refused batch concerns all its images, so it is the dialog's message, and files that failed on their own are listed as its details.
+              if (batch_refusal !== null) {
+                Error_modal.show(failures.length > 0 ? { message: batch_refusal, details: describe_import_failures(failures).details } : batch_refusal);
+              } else if (failures.length > 0) {
+                Error_modal.show(describe_import_failures(failures));
+              }
             } finally {
               this.importing_count -= 1;
               if (placeholder) placeholder.textContent = "Drop image(s) for editing";

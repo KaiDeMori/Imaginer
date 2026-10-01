@@ -189,7 +189,6 @@ Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata be
 1. Click the 🗑️ button in the menu bar to enable delete mode (the button turns red).
 2. Click thumbnails to select them for deletion — selected images get a red highlight and border. Click again to deselect.
 3. Click 🗑️ again to confirm. A dialog shows how many images will be deleted. Confirm to proceed or cancel to clear the selection and exit delete mode.
-4. A loading overlay is shown while deletion is in progress. All other interactions are blocked until it completes.
 
 **⚠️ Warning**: Deletion is permanent and removes the images from the gallery and local storage.
 

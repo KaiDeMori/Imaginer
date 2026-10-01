@@ -58,6 +58,11 @@ class drop_area_manager {
       }
     }
 
+    // Another batch may have been added during the awaits above, so the count is checked again right before the adds, with no await in between.
+    const final_count_check = validate_image_count(this.dropped_images.length, entries.length);
+    if (!final_count_check.valid) {
+      return { ok: false, error: final_count_check.error };
+    }
     for (const entry of entries) {
       this.add_image(entry.image, entry.mask, entry.uuid, entry.label);
     }

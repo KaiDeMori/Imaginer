@@ -18,6 +18,7 @@ const { default: drop_area_manager } = await import("../../components/drop_area_
 const {
   IMPORT_COUNT_CONFIRMATION_THRESHOLD,
   MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE,
+  MAXIMUM_BYTES_PER_EDIT_REQUEST_MASK,
   MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST,
   needs_import_confirmation,
   validate_image_count,
@@ -36,6 +37,7 @@ const png_blob = new Blob([encoder.encode("png bytes")], { type: "image/png" });
 const gif_blob = new Blob([encoder.encode("GIF89a")], { type: "image/gif" });
 const wrong_mask = new File([encoder.encode("not a png")], "mask.jpg", { type: "image/jpeg" });
 const good_mask = new File([encoder.encode("mask bytes")], "mask.png", { type: "image/png" });
+const png_batch = (size, prefix = "image") => Array.from({ length: size }, (unused, index) => ({ image: png_blob, mask: null, uuid: null, label: `${prefix}_${index + 1}.png` }));
 
 {
   const result = await drop_area_manager.try_add_images([
@@ -84,6 +86,7 @@ const good_mask = new File([encoder.encode("mask bytes")], "mask.png", { type: "
 {
   check(MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST === 16, "the edit request takes at most 16 images");
   check(MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE === 50 * 1024 * 1024, "an image of the edit request has at most 50 MB");
+  check(MAXIMUM_BYTES_PER_EDIT_REQUEST_MASK === 4 * 1024 * 1024, "a mask of the edit request has at most 4 MB");
   check(validate_image_count(0, 16).valid === true && validate_image_count(1, 16).valid === false, "validate_image_count holds the edit request's count");
   const oversized = { type: "image/png", size: 60 * 1024 * 1024, name: "huge.png" };
   check(validate_image_file(oversized).valid === true, "validate_image_file checks only the type, because the gallery sets no size limit");
@@ -102,12 +105,24 @@ const good_mask = new File([encoder.encode("mask bytes")], "mask.png", { type: "
 {
   const count_before = drop_area_manager.get_images().length;
   const free_slots = MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST - count_before;
-  const batch = (size) => Array.from({ length: size }, (unused, index) => ({ image: png_blob, mask: null, uuid: null, label: `image_${index + 1}.png` }));
-  const refused = await drop_area_manager.try_add_images(batch(free_slots + 1));
+  const refused = await drop_area_manager.try_add_images(png_batch(free_slots + 1));
   check(refused.ok === false && refused.error.includes(`maximum of ${MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST}`), "the input area refuses a batch that would exceed the edit request's image count");
   check(drop_area_manager.get_images().length === count_before, "a refused batch adds none of its images");
-  const accepted = await drop_area_manager.try_add_images(batch(free_slots));
+  const accepted = await drop_area_manager.try_add_images(png_batch(free_slots));
   check(accepted.ok === true && drop_area_manager.get_images().length === MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST, "the input area takes images up to the edit request's image count");
+}
+
+{
+  const oversized_mask = { type: "image/png", size: 5 * 1024 * 1024, name: "mask.png" };
+  const result = await validate_mask_file(oversized_mask, png_blob, "masked.png");
+  check(result.valid === false && result.error.includes('"masked.png"') && result.error.includes("4MB"), "a mask over the edit request's mask limit is discarded, named by its image");
+}
+
+{
+  while (drop_area_manager.get_images().length > 0) drop_area_manager.remove_image(0);
+  const results = await Promise.all([drop_area_manager.try_add_images(png_batch(10, "first")), drop_area_manager.try_add_images(png_batch(10, "second"))]);
+  check(results.filter((result) => result.ok).length === 1, "of two overlapping batches that together exceed the edit request's image count, exactly one is added");
+  check(drop_area_manager.get_images().length === 10, "overlapping batches never bring the input area above the edit request's image count");
 }
 
 if (failures.length > 0) {

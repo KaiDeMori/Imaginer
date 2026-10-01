@@ -2,7 +2,7 @@
 // The limits mirror OpenAI's limits for /v1/images/edits and apply only to the edit request; the gallery sets no count or size limit, because nothing outside Imaginer demands one there.
 
 export const MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE = 50 * 1024 * 1024;
-export const MAX_MASK_BYTES = 4 * 1024 * 1024;
+export const MAXIMUM_BYTES_PER_EDIT_REQUEST_MASK = 4 * 1024 * 1024;
 export const MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST = 16;
 export const IMPORT_COUNT_CONFIRMATION_THRESHOLD = 100;
 export const ALLOWED_IMAGE_TYPES = ["image/png", "image/webp", "image/jpeg"];
@@ -88,10 +88,10 @@ export async function validate_mask_file(mask_file, image_file, image_name = ima
   if (mask_file.type !== "image/png") {
     return { valid: false, error: `The mask for "${image_name}" is not a PNG and has been discarded.` };
   }
-  if (mask_file.size > MAX_MASK_BYTES) {
+  if (mask_file.size > MAXIMUM_BYTES_PER_EDIT_REQUEST_MASK) {
     return {
       valid: false,
-      error: `The mask for "${image_name}" exceeds ${format_megabytes(MAX_MASK_BYTES)}MB and has been discarded.`,
+      error: `The mask for "${image_name}" exceeds ${format_megabytes(MAXIMUM_BYTES_PER_EDIT_REQUEST_MASK)}MB and has been discarded.`,
     };
   }
 
