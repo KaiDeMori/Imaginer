@@ -350,3 +350,44 @@ The unused files `components/image_converter.js` and `components/generation_pane
 
 - The release, done with the user: `version.json` and `version_messages/`.
 - The type noise `tsc` reports: a task of its own.
+
+### 9. Orientation in Chromium (planned)
+
+In Chromium, the conversion of a JPEG with an EXIF orientation from 2 to 8 yields a PNG that is not upright; round 2 of step 4 found it. The candidate pipeline stays, and `read_RGBA` applies the orientation that the frame carries.
+
+#### Decisions
+
+- `read_RGBA` in `image_conversion.js` copies the frame's coded pixels as before and passes them to `apply_rotation_and_flip(pixels, rotation, flip)` with the frame's `rotation` and `flip`. A missing attribute counts as `0` or `false`.
+- `apply_rotation_and_flip` rotates clockwise by `rotation`, then flips horizontally when `flip` is set; the measured table in Facts demands this order. With `0` and `false` it returns its input unchanged, so a JPEG without orientation, and every image in Firefox, costs nothing extra. A rotation other than 0, 90, 180 or 270 fails the conversion with a readable message.
+- The rule is the same in every browser, without browser detection: `rotation` and `flip` describe the frame's own pixels.
+- `tools/check/image_intake_check.mjs` specifies the function: for each of the eight measured pairs, its result equals `apply_exif_orientation` from `tools/browser_tests/png_test_tools.js` for the matching EXIF orientation; with `0` and `false` it returns its input; any other rotation throws.
+- The test page applies the same transform through a copy in `png_test_tools.js`. The same check holds that copy against the EXIF transform, so the two copies cannot drift apart. The page names the frame's `rotation` and `flip` in its results, and its pipeline line says that both are applied.
+- Verification: the check; a run of the test page in Chromium in which every Orientation row shows ✓; a JPEG with EXIF orientation 6, dropped into the gallery in Chromium, shows upright.
+- Once the step is built, step 4 closes: its open item points here, and the lead agent writes the summary of round 2 into [misc/metadata_research.md](../misc/metadata_research.md), section "Local browser test results".
+- Done by hand, without a workflow.
+
+#### Facts
+
+- The round 2 results are in `tools/browser_tests/results/`, in the files ending in `_round_2.md`. Firefox 144, in a normal window and with Strict tracking protection: every Orientation row ✓. Chromium 148: the JPEG orientations 2 to 8 ✗; the candidate shows 1, while `<img>` and the bitmap drawn on a canvas show the right orientation.
+- In Chromium, the bitmap from `createImageBitmap` with `imageOrientation: "from-image"` has the displayed size, but the `VideoFrame` made from it keeps the stored pixels: its coded size stays the stored size, and its `rotation` and `flip` carry the orientation. `copyTo` returns the coded pixels and ignores both.
+- Measured in Chromium 148 with a 64×32 JPEG. The coded size is 64×32 for all eight orientations, the display size 32×64 for the orientations 5 to 8:
+
+| EXIF orientation | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| `rotation` | 0 | 0 | 180 | 180 | 90 | 90 | 270 | 270 |
+| `flip` | false | true | false | true | true | false | true | false |
+
+- The orientations 5 and 7 match the EXIF definitions only when the rotation comes first and the flip second.
+- Affected in Chromium: imports through both doors (step 5), the migration of existing gallery files (step 6), and a gallery JPEG converted in memory for an edit request (step 7). The converter has never shipped, so no gallery holds such an image.
+- In Chromium, the candidate decode of the PNG with alpha 0, 1, 128 and 254 is not exact (max difference 200) and equals the canvas readback: semi-transparent pixels lose colour precision on this path. Firefox decodes them exactly.
+- `image_intake_check.mjs` already specifies the Node-visible part of `image_conversion.js` and runs in the check.
+
+#### Open items
+
+- Whether the lost colour precision of semi-transparent pixels in Chromium is accepted.
+
+#### Out of scope
+
+- Chromium versions without `rotation` and `flip`, by the user's decision.
+- Safari.
+- The orientation of a PNG from its `eXIf` chunk: the terms accept its loss with strip on.
