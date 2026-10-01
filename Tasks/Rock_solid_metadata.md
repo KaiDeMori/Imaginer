@@ -364,6 +364,7 @@ In Chromium, the conversion of a JPEG with an EXIF orientation from 2 to 8 yield
 - The test page applies the same transform through a copy in `png_test_tools.js`. The same check holds that copy against the EXIF transform, so the two copies cannot drift apart. The page names the frame's `rotation` and `flip` in its results, and its pipeline line says that both are applied.
 - Verification: the check; a run of the test page in Chromium in which every Orientation row shows ✓; a JPEG with EXIF orientation 6, dropped into the gallery in Chromium, shows upright.
 - Once the step is built, step 4 closes: its open item points here, and the lead agent writes the summary of round 2 into [misc/metadata_research.md](../misc/metadata_research.md), section "Local browser test results".
+- The lost colour precision of semi-transparent pixels in Chromium is accepted, by the user's decision: it is invisible, and a second decode path would cost more mechanism than it saves.
 - Done by hand, without a workflow.
 
 #### Facts
@@ -384,7 +385,7 @@ In Chromium, the conversion of a JPEG with an EXIF orientation from 2 to 8 yield
 
 #### Open items
 
-- Whether the lost colour precision of semi-transparent pixels in Chromium is accepted.
+- None.
 
 #### Out of scope
 
