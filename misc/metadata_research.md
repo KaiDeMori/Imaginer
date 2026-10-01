@@ -124,6 +124,7 @@ Browser only. No calls to OpenAI.
 ## Local browser test results
 
 The raw results of every run are in `tools/browser_tests/results/`.
+Round 1 (2026-09-30) compared candidate pipelines. Round 2 (2026-10-01) measures the chosen one: `createImageBitmap` → `VideoFrame.copyTo` as RGBA → own PNG encoder.
 
 ### Firefox 144, normal window (2026-09-30)
 
@@ -153,6 +154,25 @@ The raw results of every run are in `tools/browser_tests/results/`.
 - **Measured**: 12 MP JPEG: total 0.83 s.
 - **Inference**: `ImageDecoder` alone is no cross-browser pipeline: orientation and the JPEG color reconstruction differ between Firefox and Chromium. What agrees in both browsers is what `<img>` and `createImageBitmap` show.
 - **Inference**: candidates for the next round: `createImageBitmap` → `VideoFrame` → `copyTo`, which shows what the display shows without reading back through a canvas; and an own PNG decoder, which keeps semi-transparent pixels exact.
+
+### Round 2: Firefox 144, normal window and Strict tracking protection (2026-10-01)
+
+- **Measured**: in both modes, the candidate pipeline decodes JPEG and WebP identically twice, and the round trip through the own PNG encoder is exact with only `IHDR`, `IDAT` and `IEND`.
+- **Measured**: semi-transparent pixels stay exact: the PNG with alpha 0, 1, 128 and 254 decodes without a difference through `createImageBitmap` with `premultiplyAlpha: "none"` and `VideoFrame.copyTo`. The same bitmap read back through the canvas differs by up to 205.
+- **Measured**: the candidate shows what `<img>` shows for the JPEG orientations 1 to 8. WebP's EXIF orientation is ignored, as in round 1. These runs used the page from before step 9, which neither applies nor reports the frame's `rotation` and `flip`.
+- **Measured**: with Enhanced Tracking Protection set to Standard, the canvas reads back exact pixels, and JPEG and WebP match `<img>` without a difference. With Strict, `getImageData` and the `toBlob` PNG differ by up to 2 in 108 values, while the candidate pipeline stays exact; a mask keeps its alpha in both modes.
+- **Measured**: 12 MP JPEG: total 1.3 s in the normal window, 1.2 s with Strict.
+- **Inference**: the canvas noise follows the protection setting of the profile, not the kind of window. A first run in a normal window of a profile set to Strict showed the same noise; its results file was deleted, and the run was repeated with Standard.
+
+### Round 2: Chromium 148, normal window (2026-10-01)
+
+- **Measured**: the candidate pipeline decodes JPEG and WebP identically twice, the round trip through the own PNG encoder is exact, and the candidate equals the bitmap drawn on a canvas without a difference. The chroma difference of `ImageDecoder` from round 1 does not occur.
+- **Measured**: for JPEG orientations 2 to 8, the candidate showed orientation 1, while `<img>` and the bitmap drawn on a canvas showed the right one. The `VideoFrame` keeps the stored pixels and carries the orientation in its `rotation` and `flip`, which `copyTo` ignores; the measured pairs are in step 9 of the planning file.
+- **Measured**: after step 9, which applies the frame's `rotation` and then its `flip`, every orientation matches `<img>`.
+- **Measured**: semi-transparent pixels lose colour precision: the PNG with alpha 0, 1, 128 and 254 differs by up to 200 and equals the canvas readback. Step 9 accepts this.
+- **Measured**: the canvas reads back exact pixels; a mask keeps its alpha.
+- **Measured**: 12 MP JPEG: total 1.07 s before step 9, 0.99 s after it.
+- **Inference**: with the frame's `rotation` and `flip` applied, the candidate pipeline shows what `<img>` shows in both browsers, without a canvas on the way.
 
 ## Later: tests against OpenAI
 

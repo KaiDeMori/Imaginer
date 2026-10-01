@@ -148,7 +148,7 @@ Plan: [Tasks/plans/One_Export_function.plan.md](plans/One_Export_function.plan.m
 - Import a file named `.png` that is a renamed JPEG, then ⬇️ on it: an error dialog names the file, the reason, and the way out; nothing downloads. Download All Images: the ZIP holds every other image, and the dialog lists the file with the reason and the hint, then closes on Close.
 - Config → Advanced: strip off, both prompt options off, OK. ⬇️ on the renamed JPEG: it downloads as stored.
 
-### 4. Browser tests for the conversion (planned)
+### 4. Browser tests for the conversion (built)
 
 Local browser tests settle the conversion of JPEG and WebP: decoding, orientation, encoding, and the timing. Gap 3. Only step 5 needs the results; the tests can run at any time.
 
@@ -173,7 +173,7 @@ Local browser tests settle the conversion of JPEG and WebP: decoding, orientatio
 
 #### Open items
 
-- The results of round 2. Step 5 is designed for the candidate; its conversion function is the one part that changes if round 2 fails.
+- None. Round 2 is done, and its summary is in [misc/metadata_research.md](../misc/metadata_research.md), section "Local browser test results". Its finding, the orientation in Chromium, is settled in step 9.
 
 #### Out of scope
 
