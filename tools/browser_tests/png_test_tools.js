@@ -234,6 +234,56 @@ export function apply_exif_orientation(pixels, orientation) {
    return { width: output_width, height: output_height, rgba: output };
 }
 
+const FRAME_ROTATIONS = new Set([0, 90, 180, 270]);
+
+/**
+ * Where the output pixel (x, y) lies in the coded pixels, as a pixel index: origin + x * step_x + y * step_y.
+ */
+function source_walk(width, height, output_width, rotation, flip) {
+   const first_x = flip ? output_width - 1 : 0;
+   const direction_x = flip ? -1 : 1;
+   switch (rotation) {
+      case 0:
+         return { origin: first_x, step_x: direction_x, step_y: width };
+      case 90:
+         return { origin: (height - 1 - first_x) * width, step_x: -direction_x * width, step_y: 1 };
+      case 180:
+         return { origin: (height - 1) * width + width - 1 - first_x, step_x: -direction_x, step_y: -width };
+      default:
+         return { origin: first_x * width + width - 1, step_x: direction_x * width, step_y: -1 };
+   }
+}
+
+/**
+ * The page's copy of the app's transform in image_conversion.js, so the page stays self-contained. The check in tools/check holds both against the EXIF transform.
+ * Turns the coded pixels of a VideoFrame into its displayed orientation: a clockwise rotation first, then a horizontal flip.
+ */
+export function apply_rotation_and_flip(pixels, rotation, flip) {
+   if (!FRAME_ROTATIONS.has(rotation)) {
+      throw new Error(`unsupported frame rotation ${rotation}.`);
+   }
+   if (rotation === 0 && !flip) {
+      return pixels;
+   }
+   const { width, height } = pixels;
+   const aligned_rgba = pixels.rgba.byteOffset % 4 === 0 ? pixels.rgba : pixels.rgba.slice();
+   const source = new Uint32Array(aligned_rgba.buffer, aligned_rgba.byteOffset, width * height);
+   const swaps_axes = rotation === 90 || rotation === 270;
+   const output_width = swaps_axes ? height : width;
+   const output_height = swaps_axes ? width : height;
+   const output = new Uint32Array(width * height);
+   const { origin, step_x, step_y } = source_walk(width, height, output_width, rotation, flip);
+   for (let y = 0; y < output_height; y += 1) {
+      let source_index = origin + y * step_y;
+      const row_start = y * output_width;
+      for (let x = 0; x < output_width; x += 1) {
+         output[row_start + x] = source[source_index];
+         source_index += step_x;
+      }
+   }
+   return { width: output_width, height: output_height, rgba: new Uint8Array(output.buffer) };
+}
+
 export function compare_pixels(first, second) {
    if (first.width !== second.width || first.height !== second.height) {
       return { same_size: false, max_difference: Infinity, mean_difference: Infinity, differing_values: Infinity };

@@ -2,6 +2,7 @@
 
 import {
    apply_exif_orientation,
+   apply_rotation_and_flip,
    compare_alpha,
    compare_pixels,
    create_alpha_pattern,
@@ -29,7 +30,7 @@ function update_summary() {
    const lines = [
       `Browser: ${navigator.userAgent}`,
       `Window mode: ${window_mode_select.value || "not chosen"}`,
-      "Candidate pipeline: createImageBitmap, VideoFrame.copyTo as RGBA, own PNG encoder",
+      "Candidate pipeline: createImageBitmap, VideoFrame.copyTo as RGBA, the frame's rotation and flip applied, own PNG encoder",
       "",
       "| Group | Test | Result | Verdict |",
       "|---|---|---|---|",
@@ -122,8 +123,9 @@ async function pixels_of_bitmap(bitmap) {
       for (let row = 0; row < height; row += 1) {
          rgba.set(buffer.subarray(offset + row * stride, offset + row * stride + width * 4), row * width * 4);
       }
-      const details = `frame format ${frame.format}, coded ${frame.codedWidth}×${frame.codedHeight}, display ${frame.displayWidth}×${frame.displayHeight}`;
-      return { width, height, rgba, details };
+      const details = `frame format ${frame.format}, coded ${frame.codedWidth}×${frame.codedHeight}, display ${frame.displayWidth}×${frame.displayHeight}, rotation ${frame.rotation}, flip ${frame.flip}`;
+      const displayed = apply_rotation_and_flip({ width, height, rgba }, frame.rotation ?? 0, frame.flip === true);
+      return { ...displayed, details };
    } finally {
       frame.close();
    }

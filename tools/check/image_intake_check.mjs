@@ -8,7 +8,8 @@ globalThis.localStorage = {
 // The readability check decodes with createImageBitmap, which Node does not have; the stub accepts every file, so the checks below stay about intake, not about decoding.
 globalThis.createImageBitmap = async () => ({ close() {} });
 
-const { CONVERSION_UNSUPPORTED_MESSAGE, can_convert_images, convert_to_PNG, pixels_only_PNG } = await import("../../image_conversion.js");
+const { CONVERSION_UNSUPPORTED_MESSAGE, apply_rotation_and_flip, can_convert_images, convert_to_PNG, pixels_only_PNG } = await import("../../image_conversion.js");
+const test_page_tools = await import("../browser_tests/png_test_tools.js");
 const { accept_model_output, describe_import_failures, intake_import, intake_model_output, read_import_prompt } = await import("../../image_intake.js");
 const { PROMPT_KEYWORD, XMP_KEYWORD, build_XMP_packet, read_PNG_chunks, read_PNG_prompt, write_PNG_chunks } = await import("../../PNG_chunks.js");
 
@@ -198,6 +199,41 @@ const converter_stub = async (file) => {
   ]);
   check(described.message === "2 file(s) could not be imported.", "describe_import_failures names the count");
   check(described.details === '"a.gif" is not a supported format — use PNG, WEBP, or JPEG.\nb.png: Not a PNG file.', "describe_import_failures keeps a message that starts with the quoted name and prefixes the others");
+}
+
+{
+  // The pairs of EXIF orientation, frame rotation and frame flip, as measured in Chromium; the planning file holds the measurement.
+  const measured_frame_orientations = [
+    [1, 0, false],
+    [2, 0, true],
+    [3, 180, false],
+    [4, 180, true],
+    [5, 90, true],
+    [6, 90, false],
+    [7, 270, true],
+    [8, 270, false],
+  ];
+  const width = 3;
+  const height = 2;
+  const stored = { width, height, rgba: Uint8Array.from({ length: width * height * 4 }, (unused, index) => index + 1) };
+  const unaligned_bytes = new Uint8Array(stored.rgba.length + 1);
+  unaligned_bytes.set(stored.rgba, 1);
+  const stored_unaligned = { width, height, rgba: unaligned_bytes.subarray(1) };
+  const same_pixels = (first, second) => first.width === second.width && first.height === second.height && first.rgba.length === second.rgba.length && first.rgba.every((value, index) => value === second.rgba[index]);
+  const implementations = [
+    ["the app", apply_rotation_and_flip],
+    ["the test page", test_page_tools.apply_rotation_and_flip],
+  ];
+  for (const [owner, transform] of implementations) {
+    for (const [orientation, rotation, flip] of measured_frame_orientations) {
+      const expected = test_page_tools.apply_exif_orientation(stored, orientation);
+      check(same_pixels(transform(stored, rotation, flip), expected), `the transform of ${owner} with rotation ${rotation} and flip ${flip} shows EXIF orientation ${orientation}`);
+      check(same_pixels(transform(stored_unaligned, rotation, flip), expected), `the transform of ${owner} with rotation ${rotation} and flip ${flip} gives the same pixels from an unaligned array`);
+    }
+    check(transform(stored, 0, false) === stored, `the transform of ${owner} returns its input without rotation and flip`);
+    const error = await rejection_of(() => transform(stored, 45, false));
+    check(error instanceof Error && error.message.includes("rotation 45"), `the transform of ${owner} rejects a rotation other than 0, 90, 180 and 270`);
+  }
 }
 
 if (failures.length > 0) {

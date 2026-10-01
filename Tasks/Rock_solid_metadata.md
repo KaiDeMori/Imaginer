@@ -351,7 +351,7 @@ The unused files `components/image_converter.js` and `components/generation_pane
 - The release, done with the user: `version.json` and `version_messages/`.
 - The type noise `tsc` reports: a task of its own.
 
-### 9. Orientation in Chromium (planned)
+### 9. Orientation in Chromium (built)
 
 In Chromium, the conversion of a JPEG with an EXIF orientation from 2 to 8 yields a PNG that is not upright; round 2 of step 4 found it. The candidate pipeline stays, and `read_RGBA` applies the orientation that the frame carries.
 
@@ -392,3 +392,9 @@ In Chromium, the conversion of a JPEG with an EXIF orientation from 2 to 8 yield
 - Chromium versions without `rotation` and `flip`, by the user's decision.
 - Safari.
 - The orientation of a PNG from its `eXIf` chunk: the terms accept its loss with strip on.
+
+#### Manual test
+
+- Upload `conversion_tests.js` and `png_test_tools.js` next to the test page, open it in Chromium in a normal window, choose the window mode, wait for "Done": every Orientation row shows ✓, and the details of the candidate decode name the frame's `rotation` and `flip`. Paste the results into `tools/browser_tests/results/chromium_<version>_normal_window_after_step_9.md`.
+- In Chromium, drop a JPEG with EXIF orientation 6 into the gallery, for example a photo taken upright with a phone: the thumbnail and the viewer show it upright, and ⬇️ downloads an upright PNG.
+- In Firefox, the same JPEG imports upright, as before.

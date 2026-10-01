@@ -8,8 +8,58 @@ export function can_convert_images() {
   return typeof globalThis.createImageBitmap === "function" && typeof globalThis.VideoFrame === "function";
 }
 
+const FRAME_ROTATIONS = new Set([0, 90, 180, 270]);
+
 /**
- * Copies the pixels of the bitmap into a tightly packed RGBA array and closes the frame and the bitmap before returning, so the encoder does not hold them in memory.
+ * Where the output pixel (x, y) lies in the coded pixels, as a pixel index: origin + x * step_x + y * step_y.
+ */
+function source_walk(width, height, output_width, rotation, flip) {
+  const first_x = flip ? output_width - 1 : 0;
+  const direction_x = flip ? -1 : 1;
+  switch (rotation) {
+    case 0:
+      return { origin: first_x, step_x: direction_x, step_y: width };
+    case 90:
+      return { origin: (height - 1 - first_x) * width, step_x: -direction_x * width, step_y: 1 };
+    case 180:
+      return { origin: (height - 1) * width + width - 1 - first_x, step_x: -direction_x, step_y: -width };
+    default:
+      return { origin: first_x * width + width - 1, step_x: direction_x * width, step_y: -1 };
+  }
+}
+
+/**
+ * Turns the coded pixels of a VideoFrame into its displayed orientation: a clockwise rotation first, then a horizontal flip, which is the order the frame's `rotation` and `flip` describe.
+ * Without rotation and flip it returns its input, so an image without orientation costs nothing extra.
+ * @param {{ width: number, height: number, rgba: Uint8Array }} pixels
+ * @param {number} rotation
+ * @param {boolean} flip
+ * @returns {{ width: number, height: number, rgba: Uint8Array }}
+ */
+export function apply_rotation_and_flip(pixels, rotation, flip) {
+  if (!FRAME_ROTATIONS.has(rotation)) throw new Error(`unsupported frame rotation ${rotation}.`);
+  if (rotation === 0 && !flip) return pixels;
+  const { width, height } = pixels;
+  const aligned_rgba = pixels.rgba.byteOffset % 4 === 0 ? pixels.rgba : pixels.rgba.slice();
+  const source = new Uint32Array(aligned_rgba.buffer, aligned_rgba.byteOffset, width * height);
+  const swaps_axes = rotation === 90 || rotation === 270;
+  const output_width = swaps_axes ? height : width;
+  const output_height = swaps_axes ? width : height;
+  const output = new Uint32Array(width * height);
+  const { origin, step_x, step_y } = source_walk(width, height, output_width, rotation, flip);
+  for (let y = 0; y < output_height; y++) {
+    let source_index = origin + y * step_y;
+    const row_start = y * output_width;
+    for (let x = 0; x < output_width; x++) {
+      output[row_start + x] = source[source_index];
+      source_index += step_x;
+    }
+  }
+  return { width: output_width, height: output_height, rgba: new Uint8Array(output.buffer) };
+}
+
+/**
+ * Copies the pixels of the bitmap, in their displayed orientation, into a tightly packed RGBA array and closes the frame and the bitmap before returning, so the encoder does not hold them in memory.
  * @param {ImageBitmap} bitmap
  * @returns {Promise<{ width: number, height: number, rgba: Uint8Array }>}
  */
@@ -25,12 +75,14 @@ async function read_RGBA(bitmap) {
     const { offset, stride } = layouts[0];
     const row_length = width * 4;
     if (stride < row_length || offset + stride * height > buffer.length) throw new Error("unexpected pixel layout.");
-    if (stride === row_length) return { width, height, rgba: buffer.subarray(offset, offset + row_length * height) };
-    const rgba = new Uint8Array(row_length * height);
-    for (let row = 0; row < height; row++) {
-      rgba.set(buffer.subarray(offset + row * stride, offset + row * stride + row_length), row * row_length);
+    let rgba = buffer.subarray(offset, offset + row_length * height);
+    if (stride !== row_length) {
+      rgba = new Uint8Array(row_length * height);
+      for (let row = 0; row < height; row++) {
+        rgba.set(buffer.subarray(offset + row * stride, offset + row * stride + row_length), row * row_length);
+      }
     }
-    return { width, height, rgba };
+    return apply_rotation_and_flip({ width, height, rgba }, frame.rotation ?? 0, frame.flip === true);
   } finally {
     frame?.close();
     bitmap.close();
