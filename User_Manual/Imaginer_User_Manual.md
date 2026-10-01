@@ -178,7 +178,7 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Importing Images
 
-**Drag and drop image files** from your computer into the gallery area, or click 📂 in the menu bar and choose them in your system's file dialog. PNG, JPEG and WebP are accepted, at any size and in any number. When you import more than 100 images at once, Imaginer asks first. A problem concerns only its file: the others are still imported, and one dialog afterwards lists the files that were not, with the reason.
+**Drag and drop image files** from your computer into the gallery area, or click 📂 in the menu bar and choose them in your system's file dialog. PNG, JPEG and WebP are accepted, and the gallery sets no limit on their size or number. When you import more than 100 images at once, Imaginer asks first. A problem concerns only its file, for example a JPEG too large for your browser to convert: the others are still imported, and one dialog afterwards lists the files that were not, with the reason.
 
 Every imported image is stored as a PNG without metadata: a JPEG or WebP is converted to the picture your browser shows, a PNG keeps its pixels, and camera data such as the location is removed. An animated PNG keeps only its first image, and a PNG whose orientation is stored as metadata loses that orientation.
 
@@ -261,7 +261,7 @@ Masks save automatically when you close the Viewer. Gallery thumbnails with mask
 
 **Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery. Only the picture itself reaches OpenAI: every image and the mask are sent as bare pixels under neutral names, whatever the file in your gallery carries. A gallery image that is still a JPEG or WebP is converted for the request without changing the gallery; if its PNG would exceed the size limit for editing, the request is refused with the size named.
 
-The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Image files dragged from your computer into this area must be a common image format, under a certain size and count (see the Technical Manual for exact figures). They are converted to PNG like gallery imports; the drop area shows **Converting…** meanwhile, and **Generate** waits until it is done. Too many files at once are refused before anything happens; every other problem concerns only its file, and one dialog lists the files that were not added, with the reason. A photo so large that its PNG exceeds the size limit for editing is refused here with its size named; it can still be imported into the gallery.
+The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Images dragged into this area, from your computer or from the gallery, must be a common image format, under a certain size and count (see the Technical Manual for exact figures). Image files from your computer are converted to PNG like gallery imports; the drop area shows **Converting…** meanwhile, and **Generate** waits until it is done. Too many files at once are refused before anything happens; every other problem concerns only its file, and one dialog lists the files that were not added, with the reason. An image above the size limit for editing is refused here with its size named, whether it comes from your computer or from the gallery. The gallery has no such limit, so it can still hold the image; it just cannot be edited.
 
 **For precise edits**, create a mask in the Viewer (see **The Viewer → Mask Mode**), then drag that masked image to the drop area. Only masked areas will be modified.
 
@@ -521,7 +521,7 @@ Menu Bar → **Import** (📂) opens your system's file dialog to import images 
 ### Image Metadata
 
 #### Reading metadata from imported images
-- When you drop an image into the gallery, Imaginer reads any embedded prompt from PNG, JPEG, or WebP metadata.
+- When you import an image into the gallery, by drop or with the 📂 button, Imaginer reads any embedded prompt from PNG, JPEG, or WebP metadata.
 - The prompt is read *before* conversion, so importing a JPEG or WebP still recovers its prompt even though the stored copy becomes a PNG.
 - If a prompt is found, the 💬 button appears on the thumbnail to load it into the prompt box.
 

@@ -15,7 +15,7 @@
 
 ### Browser Issues
 - Imaginer is web-only. Clearing browser data deletes images, masks, prompts, and your API key.
-- The gallery accepts PNG, JPEG and WebP at any size and in any number, and asks first above 100 images. The edit drop area holds OpenAI's limits: at most 16 images of up to 50 MB each, and too many at once are refused. Any other invalid file is listed afterwards, and the rest are imported.
+- The gallery accepts PNG, JPEG and WebP and sets no limit on their size or number; it asks first above 100 images. The edit drop area holds OpenAI's limits: at most 16 images of up to 50 MB each, and too many at once are refused. Any other invalid file is listed afterwards, and the rest are imported.
 - WebGL is required for the intro and viewer.
 
 ## Frequently Asked Questions

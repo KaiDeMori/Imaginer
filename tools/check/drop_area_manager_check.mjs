@@ -99,6 +99,17 @@ const good_mask = new File([encoder.encode("mask bytes")], "mask.png", { type: "
   check(drop_area_manager.get_images().length === count_before, "a refused entry is not added");
 }
 
+{
+  const count_before = drop_area_manager.get_images().length;
+  const free_slots = MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST - count_before;
+  const batch = (size) => Array.from({ length: size }, (unused, index) => ({ image: png_blob, mask: null, uuid: null, label: `image_${index + 1}.png` }));
+  const refused = await drop_area_manager.try_add_images(batch(free_slots + 1));
+  check(refused.ok === false && refused.error.includes(`maximum of ${MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST}`), "the input area refuses a batch that would exceed the edit request's image count");
+  check(drop_area_manager.get_images().length === count_before, "a refused batch adds none of its images");
+  const accepted = await drop_area_manager.try_add_images(batch(free_slots));
+  check(accepted.ok === true && drop_area_manager.get_images().length === MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST, "the input area takes images up to the edit request's image count");
+}
+
 if (failures.length > 0) {
   console.log("check failed: drop_area_manager");
   for (const failure of failures) {
