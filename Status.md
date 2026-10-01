@@ -4,10 +4,11 @@
 
 ## Where we are right now
 
-- [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘 is built: every code step (1, 2, 3, 5, 6, 7 and 8), and the user's manual tests pass. Step 7's mask test is recorded in the planning file: the mask reaches OpenAI intact, and the models follow it unreliably.
+- [Rock-solid metadata](Tasks/Rock_solid_metadata.md) 🤘 is built: all nine steps. The user's manual tests pass. Step 7's mask test is recorded in the planning file: the mask reaches OpenAI intact, and the models follow it unreliably.
+- Step 9, "Orientation in Chromium", came out of round 2 of the browser tests: Chromium's `VideoFrame` carries the EXIF orientation in `rotation` and `flip`, and `read_RGBA` now applies both. The lost colour precision of semi-transparent pixels in Chromium is accepted.
+- Browser tests (step 4) are done. Round 2 passed in Firefox 144 (Standard and Strict tracking protection) and, after step 9, in Chromium 148. Raw results are in `tools/browser_tests/results/`, the summary is in `misc/metadata_research.md`, section "Local browser test results".
 - Terms and rules: [misc/metadata_terms.md](misc/metadata_terms.md), the reference for metadata in Imaginer; every decision of the task is in the planning file's steps.
 - Web research: [misc/metadata_research.md](misc/metadata_research.md). Gap analysis: [misc/metadata_gap_analysis.md](misc/metadata_gap_analysis.md).
-- Browser tests (step 4): round 1 ran in Firefox 144 (normal window and Strict) and Chromium 148. Raw results are in `tools/browser_tests/results/`, the summary is in `misc/metadata_research.md`, section "Local browser test results". The round 2 page waits for the user's runs.
 - The check `bash tools/check/check.sh` passes on today's code. It is the gate for every code step and runs the Node specifications in `tools/check/`.
 - Releases: 1.13 is complete in git, its version message included, and is never uploaded, by the user's decision. The next release is 1.14: everything new since 1.12, plus the gallery import button.
 - Drafts: `Tasks/Draft_Collection.md`.
@@ -18,9 +19,8 @@
 
 ## Open threads (not blocking)
 
-- Before the release of 1.14:
-  - Round 2 of the browser tests (step 4, section Manual test): the user runs the page in Firefox (normal window and Strict) and in Chromium, and the lead agent writes the summary into `misc/metadata_research.md`. Its results may still change `convert_to_PNG`.
-  - `version.json` and the 1.14 version message, written together. The message covers everything new since 1.12: the note on the one-time conversion that step 6 calls for, and that Mask Mode now sends its mask (the released 1.12 never sends it). The About dialog lists every history entry; decide whether the history keeps 1.13.
+- Before the release of 1.14: `version.json` and the 1.14 version message, written together. The message covers everything new since 1.12: the note on the one-time conversion that step 6 calls for, and that Mask Mode now sends its mask (the released 1.12 never sends it). The About dialog lists every history entry; decide whether the history keeps 1.13.
+- A repeatable test for the app's import path is still to be found; a photo dropped by hand is a check, not a test. One gap it should close: the app with step 9 is unmeasured in Firefox. Firefox's pixels are already upright; if Firefox ever reported a `rotation` other than 0, the transform would turn the image a second time.
 - The User Manual's Mask Mode section says "Only masked areas will be modified." A note on the models' unreliable mask adherence waits for more data.
 - Leftovers of unknown purpose in `assets/`: `assets/old/` and the gitignored `assets/conversion_stuff/`.
 - With a mini model selected, images in the input area are ignored without a word.
