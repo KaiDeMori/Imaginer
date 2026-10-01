@@ -405,16 +405,17 @@ async function run_all_tests() {
    await run_canvas_tests();
    await run_timing_test(4000, 3000);
    copy_button.disabled = false;
-   status_line.textContent = "Done. Choose the window mode, then copy the results.";
+   status_line.textContent = "Done. Copy the results.";
 }
 
-window_mode_select.addEventListener("change", update_summary);
+window_mode_select.addEventListener("change", () => {
+   if (!window_mode_select.value) return;
+   window_mode_select.disabled = true;
+   update_summary();
+   run_all_tests();
+});
 
 copy_button.addEventListener("click", async () => {
-   if (!window_mode_select.value) {
-      status_line.textContent = "Choose the window mode first.";
-      return;
-   }
    try {
       await navigator.clipboard.writeText(summary_area.value);
       status_line.textContent = "Results copied.";
@@ -430,5 +431,3 @@ document.querySelector("#run-heavy-test").addEventListener("click", async (event
    status_line.textContent = "Done.";
    event.target.disabled = false;
 });
-
-run_all_tests();

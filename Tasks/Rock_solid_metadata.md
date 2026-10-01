@@ -182,7 +182,7 @@ Local browser tests settle the conversion of JPEG and WebP: decoding, orientatio
 
 #### Manual test
 
-- Serve the repository as the README describes, open `/tools/browser_tests/conversion_tests.html` in Firefox in a normal window, wait for "Done", choose the window mode, click Copy results, and paste the text into `tools/browser_tests/results/firefox_<version>_normal_window_round_2.md` under a heading line as in round 1.
+- Serve the repository as the README describes, open `/tools/browser_tests/conversion_tests.html` in Firefox in a normal window, choose the window mode, which starts the tests, wait for "Done", click Copy results, and paste the text into `tools/browser_tests/results/firefox_<version>_normal_window_round_2.md` under a heading line as in round 1.
 - Repeat with Strict tracking protection in Firefox, and in a normal window in Chromium.
 - Expected: every Support row ✓; every "own PNG round trip" row ✓; every "two candidate decodes are identical" row ✓; every Orientation row ✓; the Timing row ✓ with a total near the round 1 total. The "against <img>" rows are information; in Strict they may show small differences from the canvas readback of `<img>`.
 
