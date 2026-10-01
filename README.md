@@ -9,7 +9,7 @@ There is no server, no build step, and no account besides your own OpenAI API ke
 Images, prompts, masks, settings, and the API key stay in your browser storage.
 The only network traffic goes to the OpenAI API.
 
-![Imaginer main window with three generated images in the gallery and a prompt in the prompt panel](assets/Imaginer_Screenshot.png)
+![Imaginer main window with one generated image in the gallery and a prompt in the prompt panel](screenshots/Imaginer_screenshot.png)
 
 ## Features
 
