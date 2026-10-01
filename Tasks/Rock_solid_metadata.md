@@ -396,5 +396,4 @@ In Chromium, the conversion of a JPEG with an EXIF orientation from 2 to 8 yield
 #### Manual test
 
 - Upload `conversion_tests.js` and `png_test_tools.js` next to the test page, open it in Chromium in a normal window, choose the window mode, wait for "Done": every Orientation row shows ✓, and the details of the candidate decode name the frame's `rotation` and `flip`. Paste the results into `tools/browser_tests/results/chromium_<version>_normal_window_after_step_9.md`.
-- In Chromium, drop a JPEG with EXIF orientation 6 into the gallery, for example a photo taken upright with a phone: the thumbnail and the viewer show it upright, and ⬇️ downloads an upright PNG.
-- In Firefox, the same JPEG imports upright, as before.
+- Result: passed in Chromium 148 on 2026-10-01; the results are in `tools/browser_tests/results/chromium_148_normal_window_after_step_9.md`.
