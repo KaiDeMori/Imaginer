@@ -15,9 +15,9 @@ Drag and drop between apps is hard for some users; the system's open dialog is t
 
 ## Steps
 
-- [ ] Constants renamed; the input area checks both limits, the gallery neither.
-- [ ] One gallery import method, with the confirmation.
-- [ ] The 📂 button in the menu bar.
-- [ ] Node checks for the limits and the threshold, run by `tools/check/check.sh`.
-- [ ] README, User Manual and Technical Manual updated.
+- [x] Constants renamed; the input area checks both limits, the gallery neither.
+- [x] One gallery import method, with the confirmation.
+- [x] The 📂 button in the menu bar.
+- [x] Node checks for the limits and the threshold, run by `tools/check/check.sh`.
+- [x] README, User Manual and Technical Manual updated.
 - [ ] Screenshots in `screenshots/` retaken.

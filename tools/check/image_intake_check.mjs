@@ -10,6 +10,7 @@ globalThis.createImageBitmap = async () => ({ close() {} });
 
 const { CONVERSION_UNSUPPORTED_MESSAGE, apply_rotation_and_flip, can_convert_images, convert_to_PNG, pixels_only_PNG } = await import("../../image_conversion.js");
 const test_page_tools = await import("../browser_tests/png_test_tools.js");
+const { MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE } = await import("../../components/image_validation.js");
 const { accept_model_output, describe_import_failures, intake_import, intake_model_output, read_import_prompt } = await import("../../image_intake.js");
 const { PROMPT_KEYWORD, XMP_KEYWORD, build_XMP_packet, read_PNG_chunks, read_PNG_prompt, write_PNG_chunks } = await import("../../PNG_chunks.js");
 
@@ -106,6 +107,17 @@ const converter_stub = async (file) => {
 {
   const result = await intake_import(png_file([IHDR, PLTE, tRNS, IDAT, IEND], "plain.png"), converter_stub);
   check(result.prompt_text === "", "intake_import of a PNG without a prompt returns the empty prompt");
+}
+
+{
+  conversions.length = 0;
+  const large_comment = { type: "tEXt", data: concat_bytes([encoder.encode("Comment\0"), new Uint8Array(MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE + 1).fill(65)]) };
+  const large_file = png_file([IHDR, large_comment, PLTE, tRNS, IDAT, IEND], "large.png");
+  check(large_file.size > MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE, "the large test file exceeds the edit request's byte limit");
+  const error = await rejection_of(() => intake_import(large_file, converter_stub));
+  check(error === null, "intake_import takes a file over the edit request's byte limit, because the gallery sets no size limit");
+  const result = error === null ? await intake_import(large_file, converter_stub) : null;
+  check(result !== null && (await chunk_types(result.image_blob)).join() === "IHDR,PLTE,tRNS,IDAT,IEND" && conversions.length === 0, "the large PNG is stripped to its pixel chunks, without conversion");
 }
 
 {

@@ -84,6 +84,19 @@ export class Menu_bar {
       });
     }
 
+    const import_button = this.root.querySelector("#import-btn");
+    const import_file_input = this.root.querySelector("#import-file-input");
+    if (import_button && import_file_input) {
+      import_button.addEventListener("click", () => import_file_input.click());
+      import_file_input.addEventListener("change", () => {
+        const files = Array.from(import_file_input.files || []);
+        // Clearing the value lets the same file be chosen again on the next click.
+        import_file_input.value = "";
+        if (files.length === 0) return;
+        window.dispatchEvent(new CustomEvent("imaginer.import_files_chosen", { detail: { files } }));
+      });
+    }
+
     const new_conv_btn = this.root.querySelector("#new-conversation-btn");
     if (new_conv_btn) {
       new_conv_btn.addEventListener("click", () => {

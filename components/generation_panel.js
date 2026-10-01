@@ -2,7 +2,7 @@
 import { versioned_url } from "../version_manager.js";
 import { sanitize_prompt_for_filename } from "../filename_helper.js";
 import { describe_import_failures, intake_import } from "../image_intake.js";
-import { MAX_IMAGE_BYTES } from "./image_validation.js";
+import { MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE } from "./image_validation.js";
 
 function png_name(name) {
   return name.replace(/\.[^.]*$/, "") + ".png";
@@ -245,10 +245,10 @@ export class Generation_panel {
                 try {
                   const { image_blob } = await intake_import(file);
                   const label = png_name(file.name);
-                  if (image_blob.size > MAX_IMAGE_BYTES) {
+                  if (image_blob.size > MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE) {
                     failures.push({
                       name: file.name,
-                      message: `"${file.name}" is ${(image_blob.size / 1048576).toFixed(1)}MB as a PNG, which exceeds the ${MAX_IMAGE_BYTES / 1048576}MB limit for editing.`,
+                      message: `"${file.name}" is ${(image_blob.size / 1048576).toFixed(1)}MB as a PNG, which exceeds the ${MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE / 1048576}MB limit for editing.`,
                     });
                   } else {
                     entries.push({ image: new File([image_blob], label, { type: "image/png" }), mask: null, uuid: null, label });

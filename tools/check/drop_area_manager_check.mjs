@@ -1,4 +1,4 @@
-// Executable specification of the entry label in components/drop_area_manager.js and the named messages in components/image_validation.js. Run from the repository root: node tools/check/drop_area_manager_check.mjs
+// Executable specification of the entry label and the edit request's limits in components/drop_area_manager.js, and of the named messages, the limits and the import confirmation threshold in components/image_validation.js. Run from the repository root: node tools/check/drop_area_manager_check.mjs
 
 const encoder = new TextEncoder();
 const undecodable_image = new Blob([encoder.encode("broken bytes")], { type: "image/png" });
@@ -15,7 +15,15 @@ globalThis.createImageBitmap = async (blob) => {
 };
 
 const { default: drop_area_manager } = await import("../../components/drop_area_manager.js");
-const { validate_image_file, validate_mask_file } = await import("../../components/image_validation.js");
+const {
+  IMPORT_COUNT_CONFIRMATION_THRESHOLD,
+  MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE,
+  MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST,
+  needs_import_confirmation,
+  validate_image_count,
+  validate_image_file,
+  validate_mask_file,
+} = await import("../../components/image_validation.js");
 
 const failures = [];
 
@@ -71,6 +79,24 @@ const good_mask = new File([encoder.encode("mask bytes")], "mask.png", { type: "
   check(named_mask.valid === false && named_mask.error.includes('"given name"'), "validate_mask_file names the image by the given name");
   const fallback_mask = await validate_mask_file(wrong_mask, png_file);
   check(fallback_mask.valid === false && fallback_mask.error.includes('"photo.png"'), "validate_mask_file falls back to the file's name");
+}
+
+{
+  check(MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST === 16, "the edit request takes at most 16 images");
+  check(MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE === 50 * 1024 * 1024, "an image of the edit request has at most 50 MB");
+  check(validate_image_count(0, 16).valid === true && validate_image_count(1, 16).valid === false, "validate_image_count holds the edit request's count");
+  const oversized = { type: "image/png", size: 60 * 1024 * 1024, name: "huge.png" };
+  check(validate_image_file(oversized).valid === true, "validate_image_file checks only the type, because the gallery sets no size limit");
+  check(IMPORT_COUNT_CONFIRMATION_THRESHOLD === 100, "the import confirmation threshold is 100 images");
+  check(needs_import_confirmation(100) === false && needs_import_confirmation(101) === true, "an import asks first only above the threshold");
+}
+
+{
+  const count_before = drop_area_manager.get_images().length;
+  const oversized = { type: "image/png", size: 60 * 1024 * 1024, name: "huge.png" };
+  const result = await drop_area_manager.try_add_images([{ image: oversized, mask: null, uuid: null, label: "huge_label.png" }]);
+  check(result.ok === false && result.error.includes('"huge_label.png"') && result.error.includes("60MB") && result.error.includes("50MB"), "the input area refuses an image over the edit request's byte limit, named by its label");
+  check(drop_area_manager.get_images().length === count_before, "a refused entry is not added");
 }
 
 if (failures.length > 0) {

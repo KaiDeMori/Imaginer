@@ -92,6 +92,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
 
 **Right side:**
 - 🗑️ **Delete Mode button**: Toggle deletion mode to remove images from gallery.
+- 📂 **Import button**: Open your system's file dialog to import images into the gallery.
 - ⚙️ **Config button**: Open configuration dialog for settings and API key management.
 - 🛈 **About button**: View app information and version.
 - ❔ **Help button**: Open this user manual in a new browser tab.
@@ -105,7 +106,7 @@ The gallery displays all your generated and imported images as a grid of thumbna
 - **Thumbnail grid**: Images shown newest first, with the most recent at the top.
 - **Click any thumbnail** to open it in the Viewer.
 - **Drag images** from the gallery to the Prompt Panel to use them as reference images for editing.
-- **Import images**: Drag-and-drop images from your computer directly into the gallery.
+- **Import images**: Drag-and-drop images from your computer directly into the gallery, or use the 📂 button in the menu bar.
 - **Empty state**: When the gallery is empty, you'll see "Drop image(s) for import".
 
 The gallery stores all images in your browser using IndexedDB. Images persist between sessions unless you clear browser data or manually delete them.
@@ -177,7 +178,7 @@ The gallery displays your images as thumbnails (newest at the top). **Click any 
 
 #### Importing Images
 
-**Drag and drop image files** from your computer into the gallery area to import them. Only common image formats are accepted, up to a certain size and count per drop (see the Technical Manual for exact figures). Too many files at once are refused before anything happens. Every other problem concerns only its file: the others are still imported, and one dialog afterwards lists the files that were not, with the reason.
+**Drag and drop image files** from your computer into the gallery area, or click 📂 in the menu bar and choose them in your system's file dialog. PNG, JPEG and WebP are accepted, at any size and in any number. When you import more than 100 images at once, Imaginer asks first. A problem concerns only its file: the others are still imported, and one dialog afterwards lists the files that were not, with the reason.
 
 Every imported image is stored as a PNG without metadata: a JPEG or WebP is converted to the picture your browser shows, a PNG keeps its pixels, and camera data such as the location is removed. An animated PNG keeps only its first image, and a PNG whose orientation is stored as metadata loses that orientation.
 
@@ -511,6 +512,9 @@ Higher preview counts provide more frequent updates but use slightly more API re
 
 #### Delete Mode
 Menu Bar → **Delete Mode** toggles whether clicks on gallery thumbnails delete images instead of opening them. See The Gallery → **Deleting Images** for how it looks and behaves.
+
+#### Import
+Menu Bar → **Import** (📂) opens your system's file dialog to import images into the gallery. See The Gallery → **Importing Images** for what happens to them.
 
 ## Advanced Features
 

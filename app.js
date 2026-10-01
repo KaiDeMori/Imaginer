@@ -13,7 +13,7 @@ import { ensure_config_defaults } from "./default_config.js";
 import { get_selected_model, clamp_quality_for_model } from "./model_fetcher.js";
 import { describe_migration_failures, find_records_to_migrate, mark_migration_done, migrate_gallery, migration_is_done, strip_option_is_on } from "./gallery_migration.js";
 import { can_convert_images, pixels_only_PNG } from "./image_conversion.js";
-import { MAX_IMAGE_BYTES } from "./components/image_validation.js";
+import { MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE } from "./components/image_validation.js";
 
 // Content-moderation level for GPT image models (hidden config, no UI): "auto"
 // (default) or "low" (less restrictive). Any other/invalid value is silently
@@ -431,8 +431,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         // Images and mask reach OpenAI as pixels only, under neutral names, whatever they are in the gallery.
         for (const [index, entry] of dropped_entries.entries()) {
           const pixels = await pixels_only_PNG(entry.image);
-          if (pixels.size > MAX_IMAGE_BYTES) {
-            throw new Error(`"${entry.label}" is ${(pixels.size / 1048576).toFixed(1)}MB as a PNG, which exceeds the ${MAX_IMAGE_BYTES / 1048576}MB limit for editing.`);
+          if (pixels.size > MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE) {
+            throw new Error(`"${entry.label}" is ${(pixels.size / 1048576).toFixed(1)}MB as a PNG, which exceeds the ${MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE / 1048576}MB limit for editing.`);
           }
           form_data.append("image[]", pixels, `image_${index + 1}.png`);
         }

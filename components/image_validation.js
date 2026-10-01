@@ -1,9 +1,10 @@
-// image_validation.js - Shared restrictions for images entering the input panel or the gallery.
-// Rules mirror the GPT image model limits for /v1/images/edits.
+// image_validation.js - Rules for images entering the input area or the gallery.
+// The limits mirror OpenAI's limits for /v1/images/edits and apply only to the edit request; the gallery sets no count or size limit, because nothing outside Imaginer demands one there.
 
-export const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
+export const MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE = 50 * 1024 * 1024;
 export const MAX_MASK_BYTES = 4 * 1024 * 1024;
-export const MAX_IMAGE_COUNT = 16;
+export const MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST = 16;
+export const IMPORT_COUNT_CONFIRMATION_THRESHOLD = 100;
 export const ALLOWED_IMAGE_TYPES = ["image/png", "image/webp", "image/jpeg"];
 
 const EXTENSION_BY_TYPE = {
@@ -25,13 +26,21 @@ export function validate_image_file(file, name = file.name) {
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
     return { valid: false, error: `"${name}" is not a supported format — use PNG, WEBP, or JPEG.` };
   }
-  if (file.size > MAX_IMAGE_BYTES) {
+  return { valid: true };
+}
+
+export function validate_edit_request_image_size(file, name = file.name) {
+  if (file.size > MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE) {
     return {
       valid: false,
-      error: `"${name}" is ${format_megabytes(file.size)}MB, which exceeds the ${format_megabytes(MAX_IMAGE_BYTES)}MB limit.`,
+      error: `"${name}" is ${format_megabytes(file.size)}MB, which exceeds the ${format_megabytes(MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE)}MB limit.`,
     };
   }
   return { valid: true };
+}
+
+export function needs_import_confirmation(image_count) {
+  return image_count > IMPORT_COUNT_CONFIRMATION_THRESHOLD;
 }
 
 export async function validate_file_readable(file, name = file.name) {
@@ -66,10 +75,10 @@ export async function validate_file_readable(file, name = file.name) {
 
 export function validate_image_count(current_count, incoming_count) {
   const total = current_count + incoming_count;
-  if (total > MAX_IMAGE_COUNT) {
+  if (total > MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST) {
     return {
       valid: false,
-      error: `Adding ${incoming_count} image(s) would bring the total to ${total}, which exceeds the maximum of ${MAX_IMAGE_COUNT}.`,
+      error: `Adding ${incoming_count} image(s) would bring the total to ${total}, which exceeds the maximum of ${MAXIMUM_IMAGE_COUNT_PER_EDIT_REQUEST}.`,
     };
   }
   return { valid: true };

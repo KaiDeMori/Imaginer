@@ -19,7 +19,7 @@ The only network traffic goes to the OpenAI API.
 - **Streaming preview**: watch partial previews while an image renders.
 - **Gallery**: thumbnails are stored in IndexedDB and persist between sessions.
 - **Viewer**: full-screen view with zoom, pan, and keyboard navigation between images.
-- **Import**: drop PNG, JPEG, or WebP files into the gallery; they are stored as clean PNGs, and embedded prompts are read from the file metadata first.
+- **Import**: drop PNG, JPEG, or WebP files into the gallery, or pick them with 📂 in the menu bar; they are stored as clean PNGs, and embedded prompts are read from the file metadata first.
 - **Export**: download single images or the whole gallery as a ZIP file. Both apply the PNG metadata options and give every file a unique name.
 - **Prompt embedding**: PNG files you download or export carry the prompt as iTXt and XMP metadata, as configured.
 - **Free resolutions**: an advanced size setting allows custom sizes up to 4K on supported models.
@@ -58,6 +58,7 @@ Browsers refuse to load ES modules from `file://` URLs, so the folder must be se
 - **Generate**: type a prompt in the prompt panel and click **Generate**, or press **Ctrl+Enter**.
 - **Edit**: drag a thumbnail from the gallery into the drop area at the bottom of the prompt panel, type the change, click **Generate**.
 - **Mask an edit**: enable Config → Generation → **Show Mask Mode Button**, open the image in the viewer, click **Mask Mode**, paint the area to change, close the viewer, then use the image for an edit.
+- **Import**: click 📂 in the menu bar and choose image files, or drop them into the gallery.
 - **Delete**: click 🗑️ in the menu bar, select thumbnails, click 🗑️ again.
 - **Download**: hover a thumbnail and click ⬇️, or use Config → Files → **Download All Images**.
 

@@ -15,7 +15,7 @@
 
 ### Browser Issues
 - Imaginer is web-only. Clearing browser data deletes images, masks, prompts, and your API key.
-- The gallery and the edit drop area both accept common image formats, up to a certain size and count per drop (see the Technical Manual for exact figures). Too many files at once are refused; any other invalid file is listed afterwards, and the rest are imported.
+- The gallery accepts PNG, JPEG and WebP at any size and in any number, and asks first above 100 images. The edit drop area holds OpenAI's limits: at most 16 images of up to 50 MB each, and too many at once are refused. Any other invalid file is listed afterwards, and the rest are imported.
 - WebGL is required for the intro and viewer.
 
 ## Frequently Asked Questions
@@ -27,7 +27,7 @@
 - **Why are Extra high and Maximum not applied with my model?** These two quality levels exist only for the `gpt-image-2.5` models. With any other model, Imaginer sends **High** for the request. Your saved quality setting stays unchanged and takes effect again when you select a `gpt-image-2.5` model.
 - **My selected model changed to `gpt-image-2.5-flare`. Why?** Disabling Config → Advanced → **Show older models** while an older model is selected switches the selection to `gpt-image-2.5-flare`. Enable the setting again to select an older model.
 - **My selected model disappeared from the list. What happened?** OpenAI retires older models over time. After Config → Account → **Refresh Image Models**, retired models are no longer listed. Pick a model from the dropdown.
-- **How can I import an external image?** Drag a supported image file into the gallery — the app tells you if the format, size, or count doesn't qualify.
+- **How can I import an external image?** Click 📂 in the menu bar and choose image files, or drag them into the gallery — the app tells you if a file can't be imported.
 - **Why won't Chrome on Linux import my images?** This is a known Linux/Chromium drag-and-drop bug — the browser reports the file as valid but can't actually read its bytes. Try Firefox instead.
 - **How can I save an image?** Hover a thumbnail and click ⬇️, or use Config → Files → **Download All Images**.
 - **How can I backup my images?** Use Config → Files → **Download All Images** for a ZIP file. The ZIP applies your PNG metadata options; for an exact copy of the stored files, turn off **Strip Server-Side metadata** and both **Embed prompt** options first.

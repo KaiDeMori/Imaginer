@@ -38,6 +38,7 @@
     "components/gallery.js",
     "components/generation_panel.js",
     "components/image_validation.js",
+    "components/import_confirm_modal.js",
     "components/jpeg_metadata_reader.js",
     "components/menu_bar/menu_bar.html",
     "components/menu_bar/menu_bar.css",

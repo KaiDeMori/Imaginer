@@ -2,7 +2,8 @@
 import { EXPORT_AS_STORED_HINT, export_filename, export_image, trigger_download } from "../image_export.js";
 import { Error_modal } from "./error_modal.js";
 import { Delete_confirm_modal } from "./delete_confirm_modal.js";
-import { validate_image_count, with_batch_hint } from "./image_validation.js";
+import { Import_confirm_modal } from "./import_confirm_modal.js";
+import { needs_import_confirmation } from "./image_validation.js";
 import { describe_import_failures, intake_import } from "../image_intake.js";
 
 export class Gallery {
@@ -56,6 +57,10 @@ export class Gallery {
           this._exit_delete_mode();
         }
       }
+    });
+
+    window.addEventListener("imaginer.import_files_chosen", (e) => {
+      this.import_files(e.detail.files);
     });
 
     // Add style for delete mode
@@ -167,38 +172,41 @@ export class Gallery {
       e.preventDefault();
       this.root.style.backgroundColor = "";
       this.root.style.borderColor = "";
-
-      const files = Array.from(e.dataTransfer.files);
-      if (files.length === 0) return;
-      const is_batch = files.length > 1;
-
-      const count_check = validate_image_count(0, files.length);
-      if (!count_check.valid) {
-        Error_modal.show(with_batch_hint(count_check.error, is_batch));
-        return;
-      }
-      const failures = [];
-      // Each file stands on its own: one that cannot be imported is reported after the batch, and the others still land in the gallery.
-      for (const file of files) {
-        try {
-          const { image_blob, prompt_text } = await intake_import(file);
-          const created = Math.floor(Date.now() / 1000);
-          const record = { created, image_blob, prompt_imgs: [] };
-          if (prompt_text) record.prompt_text = prompt_text;
-
-          let id = null;
-          if (window.database_store) {
-            id = await window.database_store.save(record);
-            this.records_by_id[id] = { id, ...record };
-          }
-
-          this.create_or_update_thumbnail(null, image_blob, prompt_text, created, id);
-        } catch (error) {
-          failures.push({ name: file.name, message: error.message || String(error) });
-        }
-      }
-      if (failures.length > 0) Error_modal.show(describe_import_failures(failures));
+      await this.import_files(Array.from(e.dataTransfer.files));
     });
+  }
+
+  /**
+   * The gallery's one import path, for drop and the 📂 button. A large batch asks first, because an accidental one is hard to clean up.
+   * @param {File[]} files
+   */
+  async import_files(files) {
+    if (files.length === 0) return;
+    if (needs_import_confirmation(files.length)) {
+      const action = await Import_confirm_modal.show(files.length);
+      if (action !== "import") return;
+    }
+    const failures = [];
+    // Each file stands on its own: one that cannot be imported is reported after the batch, and the others still land in the gallery.
+    for (const file of files) {
+      try {
+        const { image_blob, prompt_text } = await intake_import(file);
+        const created = Math.floor(Date.now() / 1000);
+        const record = { created, image_blob, prompt_imgs: [] };
+        if (prompt_text) record.prompt_text = prompt_text;
+
+        let id = null;
+        if (window.database_store) {
+          id = await window.database_store.save(record);
+          this.records_by_id[id] = { id, ...record };
+        }
+
+        this.create_or_update_thumbnail(null, image_blob, prompt_text, created, id);
+      } catch (error) {
+        failures.push({ name: file.name, message: error.message || String(error) });
+      }
+    }
+    if (failures.length > 0) Error_modal.show(describe_import_failures(failures));
   }
 
   _build_prompt_button(prompt_text, { visible = false } = {}) {
