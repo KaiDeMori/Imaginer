@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Version 1.14.0 Message</title>
+  </head>
+  <body>
+    <style>
+      body {
+        font-family: "DejaVu Sans", Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      }
+      .version_message_content {
+        font-size: 1em;
+        line-height: 1.6;
+        color: #333;
+      }
+      .octopus_showcase {
+        position: relative;
+        overflow: hidden;
+        margin: 1.2em 0;
+        padding: 1.2em 1em 1.4em;
+        background: radial-gradient(circle at top, #f6edff 0%, #e8f3ff 55%, #e3fbff 100%);
+        border-radius: 14px;
+        box-shadow:
+          inset 0 0 24px rgba(255, 255, 255, 0.9),
+          0 6px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid #fff;
+        text-align: center;
+      }
+      /* The bubbles come first in the card; everything else is positioned so that it paints above them. */
+      .octopus_showcase > :not(.octopus_bubble) {
+        position: relative;
+      }
+      .octopus_showcase_intro {
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #888;
+      }
+      .octopus_image {
+        display: block;
+        width: 170px;
+        height: 170px;
+        margin: 0.4em auto 0;
+        animation: octopus_sway 3s ease-in-out infinite;
+      }
+      .import_heading {
+        margin-top: 0.2em;
+        font-size: 2.2em;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+      .import_word {
+        display: inline-block;
+        background-image: linear-gradient(135deg, #8b5cf6 0%, #ec4899 35%, #f59e0b 65%, #8b5cf6 100%);
+        background-size: 300% auto;
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        animation: import_shimmer 5s linear infinite;
+      }
+      .octopus_tagline {
+        margin-top: 0.5em;
+        color: #555;
+      }
+      .octopus_small_print {
+        margin-top: 0.6em;
+        font-size: 0.8em;
+        color: #888;
+      }
+      .octopus_bubble {
+        position: absolute;
+        bottom: -16px;
+        left: var(--bubble_left);
+        width: var(--bubble_size);
+        height: var(--bubble_size);
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #fff 0%, rgba(186, 230, 253, 0.5) 70%);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        opacity: 0;
+        animation: bubble_rise 7s ease-in infinite;
+        animation-delay: var(--bubble_delay);
+      }
+      @keyframes octopus_sway {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-3deg);
+        }
+        50% {
+          transform: translateY(-8px) rotate(3deg);
+        }
+      }
+      @keyframes import_shimmer {
+        0% {
+          background-position: 0% 50%;
+        }
+        100% {
+          background-position: 300% 50%;
+        }
+      }
+      @keyframes bubble_rise {
+        0% {
+          bottom: -16px;
+          opacity: 0;
+        }
+        15% {
+          opacity: 0.9;
+        }
+        85% {
+          opacity: 0.6;
+        }
+        100% {
+          bottom: 100%;
+          opacity: 0;
+        }
+      }
+      .feature_list {
+        margin: 1em 0;
+        padding-left: 1.5em;
+      }
+      .feature_list li {
+        margin: 0.6em 0;
+      }
+      .emoji_icon {
+        font-size: 1.2em;
+        margin-right: 0.3em;
+      }
+      .conversion_hint {
+        margin: 1em 0;
+        padding: 0.8em 1em;
+        border-radius: 8px;
+        background: #eef6ff;
+        color: #174b7a;
+        font-size: 0.92em;
+      }
+      .subtle_note {
+        font-size: 0.8em;
+        color: #999;
+        text-align: center;
+        margin-top: 1.5em;
+        padding-top: 0.8em;
+        border-top: 1px dashed #eee;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .octopus_image,
+        .import_word,
+        .octopus_bubble {
+          animation: none;
+        }
+      }
+    </style>
+    <div class="version_message_content">
+      <h2>🐙 Imaginer 1.14 — The octopus learned a new trick</h2>
+
+      <div class="octopus_showcase">
+        <span class="octopus_bubble" style="--bubble_left: 8%; --bubble_size: 10px; --bubble_delay: 0s"></span>
+        <span class="octopus_bubble" style="--bubble_left: 22%; --bubble_size: 6px; --bubble_delay: 2.5s"></span>
+        <span class="octopus_bubble" style="--bubble_left: 37%; --bubble_size: 12px; --bubble_delay: 4.6s"></span>
+        <span class="octopus_bubble" style="--bubble_left: 63%; --bubble_size: 8px; --bubble_delay: 1.2s"></span>
+        <span class="octopus_bubble" style="--bubble_left: 79%; --bubble_size: 14px; --bubble_delay: 3.4s"></span>
+        <span class="octopus_bubble" style="--bubble_left: 91%; --bubble_size: 7px; --bubble_delay: 5.7s"></span>
+
+        <div class="octopus_showcase_intro">New in the menu bar</div>
+        <img class="octopus_image" data-asset_path="assets/download/Zipping_Octopus.webp" alt="" />
+        <div class="import_heading">📂 <span class="import_word" title="The most import🐜 word of this update">Import</span></div>
+        <div class="octopus_tagline">Meet our octopus! It packs your pictures when you download them all. Now it brings pictures in, too.</div>
+        <div class="octopus_tagline"><strong>Click 📂, pick your pictures, done.</strong> Drag and drop still works.</div>
+        <div class="octopus_small_print">More than 100 pictures at once? The octopus asks first. Even eight arms have their limits.</div>
+      </div>
+
+      <ul class="feature_list">
+        <li><span class="emoji_icon">🪟</span><strong>Transparent backgrounds</strong> — the new Background dropdown sits in the menu bar. Pick Transparent, and your picture comes without a background, like a sticker.</li>
+        <li><span class="emoji_icon">🎒</span><strong>Download All Images keeps every picture</strong> — each one gets its own name, even twins from the same prompt.</li>
+        <li><span class="emoji_icon">🪶</span><strong>Pictures travel light</strong> — imported pictures drop their camera data, such as the location. Edits send OpenAI only the picture, without its file name.</li>
+        <li><span class="emoji_icon">🖌️</span><strong>Your mask now really reaches OpenAI</strong> — the models still like to paint outside the lines. 🙈</li>
+      </ul>
+
+      <div class="conversion_hint">
+        🧹 <strong>One question for older galleries</strong> — Imaginer now keeps every picture as a clean PNG. If your gallery holds older pictures, it offers to convert them right after this message. Your pictures and prompts stay. Want an exact copy first? The dialog tells you how.
+      </div>
+
+      <div class="subtle_note">Eight arms, one new button. ✨</div>
+    </div>
+    <script type="module">
+      (function () {
+        // The card is injected into the app page during an update and opened standalone from the About dialog.
+        // The assets live one level up from the standalone card and next to the app page.
+        const is_in_modal = !!document.querySelector(".version_message_modal");
+        const root_path = is_in_modal ? "" : "../";
+        for (const image of document.querySelectorAll("img[data-asset_path]")) {
+          image.src = root_path + image.dataset.asset_path;
+        }
+      })();
+    </script>
+  </body>
+</html>
