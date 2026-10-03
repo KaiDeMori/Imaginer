@@ -37,3 +37,20 @@ The intro was restarted by removing all stored site data in the Firefox dev tool
 Everything else worked perfectly, including the infinity zoom and the final transition.
 Only the sound was missing.
 A console log of that run was saved; its location still needs to be found.
+
+## Timestamp in the exported file
+
+Export could write the timestamp of the gallery record (`created`) into the exported file.
+An import could then restore it from a renamed file or from a single file.
+Candidates: `xmp:CreateDate` in the XMP form, EXIF `DateTimeOriginal` in an `eXIf` chunk, the PNG text keyword `Creation Time`.
+`tIME` does not fit: it means the last modification.
+This extends Imaginer metadata, which today is the prompt only (see `misc/metadata_terms.md`).
+The ZIP import does not need it: it reads the timestamp from the filename.
+
+## Wording of the migration dialog
+
+The confirmation dialog of the one-time migration (`components/migration_confirm_modal.js`) reads as a list of losses.
+Its only instruction is "choose Later".
+It does not say what Later costs: a gallery file that stays a JPEG or WebP does not leave a ZIP export with any metadata checkbox on.
+Escape and a click outside also count as Later.
+Goal: the dialog makes clear that converting is the way forward.
