@@ -36,13 +36,13 @@ const large_comment = { type: "tEXt", data: new Uint8Array(MAXIMUM_BYTES_PER_EDI
 const large_png = write_PNG_chunks([...small_chunks.slice(0, -1), large_comment, small_chunks[small_chunks.length - 1]]);
 const png_files = (count) => Array.from({ length: count }, (unused, index) => new File([small_png], `image_${index + 1}.png`, { type: "image/png" }));
 
+// The import path runs on the real prototype, so that import_files reaches the methods it is split into; only the thumbnail needs the DOM and is replaced.
 function fake_gallery() {
-  const gallery = {
-    records_by_id: {},
-    thumbnails: [],
-    create_or_update_thumbnail(container, blob, prompt_text, created, id) {
-      gallery.thumbnails.push({ blob, id });
-    },
+  const gallery = Object.create(Gallery.prototype);
+  gallery.records_by_id = {};
+  gallery.thumbnails = [];
+  gallery.create_or_update_thumbnail = (container, blob, prompt_text, created, id) => {
+    gallery.thumbnails.push({ blob, id });
   };
   return gallery;
 }
@@ -109,7 +109,7 @@ async function run_import(files, answer) {
   const listener = dispatched.length === 1 ? new RegExp(`addEventListener\\("${dispatched[0].replaceAll(".", "\\.")}",\\s*\\(e\\)\\s*=>\\s*\\{\\s*this\\.import_files\\(e\\.detail\\.files\\)`) : null;
   check(listener !== null && listener.test(gallery_source), "the gallery listens to that event and hands its files to import_files");
   check(/import_button\.addEventListener\("click",\s*\(\)\s*=>\s*import_file_input\.click\(\)\)/.test(menu_bar_source), "a click on the 📂 button opens the file dialog");
-  check(/<input id="import-file-input" type="file" accept="image\/png,image\/jpeg,image\/webp" multiple hidden \/>/.test(menu_bar_html), "the file dialog offers PNG, JPEG and WebP and takes several files");
+  check(/<input id="import-file-input" type="file" accept="image\/png,image\/jpeg,image\/webp,\.zip" multiple hidden \/>/.test(menu_bar_html), "the file dialog offers PNG, JPEG, WebP and ZIP files and takes several files");
 }
 
 if (failures.length > 0) {

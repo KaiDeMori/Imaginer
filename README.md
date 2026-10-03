@@ -19,7 +19,7 @@ The only network traffic goes to the OpenAI API.
 - **Streaming preview**: watch partial previews while an image renders.
 - **Gallery**: thumbnails are stored in IndexedDB and persist between sessions.
 - **Viewer**: full-screen view with zoom, pan, and keyboard navigation between images.
-- **Import**: drop PNG, JPEG, or WebP files into the gallery, or pick them with 📂 in the menu bar; they are stored as clean PNGs, and embedded prompts are read from the file metadata first.
+- **Import**: drop PNG, JPEG, or WebP files into the gallery, or pick them with 📂 in the menu bar; they are stored as clean PNGs, and embedded prompts are read from the file metadata first. A ZIP file from the export restores its pictures in their order, with their prompts and timestamps.
 - **Export**: download single images or the whole gallery as a ZIP file. Both apply the PNG metadata options and give every file a unique name.
 - **Prompt embedding**: PNG files you download or export carry the prompt as iTXt and XMP metadata, as configured.
 - **Free resolutions**: an advanced size setting allows custom sizes up to 4K on supported models.
@@ -58,7 +58,7 @@ Browsers refuse to load ES modules from `file://` URLs, so the folder must be se
 - **Generate**: type a prompt in the prompt panel and click **Generate**, or press **Ctrl+Enter**.
 - **Edit**: drag a thumbnail from the gallery into the drop area at the bottom of the prompt panel, type the change, click **Generate**.
 - **Mask an edit**: enable Config → Generation → **Show Mask Mode Button**, open the image in the viewer, click **Mask Mode**, paint the area to change, close the viewer, then use the image for an edit.
-- **Import**: click 📂 in the menu bar and choose image files, or drop them into the gallery.
+- **Import**: click 📂 in the menu bar and choose image files or a ZIP file from the export, or drop them into the gallery.
 - **Delete**: click 🗑️ in the menu bar, select thumbnails, click 🗑️ again.
 - **Download**: hover a thumbnail and click ⬇️, or use Config → Files → **Download All Images**.
 
@@ -97,6 +97,7 @@ Every setting is documented in the User Manual section **Configuration & Setting
 - `storage/`: IndexedDB access.
 - `PNG_chunks.js`, `XML_entities.js`: PNG chunk operations (strip, the prompt forms, prompt reading) and XML text escaping.
 - `image_export.js`: the shared path of Download and ZIP export.
+- `ZIP_import.js`: the ZIP import, which restores an exported gallery.
 - `image_intake.js`, `image_conversion.js`: the intake of imports and model output, and the conversion of JPEG and WebP to PNG.
 - `gallery_migration.js`: the one-time conversion of gallery files stored before the intake existed.
 - `static_imports/`: vendored third-party libraries (JSZip, marked).
@@ -106,7 +107,7 @@ Every setting is documented in the User Manual section **Configuration & Setting
 
 ## Third-Party Libraries
 
-- [JSZip](https://stuk.github.io/jszip/) for the gallery export.
+- [JSZip](https://stuk.github.io/jszip/) for the gallery export and the ZIP import.
 - [marked](https://marked.js.org/) for rendering the in-app documentation.
 
 No package manager and no build tooling are required.

@@ -2,6 +2,7 @@
 import { versioned_url } from "../version_manager.js";
 import { sanitize_prompt_for_filename } from "../filename_helper.js";
 import { describe_import_failures, intake_import } from "../image_intake.js";
+import { is_ZIP_file } from "../ZIP_import.js";
 import { MAXIMUM_BYTES_PER_EDIT_REQUEST_IMAGE } from "./image_validation.js";
 
 function png_name(name) {
@@ -230,7 +231,8 @@ export class Generation_panel {
       if (files.length > 0) {
         Promise.all([import(versioned_url("./drop_area_manager.js")), import(versioned_url("./error_modal.js")), import(versioned_url("./image_validation.js"))]).then(
           async ([{ default: drop_area_manager }, { Error_modal }, { validate_image_count, with_batch_hint }]) => {
-            const count_check = validate_image_count(drop_area_manager.get_images().length, files.length);
+            // A ZIP file is not an image: it is refused below, on its own, and does not count against the edit request's limit.
+            const count_check = validate_image_count(drop_area_manager.get_images().length, files.filter((file) => !is_ZIP_file(file)).length);
             if (!count_check.valid) {
               Error_modal.show(with_batch_hint(count_check.error, files.length > 1));
               return;
@@ -242,6 +244,11 @@ export class Generation_panel {
               const failures = [];
               const entries = [];
               for (const file of files) {
+                // The gallery restores the pictures of a ZIP file; the input area takes images only.
+                if (is_ZIP_file(file)) {
+                  failures.push({ name: file.name, message: `"${file.name}" is a ZIP file. ZIP files go into the gallery: drop them there, or choose them with 📂 in the menu bar.` });
+                  continue;
+                }
                 try {
                   const { image_blob } = await intake_import(file);
                   const label = png_name(file.name);

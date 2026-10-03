@@ -92,7 +92,7 @@ The menu bar spans the top of the screen and contains all your controls and sett
 
 **Right side:**
 - 🗑️ **Delete Mode button**: Toggle deletion mode to remove images from gallery.
-- 📂 **Import button**: Open your system's file dialog to import images into the gallery.
+- 📂 **Import button**: Open your system's file dialog to import images, or a ZIP file from **Download All Images**, into the gallery.
 - ⚙️ **Config button**: Open configuration dialog for settings and API key management.
 - 🛈 **About button**: View app information and version.
 - ❔ **Help button**: Open this user manual in a new browser tab.
@@ -106,7 +106,7 @@ The gallery displays all your generated and imported images as a grid of thumbna
 - **Thumbnail grid**: Images shown newest first, with the most recent at the top.
 - **Click any thumbnail** to open it in the Viewer.
 - **Drag images** from the gallery to the Prompt Panel to use them as reference images for editing.
-- **Import images**: Drag-and-drop images from your computer directly into the gallery, or use the 📂 button in the menu bar.
+- **Import images**: Drag-and-drop images from your computer directly into the gallery, or use the 📂 button in the menu bar. A ZIP file from **Download All Images** brings its pictures back.
 - **Empty state**: When the gallery is empty, you'll see "Drop image(s) for import".
 
 The gallery stores all images in your browser using IndexedDB. Images persist between sessions unless you clear browser data or manually delete them.
@@ -184,6 +184,12 @@ Every imported image is stored as a PNG without metadata: a JPEG or WebP is conv
 
 Embedded prompts are detected automatically from PNG, JPEG, and WebP metadata before the conversion, so an imported image keeps its 💬 prompt.
 
+#### Importing a ZIP File
+
+A ZIP file from Config → Files → **Download All Images** is imported the same way: drop it into the gallery, or choose it with 📂. Its pictures come back in the order they had in the gallery, with their prompts and timestamps, which Imaginer reads from the filenames inside the ZIP. A picture whose timestamp cannot be read gets the time of the import. Every picture passes the same steps as a loose image file.
+
+When a ZIP holds more than 100 pictures, Imaginer asks first, once per ZIP file. Files in the ZIP that are not pictures are skipped and counted in the dialog afterwards; a picture that Imaginer could not understand is listed there by name. A ZIP imported into a gallery that already holds its pictures adds them again. The drop area of the Prompt Panel does not take ZIP files.
+
 #### Deleting Images
 
 1. Click the 🗑️ button in the menu bar to enable delete mode (the button turns red).
@@ -260,7 +266,7 @@ Masks save automatically when you close the Viewer. Gallery thumbnails with mask
 
 **Drag thumbnails from the gallery or image files from your computer** to the drop area at the bottom of the Prompt Panel to edit them. Write a prompt describing your changes and click **Generate**. The edited image appears in the gallery. Only the picture itself reaches OpenAI: every image and the mask are sent as bare pixels under neutral names, whatever the file in your gallery carries. A gallery image that is still a JPEG or WebP is converted for the request without changing the gallery; if its PNG would exceed the size limit for editing, the request is refused with the size named.
 
-The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Images dragged into this area, from your computer or from the gallery, must be a common image format, under a certain size and count (see the Technical Manual for exact figures). Image files from your computer are converted to PNG like gallery imports; the drop area shows **Converting…** meanwhile, and **Generate** waits until it is done. Too many files at once are refused before anything happens; every other problem concerns only its file, and one dialog lists the files that were not added, with the reason. An image above the size limit for editing is refused here with its size named, whether it comes from your computer or from the gallery. The gallery has no such limit, so it can still hold the image; it just cannot be edited.
+The drop area highlights in blue when you drag over it. **Click thumbnails in the drop area** to remove them. Images dragged into this area, from your computer or from the gallery, must be a common image format, under a certain size and count (see the Technical Manual for exact figures). Image files from your computer are converted to PNG like gallery imports; the drop area shows **Converting…** meanwhile, and **Generate** waits until it is done. Too many files at once are refused before anything happens; every other problem concerns only its file, and one dialog lists the files that were not added, with the reason. An image above the size limit for editing is refused here with its size named, whether it comes from your computer or from the gallery. The gallery has no such limit, so it can still hold the image; it just cannot be edited. A ZIP file is refused here as well, with a hint to the gallery, which brings its pictures back (see The Gallery → **Importing a ZIP File**).
 
 **For precise edits**, create a mask in the Viewer (see **The Viewer → Mask Mode**), then drag that masked image to the drop area. Only masked areas will be modified.
 
@@ -474,6 +480,8 @@ Config → Files → **Download All Images** bundles every stored image (generat
 
 Each file leaves exactly as a single ⬇️ download would: the PNG metadata options apply to every PNG, with the settings you last saved with **OK**. A gallery file that is still a JPEG or WebP, because the conversion of older galleries was postponed or failed for it, is left out and listed like any file that cannot be processed, unless the three options are off; then it leaves as stored. A file that cannot be processed is left out and stays in your gallery; after the download, the dialog lists it with the reason and how to export it as stored.
 
+The ZIP is your backup: imported into the gallery, it brings the pictures back in their order, with their prompts and timestamps (see The Gallery → **Importing a ZIP File**).
+
 #### Delete Gallery
 
 Config → Files → **Delete Gallery** wipes all stored images. The first click highlights **Download All Images** as a warning. The second click asks you to type `YES`. Confirming clears the gallery database and reloads the app. This cannot be undone — export first if needed.
@@ -513,7 +521,7 @@ Higher preview counts provide more frequent updates but use slightly more API re
 Menu Bar → **Delete Mode** toggles whether clicks on gallery thumbnails delete images instead of opening them. See The Gallery → **Deleting Images** for how it looks and behaves.
 
 #### Import
-Menu Bar → **Import** (📂) opens your system's file dialog to import images into the gallery. See The Gallery → **Importing Images** for what happens to them.
+Menu Bar → **Import** (📂) opens your system's file dialog to import images, or a ZIP file from **Download All Images**, into the gallery. See The Gallery → **Importing Images** and **Importing a ZIP File** for what happens to them.
 
 ## Advanced Features
 

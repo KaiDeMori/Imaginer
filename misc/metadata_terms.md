@@ -24,6 +24,7 @@ The reference for metadata in Imaginer, written for [Rock-solid metadata](../Tas
   - **Gallery door**: Import to Gallery, model output. The image becomes a gallery file.
   - **Input area door**: Import to input area. The image stays in memory only.
 - **Import to Gallery**: a local file is added to the gallery.
+- **ZIP import**: Import to Gallery of a ZIP file from ZIP export. Every picture in it passes the gallery door like a loose file.
 - **Import to input area**: a local file is added to the input area.
 - **Gallery → input area**: a gallery file is dragged onto the input area. In-app; no intake.
 - **Export**: images leave Imaginer as files for the user: Download, ZIP export.
@@ -63,6 +64,7 @@ The reference for metadata in Imaginer, written for [Rock-solid metadata](../Tas
 - **Input area door**: the same rules, in memory only. The image never becomes a gallery file; it can only be removed from the input area. A converted image larger than the edit request's limit is refused at this door, with the size named.
 - **Errors**: a file to which the rules cannot be applied is not imported, and the user is told why. At the input area door, a batch that would exceed the edit request's image count is refused before any work; the gallery door takes any number of files and asks first when a batch is large. Every other failure concerns only its file. Model output is the exception: a paid generation is never thrown away, so when strip fails the image is stored as OpenAI returned it and the user is told that it may carry OpenAI's metadata. Export then treats it like any file to which the rules cannot be applied.
 - What strip removes at intake is gone. That is privacy.
+- **ZIP import**: the pictures pass the gallery door one by one, under the rules above; the ZIP file carries nothing else that is read. The timestamp of the gallery record comes from the filename Export wrote, when it lies between 2025 and the time of the import; otherwise the record gets the time of the import. The input area door refuses a ZIP file.
 
 ### Export
 
@@ -70,7 +72,7 @@ Applies to Download and ZIP export.
 
 - **External metadata**: strip checkbox on → removed. Off → kept, as far as the gallery file still carries it.
 - **Imaginer metadata**: exactly the forms whose prompt checkbox is on, written from the prompt in the gallery record. Both off → none. No prompt → none.
-- **Filename**: `<prompt>_<created>_<id>.png`, from the gallery record: the prompt (sanitized and shortened), the timestamp, and the ID. The same image gets the same, unique filename in every Export.
+- **Filename**: `<prompt>_<created>_<id>.png`, from the gallery record: the prompt (sanitized and shortened), the timestamp, and the ID. The same image gets the same, unique filename in every Export. The ZIP import reads the timestamp back from it.
 - **XMP chunks**: a PNG carries one XMP packet, so writing the XMP form replaces every XMP chunk. When the XMP form is not written and strip is off, an external XMP chunk stays.
 - **Errors**: a gallery file to which the rules cannot be applied does not leave. Download shows the reason; ZIP export leaves the file out and lists it with the reason after the download. With the strip checkbox off and both prompt checkboxes off, Export changes nothing, so a PNG leaves as stored, unparsed.
 - **Gallery files that are not a PNG**: a gallery file that is still a JPEG or WebP, because the one-time migration was postponed or failed for it, leaves only with the strip checkbox and both prompt checkboxes off, as stored and with its own extension; with any of them on, it does not leave, per the rule "Errors".
@@ -88,6 +90,7 @@ Applies to Download and ZIP export.
 - Conversion passes the browser's decoder. Opaque and fully transparent pixels come out exact; semi-transparent pixels of a WebP may shift in color. A PNG never passes a decoder, so its transparency stays exact.
 - An import carries no external metadata into Imaginer, whatever the config says.
 - Gallery files carry no Imaginer metadata, so an Export cannot produce leftovers or duplicates.
+- A ZIP export restores through the ZIP import with its order, prompts and timestamps, because the filename carries the timestamp and the ID, and the file carries the prompt forms, as long as the prompt checkboxes were on at Export.
 - The strip whitelist carries the pixels of every PNG layout. With strip on, an animated PNG becomes its default image, and a PNG whose orientation comes from an `eXIf` chunk loses it.
 - With the strip checkbox off, model output keeps OpenAI's provenance data (C2PA). An Export that writes a prompt form changes the file and probably invalidates it. Not verified; the user is responsible for their config.
 - A mask is stored as the canvas produced it, a chunk such as Firefox's `deBG` included, and reduced to its pixel chunks at the edit request; it never leaves the app any other way.

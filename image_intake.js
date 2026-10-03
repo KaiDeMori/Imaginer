@@ -9,6 +9,9 @@ import { validate_file_readable, validate_image_file } from "./components/image_
 /** @typedef {{ image_blob: Blob, prompt_text: string }} Intake_result */
 /** @typedef {{ name: string, message: string }} Intake_failure */
 
+// The name of the error intake throws when the browser cannot read a file as an image. Its message diagnoses a loose file; the ZIP import leaves the diagnosis out.
+export const UNREADABLE_IMAGE_ERROR_NAME = "Unreadable_image_error";
+
 async function read_or_empty(reader, file) {
   try {
     return (await reader(file)) || "";
@@ -38,7 +41,7 @@ export async function intake_import(file, convert = convert_to_PNG) {
   const type_check = validate_image_file(file);
   if (!type_check.valid) throw new Error(type_check.error);
   const readable_check = await validate_file_readable(file);
-  if (!readable_check.valid) throw new Error(readable_check.error);
+  if (!readable_check.valid) throw Object.assign(new Error(readable_check.error), { name: UNREADABLE_IMAGE_ERROR_NAME });
   const bytes = new Uint8Array(await file.arrayBuffer());
   // The prompt is read before the conversion, because the conversion drops every metadata.
   const prompt_text = await read_import_prompt(file, bytes);

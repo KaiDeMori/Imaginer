@@ -1,9 +1,10 @@
 // import_confirm_modal.js – Modal dialog that asks before a large import into the gallery
 // Usage:
 //   const action = await Import_confirm_modal.show(count); // "import" | "cancel"
+//   const action = await Import_confirm_modal.show(count, zip_name); // the same question for the pictures of one ZIP file
 
 export class Import_confirm_modal {
-  static show(count) {
+  static show(count, zip_name = null) {
     Import_confirm_modal.close();
 
     const overlay = document.createElement("div");
@@ -32,7 +33,7 @@ export class Import_confirm_modal {
     });
 
     const message = document.createElement("p");
-    message.textContent = `You picked ${count} pictures. Should all of them go into the gallery?`;
+    message.textContent = zip_name === null ? `You picked ${count} pictures. Should all of them go into the gallery?` : `"${zip_name}" holds ${count} pictures. Should all of them go into the gallery?`;
     Object.assign(message.style, {
       margin: "0 0 20px 0",
       fontSize: "1.05rem",

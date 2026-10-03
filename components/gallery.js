@@ -5,6 +5,7 @@ import { Delete_confirm_modal } from "./delete_confirm_modal.js";
 import { Import_confirm_modal } from "./import_confirm_modal.js";
 import { needs_import_confirmation } from "./image_validation.js";
 import { describe_import_failures, intake_import } from "../image_intake.js";
+import { describe_ZIP_contents, describe_ZIP_picture_failure, is_ZIP_file, open_ZIP_file, restore_created } from "../ZIP_import.js";
 
 export class Gallery {
   constructor(root, viewer, options = {}) {
@@ -177,36 +178,94 @@ export class Gallery {
   }
 
   /**
-   * The gallery's one import path, for drop and the 📂 button. A large batch asks first, because an accidental one is hard to clean up.
+   * The gallery's one import path, for drop and the 📂 button: the loose files as one batch, then every ZIP file on its own. One dialog afterwards reports what was not imported.
    * @param {File[]} files
    */
   async import_files(files) {
     if (files.length === 0) return;
+    const failures = await this.import_loose_files(files.filter((file) => !is_ZIP_file(file)));
+    const notes = [];
+    for (const zip_file of files.filter(is_ZIP_file)) {
+      const result = await this.import_ZIP_file(zip_file);
+      failures.push(...result.failures);
+      notes.push(...result.notes);
+    }
+    if (failures.length > 0) {
+      const { message, details } = describe_import_failures(failures);
+      Error_modal.show({ message, details: [details, ...notes].join("\n") });
+    } else if (notes.length > 0) {
+      Error_modal.show(notes.join(" "));
+    }
+  }
+
+  /**
+   * A large batch asks first, because an accidental one is hard to clean up.
+   * @param {File[]} files
+   * @returns {Promise<Array<{ name: string, message: string }>>} the files that were not imported, with the reason
+   */
+  async import_loose_files(files) {
+    if (files.length === 0) return [];
     if (needs_import_confirmation(files.length)) {
       const action = await Import_confirm_modal.show(files.length);
-      if (action !== "import") return;
+      if (action !== "import") return [];
     }
     const failures = [];
     // Each file stands on its own: one that cannot be imported is reported after the batch, and the others still land in the gallery.
     for (const file of files) {
       try {
-        const { image_blob, prompt_text } = await intake_import(file);
-        const created = Math.floor(Date.now() / 1000);
-        const record = { created, image_blob, prompt_imgs: [] };
-        if (prompt_text) record.prompt_text = prompt_text;
-
-        let id = null;
-        if (window.database_store) {
-          id = await window.database_store.save(record);
-          this.records_by_id[id] = { id, ...record };
-        }
-
-        this.create_or_update_thumbnail(null, image_blob, prompt_text, created, id);
+        await this.import_one_file(file, Math.floor(Date.now() / 1000));
       } catch (error) {
         failures.push({ name: file.name, message: error.message || String(error) });
       }
     }
-    if (failures.length > 0) Error_modal.show(describe_import_failures(failures));
+    return failures;
+  }
+
+  /**
+   * The pictures of a ZIP file pass intake like loose files, in the ZIP file's order, each with the timestamp its filename carries; a picture whose timestamp cannot be trusted gets the time of the import. The question above the threshold counts the pictures of this ZIP file.
+   * @param {File} zip_file
+   * @returns {Promise<{ failures: Array<{ name: string, message: string }>, notes: string[] }>}
+   */
+  async import_ZIP_file(zip_file) {
+    let contents;
+    try {
+      contents = await open_ZIP_file(zip_file);
+    } catch (error) {
+      return { failures: [{ name: zip_file.name, message: error.message || String(error) }], notes: [] };
+    }
+    if (needs_import_confirmation(contents.pictures.length)) {
+      const action = await Import_confirm_modal.show(contents.pictures.length, zip_file.name);
+      if (action !== "import") return { failures: [], notes: [] };
+    }
+    const now = Math.floor(Date.now() / 1000);
+    const failures = [];
+    for (const picture of contents.pictures) {
+      try {
+        await this.import_one_file(await picture.read(), restore_created(picture.name, now) ?? now);
+      } catch (error) {
+        failures.push({ name: picture.name, message: describe_ZIP_picture_failure(error) });
+      }
+    }
+    return { failures, notes: describe_ZIP_contents(zip_file.name, contents.pictures.length, contents.other_file_count) };
+  }
+
+  /**
+   * One file into the gallery: intake, the record, the save and the thumbnail. Throws when the file cannot be imported.
+   * @param {File} file
+   * @param {number} created
+   */
+  async import_one_file(file, created) {
+    const { image_blob, prompt_text } = await intake_import(file);
+    const record = { created, image_blob, prompt_imgs: [] };
+    if (prompt_text) record.prompt_text = prompt_text;
+
+    let id = null;
+    if (window.database_store) {
+      id = await window.database_store.save(record);
+      this.records_by_id[id] = { id, ...record };
+    }
+
+    this.create_or_update_thumbnail(null, image_blob, prompt_text, created, id);
   }
 
   _build_prompt_button(prompt_text, { visible = false } = {}) {
@@ -427,15 +486,38 @@ export class Gallery {
 
     const is_new_container = !container.parentNode;
     if (is_new_container) {
-      if (this.grid.firstChild) {
-        this.grid.insertBefore(container, this.grid.firstChild);
-      } else {
-        this.grid.appendChild(container);
-      }
+      this.insert_thumbnail(container, created, record_id);
       this.update_empty_state();
     }
 
     return container;
+  }
+
+  /**
+   * A new thumbnail takes the place its timestamp gives it, newest first, which is its place after a reload; so a restored picture lands among the others, not on top of them. Without a timestamp it goes to the top.
+   */
+  insert_thumbnail(container, created, record_id) {
+    let before = this.grid.firstChild;
+    if (created != null) {
+      before = null;
+      for (const child of this.grid.children) {
+        if (this.thumbnail_is_older(child, created, record_id)) {
+          before = child;
+          break;
+        }
+      }
+    }
+    this.grid.insertBefore(container, before);
+  }
+
+  /**
+   * The order of a reload: by timestamp, then by ID. A placeholder counts by the start of its generation, so an import during a generation stays above it, as before.
+   */
+  thumbnail_is_older(child, created, record_id) {
+    if (child.dataset.recordId == null) return child._start_time != null && child._start_time <= created;
+    const record = this.records_by_id[Number(child.dataset.recordId)];
+    if (!record || record.created == null) return false;
+    return record.created < created || (record.created === created && record.id < record_id);
   }
 
   create_placeholder(prompt_text = "", start_time = Math.floor(Date.now() / 1000)) {
