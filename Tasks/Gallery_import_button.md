@@ -20,4 +20,4 @@ Drag and drop between apps is hard for some users; the system's open dialog is t
 - [x] The 📂 button in the menu bar.
 - [x] Node checks for the limits and the threshold, run by `tools/check/check.sh`.
 - [x] README, User Manual and Technical Manual updated.
-- [ ] Screenshots in `screenshots/` retaken.
+- [x] Screenshots in `screenshots/` retaken.
