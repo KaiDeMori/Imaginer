@@ -6,6 +6,7 @@
     "app.js",
     "cache_refresh_manager.js",
     "default_config.js",
+    "surfboard.js",
     "filename_helper.js",
     "gallery_migration.js",
     "image_export.js",

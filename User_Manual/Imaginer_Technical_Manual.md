@@ -69,6 +69,14 @@
 - `Ctrl` + `D`: Toggle debug overlay (mask mode).
 - `Ctrl` + mouse wheel: Adjust brush size (mask mode).
 
+## Surfboard
+- The surfboard is what a script stands on to ride Imaginer. On `localhost` and `127.0.0.1`, `surfboard.js` adds `window.imaginer_surfboard`, so a script can drive Imaginer without a mouse:
+  - `list_records()`: every gallery picture, newest first, with its ID, creation time, the start of its prompt, and whether it has a mask.
+  - `add_to_input_area(record_id)`: puts a gallery picture into the edit drop area along the path of a real gallery drag, mask included, and resolves with the number of images in the drop area.
+  - `set_prompt(text)`: sets the prompt as typing would, so it is saved.
+- Generate stays a real click: no surfboard function sends a request to OpenAI.
+- Importing needs no surfboard function: the 📂 button's file input, `#import-file-input`, takes files directly.
+
 ## Version History
 - Version info is stored in `version.json`.
 - Release notes appear as modals on updates and are shown once per version.
