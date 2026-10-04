@@ -45,6 +45,7 @@ png metadata.md
 api_trials/
 png_exif/
 intro_trials/
+How_we_work_here.md
 
 # Ignore everything in intro/audio except webm
 !intro/audio/
