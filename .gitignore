@@ -47,6 +47,9 @@ png_exif/
 intro_trials/
 How_we_work_here.md
 
+# Ignore every folder whose name starts with __, at any depth
+__*/
+
 # Ignore everything in intro/audio except webm
 !intro/audio/
 intro/audio/*
