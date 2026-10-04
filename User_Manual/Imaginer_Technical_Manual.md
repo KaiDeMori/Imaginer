@@ -74,6 +74,9 @@
   - `list_records()`: every gallery picture, newest first, with its ID, creation time, the start of its prompt, and whether it has a mask.
   - `add_to_input_area(record_id)`: puts a gallery picture into the edit drop area along the path of a real gallery drag, mask included, and resolves with the number of images in the drop area.
   - `set_prompt(text)`: sets the prompt as typing would, so it is saved.
+  - `show_surfer_bar(message)`: shows the surfer bar, a blue bar at the top of the page with the message and a 🛑 button, so the person watching sees what the script is doing. A click on 🛑 turns it red, and it keeps the stop message until the ride is finished.
+  - `finish_surfer_bar(message)`: turns the surfer bar green with the message and clears the stop request.
+  - `is_stop_requested()`: whether someone pressed 🛑 since the last finished ride. A script checks it before every step.
 - Generate stays a real click: no surfboard function sends a request to OpenAI.
 - Importing needs no surfboard function: the 📂 button's file input, `#import-file-input`, takes files directly.
 

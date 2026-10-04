@@ -3,6 +3,12 @@
 const DROP_AREA_SELECTOR = "#input-image-drop-area";
 const WAIT_STEP_MS = 100;
 const WAIT_LIMIT_MS = 5000;
+const SURFER_BAR_ID = "surfer_bar";
+const SURFER_BAR_COLOURS = { surfing: "#0b5cad", stopped: "#b3261e", finished: "#2e7d32" };
+
+let surfer_bar_element = null;
+let surfer_bar_text = null;
+let stop_requested = false;
 
 function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -59,6 +65,69 @@ function set_prompt(text) {
   prompt_input.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
+// The surfer bar shows the person watching what the script is doing, and its 🛑 button lets them stop it before the next step.
+function ensure_surfer_bar() {
+  if (surfer_bar_element !== null) return;
+  surfer_bar_element = document.createElement("div");
+  surfer_bar_element.id = SURFER_BAR_ID;
+  Object.assign(surfer_bar_element.style, {
+    position: "fixed",
+    top: "8px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: "20000",
+    color: "#fff",
+    padding: "6px 12px",
+    borderRadius: "8px",
+    font: "600 14px system-ui, sans-serif",
+    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
+  });
+  surfer_bar_text = document.createElement("span");
+  const stop_button = document.createElement("button");
+  stop_button.textContent = "🛑";
+  stop_button.title = "Stop the surfer before the next step";
+  Object.assign(stop_button.style, { border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", padding: "2px 6px" });
+  stop_button.addEventListener("click", () => {
+    stop_requested = true;
+    surfer_bar_text.textContent = "🛑 Stop requested: the surfer stops before the next step";
+    surfer_bar_element.style.background = SURFER_BAR_COLOURS.stopped;
+  });
+  surfer_bar_element.append(surfer_bar_text, stop_button);
+  document.body.appendChild(surfer_bar_element);
+}
+
+/**
+ * Shows the surfer bar in blue with the message. After a stop request, the bar keeps the stop message until the ride is finished.
+ * @param {string} message
+ */
+function show_surfer_bar(message) {
+  ensure_surfer_bar();
+  if (stop_requested) return;
+  surfer_bar_text.textContent = message;
+  surfer_bar_element.style.background = SURFER_BAR_COLOURS.surfing;
+}
+
+/**
+ * Ends the ride: the surfer bar turns green with the message, and the stop request is cleared.
+ * @param {string} message
+ */
+function finish_surfer_bar(message) {
+  ensure_surfer_bar();
+  stop_requested = false;
+  surfer_bar_text.textContent = message;
+  surfer_bar_element.style.background = SURFER_BAR_COLOURS.finished;
+}
+
+/**
+ * Whether someone pressed 🛑 since the last finished ride. A script checks it before every step.
+ */
+function is_stop_requested() {
+  return stop_requested;
+}
+
 export function install_surfboard() {
-  window.imaginer_surfboard = { list_records, add_to_input_area, set_prompt };
+  window.imaginer_surfboard = { list_records, add_to_input_area, set_prompt, show_surfer_bar, finish_surfer_bar, is_stop_requested };
 }
