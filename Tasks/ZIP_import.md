@@ -80,3 +80,13 @@ Made while building; the wording is for the review.
 7. The ZIP file dropped into the input area: a dialog says it is a ZIP file and points to the gallery; nothing is added.
 8. A text file renamed to `.zip`: the dialog says `"<name>" could not be read as a ZIP file.`
 9. Loose images dropped together with a ZIP file: the loose images get the time of the import, the ZIP file's pictures their timestamps; one dialog afterwards, if there is anything to report.
+
+## Review
+
+Opus, 2026-10-04: the gate passes, every constraint is kept, and `tools/check/ZIP_import_check.mjs` runs 80 checks. Findings:
+
+- `Status.md` says Rock-solid metadata and the gallery import button "shipped with 1.14"; 1.14 is not uploaded yet.
+- Pictures with the same timestamp keep the ZIP file's order, not their IDs. ZIP export writes the oldest first, so this holds for its ZIP files; for a ZIP file from Imaginer 1.12, manual test 3 shows it.
+- `misc/metadata_terms.md` defines the ZIP import for a ZIP file "from ZIP export", but any ZIP file is imported. It also says the restore works because the filename carries "the timestamp and the ID", but the ID is not read.
+- A ZIP file made on a Mac carries `__MACOSX/._<name>.png` helper files. Their names end in `.png`, so they are listed as pictures Imaginer could not understand.
+- The notes about a ZIP file appear in the error dialog, under the title "Error".
