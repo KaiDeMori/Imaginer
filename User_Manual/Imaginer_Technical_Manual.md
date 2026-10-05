@@ -84,6 +84,7 @@
 - Version info is stored in `version.json`.
 - Release notes appear as modals on updates and are shown once per version.
 - Update-time and manual cache refresh use `cache_manifest.json` plus `fetch(..., { cache: "reload" })` for core JS, JSON, HTML, CSS, and selected documentation files.
+- `versioned_url` in `version_manager.js` adds `?v=<version>` to a relative URL, so a module loaded through it is fetched fresh after an update. An ES module is keyed by its full URL, so a module imported statically in one place and through `versioned_url` in another runs as two instances with separate state. State that two places share comes from one instance, like the prompt panel's snapshot that the edit request reads.
 
 ## The Intro Sequence
 - First launch shows a cinematic intro after API key entry (requires WebGL).

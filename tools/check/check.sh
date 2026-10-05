@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Gate for every code step: fails when the module graph, a name, the cache manifest, or one of the Node specifications in this folder is broken, and ignores type noise.
 # Gated codes: 1xxx syntax, 2300 duplicate identifier, 2304 and 2552 cannot find name, 2305, 2614 and 2724 missing export, 2307 cannot find module, 2451 redeclared variable, 5xxx, 6xxx and 18003 unusable configuration.
+# Needs Node 22.7 or newer: its ESM syntax detection lets the .mjs checks load the root .js modules without a package.json.
 
 set -u
 
