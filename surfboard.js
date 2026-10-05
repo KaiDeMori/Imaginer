@@ -1,4 +1,4 @@
-// Surfboard: on localhost, window.imaginer_surfboard lets a script ride Imaginer without a mouse. Every function takes the path a user takes, and Generate stays a real click, so a paid request never hides in here.
+// Surfboard: on localhost, window.imaginer_surfboard lets a script ride Imaginer without a mouse. Every function takes the path a user takes, and none sends a request to OpenAI: a paid request goes out only through Generate, by its button or Ctrl+Enter, so it never hides in here.
 
 const DROP_AREA_SELECTOR = "#input-image-drop-area";
 const WAIT_STEP_MS = 100;

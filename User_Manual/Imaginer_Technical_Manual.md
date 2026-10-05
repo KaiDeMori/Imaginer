@@ -77,7 +77,7 @@
   - `show_surfer_bar(message)`: shows the surfer bar, a blue bar at the top of the page with the message and a 🛑 button, so the person watching sees what the script is doing. A click on 🛑 turns it red, and it keeps the stop message until the ride is finished.
   - `finish_surfer_bar(message)`: turns the surfer bar green with the message and clears the stop request.
   - `is_stop_requested()`: whether someone pressed 🛑 since the last finished ride. A script checks it before every step.
-- Generate stays a real click: no surfboard function sends a request to OpenAI.
+- No surfboard function sends a request to OpenAI. A request goes out only through Generate, by its button or Ctrl+Enter, the same way a user sends it.
 - Importing needs no surfboard function: the 📂 button's file input, `#import-file-input`, takes files directly.
 
 ## Version History
