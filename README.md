@@ -98,7 +98,7 @@ Every setting is documented in the User Manual section **Configuration & Setting
 - `PNG_chunks.js`, `XML_entities.js`: PNG chunk operations (strip, the prompt forms, prompt reading) and XML text escaping.
 - `image_export.js`: the shared path of Download and ZIP export.
 - `ZIP_import.js`: the ZIP import, which restores an exported gallery.
-- `surfboard.js`: on localhost, `window.imaginer_surfboard` lets a script ride the app without a mouse.
+- `surfboard.js`: on localhost, `window.imaginer_surfboard` lets a script use the app without a mouse.
 - `image_intake.js`, `image_conversion.js`: the intake of imports and model output, and the conversion of JPEG and WebP to PNG.
 - `gallery_migration.js`: the one-time conversion of gallery files stored before the intake existed.
 - `static_imports/`: vendored third-party libraries (JSZip, marked).

@@ -1,4 +1,4 @@
-// Surfboard: on localhost, window.imaginer_surfboard lets a script ride Imaginer without a mouse. Every function takes the path a user takes, and none sends a request to OpenAI: a paid request goes out only through Generate, by its button or Ctrl+Enter, so it never hides in here.
+// Surfboard: on localhost, window.imaginer_surfboard lets a script use Imaginer without a mouse. Every function takes the path a user takes, and none sends a request to OpenAI: a paid request goes out only through Generate, by its button or Ctrl+Enter, so it never hides in here.
 
 const DROP_AREA_SELECTOR = "#input-image-drop-area";
 const WAIT_STEP_MS = 100;
@@ -100,7 +100,7 @@ function ensure_surfer_bar() {
 }
 
 /**
- * Shows the surfer bar in blue with the message. After a stop request, the bar keeps the stop message until the ride is finished.
+ * Shows the surfer bar in blue with the message. After a stop request, the bar keeps the stop message until `finish_surfer_bar` turns it green.
  * @param {string} message
  */
 function show_surfer_bar(message) {
@@ -111,7 +111,7 @@ function show_surfer_bar(message) {
 }
 
 /**
- * Ends the ride: the surfer bar turns green with the message, and the stop request is cleared.
+ * Turns the surfer bar green with the message and clears the stop request.
  * @param {string} message
  */
 function finish_surfer_bar(message) {
@@ -122,7 +122,7 @@ function finish_surfer_bar(message) {
 }
 
 /**
- * Whether someone pressed 🛑 since the last finished ride. A script checks it before every step.
+ * Returns `true` when someone pressed 🛑 since `finish_surfer_bar` last cleared the stop request. A script checks it before every step.
  */
 function is_stop_requested() {
   return stop_requested;

@@ -170,7 +170,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     viewer: viewer,
   });
 
-  // On localhost, window.imaginer_surfboard lets a script ride the app without a mouse; the live site never loads it.
+  // On localhost, window.imaginer_surfboard lets a script use the app without a mouse; the live site never loads it.
   if (["localhost", "127.0.0.1"].includes(location.hostname)) {
     import(versioned_url("./surfboard.js")).then(({ install_surfboard }) => install_surfboard());
   }
