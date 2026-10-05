@@ -70,7 +70,7 @@
 - `Ctrl` + mouse wheel: Adjust brush size (mask mode).
 
 ## Surfboard
-- The surfboard is what a script stands on to ride Imaginer. On `localhost` and `127.0.0.1`, `surfboard.js` adds `window.imaginer_surfboard`, so a script can drive Imaginer without a mouse:
+- On `localhost` and `127.0.0.1`, `surfboard.js` adds `window.imaginer_surfboard`, so a script can use Imaginer without a mouse:
   - `list_records()`: every gallery picture, newest first, with its ID, creation time, the start of its prompt, and whether it has a mask.
   - `add_to_input_area(record_id)`: puts a gallery picture into the edit drop area along the path of a real gallery drag, mask included, and resolves with the number of images in the drop area.
   - `set_prompt(text)`: sets the prompt as typing would, so it is saved.
