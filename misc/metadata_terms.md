@@ -24,7 +24,7 @@ The reference for metadata in Imaginer, written for [Rock-solid metadata](../Tas
   - **Gallery door**: Import to Gallery, model output. The image becomes a gallery file.
   - **Input area door**: Import to input area. The image stays in memory only.
 - **Import to Gallery**: a local file is added to the gallery.
-- **ZIP import**: Import to Gallery of a ZIP file from ZIP export. Every picture in it passes the gallery door like a loose file.
+- **ZIP import**: Import to Gallery of a ZIP file. Every picture in it passes the gallery door like a loose file.
 - **Import to input area**: a local file is added to the input area.
 - **Gallery → input area**: a gallery file is dragged onto the input area. In-app; no intake.
 - **Export**: images leave Imaginer as files for the user: Download, ZIP export.
@@ -90,7 +90,7 @@ Applies to Download and ZIP export.
 - Conversion passes the browser's decoder. Opaque and fully transparent pixels come out exact; semi-transparent pixels of a WebP may shift in color. A PNG never passes a decoder, so its transparency stays exact.
 - An import carries no external metadata into Imaginer, whatever the config says.
 - Gallery files carry no Imaginer metadata, so an Export cannot produce leftovers or duplicates.
-- A ZIP export restores through the ZIP import with its order, prompts and timestamps, because the filename carries the timestamp and the ID, and the file carries the prompt forms, as long as the prompt checkboxes were on at Export.
+- A ZIP export restores through the ZIP import with its order, prompts and timestamps, because the filename carries the timestamp, and the file carries the prompt forms, as long as the prompt checkboxes were on at Export.
 - The strip whitelist carries the pixels of every PNG layout. With strip on, an animated PNG becomes its default image, and a PNG whose orientation comes from an `eXIf` chunk loses it.
 - With the strip checkbox off, model output keeps OpenAI's provenance data (C2PA). An Export that writes a prompt form changes the file and probably invalidates it. Not verified; the user is responsible for their config.
 - A mask is stored as the canvas produced it, a chunk such as Firefox's `deBG` included, and reduced to its pixel chunks at the edit request; it never leaves the app any other way.
@@ -99,4 +99,3 @@ Applies to Download and ZIP export.
 ## Open points
 
 - **Color spaces**: out of scope for now.
-- **UI labels**: the labels "Strip Server-Side metadata" and "Download All Images" stay; the manual explains what they do. Decided, not open.

@@ -6,9 +6,8 @@ A ZIP file from ZIP export restores a gallery: Import to Gallery brings its pict
 
 ## Plan
 
-Today, a restore means unzipping the ZIP file by hand and importing the loose files.
-The order gets lost on the way, because neither the unzip tool nor the file dialog keeps it.
-Import to Gallery therefore accepts the ZIP file itself.
+Unzipping by hand loses the order, because neither the unzip tool nor the file dialog keeps it.
+So Import to Gallery accepts the ZIP file itself.
 
 *ZIP import*: Import to Gallery of a ZIP file.
 
@@ -85,8 +84,6 @@ Made while building; the wording is for the review.
 
 Opus, 2026-10-04: the gate passes, every constraint is kept, and `tools/check/ZIP_import_check.mjs` runs 80 checks. Findings:
 
-- `Status.md` says Rock-solid metadata and the gallery import button "shipped with 1.14"; 1.14 is not uploaded yet.
 - Pictures with the same timestamp keep the ZIP file's order, not their IDs. ZIP export writes the oldest first, so this holds for its ZIP files; for a ZIP file from Imaginer 1.12, manual test 3 shows it.
-- `misc/metadata_terms.md` defines the ZIP import for a ZIP file "from ZIP export", but any ZIP file is imported. It also says the restore works because the filename carries "the timestamp and the ID", but the ID is not read.
 - A ZIP file made on a Mac carries `__MACOSX/._<name>.png` helper files. Their names end in `.png`, so they are listed as pictures Imaginer could not understand.
 - The notes about a ZIP file appear in the error dialog, under the title "Error".
