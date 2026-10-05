@@ -20,5 +20,5 @@
 ## Open threads (not blocking)
 
 - The wording of the ZIP import's dialogs is a draft; the review decides it.
-- The push for an outcome is proven in a surf, and the surfboard now carries it as `report_next_outcome`. Open: its first surf with Generate, and the failed outcome.
+- The push for an outcome is proven in a surf, and the surfboard now carries it as `report_next_outcome`. Open: the failed outcome.
 - With a mini model selected, the images in the input area are ignored without a message, and a generation request goes out instead (`is_mini_model` in `app.js`).
