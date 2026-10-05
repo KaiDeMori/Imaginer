@@ -71,7 +71,7 @@
 
 ## Surfboard
 - On `localhost` and `127.0.0.1`, `surfboard.js` adds `window.imaginer_surfboard`, so a script can use Imaginer without a mouse:
-  - `list_records()`: every gallery picture, newest first, with its ID, creation time, the start of its prompt, and whether it has a mask.
+  - `list_records()`: resolves with every gallery picture, newest first, with its ID, creation time, the start of its prompt, and whether it has a mask.
   - `add_to_input_area(record_id)`: puts a gallery picture into the edit drop area along the path of a real gallery drag, mask included, and resolves with the number of images in the drop area.
   - `set_prompt(text)`: sets the prompt as typing would, so it is saved.
   - `show_surfer_bar(message)`: shows the surfer bar, a blue bar at the top of the page with the message and a 🛑 button, so the person watching sees what the script is doing. A click on 🛑 turns it red, and it keeps the stop message until `finish_surfer_bar` turns it green.

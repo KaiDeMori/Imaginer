@@ -54,3 +54,12 @@ Its only instruction is "choose Later".
 It does not say what Later costs: a gallery file that stays a JPEG or WebP does not leave a ZIP export with any metadata checkbox on.
 Escape and a click outside also count as Later.
 Goal: the dialog makes clear that converting is the way forward.
+
+## Token efficiency of the browser tool
+
+Opus uses Imaginer through the Claude in Chrome tools, and every screenshot, page reading and tool call costs tokens.
+Ideas that could make it cheaper and clearer at the same time:
+- JavaScript readings instead of screenshots wherever words are enough.
+- Small screenshots, and the zoom only where details matter.
+- Several steps in one batch.
+- A prompt fetched from its file and handed to `set_prompt`, never retyped.
