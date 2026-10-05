@@ -128,6 +128,20 @@ function is_stop_requested() {
   return stop_requested;
 }
 
+/**
+ * Arms a one-time report: the outcome of the next placeholder, { status: "finished", record_id } or { status: "failed" }, goes as a POST to a waiting listener. Returns at once.
+ * @param {string} listener_url
+ */
+function report_next_outcome(listener_url = "http://127.0.0.1:9333/") {
+  window.addEventListener(
+    "imaginer.placeholder_outcome",
+    (event) => {
+      fetch(listener_url, { method: "POST", mode: "no-cors", body: JSON.stringify(event.detail) }).catch((error) => console.warn("[Surfboard] The outcome could not be reported:", error));
+    },
+    { once: true },
+  );
+}
+
 export function install_surfboard() {
-  window.imaginer_surfboard = { list_records, add_to_input_area, set_prompt, show_surfer_bar, finish_surfer_bar, is_stop_requested };
+  window.imaginer_surfboard = { list_records, add_to_input_area, set_prompt, show_surfer_bar, finish_surfer_bar, is_stop_requested, report_next_outcome };
 }

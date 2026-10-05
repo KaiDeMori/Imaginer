@@ -611,6 +611,7 @@ export class Gallery {
 
       const button_prompt = this._build_prompt_button(prompt_text, { visible: true });
       placeholder.appendChild(button_prompt);
+      window.dispatchEvent(new CustomEvent("imaginer.placeholder_outcome", { detail: { status: "failed" } }));
       return;
     }
 
@@ -618,6 +619,7 @@ export class Gallery {
 
     this.create_or_update_thumbnail(placeholder, blob, prompt_text, created, record_id);
     this.update_empty_state();
+    window.dispatchEvent(new CustomEvent("imaginer.placeholder_outcome", { detail: { status: "finished", record_id } }));
   }
 
   update_empty_state() {

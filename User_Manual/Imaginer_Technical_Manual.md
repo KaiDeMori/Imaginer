@@ -77,6 +77,7 @@
   - `show_surfer_bar(message)`: shows the surfer bar, a blue bar at the top of the page with the message and a 🛑 button, so the person watching sees what the script is doing. A click on 🛑 turns it red, and it keeps the stop message until `finish_surfer_bar` turns it green.
   - `finish_surfer_bar(message)`: turns the surfer bar green with the message and clears the stop request.
   - `is_stop_requested()`: returns `true` when someone pressed 🛑 since `finish_surfer_bar` last cleared the stop request. A script checks it before every step.
+  - `report_next_outcome(listener_url)`: arms a one-time report and returns at once. The outcome of the next placeholder goes as a POST to the listener, by default `http://127.0.0.1:9333/`: `{ "status": "finished", "record_id": … }` or `{ "status": "failed" }`. The gallery announces every outcome as the window event `imaginer.placeholder_outcome`.
 - No surfboard function sends a request to OpenAI. A request goes out only through Generate, by its button or Ctrl+Enter, the same way a user sends it.
 - Importing needs no surfboard function: the 📂 button's file input, `#import-file-input`, takes files directly.
 
